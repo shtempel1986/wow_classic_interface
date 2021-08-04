@@ -1,0 +1,9 @@
+## Interface: 20501
+## Title: GearScoreLite Classic fix |cFF00FF00by |cFF00FF00Janit
+## Notes: Quickly and easily judge a player's level of Gear.
+## Version: 0.1 (based on 3x04y05)
+## Author: Джанит@Пламегор (original author Mirrikat45)
+## SavedVariables: GS_Settings
+
+informationLite.lua
+GearScoreLite.lua
