@@ -41,7 +41,7 @@ function ArkInventory.Collection.Currency.ImportCrossRefTable( )
 	
 	for item, value in ArkInventory.Lib.PeriodicTable:IterateSet( "ArkInventory.System.XREF.Currency" ) do
 		
-		cid = tonumber( value ) or 0
+		cid = ArkInventory.ToNumber( value ) or 0
 		
 		if cid > 0 then
 			
@@ -76,7 +76,7 @@ local function FilterActionBackup( )
 	
 	local n, e, c
 	local p = 0
-	table.wipe( collection.filter.expanded )
+	ArkInventory.Table.Wipe( collection.filter.expanded )
 	
 	repeat
 		
@@ -297,7 +297,7 @@ local function Scan_Threaded( thread_id )
 	
 	-- scan the currency frame (now fully expanded) for known currencies
 	
-	table.wipe( collection.list )
+	ArkInventory.Table.Wipe( collection.list )
 	local cache = collection.cache
 	local list = collection.list
 	local active = true
@@ -440,7 +440,7 @@ local function Scan_Threaded( thread_id )
 	if update then
 		ArkInventory.ScanLocation( loc_id )
 		ArkInventory.Frame_Status_Update_Tracking( loc_id )
---		ArkInventory.LDB.Tracking_Currency:Update( )
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 	end
 	
 end

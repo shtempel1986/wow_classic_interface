@@ -60,7 +60,7 @@ local function RestackBagCheck( loc_id, bag_id )
 	local numSlots = GetContainerNumSlots( bag_id )
 	local freeSlots, bagType = GetContainerNumFreeSlots( bag_id )
 	
-	local it = GetItemFamily( h ) or 0
+	--local it = GetItemFamily( h ) or 0
 	
 	
 	if bag_id == REAGENTBANK_CONTAINER and not ArkInventory.CrossClient.IsReagentBankUnlocked( ) then
@@ -234,7 +234,7 @@ local function FindPartialStack( loc_id, cl, cb, bp, cs, id )
 					
 					if h then
 						
-						local info = ArkInventory.ObjectInfoArray( h )
+						local info = ArkInventory.GetObjectInfo( h )
 						
 						if info.id == id then
 						
@@ -299,7 +299,7 @@ local function FindPartialStack( loc_id, cl, cb, bp, cs, id )
 							
 							if h then
 								
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.id == id then
 									
 									local count = select( 2, GetContainerItemInfo( bag_id, slot_id ) )
@@ -498,7 +498,7 @@ local function FindProfessionItem( loc_id, cl, cb, bp, cs, ct )
 								--ArkInventory.Output( "chk> ", loc_id, ".", bag_id, ".", slot_id )
 								
 								-- ignore bags
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.equiploc ~= "INVTYPE_BAG" then
 									
 									local check_item = true
@@ -636,7 +636,7 @@ local function FindCraftingItem( loc_id, cl, cb, bp, cs )
 							
 							if h then
 								
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.craft then
 									--ArkInventory.Output( "found> [", ArkInventory.Global.Location[loc_id].Name, ".", bag_id, ".", slot_id, "]" )
 									return abort, recheck, true, bag_id, slot_id
@@ -729,7 +729,7 @@ local function StackBags( loc_id )
 						
 						if h then
 							
-							local info = ArkInventory.ObjectInfoArray( h )
+							local info = ArkInventory.GetObjectInfo( h )
 							local num = select( 2, GetContainerItemInfo( bag_id, slot_id ) )
 							
 							if num < info.stacksize then
@@ -830,7 +830,7 @@ local function StackVault( )
 			
 			if h then
 				
-				local info = ArkInventory.ObjectInfoArray( h )
+				local info = ArkInventory.GetObjectInfo( h )
 				local count = select( 2, GetGuildBankItemInfo( bag_id, slot_id ) )
 				
 				if count < info.stacksize then
@@ -1434,12 +1434,18 @@ end
 
 local function RestackRun( loc_id )
 	
-	local thread_id = ArkInventory.Global.Thread.Format.Restack
 	
-	if ArkInventory.Global.Mode.Combat then
-		--ArkInventory.Output( "restack location ", loc_id, " aborted - in combat" )
+	if UnitIsDead( "player" ) then
+		ArkInventory.OutputWarning( "cannot restack while dead.  release or resurrect first." )
 		return
 	end
+	
+	if ArkInventory.Global.Mode.Combat then
+		ArkInventory.OutputWarning( "cannot restack while in combat." )
+		return
+	end
+	
+	local thread_id = ArkInventory.Global.Thread.Format.Restack
 	
 	if not ArkInventory.Global.Thread.Use then
 		local tz = debugprofilestop( )

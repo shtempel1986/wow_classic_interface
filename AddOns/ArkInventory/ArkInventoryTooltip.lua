@@ -364,31 +364,35 @@ function ArkInventory.TooltipSetCustomReputation( tooltip, h )
 	
 	if osd.class ~= "reputation" then return end
 	
-	local info = ArkInventory.Collection.Reputation.GetByID( osd.id )
-	if not info then
-		ArkInventory.OutputWarning( "no reputation data found for ", osd.id )
-		return
-	end
-	
 	tooltip:ClearLines( )
 	
-	tooltip:AddLine( info.name )
-	
-	if ArkInventory.db.option.tooltip.reputation.description and ( info.description and info.description ~= "" ) then
-		tooltip:AddLine( info.description, 1, 1, 1, true )
-	end
-	
-	tooltip:AddLine( " " )
-	local style_default = ArkInventory.Const.Reputation.Style.TooltipNormal
-	local style = style_default
-	if ArkInventory.db.option.tooltip.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
-		style = ArkInventory.db.option.tooltip.reputation.style.normal
-		if string.trim( style ) == "" then
-			style = style_default
+	local data = ArkInventory.Collection.Reputation.GetByID( osd.id )
+	if not data then
+		
+		tooltip:AddLine( string.format( ArkInventory.Localise["UNKNOWN_OBJECT"], h ) )
+		
+	else
+		
+		tooltip:AddLine( data.name )
+		
+		if ArkInventory.db.option.tooltip.reputation.description and ( data.description and data.description ~= "" ) then
+			tooltip:AddLine( data.description, 1, 1, 1, true )
 		end
+		
+		tooltip:AddLine( " " )
+		
+		local style_default = ArkInventory.Const.Reputation.Style.TooltipNormal
+		local style = style_default
+		if ArkInventory.db.option.tooltip.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
+			style = ArkInventory.db.option.tooltip.reputation.style.normal
+			if string.trim( style ) == "" then
+				style = style_default
+			end
+		end
+		local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style )
+		tooltip:AddDoubleLine( "", txt, 1, 1, 1, 1, 1, 1 )
+		
 	end
-	local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style )
-	tooltip:AddDoubleLine( "", txt, 1, 1, 1, 1, 1, 1 )
 	
 	tooltip:Show( )
 	
@@ -637,83 +641,99 @@ function ArkInventory.TooltipCustomBattlepetBuild( tooltip, h, i )
 	
 	
 	
-	txt1 = LEVEL
-	txt2 = string.format( "%s %s", level, "|TInterface\\PetBattles\\BattleBar-AbilityBadge-Strong-Small:0|t" )
-	if pd and pd.xp and pd.maxXp and pd.xp > 0 then
+	if level > 0 then
 		
-		local pc = math.floor( pd.xp / pd.maxXp * 100 )
-		if pc < 1 then
-			pc = 1
-		elseif pc > 99 then
-			pc = 99
+		
+		txt1 = LEVEL
+		txt2 = string.format( "%s %s", level, "|TInterface\\PetBattles\\BattleBar-AbilityBadge-Strong-Small:0|t" )
+		if pd and pd.xp and pd.maxXp and pd.xp > 0 then
+			
+			local pc = math.floor( pd.xp / pd.maxXp * 100 )
+			if pc < 1 then
+				pc = 1
+			elseif pc > 99 then
+				pc = 99
+			end
+			
+			txt1 = string.format( "%s (%d%%)", txt1, pc )
+			
 		end
+		tooltip:AddDoubleLine( txt1, txt2 )
 		
-		txt1 = string.format( "%s (%d%%)", txt1, pc )
 		
 	end
-	tooltip:AddDoubleLine( txt1, txt2 )
-	
-	
-	
+		
+		
+		
 	if sd.canBattle then
 		
 		
-		if health >= 0 then
+		if level > 0 then
 			
-			local iconPetAlive = "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:16:32:16:32|t"
-			local iconPetDead = "|TInterface\\Scenarios\\ScenarioIcon-Boss:0|t"
-			txt1 = PET_BATTLE_STAT_HEALTH
-			txt2 = string.format( "%s %s", maxHealth, iconPetAlive )
 			
-			if health <= 0 then
+			if health >= 0 then
 				
-				txt1 = string.format( "%s (%s)", txt1, DEAD )
-				txt2 = string.format( "%s %s", maxHealth, iconPetDead )
+				local iconPetAlive = "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:16:32:16:32|t"
+				local iconPetDead = "|TInterface\\Scenarios\\ScenarioIcon-Boss:0|t"
+				txt1 = PET_BATTLE_STAT_HEALTH
+				txt2 = string.format( "%s %s", maxHealth, iconPetAlive )
 				
-			else
-				
-				if health ~= maxHealth then
+				if health <= 0 then
 					
-					local pc = math.floor( health / maxHealth * 100 )
-					if pc < 1 then
-						pc = 1
-					elseif pc > 99 then
-						pc = 99
+					txt1 = string.format( "%s (%s)", txt1, DEAD )
+					txt2 = string.format( "%s %s", maxHealth, iconPetDead )
+					
+				else
+					
+					if health ~= maxHealth then
+						
+						local pc = math.floor( health / maxHealth * 100 )
+						if pc < 1 then
+							pc = 1
+						elseif pc > 99 then
+							pc = 99
+						end
+						
+						txt1 = string.format( "%s (%d%%)", txt1, pc )
+						
 					end
 					
-					txt1 = string.format( "%s (%d%%)", txt1, pc )
-					
 				end
+				tooltip:AddDoubleLine( txt1, txt2 )
 				
 			end
-			tooltip:AddDoubleLine( txt1, txt2 )
+			
+			
+			if power >= 0 then
+				-- |TTexturePath:size1:size2:offset-x:offset-y:original-size-x:original-size-y:crop-x1:crop-x2:crop-y1:crop-y2|t
+				tooltip:AddDoubleLine( PET_BATTLE_STAT_POWER, string.format( "%s %s", power, "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:0:16:0:16|t" ) )
+			end
+			
+			
+			if speed >= 0 then
+				tooltip:AddDoubleLine( PET_BATTLE_STAT_SPEED, string.format( "%s %s", speed, "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:0:16:16:32|t" ) )
+			end
+			
+			
+			if quality >= 0 then
+				-- ignore the -1, those will be from other peoples links and we cant get at that data
+				txt1 = PET_BATTLE_STAT_QUALITY
+				txt2 = "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:16:32:0:16|t"
+				if ArkInventory.Global.Mode.ColourBlind then
+					txt2 = string.format( "%s %s", _G[string.format( "ITEM_QUALITY%d_DESC", quality )], txt2 )
+				else
+					txt2 = string.format( "%s %s", colour:WrapTextInColorCode( _G[string.format( "ITEM_QUALITY%d_DESC", quality )] ), txt2 )
+				end
+				tooltip:AddDoubleLine( txt1, txt2 )
+			end
+			
 			
 		end
 		
 		
-		if power >= 0 then
-			-- |TTexturePath:size1:size2:offset-x:offset-y:original-size-x:original-size-y:crop-x1:crop-x2:crop-y1:crop-y2|t
-			tooltip:AddDoubleLine( PET_BATTLE_STAT_POWER, string.format( "%s %s", power, "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:0:16:0:16|t" ) )
-		end
+	elseif not sd.isTrainer then
 		
-		
-		if speed >= 0 then
-			tooltip:AddDoubleLine( PET_BATTLE_STAT_SPEED, string.format( "%s %s", speed, "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:0:16:16:32|t" ) )
-		end
-		
-		
-		if quality >= 0 then
-			-- ignore the -1, those will be from other peoples links and we cant get at that data
-			txt1 = PET_BATTLE_STAT_QUALITY
-			txt2 = "|TInterface\\PetBattles\\PetBattle-StatIcons:0:0:0:0:32:32:16:32:0:16|t"
-			if ArkInventory.Global.Mode.ColourBlind then
-				txt2 = string.format( "%s %s", _G[string.format( "ITEM_QUALITY%d_DESC", quality )], txt2 )
-			else
-				txt2 = string.format( "%s %s", colour:WrapTextInColorCode( _G[string.format( "ITEM_QUALITY%d_DESC", quality )] ), txt2 )
-			end
-			tooltip:AddDoubleLine( txt1, txt2 )
-		end
-		
+		tooltip:AddLine( ArkInventory.Localise["PET_CANNOT_BATTLE"], RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b, true )
 		
 	end
 	
@@ -721,16 +741,12 @@ function ArkInventory.TooltipCustomBattlepetBuild( tooltip, h, i )
 	
 	if not sd.isTrainer then
 		
-		if not sd.unique or not sd.canBattle or not sd.isTradable then
+		if not sd.unique or not sd.isTradable then
 			tooltip:AddLine( " " )
 		end
 		
 		if sd.unique then
 			tooltip:AddLine( ITEM_UNIQUE, WHITE_FONT_COLOR.r, WHITE_FONT_COLOR.g, WHITE_FONT_COLOR.b, true )
-		end
-		
-		if not sd.canBattle then
-			tooltip:AddLine( ArkInventory.Localise["PET_CANNOT_BATTLE"], RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b, true )
 		end
 		
 		if not sd.isTradable then
@@ -930,9 +946,8 @@ function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight,
 					txt = string.lower( txt )
 				end
 				
-				local a, b = string.find( txt, TextToFind )
-				if a then
-					return a, b
+				if string.find( txt, TextToFind ) then
+					return string.find( txt, TextToFind )
 				end
 				
 			end
@@ -951,9 +966,8 @@ function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight,
 						txt = string.lower( txt )
 					end
 					
-					local a, b = string.find( txt, TextToFind )
-					if a then
-						return a, b
+					if string.find( txt, TextToFind ) then
+						return string.find( txt, TextToFind )
 					end
 					
 				end
@@ -967,7 +981,7 @@ function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight,
 end
 
 function ArkInventory.TooltipGetLine( tooltip, i, clean )
-
+	
 	if not i or i < 1 or i > ArkInventory.TooltipGetNumLines( tooltip ) then
 		return
 	end
@@ -995,7 +1009,7 @@ function ArkInventory.TooltipGetLine( tooltip, i, clean )
 	return txt1 or "", txt2 or "", c1, c2
 	
 end
-	
+
 function ArkInventory.TooltipGetBaseStats( tooltip, activeonly )
 	
 	local obj, txt, ctxt
@@ -1096,8 +1110,8 @@ local function helper_AcceptableRedText( txt, ignoreknown )
 	elseif txt == ArkInventory.Localise["PREVIOUS_RANK_UNKNOWN"] then
 		--ArkInventory.Output2( "PREVIOUS_RANK_UNKNOWN" )
 		return true
-	elseif txt == ArkInventory.Localise["RETRIEVING_ITEM_INFO"] then
-		--ArkInventory.Output2( "RETRIEVING_ITEM_INFO" )
+	elseif txt == ArkInventory.Localise["WOW_TOOLTIP_RETRIEVING_ITEM_INFO"] then
+		--ArkInventory.Output2( "WOW_TOOLTIP_RETRIEVING_ITEM_INFO" )
 		return true
 	elseif string.match( txt, ArkInventory.Localise["WOW_TOOLTIP_DURABLITY"] ) then
 		--ArkInventory.Output2( "WOW_TOOLTIP_DURABLITY" )
@@ -1175,7 +1189,7 @@ end
 
 function ArkInventory.TooltipIsReady( tooltip )
 	local txt = ArkInventory.TooltipGetLine( tooltip, 1, true )
-	if txt and txt ~= "" and txt ~= ArkInventory.Localise["RETRIEVING_ITEM_INFO"] then
+	if txt and txt ~= "" and txt ~= ArkInventory.Localise["WOW_TOOLTIP_RETRIEVING_ITEM_INFO"] then
 		return true
 	end
 end
@@ -1962,7 +1976,7 @@ function ArkInventory.TooltipAddItemCount( tooltip, h )
 		return
 	end
 	
-	local search_id = osd.hb
+	local search_id = osd.h_base
 	--ArkInventory.Output2( search_id )
 	if ArkInventory.db.option.tooltip.itemcount.ignore[search_id] then return end
 	
@@ -2431,41 +2445,33 @@ function ArkInventory.TooltipExtractValueArtifactPower( h )
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, h )
 	
 	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, true ) then
-		return 0
+		return
 	end
 	
 	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, true )
+	amount = ArkInventory.ArkInventory.ToNumber( amount )
 	
 	--ArkInventory.Output2( h, "[", amount, "] [", suffix, "]" )
 	
 	if amount then
 		
-		amount = string.gsub( amount, ",", "." )
-		amount = tonumber( amount )
-		
-		if amount then
-			
-			if ArkInventory.TooltipExtractValueSuffixCheck( 12, suffix ) then
-				--ArkInventory.Output2( "12: ", amount, " ", suffix, "]" )
-				amount = amount * 1000000000000
-			elseif ArkInventory.TooltipExtractValueSuffixCheck( 9, suffix ) then
-				--ArkInventory.Output2( "9: ", amount, " ", suffix, "]" )
-				amount = amount * 1000000000
-			elseif ArkInventory.TooltipExtractValueSuffixCheck( 6, suffix ) then
-				--ArkInventory.Output2( "6: ", amount, " ", suffix, "]" )
-				amount = amount * 1000000
-			elseif ArkInventory.TooltipExtractValueSuffixCheck( 3, suffix ) then
-				--ArkInventory.Output2( "3: ", amount, " ", suffix, "]" )
-				amount = amount * 1000
-			end
-			
-			return amount
-			
+		if ArkInventory.TooltipExtractValueSuffixCheck( 12, suffix ) then
+			--ArkInventory.Output2( "12: ", amount, " ", suffix, "]" )
+			amount = amount * 1000000000000
+		elseif ArkInventory.TooltipExtractValueSuffixCheck( 9, suffix ) then
+			--ArkInventory.Output2( "9: ", amount, " ", suffix, "]" )
+			amount = amount * 1000000000
+		elseif ArkInventory.TooltipExtractValueSuffixCheck( 6, suffix ) then
+			--ArkInventory.Output2( "6: ", amount, " ", suffix, "]" )
+			amount = amount * 1000000
+		elseif ArkInventory.TooltipExtractValueSuffixCheck( 3, suffix ) then
+			--ArkInventory.Output2( "3: ", amount, " ", suffix, "]" )
+			amount = amount * 1000
 		end
 		
+		return amount
+		
 	end
-	
-	return 0
 	
 end
 
@@ -2474,28 +2480,17 @@ function ArkInventory.TooltipExtractValueAncientMana( h )
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, h )
 	
 	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, true ) then
-		return 0
+		return
 	end
 	
 	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, true )
+	amount = ArkInventory.ToNumber( amount )
 	--local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, "(%d+)(..)", false, true, true, 0, true )
 	
 	--ArkInventory.Output2( h, " [", amount, "] [", suffix, "]" )
 	--ArkInventory.Output2( "[", string.byte( string.sub( suffix, 1, 1 ) ), "] [", string.byte( string.sub( suffix, 2, 2 ) ), "]" )
 	
-	if amount then
-		
-		amount = tonumber( amount )
-		
-		if amount then
-			
-			return amount
-			
-		end
-		
-	end
-	
-	return 0
+	return amount
 	
 end
 

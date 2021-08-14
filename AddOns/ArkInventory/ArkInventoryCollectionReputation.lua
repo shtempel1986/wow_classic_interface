@@ -42,8 +42,8 @@ function ArkInventory.Collection.Reputation.ImportCrossRefTable( )
 	
 	for k, v in ArkInventory.Lib.PeriodicTable:IterateSet( "ArkInventory.System.XREF.Reputation" ) do
 		
-		item = tonumber( k ) or 0
-		rid = tonumber( v ) or 0
+		item = ArkInventory.ToNumber( k ) or 0
+		rid = ArkInventory.ToNumber( v ) or 0
 		
 		if rid > 0 and item > 0 then
 			
@@ -78,7 +78,7 @@ local function FilterActionBackup( )
 	
 	local n, e, c
 	local p = 0
-	table.wipe( collection.filter.expanded )
+	ArkInventory.Table.Wipe( collection.filter.expanded )
 	
 	collection.filter.ignore = true
 	
@@ -422,10 +422,6 @@ local function ScanBase( id )
 					hasRep = hasRep,
 				}
 				
-			if name == "Marasmius" then
-				ArkInventory.Output( cache[id] )
-			end
-			
 				collection.numTotal = collection.numTotal + 1
 				
 			end
@@ -481,7 +477,7 @@ local function Scan_Threaded( thread_id )
 	
 	-- scan the reuptation frame (now fully expanded) for known factions
 	
-	table.wipe( collection.list )
+	ArkInventory.Table.Wipe( collection.list )
 	local cache = collection.cache
 	local list = collection.list
 	local active = true

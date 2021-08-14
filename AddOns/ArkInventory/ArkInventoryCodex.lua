@@ -172,8 +172,8 @@ end
 function ArkInventory.CodexReset( loc_id )
 	
 	if not loc_id then
-		table.wipe( codex_data.player )
-		table.wipe( codex_data.location )
+		ArkInventory.Table.Wipe( codex_data.player )
+		ArkInventory.Table.Wipe( codex_data.location )
 	else
 		codex_data.player[loc_id] = nil
 		codex_data.location[loc_id] = nil

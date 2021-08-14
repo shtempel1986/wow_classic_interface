@@ -36,7 +36,6 @@ local collection = {
 		backup = false,
 	},
 	
-	
 }
 
 local ImportCrossRefTableAttempt = 0
@@ -49,6 +48,10 @@ local ImportCrossRefTable = {
 {229377,{142224}}, -- High Priest's Lightsworn Seeker
 {231437,{143638}}, -- Archdruid's Lunarwing Form
 {278979,{163188}}, -- Surf Jelly
+
+-- may no longer exist
+{343550,{186480}}, -- Battle-Hardened Aquilon
+{346136,{}}, -- Viridian Phase-Hunter
 
 -- zone restrictions
 {25953,{},{766,717}}, -- Blue Qiraji Battle Tank
@@ -581,7 +584,7 @@ local ImportCrossRefTable = {
 {213350,{137614}}, -- Frostshard Infernal / Biting Frostshard Core
 {214791,{138811}}, -- Brinedeep Bottom-Feeder
 {215159,{138258}}, -- Long-Forgotten Hippogryph / Reins of the Long-Forgotten Hippogryph
-{215545,{}}, -- Fel Bat (Test)
+{215545,{186479}}, -- Mastercraft Gravewing
 {215558,{138387}}, -- Ratstallion
 {221883,{}}, -- Divine Steed
 {221885,{}}, -- Divine Steed
@@ -910,7 +913,7 @@ local ImportCrossRefTable = {
 {332484,{182082}}, -- Lurid Bloodtusk
 {332882,{180461}}, -- Horrid Dredwing
 {332903,{182596}}, -- Rampart Screecher
-{332904,{}}, -- PH Purple Dredwing
+{332904,{185996}}, -- Harvester's Dredwing / Harvester's Dredwing Saddle
 {332905,{180582}}, -- Endmire Flyer / Endmire Flyer Tether
 {332908,{}}, -- PH Devourer Mite (Green)
 {332923,{182954}}, -- Inquisition Gargon
@@ -943,6 +946,8 @@ local ImportCrossRefTable = {
 {336064,{181317}}, -- Dauntless Duskrunner
 {339588,{182614}}, -- Sinrunner Blanchy / Blanchy's Reins
 {339632,{182650}}, -- Arboreal Gulper
+{339956,{186655}}, -- Mawsworn Charger / Mawsworn Charger's Reins
+{339957,{186653}}, -- Hand of Hrestimorak / Bracer of Hrestimorak
 {340068,{182717}}, -- Sintouched Deathwalker
 {340503,{183053}}, -- Umbral Scythehorn
 {341639,{183518}}, -- Court Sinrunner
@@ -953,6 +958,7 @@ local ImportCrossRefTable = {
 {342335,{183741}}, -- Ascended Skymane
 {342666,{183800}}, -- Amber Ardenmoth
 {342667,{183801}}, -- Vibrant Flutterwing
+{343550,{186480}}, -- Battle-Hardened Aquilon
 {344228,{184062}}, -- Battle-Bound Warhound / Gnawed Reins of the Battle-Bound Warhound
 {344574,{184160}}, -- Bulbous Necroray
 {344575,{184162}}, -- Pestilent Necroray
@@ -962,22 +968,15 @@ local ImportCrossRefTable = {
 {344659,{184183}}, -- Voracious Gorger
 {346136,{}}, -- Viridian Phase-Hunter
 {346141,{}}, -- Slime Serpent
-{347812,{}}, -- Sapphire Skyblazer
-{347813,{}}, -- Fireplume Phoenix
-{348162,{}}, -- Wandering Ancient
--- end of live
-
--- ptr
-{339956,{186655}}, -- Mawsworn Charger / Mawsworn Charger's Reins
-{339957,{186653}}, -- Hand of Hrestimorak / Bracer of Hrestimorak
-{343550,{186480}}, -- Battle-Hardened Aquilon
-{346136,{}}, -- Viridian Phase-Hunter
 {346554,{186637}}, -- Tazavesh Gearglider
 {346718,{}}, -- PH Wolf Serpent
 {347250,{186489}}, -- Lord of the Corpseflies
 {347251,{186648}}, -- Soaring Razorwing
 {347536,{186641}}, -- Tamed Mauler / Tamed Mauler Harness
 {347810,{186644}}, -- Beryl Shardhide
+{347812,{}}, -- Sapphire Skyblazer
+{347813,{}}, -- Fireplume Phoenix
+{348162,{}}, -- Wandering Ancient
 {348769,{186179}}, -- Vicious War Gorm
 {348770,{186178}}, -- Vicious War Gorm
 {351195,{186642}}, -- Vengeance / Vengeance's Reins
@@ -1016,6 +1015,9 @@ local ImportCrossRefTable = {
 {354362,{186643}}, -- Wandering Arden Doe / Reins of the Wanderer
 {356501,{187183}}, -- Rampaging Mauler
 {358319,{187525}}, -- Soultwisted Deathwalker
+-- end of live
+
+-- ptr
 --end of ptr
 
 }
@@ -1044,7 +1046,7 @@ function ArkInventory.Collection.Mount.ImportCrossRefTable( )
 		
 		--ArkInventory.Output( k )
 		
-		spell = tonumber( v[1] ) or 0
+		spell = ArkInventory.ToNumber( v[1] ) or 0
 		
 		if spell > 0 then
 			
@@ -1052,7 +1054,7 @@ function ArkInventory.Collection.Mount.ImportCrossRefTable( )
 			
 			for k2, v2 in pairs( v[2] ) do
 				
-				v2 = tonumber( v2 ) or 0
+				v2 = ArkInventory.ToNumber( v2 ) or 0
 				
 				key1 = nil
 				if v2 > 0 then
@@ -1479,7 +1481,7 @@ local function Scan_Threaded( thread_id )
 	
 	if update then
 		ArkInventory.ScanLocation( loc_id )
---		ArkInventory.LDB.Mounts:Update( )
+--		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 	end
 	
 end

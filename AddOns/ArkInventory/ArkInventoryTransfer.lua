@@ -225,7 +225,7 @@ local function FindPartialStack( loc_id, cl, cb, bp, cs, id )
 					
 					if h then
 						
-						local info = ArkInventory.ObjectInfoArray( h )
+						local info = ArkInventory.GetObjectInfo( h )
 						
 						if info.id == id then
 						
@@ -290,7 +290,7 @@ local function FindPartialStack( loc_id, cl, cb, bp, cs, id )
 							
 							if h then
 								
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.id == id then
 									
 									local count = select( 2, GetContainerItemInfo( bag_id, slot_id ) )
@@ -489,7 +489,7 @@ local function FindProfessionItem( loc_id, cl, cb, bp, cs, ct )
 								--ArkInventory.Output( "chk> ", loc_id, ".", bag_id, ".", slot_id )
 								
 								-- ignore bags
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.equiploc ~= "INVTYPE_BAG" then
 									
 									local check_item = true
@@ -627,7 +627,7 @@ local function FindCraftingItem( loc_id, cl, cb, bp, cs )
 							
 							if h then
 								
-								local info = ArkInventory.ObjectInfoArray( h )
+								local info = ArkInventory.GetObjectInfo( h )
 								if info.craft then
 									--ArkInventory.Output( "found> [", ArkInventory.Global.Location[loc_id].Name, ".", bag_id, ".", slot_id, "]" )
 									return abort, recheck, true, bag_id, slot_id
@@ -720,7 +720,7 @@ local function StackBags( loc_id )
 						
 						if h then
 							
-							local info = ArkInventory.ObjectInfoArray( h )
+							local info = ArkInventory.GetObjectInfo( h )
 							local num = select( 2, GetContainerItemInfo( bag_id, slot_id ) )
 							
 							if num < info.stacksize then

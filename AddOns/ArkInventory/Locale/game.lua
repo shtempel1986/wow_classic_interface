@@ -1,7 +1,7 @@
 local L = LibStub( "AceLocale-3.0" ):NewLocale( "ArkInventory", "enUS", true, false )
 if not L then return end
 
-local function FormatForRegex( text )
+local function FormatForPattern( text )
 	local text = text
 	text = string.gsub( text, "%.", "%%%." ) -- replace . with %.
 	text = string.gsub( text, "%*", "%%%*" ) -- replace * with %*
@@ -14,11 +14,19 @@ local function FormatForRegex( text )
 end
 
 local function FormatForCapture( text )
-	local text = FormatForRegex( text )
+	
+	if string.find( text, "|" ) then
+		print( "warning: FormatForCapture( " .. text .. ") contains || character" )
+	end
+	
+	local text = FormatForPattern( text )
 	text = string.gsub( text, "%d%$", "" ) -- remove 1$ / 2$
 	text = string.gsub( text, "%%s", "(.+)" ) -- replace %s with (.+)
 	text = string.gsub( text, "%%d", "%(%%d+%)" ) -- replace %d with (%d+)
+	--text = string.gsub( text, "|4(.-):(.-);", "%(%1%)?%(%2%)?" )
+	
 	return string.format( "^%s$", text )
+	
 end
 
 local function helper_GetCurrencyName( currencyID )
@@ -161,6 +169,7 @@ L["HIGH"] = HIGH or true
 L["ICON"] = EMBLEM_SYMBOL or true
 L["IGNORE"] = IGNORE or true
 L["INACTIVE"] = FACTION_INACTIVE or true
+L["INFO"] = INFO or true
 L["INSTANT"] = SPELL_CAST_TIME_INSTANT or true
 L["INTERFACE"] = UIOPTIONS_MENU or true
 L["ITEM"] = HELPFRAME_ITEM_TITLE or true
@@ -224,7 +233,6 @@ L["REPUTATION_AT_WAR_DESCRIPTION"] = REPUTATION_AT_WAR_DESCRIPTION or true
 L["REPUTATION_MOVE_TO_INACTIVE"] = REPUTATION_MOVE_TO_INACTIVE or true
 L["REPUTATION_SHOW_AS_XP"] = REPUTATION_SHOW_AS_XP or true
 L["RESET"] = RESET or true
-L["RETRIEVING_ITEM_INFO"] = RETRIEVING_ITEM_INFO or true
 L["REVERSE_NEW_LOOT_TEXT"] = REVERSE_NEW_LOOT_TEXT or true
 L["RULES"] = BRAWL_TOOLTIP_RULES or true
 L["SAVE"] = SAVE or true
@@ -255,6 +263,7 @@ L["TRADESKILL"] = BATTLE_PET_SOURCE_4 or true
 L["TRADESKILLS"] = TRADE_SKILLS or true
 L["TRANSMOGRIFY"] = TRANSMOGRIFY or true
 L["TYPE"] = TYPE or true
+L["UNAVAILABLE"] = UNAVAILABLE or true
 L["UNKNOWN"] = UNKNOWN or true
 L["UNLEARNED"] = TRADE_SKILLS_UNLEARNED_TAB or true
 L["UNTRACK"] = UNTRACK_QUEST_ABBREV or true
@@ -269,12 +278,9 @@ L["YES"] = YES or true
 -- calculated
 
 L["WOW_TOOLTIP_ITEM_BIND_ON_USE"] = FormatForCapture( ITEM_BIND_ON_USE )
-
 L["WOW_TOOLTIP_ITEM_BIND_ON_EQUIP"] = FormatForCapture( ITEM_BIND_ON_EQUIP )
-
 L["WOW_TOOLTIP_ITEM_SOULBOUND"] = FormatForCapture( ITEM_SOULBOUND )
 L["WOW_TOOLTIP_ITEM_BIND_ON_PICKUP"] = FormatForCapture( ITEM_BIND_ON_PICKUP )
-
 L["WOW_TOOLTIP_ITEM_ACCOUNTBOUND"] = FormatForCapture( ITEM_ACCOUNTBOUND )
 L["WOW_TOOLTIP_ITEM_BIND_TO_ACCOUNT"] = FormatForCapture( ITEM_BIND_TO_ACCOUNT )
 L["WOW_TOOLTIP_ITEM_BIND_TO_BNETACCOUNT"] = FormatForCapture( ITEM_BIND_TO_BNETACCOUNT )
@@ -292,10 +298,10 @@ L["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"] = "^.-([%d,.]+)%s(.+)"
 if POWER_TYPE_ANIMA then
 	L["WOW_TOOLTIP_ANIMA"] = FormatForCapture( POWER_TYPE_ANIMA )
 end
-L["WOW_TOOLTIP_CONDUIT_POTENCY"] = CONDUIT_TYPE_POTENCY
-L["WOW_TOOLTIP_CONDUIT_FINESSE"] = CONDUIT_TYPE_FINESSE
-L["WOW_TOOLTIP_CONDUIT_ENDURANCE"] = CONDUIT_TYPE_ENDURANCE
-
+L["WOW_TOOLTIP_CONDUIT_POTENCY"] = CONDUIT_TYPE_POTENCY or true
+L["WOW_TOOLTIP_CONDUIT_FINESSE"] = CONDUIT_TYPE_FINESSE or true
+L["WOW_TOOLTIP_CONDUIT_ENDURANCE"] = CONDUIT_TYPE_ENDURANCE or true
+L["WOW_TOOLTIP_RETRIEVING_ITEM_INFO"] = RETRIEVING_ITEM_INFO or true
 L["WOW_TOOLTIP_RELIC_LEVEL"] = FormatForCapture( RELIC_TOOLTIP_ILVL_INCREASE )
 L["WOW_TOOLTIP_DURABLITY"] = FormatForCapture( DURABILITY_TEMPLATE )
 
@@ -304,6 +310,7 @@ L["WOW_TOOLTIP_BIND_REFUNDABLE"] = FormatForCapture( REFUND_TIME_REMAINING )
 
 L["WOW_TOOLTIP_DAMAGE"] = string.format( " %s$", DAMAGE )
 
+L["DATA_NOT_READY"] = string.format( GARRISON_TEMPORARY_CATEGORY_FORMAT, RETRIEVING_DATA )
 
 L["PET_CANNOT_BATTLE"] = string.gsub( BATTLE_PET_CANNOT_BATTLE, "\n", " " )
 
@@ -311,6 +318,10 @@ L["MINUTES"] = string.match( D_MINUTES, ":(.-);$" ) or true
 L["SECONDS"] = string.match( D_SECONDS, ":(.-);$" ) or true
 
 L["SPELL_DRUID_TRAVEL_FORM"] = ( GetSpellInfo( 783 ) ) or true
+
+L["UNKNOWN_OBJECT"] = "Unknown Object [%s]"
+
+
 
 -- generated from item class table
 
@@ -386,7 +397,7 @@ local itemClassTable = {
 	{ "WOW_ITEM_CLASS_RECIPE_INSCRIPTION", ArkInventory.Const.ItemClass.RECIPE, ArkInventory.Const.ItemClass.RECIPE_INSCRIPTION },
 	
 	{ "WOW_ITEM_CLASS_GEM", ArkInventory.Const.ItemClass.GEM },
-	{ "WOW_ITEM_CLASS_GEM_ARTIFACTRELIC", ArkInventory.Const.ItemClass.GEM, ArkInventory.Const.ItemClass.GEM_ARTIFACTRELIC },
+--	{ "WOW_ITEM_CLASS_GEM_ARTIFACTRELIC", ArkInventory.Const.ItemClass.GEM, ArkInventory.Const.ItemClass.GEM_ARTIFACTRELIC },
 	
 	{ "WOW_ITEM_CLASS_ITEM_ENHANCEMENT", ArkInventory.Const.ItemClass.ITEM_ENHANCEMENT },
 	
@@ -442,7 +453,7 @@ for _, v in ipairs( itemClassTable ) do
 	
 end
 
-table.wipe( itemClassTable )
+ArkInventory.Table.Wipe( itemClassTable )
 itemClassTable = nil
 
 
@@ -490,9 +501,11 @@ L["WOW_ITEM_CLASS_PROJECTILE_ARROW"] = true
 L["WOW_ITEM_CLASS_PROJECTILE_BULLET"] = true
 
 L["WOW_ITEM_CLASS_GEM"] = true
-L["WOW_ITEM_CLASS_GEM_ARTIFACTRELIC"] = true
+--L["WOW_ITEM_CLASS_GEM_ARTIFACTRELIC"] = true
 
 L["WOW_ITEM_CLASS_ITEM_ENHANCEMENT"] = true
+
+L["WOW_ITEM_CLASS_REAGENT"] = true
 
 L["WOW_ITEM_CLASS_GLYPH"] = true
 
@@ -516,6 +529,8 @@ L["WOW_ITEM_CLASS_TRADEGOODS_HERBS"] = true
 L["WOW_ITEM_CLASS_TRADEGOODS_ENCHANTING"] = true
 L["WOW_ITEM_CLASS_TRADEGOODS_JEWELCRAFTING"] = true
 L["WOW_ITEM_CLASS_TRADEGOODS_PARTS"] = true
+L["WOW_ITEM_CLASS_TRADEGOODS_EXPLOSIVES"] = true
+L["WOW_ITEM_CLASS_TRADEGOODS_DEVICES"] = true
 L["WOW_ITEM_CLASS_TRADEGOODS_OTHER"] = true
 L["WOW_ITEM_CLASS_TRADEGOODS_INSCRIPTION"] = true
 

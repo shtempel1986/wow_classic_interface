@@ -22,8 +22,8 @@ function ArkInventory.EraseSavedData( player_id, loc_id, silent )
 	-- erase item/tooltip cache
 	--ArkInventory.Table.Clean( ArkInventory.Global.Cache.ItemCountTooltip, nil, true )
 	--ArkInventory.Table.Clean( ArkInventory.Global.Cache.ItemCountRaw, nil, true )
-	table.wipe( ArkInventory.Global.Cache.ItemCountTooltip )
-	table.wipe( ArkInventory.Global.Cache.ItemCountRaw )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemCountTooltip )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemCountRaw )
 	
 	local info = ArkInventory.GetPlayerInfo( )
 	local account = ArkInventory.PlayerIDAccount( )
@@ -47,7 +47,7 @@ function ArkInventory.EraseSavedData( player_id, loc_id, silent )
 						bv.type = ArkInventory.Const.Slot.Type.Unknown
 						bv.count = 0
 						bv.empty = 0
-						table.wipe( bv.slot )
+						ArkInventory.Table.Wipe( bv.slot )
 					end
 					
 					--ArkInventory.OutputWarning( "EraseSavedData - .Recalculate" )
@@ -72,7 +72,7 @@ function ArkInventory.EraseSavedData( player_id, loc_id, silent )
 				rescan = true
 			else
 				if ( loc_id == nil ) or ( loc_id == ArkInventory.Const.Location.Vault and pv.info.class == ArkInventory.Const.Class.Guild ) then
-					table.wipe( pv.info )
+					ArkInventory.Table.Wipe( pv.info )
 				end
 			end
 			
@@ -435,7 +435,7 @@ function ArkInventory:EVENT_ARKINV_LOCATION_SCANNED_BUCKET( bucket )
 
 	
 	ArkInventory.LDB.Bags:Update( )
-	ArkInventory.LDB.Tracking_Item:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
 	
 end
 
@@ -606,7 +606,9 @@ function ArkInventory:EVENT_ARKINV_BANK_LEAVE_BUCKET( bucket )
 		end
 	end
 	
+	
 	if ArkInventory.isLocationControlled( loc_id ) then
+		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 		ArkInventory.Frame_Main_Hide( loc_id )
 	else
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
@@ -766,6 +768,7 @@ function ArkInventory:EVENT_ARKINV_VAULT_LEAVE_BUCKET( )
 	
 	if ArkInventory.isLocationControlled( loc_id ) then
 		ArkInventory.Frame_Main_Hide( loc_id )
+		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	else
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	end
@@ -964,7 +967,7 @@ function ArkInventory:EVENT_ARKINV_VOID_UPDATE_BUCKET( tblarg )
 	--ArkInventory.Output( "EVENT_ARKINV_VOID_UPDATE_BUCKET[", tblarg, "]" )
 	
 	local loc_id = ArkInventory.Const.Location.Void
-
+	
 	ArkInventory.ScanLocation( loc_id )
 	
  	-- instant sorting enabled
@@ -1048,6 +1051,7 @@ function ArkInventory:EVENT_ARKINV_MAIL_LEAVE_BUCKET( )
 	
 	if ArkInventory.isLocationControlled( loc_id ) then
 		ArkInventory.Frame_Main_Hide( loc_id )
+		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	else
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	end
@@ -1113,7 +1117,7 @@ function ArkInventory.HookMailSend( ... )
 	end
 	
 	
-	table.wipe( ArkInventory.Global.Cache.SentMail )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.SentMail )
 	
 	local recipient, subject, body = ...
 	local n, r = strsplit( "-", recipient )
@@ -1156,7 +1160,7 @@ function ArkInventory.HookMailReturn( index )
 	end
 	
 	
-	table.wipe( ArkInventory.Global.Cache.SentMail )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.SentMail )
 	
 	local _, _, recipient = GetInboxHeaderInfo( index )
 	
@@ -1256,6 +1260,7 @@ function ArkInventory:EVENT_ARKINV_AUCTION_LEAVE_BUCKET( )
 	
 	if ArkInventory.isLocationControlled( loc_id ) then
 		ArkInventory.Frame_Main_Hide( loc_id )
+		ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	else
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	end
@@ -1512,8 +1517,8 @@ end
 function ArkInventory:EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET( argtbl )
 	--ArkInventory.Output( "[EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET] [", argtbl, "]" )
 	if not ArkInventory.Global.Mode.Combat then
-		ArkInventory.LDB.Mounts:Update( )
-		ArkInventory.LDB.Pets:Update( )
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 end
 
@@ -1625,7 +1630,7 @@ function ArkInventory.BagType( blizzard_id )
 		
 		if h and h ~= "" then
 			
-			local info = ArkInventory.ObjectInfoArray( h )
+			local info = ArkInventory.GetObjectInfo( h )
 			local t = info.itemtypeid
 			local s = info.itemsubtypeid
 			
@@ -2025,7 +2030,7 @@ function ArkInventory.ScanBag_Threaded( blizzard_id, loc_id, bag_id, thread_id )
 				
 				status = ArkInventory.Const.Bag.Status.Active
 				
-				local info = ArkInventory.ObjectInfoArray( h )
+				local info = ArkInventory.GetObjectInfo( h )
 				texture = info.texture
 				quality = info.q
 				
@@ -2112,7 +2117,7 @@ function ArkInventory.ScanBag_Threaded( blizzard_id, loc_id, bag_id, thread_id )
 						
 						status = ArkInventory.Const.Bag.Status.Active
 						
-						local info = ArkInventory.ObjectInfoArray( h )
+						local info = ArkInventory.GetObjectInfo( h )
 						texture = info.texture
 						quality = info.q
 						
@@ -2186,9 +2191,6 @@ function ArkInventory.ScanBag_Threaded( blizzard_id, loc_id, bag_id, thread_id )
 				ArkInventory:SendMessage( "EVENT_ARKINV_BAG_RESCAN_BUCKET", blizzard_id )
 			end
 			
-			
-			
-			
 		else
 			
 			quality = ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.POOR
@@ -2228,9 +2230,12 @@ function ArkInventory.ScanBag_Threaded( blizzard_id, loc_id, bag_id, thread_id )
 			
 		end
 		
+		ArkInventory.ThreadYield_Scan( thread_id )
+		
 	end
 	
 	ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
+	ArkInventory.ThreadYield_Scan( thread_id )
 	
 	if bag.type == ArkInventory.Const.Slot.Type.Unknown and bag.status == ArkInventory.Const.Bag.Status.Active then
 		
@@ -3181,7 +3186,7 @@ function ArkInventory.ScanCollectionMount_Threaded( blizzard_id, loc_id, bag_id,
 	
 	ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
 	
-	ArkInventory.LDB.Mounts:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 	
 	--ArkInventory.Output( "ScanCollectionMount( ) end" )
 	
@@ -3251,7 +3256,7 @@ function ArkInventory.ScanCollectionMountEquipment_Threaded( blizzard_id, loc_id
 	local slot_id = 1
 	
 	local itemID = ArkInventory.Collection.Mount.GetEquipmentID( )
-	local info = ArkInventory.ObjectInfoArray( itemID )
+	local info = ArkInventory.GetObjectInfo( itemID )
 	
 	bag.count = bag.count + 1
 	
@@ -3408,7 +3413,7 @@ function ArkInventory.ScanCollectionPet_Threaded( blizzard_id, loc_id, bag_id, t
 	
 	ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
 	
-	ArkInventory.LDB.Pets:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	
 	--ArkInventory.Output( "ScanCollectionPet( ) end" )
 	
@@ -3765,7 +3770,7 @@ function ArkInventory.ScanCollectionCurrency_Threaded( blizzard_id, loc_id, bag_
 	bag.type = ArkInventory.Const.Slot.Type.Currency
 	bag.status = ArkInventory.Const.Bag.Status.NoAccess
 	
-	ArkInventory.LDB.Tracking_Currency:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 	
 end
 
@@ -3878,7 +3883,7 @@ function ArkInventory.ScanCollectionReputation_Threaded( blizzard_id, loc_id, ba
 	
 	ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
 	
-	ArkInventory.LDB.Tracking_Reputation:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
 	
 	--ArkInventory.Output( "ScanCollectionReputation( ) end" )
 	
@@ -4066,14 +4071,7 @@ function ArkInventory.ScanVoidStorage_Threaded( blizzard_id, loc_id, bag_id, thr
 		i.did = blizzard_container_width * ( ( slot_id - 1 ) % blizzard_container_depth ) + math.floor( ( slot_id - 1 ) / blizzard_container_depth ) + 1
 		
 		local item_id, texture, locked, recentDeposit, isFiltered, q = GetVoidItemInfo( bag_id, slot_id )
-		
-		local h = nil
-		
-		if item_id then
-			local name, link = GetItemInfo( item_id )
-			h = link
-		end
-		
+		local h = GetVoidItemHyperlinkString( ( bag_id - 1 ) * bag.count + slot_id )
 		local count = 1
 		local sb = ArkInventory.Const.Bind.Pickup
 		
@@ -4400,7 +4398,7 @@ function ArkInventory.ScanAuctionExpire_80300( )
 				search_id = ArkInventory.ObjectIDCount( i.h )
 				ArkInventory.ObjectCacheCountClear( search_id )
 				
-				table.wipe( i )
+				ArkInventory.Table.Wipe( i )
 				
 				i.loc_id = loc_id
 				i.bag_id = bag_id
@@ -4447,7 +4445,7 @@ function ArkInventory.ScanAuctionExpire_80205( )
 				search_id = ArkInventory.ObjectIDCount( i.h )
 				ArkInventory.ObjectCacheCountClear( search_id )
 				
-				table.wipe( i )
+				ArkInventory.Table.Wipe( i )
 				
 				i.loc_id = loc_id
 				i.bag_id = bag_id
@@ -4572,7 +4570,7 @@ function ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
 			end
 			
 			--ArkInventory.Output( "wiped bag ", bag_id, " slot ", slot_id )
-			table.wipe( bag.slot[slot_id] )
+			ArkInventory.Table.Wipe( bag.slot[slot_id] )
 			bag.slot[slot_id] = nil
 			
 		end
@@ -4586,684 +4584,26 @@ function ArkInventory.ScanCleanup( player, loc_id, bag_id, bag )
 end
 
 
-function ArkInventory.ObjectInfoName( h )
-	local info = ArkInventory.ObjectInfoArray( h )
-	return info.name or "!"
-end
-
-function ArkInventory.ObjectInfoTexture( h )
-	local info = ArkInventory.ObjectInfoArray( h )
-	return info.texture
-end
-
-function ArkInventory.ObjectInfoQuality( h )
-	local info = ArkInventory.ObjectInfoArray( h )
-	return info.q or 1
-end
-
-function ArkInventory.ObjectInfoVendorPrice( h )
-	local info = ArkInventory.ObjectInfoArray( h )
-	return info.vendorprice or -1
-end
-
-function ArkInventory.ObjectInfoArray( h, i )
+function ArkInventory.GetItemQualityColor( q )
 	
-	local info = { }
-	
-	info.osd = ArkInventory.ObjectStringDecode( h, i )
-	info.class = info.osd.class
-	info.id = info.osd.id
-	
-	info.h = info.osd.h
-	info.name = ""
-	info.q = 1
-	info.ilvl = -2
-	info.uselevel = -2
-	info.itemtype = ArkInventory.Localise["UNKNOWN"]
-	info.itemsubtype = ArkInventory.Localise["UNKNOWN"]
-	info.stacksize = 1
-	info.equiploc = ""
-	info.texture = ArkInventory.Const.Texture.Missing
-	info.vendorprice = -1
-	info.itemtypeid = -2
-	info.itemsubtypeid = -2
-	info.expansion = ArkInventory.Const.BLIZZARD.GLOBAL.EXPANSION.CURRENT
-	
-	info.slottype = ArkInventory.Const.Slot.Type.Unknown
-	if i then
-		local blizzard_id = ArkInventory.InternalIdToBlizzardBagId( i.loc_id, i.bag_id )
-		info.slottype = ArkInventory.BagType( blizzard_id )
+	local q = q
+	if type( q ) ~= "number" then
+		q = ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.UNKNOWN
 	end
 	
-	if info.class == "item" then
-		
-		info.info = { GetItemInfo( info.osd.h ) }
---[[
-		[01] = itemName
-		[02] = itemLink
-		[03] = itemQuality
-		[04] = baseitemLevel
-		[05] = itemMinLevel
-		[06] = itemType
-		[07] = itemSubType
-		[08] = itemStackCount
-		[09] = itemEquipLoc
-		[10] = itemTexture
-		[11] = sellPrice
-		[12] = itemTypeId
-		[13] = itemSubTypeId
-		[14] = bindType (base binding, not actual)
-			[00] = none
-			[01] = on pickup
-			[02] = on equip
-			[03] = on use
-			[04] = quest
-		[15] = expansionId
-		[16] = itemSetId
-		[17] = isCraftingReagent
-]]--
-		
-		info.h = info.info[2] or info.h
-		
-		info.name = info.info[1] or info.name
-		if not info.name or info.name == "" then
-			info.name = string.match( info.info[2] or h, "%[(.+)%]" ) or ""
-		end
-		
-		info.q = info.info[3] or info.q
-		
-		info.ilvl = GetDetailedItemLevelInfo( info.h ) or info.info[4] or info.ilvl
-		
---		if info.id == 128872 then
---			ArkInventory.Output( "[ ", string.gsub( string.gsub( info.info[2], "\124", " " ), ":", " : " ), " ]" )
---			ArkInventory.Output( "[ ", string.gsub( string.gsub( info.osd.h, "\124", " " ), ":", " : " ), " ]" )
---			ArkInventory.Output( "[ ", string.gsub( string.gsub( info.h, "\124", " " ), ":", " : " ), " ]" )
---		end
-		
-		info.uselevel = info.info[5] or info.uselevel
-		info.itemtype = info.info[6] or info.itemtype
-		info.itemsubtype = info.info[7] or info.itemsubtype
-		info.stacksize = info.info[8] or info.stacksize
-		info.equiploc = info.info[9] or info.equiploc
-		
-		if not info.info[10] or info.info[10] == "" then
-			info.texture = GetItemIcon( h ) or info.texture
-		else
-			info.texture = info.info[10]
-		end
-		
-		info.vendorprice = info.info[11] or info.vendorprice
-		info.itemtypeid = info.info[12] or info.itemtypeid
-		info.itemsubtypeid = info.info[13] or info.itemsubtypeid
-		
-		info.expansion = info.info[15] or info.expansion
-		
-		info.craft = info.info[17] or info.craft
-		
-		if info.osd.upgradeid > 0 or info.osd.bonusids then
-			
-			-- upgradable or has bonusId that may not adjust the itemlevel return value (eg 615/timewarped), so get item level from tooltip
-			
-			ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, info.h )
-			local _, _, ilvl = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ITEM_LEVEL"], false, true, true, 4, true )
-			
-			info.ilvl = tonumber( ilvl ) or info.ilvl
-			
---			if info.ilvl ~= info.info[4] then
---				ArkInventory.Output( h, " [", info.info[4], "] [", ilvl, "] [", info.osd.upgradeid, "] ", info.osd.bonusids )
---			end
-			
-		end
-		
-		if info.itemsubtypeid == ArkInventory.Const.ItemClass.GEM_ARTIFACTRELIC then
-			
-			local _, _, ilvl = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_RELIC_LEVEL"], false, true, true, 0, true )
-			
-			info.ilvl = tonumber( ilvl ) or info.ilvl
-			
-		end
-		
-	elseif info.class == "keystone" then
-		
-		info.info = { GetItemInfo( info.osd.id ) }
-		
-		info.h = info.info[2] or info.h
-		
-		info.name = info.osd.name or info.info[1] or info.name
-		if not info.name or info.name == "" then
-			info.name = string.match( info.h, "|h%[(.+)%]|h" ) or info.name
-		end
-		
-		info.q = info.info[3] or info.q
-		
-		info.ilvl = info.osd.level or info.ilvl
-		
-		info.itemtype = info.info[6] or info.itemtype
-		info.itemsubtype = info.info[7] or info.itemsubtype
-		
-		if not info.info[10] or info.info[10] == "" then
-			info.texture = GetItemIcon( h ) or info.texture
-		else
-			info.texture = info.info[10]
-		end
-		
-		info.itemtypeid = info.info[12] or info.itemtypeid
-		info.itemsubtypeid = info.info[13] or info.itemsubtypeid
-		
-	elseif info.class == "spell" then
-		
-		info.info = { GetSpellInfo( info.id ) }
-		
-		info.h = GetSpellLink( info.id ) or info.h
-		
-		info.name = info.info[1]
-		if not info.name or info.name == "" then
-			info.name = string.match( info.h, "|h%[(.+)%]|h" ) or info.name
-		end
-		
-		info.q = 1
-		info.texture = info.info[3] or info.texture
-		
-	elseif info.class == "battlepet" then
-		
-		--info.info = ArkInventory.Collection.Pet.GetByID( info.id )
-		
-		info.sd = ArkInventory.Collection.Pet.GetSpeciesInfo( info.id )
-		info.ilvl = info.osd.level or 1
-		info.itemtypeid = ArkInventory.Const.ItemClass.BATTLEPET
-		
-		if info.sd then
-			--ArkInventory.Output( info )
-			info.name = info.sd.name or info.name
-			info.texture = info.sd.icon or info.texture
-			info.itemsubtypeid = info.sd.petType or info.itemsubtypeid
-		end
-		
-	elseif info.class == "currency" then
-		
-		info.info = ArkInventory.Collection.Currency.GetByID( info.id ) or { }
-		
-		--info.h = info.info.link or info.h
-		--info.name = info.info.name or info.name
-		info.name = info.info.name or string.format( "%s - %s - %s", ArkInventory.Localise["UNKNOWN"], info.class, info.id )
-		info.amount = info.info.quantity
-		info.q = info.info.quality or info.q
-		
-		info.texture = info.info.iconFileID
-		info.h = info.info.link
-		
-	elseif info.class == "reputation" then
-		
-		info.info = ArkInventory.Collection.Reputation.GetByID( info.id ) or { }
-		
-		--info.h = info.info.link or info.h
-		--info.name = info.info.name or info.name
-		info.name = info.info.name or string.format( "%s - %s - %s", ArkInventory.Localise["UNKNOWN"], info.class, info.id )
-		info.texture = info.info.icon or ""
-		
-	elseif info.class == "empty" then
-		
-		info.texture = ""
-		info.itemtypeid = ArkInventory.Const.ItemClass.EMPTY
-		info.itemsubtypeid = info.slottype
-		
-	end
-	
---	if not info.name or info.name == "" then
---		info.name = string.format( "%s - %s - %s", ArkInventory.Localise["UNKNOWN"], info.class, info.id )
---	end
-	
-	return info
-	
-end
-
-function ArkInventory.ObjectInfoItemString( h )
-	local osd = ArkInventory.ObjectStringDecode( h )
-	return osd.h
-end
-
-
-local cacheObjectStringDecode = { }
-function ArkInventory.ObjectStringDecode( h, i )
-	
-	-- avg 0.000190 / 0.000150
-	local hr = string.trim( h or "" )
-	
-	if cacheObjectStringDecode[hr] then
-		-- first cache check based on raw hyperlink
-		return cacheObjectStringDecode[hr]
-	end
-	
-	--ArkInventory.Output( "uncached hr = [", string.gsub( hr, "\124", "*" ), "]" )
-	
-	if hr == "" and i then
-		--ArkInventory.Output( "osd empty = [", hr, "] [", i, "]" )
-		-- get hyperlink from i
-		if i.h then
-			hr = i.h
-		else
-			--ArkInventory.ObjectIDCategory( i )
-			local blizzard_id = ArkInventory.InternalIdToBlizzardBagId( i.loc_id, i.bag_id )
-			local bt = ArkInventory.BagType( blizzard_id )
-			hr = string.format( "empty:0:%s", bt )
-		end
-	end
-	
-	local hc = string.match( hr, "|H(.-)|h" ) or string.match( hr, "^([a-z]-:.+)" ) or "empty:0:0"
-	
-	if cacheObjectStringDecode[hc] then
-		-- second cache check based on cleaned hyperlink
-		return cacheObjectStringDecode[hc]
-	end
-	
-	--ArkInventory.Output( "uncached hc = [", hc, "]" )
-	
-	local osd = { strsplit( ":", hc ) }
-	cacheObjectStringDecode[hc] = osd
-	--ArkInventory.Output( "caching hc = [", hc, "]" )
-	
-	if hr ~= "" then
-		--ArkInventory.Output( "caching hr = [", string.gsub( hr, "\124", "*" ), "]" )
-		cacheObjectStringDecode[hr] = osd
-	end
-	
-	local c = #osd
-	if c < 15 then
-		c = 15
-	end
-	
-	for x = 2, c do
-		if not osd[x] or osd[x] == "" then
-			osd[x] = 0
-		else
-			osd[x] = tonumber( osd[x] ) or osd[x]
-			--ArkInventory.Output( x, " = [", osd[x], "]" )
-		end
-	end
-	
-	osd.name = string.match( hr, "|h%[(.-)]|h" ) or ""
-	osd.h = hc
-	
-	osd.class = osd[1]
-	osd.id = osd[2]
-	
-	osd.hb = string.format( "%s:%s", osd.class, osd.id )
-	
-	if osd.class == "item" then
-		
-		--[[
-			[01]class
-			[02]itemid
-			[03]enchantid
-			[04]gem1
-			[05]gem2
-			[06]gem3
-			[07]gem4
-			[08]suffixid
-			[09]uniqueid
-			[10]linklevel
-				reset to 0 for consistency
-			[11]specid
-				***** classic beta appears to have removed this from the itemstring
-				reset to 0 for consistency
-				for values see https://wowpedia.fandom.com/wiki/SpecializationID
-			[12]upgradetypeid
-				4 = pandaria x/4
-				512 = timewarped
-			[13]souce / instance difficulty id
-				reset to 0 for consistency
-				for values see https://wowpedia.fandom.com/wiki/DifficultyID
-			[14]numbonusids
-			[..]bonusids
-			
-			[15]upgradevalue
-			
-			relic weapons
-			[16]numrelicids1
-			[..]relicids1
-			[17]numrelicids2
-			[..]relicids2
-			[18]numrelicids3
-			[..]relicids3
-			
-		]]--
-		
-		osd.enchantid = osd[3]
-		
-		osd.gemid = { osd[4], osd[5], osd[6], osd[7] }
-		
-		osd.suffixid = osd[8] -- only applies to old items, new items use a bonusid for the suffix
-		osd.uniqueid = osd[9]
-		
-		osd.suffixfactor = 0
-		if osd.suffixid < 0 then
-			osd.suffixfactor = bit.band( osd.uniqueid, 65535 )
-		end
-		
-		osd.linklevel = osd[10]
-		osd[10] = 0 -- zero out for a more consistent exrid (its the characters current level)
-		
-		osd.specid = osd[11]
-		osd[11] = 0 -- zero out for a more consistent exrid (its the characters current spec)
-		
-		osd.upgradeid = osd[12]
-		
-		osd.sourceid = osd[13]
-		osd[13] = 0 -- zero out for a more consistent exrid (its the same item so it doesnt matter where it came from)
-		
-		local pos = 14
-		
-		-- bonus ids
-		if osd[pos] and osd[pos] > 0 then
-			
-			osd.bonusids = { }
-			for x = pos + 1, pos + osd[pos] do
-				osd.bonusids[osd[x]] = true
-			end
-			
-			--ArkInventory.Output2( hc, " / ", osd.bonusids )
-			
-		end
-		pos = pos + 1 + osd[pos]
-		
-		-- upgrade level
-		if not osd[pos] then
-			osd[pos] = 0
-		end
-		osd.upgradelevel = osd[pos]
-		pos = pos + 1
-		
-		-- everything up to here should exist in the itemstring
-		-- after this, seems to be specific to the item type
-		
-		if pos <= c then
-			-- record start position of custom values
-			osd.custom = pos
-		end
-		
-		-- build an extended rule id for equipable items (it gets added onto the basic id)
-		osd.exrid = osd[3]
-		for k = 4, pos - 1 do
-			osd.exrid = string.format( "%s:%s", osd.exrid, osd[k] or 0 )
-		end
-		
-		-- build a sanitised itemstring (no character level or spec)
-		osd.hs = string.format( "%s:%s", osd.hb, osd.exrid )
-		
-	elseif osd.class == "keystone" then
-		
-		-- keystone:138019:239:2:0:0:0:0
-		--[[
-			[01]class
-			[02]itemid
-			[03]instance
-			[04]level
-			[05]status (2=active, ?=depleted)
-			[06]affix1
-			[07]affix2
-			[08]affix3
-			[09]affix4
-		]]--
-		
-		osd.instance = osd[3]
-		osd.level = osd[4]
-		osd.status = osd[5]
-		
-		-- affix ids
-		for x = 6, 9 do
-			if osd[x] ~= 0 then
-				if not osd.bonusids then
-					osd.bonusids = { }
-				end
-				osd.bonusids[osd[x]] = true
-			end
-		end
-		
-	elseif osd.class == "reputation" then
-		
-		-- custom reputation hyperlink
-		
-		--[[
-			[01]class
-			[02]factionId
-			[03]standingText
-			[04]barValue
-			[05]barMax
-			[06]isCapped
-			[07]paragonLevel
-			[08]paragonReward
-		]]--
-		
-		osd.st = osd[3]
-		osd.bv = osd[4]
-		osd.bm = osd[5]
-		osd.ic = osd[6]
-		osd.pv = osd[7]
-		osd.pr = osd[8]
-		
-	elseif osd.class == "spell" then
-		
-		--[[
-			[01]class
-			[02]spellId
-			[03]glyphId
-			[04]???
-		]]--
-		
-		osd.glyphid = osd[3]
-		
-	elseif osd.class == "battlepet" then
-		
-		--[[
-			[01]class
-			[02]species
-			[03]level
-			[04]quality
-			[05]maxhealth
-			[06]power
-			[07]speed
-			[08]name (can also be guid, api is inconsistent)
-			[09]guid (BattlePet-[unknowndata]-[creatureID])
-		]]--
-		
-		osd.level = osd[3]
-		osd.q = osd[4]
-		osd.health = osd[5] 
-		osd.power = osd[6]
-		osd.speed = osd[7]
-		
-		if type( osd[8] ) == "string" then
-			if string.match( osd[8], "BattlePet(.+)" ) then
-				--ArkInventory.Output( "moving ", osd[8], " guid is in name slot" )
-				osd[9] = osd[8]
-				osd[8] = ""
-			end
-		else
-			osd[8] = ""
-		end
-		
-		if type( osd[9] ) == "string" then
-			if not string.match( osd[9], "BattlePet(.+)" ) then
-				--ArkInventory.Output( "fail ", osd[9], " is not the correct format" )
-				--ArkInventory.Output( s )
-				osd[9] = ""
-			end
-		else
-			osd[9] = ""
-		end
-		
-		osd.cn = osd[8]
-		osd.guid = osd[9]
-		
-	elseif osd.class == "copper" then
-		
-		--[[
-			[01]class
-			[02]not used (always 0)
-			[03]amount
-		--]]
-		
-		osd.amount = osd[3]
-		
-	elseif osd.class == "empty" then
-		
-		--[[
-			[01]class
-			[02]not used (always 0)
-			[03]bag type
-		--]]
-		
-		osd.bagtype = osd[3]
-		
-	end
-	
-	return osd
-	
-end
-
-
-function ArkInventory.ObjectIDClean( h )
-	local h = h
-	h = string.gsub( h, ":0", ":" )
-	h = string.match( h, "(.-):*$" )
-	return h
-end
-
-local cacheObjectIDBonus = { }
-
-function ArkInventory.ObjectIDBonusClear( t )
-	ArkInventory.PT_BonusIDIsWantedClear( t )
-	table.wipe( cacheObjectIDBonus[t] )
-end
-
-function ArkInventory.ObjectIDBonus( t, h, i )
-	
-	local hr = string.trim( h or "" )
-	
-	if not cacheObjectIDBonus[t] then
-		cacheObjectIDBonus[t] = { }
-	end
-	
-	if cacheObjectIDBonus[t][hr] then
-		return cacheObjectIDBonus[t][hr]
-	end
-	
-	local osd = ArkInventory.ObjectStringDecode( hr, i )
-	
-	local v = osd.hb
-	
-	if osd.class == "item" then
-		
-		v = string.format( "%s:0:0:0:0:0", v )
-		
-		if ( t == ArkInventory.Const.IDType.Count and ArkInventory.db.option.bonusid.count.suffix ) or ( t == ArkInventory.Const.IDType.Search and ArkInventory.db.option.bonusid.search.suffix ) then
-			if osd.suffixid == 0 then
-				v = string.format( "%s:0:0", v )
-			else
-				v = string.format( "%s:%s:%s", v, osd.suffixid, osd.uniqueid )
-			end
-		else
-			v = string.format( "%s:0:0", v )
-		end
-		
-		v = string.format( "%s:0:0:0:0", v )
-		
-		if osd.bonusids then
-			
-			local c = 0
-			local r = ""
-			local id
-			
-			for bid in pairs( osd.bonusids ) do
-				id = ArkInventory.PT_BonusIDIsWanted( t, bid )
-				if id then
-					c = c + 1
-					r = string.format( "%s:%s", r, id )
-				end
-			end
-			
-			v = string.format( "%s:%s%s", v, c, r )
-			
-		else
-			v = string.format( "%s:0", v )
-		end
-		
-		v = string.format( "%s:0", v )
-		
-		v = ArkInventory.ObjectIDClean( v )
-		
-	end
-	
-	if hr ~= "" then
-		cacheObjectIDBonus[t][hr] = v
-	end
-	
-	return v
-	
-end
-
-local cacheObjectIDCount = { }
-
-function ArkInventory.ObjectIDCountClear( )
-	ArkInventory.ObjectIDBonusClear( ArkInventory.Const.IDType.Count )
-	table.wipe( cacheObjectIDCount )
-end
-
-function ArkInventory.ObjectIDCount( h, i )
-	
-	local hr = string.trim( h or "" )
-	
-	if cacheObjectIDCount[hr] then
-		return cacheObjectIDCount[hr]
-	end
-	
-	local v = ArkInventory.ObjectIDBonus( ArkInventory.Const.IDType.Count, h, i )
-	
-	if hr ~= "" then
-		cacheObjectIDCount[hr] = v
-	end
-	
-	return v
-	
-end
-
-local cacheObjectIDSearch = { }
-
-function ArkInventory.ObjectIDSearchClear( )
-	ArkInventory.ObjectIDBonusClear( ArkInventory.Const.IDType.Search )
-	table.wipe( cacheObjectIDSearch )
-end
-
-function ArkInventory.ObjectIDSearch( h, i )
-	
-	local hr = string.trim( h or "" )
-	
-	if cacheObjectIDSearch[hr] then
-		return cacheObjectIDSearch[hr]
-	end
-	
-	local v = ArkInventory.ObjectIDBonus( ArkInventory.Const.IDType.Search, h, i )
-	
-	if hr ~= "" then
-		cacheObjectIDSearch[hr] = v
-	end
-	
-	return v
-	
-end
-
-function ArkInventory.GetItemQualityColor( quality )
-	
-	local quality = quality
-	if type( quality ) ~= "number" then quality = -1 end
-	
-	if quality == -1 then
-		return NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, NORMAL_FONT_COLOR:GenerateHexColor( ), NORMAL_FONT_COLOR:GenerateHexColorMarkup( ), NORMAL_FONT_COLOR
+	local r, g, b = 0, 0, 0
+	if q == ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.MISSING then
+		r = 1
+	elseif q == ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.UNKNOWN then
+		r, g, b = GetItemQualityColor( ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.COMMON )
 	else
-		local r, g, b = GetItemQualityColor( quality )
-		local colour = CreateColor( r, g, b, 1 )
-		return colour.r, colour.g, colour.b, colour:GenerateHexColor( ), colour:GenerateHexColorMarkup( ), colour
+		r, g, b = GetItemQualityColor( q )
 	end
+	
+	local c = CreateColor( r, g, b, 1 )
+	local hc = c:GenerateHexColor( )
+	local hcm = c:GenerateHexColorMarkup( )
+	return c.r, c.g, c.b, hc, hcm, c
 	
 end
 
@@ -5296,7 +4636,7 @@ function ArkInventory.InventoryIDGet( loc_id, bag_id )
 end
 
 function ArkInventory.ObjectCacheTooltipClear( )
-	table.wipe( ArkInventory.Global.Cache.ItemCountTooltip )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemCountTooltip )
 end
 
 function ArkInventory.ObjectCacheCountClear( search_id, player_id, loc_id, skipAltCheck )
@@ -5383,8 +4723,8 @@ function ArkInventory.ObjectCacheCountClear( search_id, player_id, loc_id, skipA
 		
 		--ArkInventory.Output( "wipe all item count data" )
 		
-		table.wipe( ArkInventory.Global.Cache.ItemCountTooltip )
-		table.wipe( ArkInventory.Global.Cache.ItemCountRaw )
+		ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemCountTooltip )
+		ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemCountRaw )
 		
 		return
 		
@@ -5395,7 +4735,7 @@ end
 function ArkInventory.ObjectCacheSearchClear( )
 	ArkInventory.ObjectIDCountClear( )
 	ArkInventory.ObjectIDSearchClear( )
-	table.wipe( ArkInventory.Global.Cache.ItemSearchData )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Cache.ItemSearchData )
 end
 
 function ArkInventory.ObjectCountGetRaw( search_id, thread_id )
@@ -5447,7 +4787,7 @@ function ArkInventory.ObjectCountGetRaw( search_id, thread_id )
 			icr[pid].entries = 0
 			
 			for loc_id, loc_data in pairs( ArkInventory.Global.Location ) do
-				if ArkInventory.isLocationMonitored( loc_id ) then
+				--if ArkInventory.isLocationMonitored( loc_id, pid ) then
 					
 					if not icr[pid].location[loc_id] then
 						
@@ -5673,7 +5013,7 @@ function ArkInventory.ObjectCountGetRaw( search_id, thread_id )
 						icr[pid].entries = icr[pid].entries + 1
 					end
 					
-				end
+				--end
 			end
 			
 		end

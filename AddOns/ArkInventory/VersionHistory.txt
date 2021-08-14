@@ -1,7 +1,8 @@
 ﻿* to be done
- * fix (maybe) - you can assign a bag to the top row and the layout wont care about addin an extra row about it as bag assignment is hardcoded in the layout code and not an actual category
+ * fix (maybe) - you can assign a bag to the top row and the layout wont care about adding an extra row above it as bag assignment is hardcoded in the layout code and not an actual category
  * change - find some way to make the mount menu more manageable
-
+ * add - ability to delete everything from an imported profile in one go
+ 
  * adding - (not fully implemented) right click on a bar label for the ability to transfer all items in that bar to the bank/backpack.
           - note 1: will only work on bars that have a name.
           - note 2: bar labels span the entire bar width so the empty space on either side of the text will also accept a click
@@ -12,8 +13,39 @@
  
  
  
+*3.09.55 (13-AUG-2021)*
+ * fixed - issue with languages that use a period (.), or nothing, for their thousands separator
+ * fixed - issue with auto close not working when at the auction house (typo in code)
+ * fixed - issue with void storage hyperlinks
+ * added - data correction code for GetItemInfo
+ * changed - rule function outfit( ) requires an exact match on the set name
+ * fixed - issue with ldb object for tracked items when the item data wasnt ready (the squished up tooltip)
+ * fixed - will ignore reagentrestocker issues until it has been updated
+ * changed - decreased memory usage by caching and consolidating a bunch of data tables
+ * added - categorisation for some fishing items
+ * added - config option settings > design > items > item level > stock level (disabled by default) to display values for items that have "stock" values, eg ancient mana, anima, korthian relics.  bags will show the slot count.
+ * fixed - the unknown category assignment was getting cached so it would never recheck once the item data become available
+ * fixed - issue with toggling the bonusid count/search config options
+ * added - category consumable > power systems (old)
+ * removed - category system > artifact relic, and consumable > artifact power.  those items will now be assigned the power systems (old) category
+ * changed - the config option settings > design > items > item level has been broken down into equip/bags/stock options
+ * added - bonus ids that change the item name (eg shadowlands legendaries) so that they show up in searches under their actual name and not the base item name
+ * fixed - a restack started while dead (not ghost) would cause the client to lock up
+ * fixed - issue converting string to number if there are thousand seperator characters in them
+ * fixed - the window layout should build correctly when viewing other character data, and in general when item data isnt available yet.  it should also try up to five times to rebuild the window while item data is not available.
+ * updated - config option layout for profile and item override to (hopefully) makes some things clearer
+ * changed - bag scans will now yield after each slot has been scanned, not each bag.
+ * changed - ldb object updates for item, currency, reputation, pet, and mount, will now wait until you are out of combat
+ * fixed - (classic ptr) issue with reagent, explosive, and devices categories not having default values after being removed in the ptr
+
+*3.09.54 (13-AUG-2021)*
+ * no longer available
+ 
+*3.09.53 (12-AUG-2021)*
+ * no longer available
+
 *3.09.52 (10-JUL-2021)*
- * fixed - (classic) keyring: item count is now retrieved as some keys appear to be stackable
+ * fixed - (tbc) keyring: the item count is being retrieved as there are now stackable keys
  * changed - toc updated to 90100
  * changed - flying mounts should work once shadowlands flying is learnt
  * changed - collection scanning will now yield more often to reduce lag

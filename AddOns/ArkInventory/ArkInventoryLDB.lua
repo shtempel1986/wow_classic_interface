@@ -98,6 +98,14 @@ end
 
 
 
+function ArkInventory:EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET( )
+	if InCombatLockdown( ) then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
+	else
+		ArkInventory.LDB.Tracking_Currency:Update( )
+	end
+end
+
 function ArkInventory.LDB.Tracking_Currency:Update( )
 	
 	local loc_id = ArkInventory.Const.Location.Currency
@@ -105,19 +113,25 @@ function ArkInventory.LDB.Tracking_Currency:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Currency.GetCount( ) > 0 then
+	if ArkInventory.Collection.Currency.IsReady( ) then
 		
-		local codex = ArkInventory.GetPlayerCodex( )
-		
-		for _, object in ArkInventory.Collection.Currency.ListIterate( ) do
+		if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Currency.GetCount( ) > 0 then
 			
-			local data = object.data
-			if data and codex.player.data.ldb.tracking.currency.watched[data.id] then
-				hasText = string.format( "%s |T%s:0|t %s", hasText or "", data.iconFileID, FormatLargeNumber( data.quantity ) )
+			local codex = ArkInventory.GetPlayerCodex( )
+			
+			for _, object in ArkInventory.Collection.Currency.ListIterate( ) do
+				
+				local data = object.data
+				if data and codex.player.data.ldb.tracking.currency.watched[data.id] then
+					hasText = string.format( "%s |T%s:0|t %s", hasText or "", data.iconFileID, FormatLargeNumber( data.quantity ) )
+				end
+				
 			end
 			
 		end
 		
+	else
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 	end
 	
 	if hasText then
@@ -203,6 +217,14 @@ end
 
 
 
+function ArkInventory:EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET( )
+	if InCombatLockdown( ) then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
+	else
+		ArkInventory.LDB.Tracking_Reputation:Update( )
+	end
+end
+
 function ArkInventory.LDB.Tracking_Reputation:Update( )
 	
 	local loc_id = ArkInventory.Const.Location.Reputation
@@ -210,29 +232,35 @@ function ArkInventory.LDB.Tracking_Reputation:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Reputation.GetCount( ) > 0 then
+	if ArkInventory.Collection.Reputation.IsReady( ) then
+		
+		if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Reputation.GetCount( ) > 0 then
 			
-		local codex = ArkInventory.GetPlayerCodex( )
-		
-		local style_default = ArkInventory.Const.Reputation.Style.OneLineWithName
-		local style = style_default
-		if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
-			style = ArkInventory.db.option.tracking.reputation.style.ldb
-			if string.trim( style ) == "" then
-				style = style_default
+			local codex = ArkInventory.GetPlayerCodex( )
+			
+			local style_default = ArkInventory.Const.Reputation.Style.OneLineWithName
+			local style = style_default
+			if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
+				style = ArkInventory.db.option.tracking.reputation.style.ldb
+				if string.trim( style ) == "" then
+					style = style_default
+				end
 			end
+			
+			local data = ArkInventory.Collection.Reputation.GetByID( codex.player.data.ldb.tracking.reputation.watched )
+			if data then
+				local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
+				hasText = string.format( "|T%s:0|t %s", data.icon, txt )
+			end
+			
+			if not hasText then
+				codex.player.data.ldb.tracking.reputation.watched = nil
+			end
+			
 		end
 		
-		local data = ArkInventory.Collection.Reputation.GetByID( codex.player.data.ldb.tracking.reputation.watched )
-		if data then
-			local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
-			hasText = string.format( "|T%s:0|t %s", data.icon, txt )
-		end
-		
-		if not hasText then
-			codex.player.data.ldb.tracking.reputation.watched = nil
-		end
-		
+	else
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
 	end
 	
 	if hasText then
@@ -329,21 +357,30 @@ end
 
 
 
+function ArkInventory:EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET( )
+	if InCombatLockdown( ) then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
+	else
+		ArkInventory.LDB.Tracking_Item:Update( )
+	end
+end
+
 function ArkInventory.LDB.Tracking_Item:Update( )
 	
 	local icon = string.format( "|T%s:0|t", [[Interface\Icons\Ability_Tracking]] )
 	local hasText
 	
+	local ready = true
 	local me = ArkInventory.GetPlayerCodex( )
 	
 	for k in ArkInventory.spairs( ArkInventory.db.option.tracking.items )  do
 		
+		local info = ArkInventory.GetObjectInfo( k )
+		ready = ready and info.ready
+		
 		if me.player.data.ldb.tracking.item.tracked[k] then
-			
 			local count = GetItemCount( k, true )
-			local icon = select( 10, GetItemInfo( k ) )
-			hasText = string.format( "%s  |T%s:0|t %s", hasText or "", icon or ArkInventory.Const.Texture.Missing, FormatLargeNumber( count or 0 ) )
-			
+			hasText = string.format( "%s  |T%s:0|t %s", hasText or "", info.texture or ArkInventory.Const.Texture.Missing, FormatLargeNumber( count or 0 ) )
 		end
 		
 	end
@@ -352,6 +389,10 @@ function ArkInventory.LDB.Tracking_Item:Update( )
 		self.text = string.trim( hasText )
 	else
 		self.text = icon
+	end
+	
+	if not ready then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
 	end
 	
 end
@@ -374,15 +415,15 @@ function ArkInventory.LDB.Tracking_Item:OnTooltipShow( )
 	
 	for k in ArkInventory.spairs( ArkInventory.db.option.tracking.items ) do
 		
-		local count = GetItemCount( k, true )
-		local name = GetItemInfo( k )
+		local info = ArkInventory.GetObjectInfo( k )
 		
+		local count = GetItemCount( k, true )
 		local checked = me.player.data.ldb.tracking.item.tracked[k]
 		
 		if checked then
-			self:AddDoubleLine( name, count, 0, 1, 0, 0, 1, 0 )
+			self:AddDoubleLine( info.name, count, 0, 1, 0, 0, 1, 0 )
 		else
-			self:AddDoubleLine( name, count, 1, 1, 1, 1, 1, 1 )
+			self:AddDoubleLine( info.name, count, 1, 1, 1, 1, 1, 1 )
 		end
 		
 	end
@@ -392,6 +433,14 @@ function ArkInventory.LDB.Tracking_Item:OnTooltipShow( )
 end
 
 
+
+function ArkInventory:EVENT_ARKINV_LDB_PET_UPDATE_BUCKET( )
+	if InCombatLockdown( ) then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
+	else
+		ArkInventory.LDB.Pets:Update( )
+	end
+end
 
 function ArkInventory.LDB.Pets.Cleanup( )
 	
@@ -413,7 +462,7 @@ end
 
 function ArkInventory.LDB.Pets.BuildList( ignoreActive )
 	
-	table.wipe( companionTable )
+	ArkInventory.Table.Wipe( companionTable )
 	
 	if not ArkInventory.Collection.Pet.IsReady( ) then
 		return
@@ -469,8 +518,14 @@ function ArkInventory.LDB.Pets:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Pet.IsReady( ) then
-		ArkInventory.LDB.Pets.Cleanup( )
+	if ArkInventory.Collection.Pet.IsReady( ) then
+		
+		if ArkInventory.isLocationMonitored( loc_id ) then
+			ArkInventory.LDB.Pets.Cleanup( )
+		end
+		
+	else
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 	
 	if hasText then
@@ -614,6 +669,14 @@ function ArkInventory.LDB.Pets:OnClick( button )
 end
 
 
+
+function ArkInventory:EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET( )
+	if InCombatLockdown( ) then
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
+	else
+		ArkInventory.LDB.Mounts:Update( )
+	end
+end
 
 function ArkInventory.LDB.Mounts.Cleanup( )
 	
@@ -919,8 +982,14 @@ function ArkInventory.LDB.Mounts:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Mount.IsReady( ) then
-		ArkInventory.LDB.Mounts.Cleanup( )
+	if ArkInventory.Collection.Mount.IsReady( ) then
+		
+		if ArkInventory.isLocationMonitored( loc_id ) then
+			ArkInventory.LDB.Mounts.Cleanup( )
+		end
+		
+	else
+		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 	end
 	
 	if hasText then

@@ -335,8 +335,8 @@ local function helper_UpgradeProfile( profile, profile_name )
 			for k, v in pairs( profile.option.category ) do
 				
 				local sb, id = strsplit( ":", k )
-				id = tonumber( id ) or 0
-				sb = tonumber( sb ) or 0
+				id = ArkInventory.ToNumber( id ) or 0
+				sb = ArkInventory.ToNumber( sb ) or 0
 				if sb > 20 then
 					local z = sb
 					sb = id
@@ -871,7 +871,7 @@ local function helper_UpgradeProfile( profile, profile_name )
 			
 		end
 		
-		table.wipe( profile.option )
+		ArkInventory.Table.Wipe( profile.option )
 		
 		
 		profile.option.version = upgrade_version
@@ -1258,7 +1258,7 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 	if ArkInventory.acedb.global.player.version < upgrade_version then
 		
 		for _, v in pairs( ArkInventory.acedb.global.player.data ) do
-			table.wipe( v.ldb.pets.selected )
+			ArkInventory.Table.Wipe( v.ldb.pets.selected )
 		end
 		
 		ArkInventory.acedb.global.player.version = upgrade_version
@@ -1340,7 +1340,7 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 			v2.slot.znew = nil
 			
 			if v2.slot.data then
-				table.wipe( v2.slot.data )
+				ArkInventory.Table.Wipe( v2.slot.data )
 			end
 			
 			if v2.font.name then
@@ -1559,7 +1559,7 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 		for id, design in pairs( ArkInventory.acedb.global.option.design.data ) do
 			if design.slot then
 				if design.slot.data then
-					table.wipe( design.slot.data )
+					ArkInventory.Table.Wipe( design.slot.data )
 				end
 				design.slot.znew = nil
 			end
@@ -1671,11 +1671,11 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 		
 		-- cleanup leftover ace profiles from savedvariables as they are no longer used
 		if ArkInventory.acedb.profiles then
-			table.wipe( ArkInventory.acedb.profiles )
+			ArkInventory.Table.Wipe( ArkInventory.acedb.profiles )
 		end
 		
 		if ArkInventory.acedb.profileKeys then
-			table.wipe( ArkInventory.acedb.profileKeys )
+			ArkInventory.Table.Wipe( ArkInventory.acedb.profileKeys )
 			-- these will come back over time but will be back to "Default"
 		end
 		
@@ -1697,7 +1697,7 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 			if v1.order[1] and type( v1.order[1] ) ~= "table" then
 				
 				local t = ArkInventory.Table.Copy( v1.order )
-				table.wipe( v1.order )
+				ArkInventory.Table.Wipe( v1.order )
 				
 				if v1.bagslot == false then
 					
@@ -1946,7 +1946,7 @@ function ArkInventory.DatabaseUpgradePostLoad( )
 					v2.slot.border.colour[k] = t.colour
 				end
 				
-				table.wipe( v2.slot.data )
+				ArkInventory.Table.Wipe( v2.slot.data )
 				
 			end
 			

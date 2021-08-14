@@ -1058,9 +1058,6 @@ local ImportCrossRefTable = {
 {175715,{184507,-346192}}, -- Lucy / Lucy's Lost Collar
 {175756,{184509,-346236}}, -- Spriggan Trickster
 {175787,{184512,-346260}}, -- Winterleaf Spriggan
--- end of live
-
--- ptr
 {176662,{184867,-348561}}, -- Squibbles
 {178216,{185919,-351636}}, -- Flawless Amethyst Baubleworm
 {179008,{186188,-353206}}, -- Lil'Abom
@@ -1090,7 +1087,7 @@ local ImportCrossRefTable = {
 {179252,{186541,-353664}}, -- Mosscoated Gromit / Mosscoated Hopper
 {179253,{186543,-353665}}, -- Domestic Aunian
 {179255,{186538,-353666}}, -- Gnashtooth
---end of ptr
+-- end of live
 
 }
 
@@ -1118,7 +1115,7 @@ function ArkInventory.Collection.Pet.ImportCrossRefTable( )
 		
 		--ArkInventory.Output( k, " - ", npc )
 		
-		npc = tonumber( v[1] ) or 0
+		npc = ArkInventory.ToNumber( v[1] ) or 0
 		if npc > 0 then
 			
 			speciesID = ArkInventory.Collection.Pet.GetSpeciesIDForCreatureID( npc )
@@ -1128,7 +1125,7 @@ function ArkInventory.Collection.Pet.ImportCrossRefTable( )
 				
 				for k2, v2 in pairs( v[2] ) do
 					
-					v2 = tonumber( v2 ) or 0
+					v2 = ArkInventory.ToNumber( v2 ) or 0
 					
 					key1 = nil
 					if v2 > 0 then
@@ -1463,7 +1460,7 @@ function ArkInventory.Collection.Pet.GetSpeciesIDfromGUID( guid )
 	local creatureID = string.match( guid or "", "Creature%-.-%-.-%-.-%-.-%-(.-)%-.-$" )
 	--ArkInventory.Output( creatureID, " / ", guid )
 	if creatureID then
-		creatureID = tonumber( creatureID ) or 0
+		creatureID = ArkInventory.ToNumber( creatureID ) or 0
 		return ArkInventory.Collection.Pet.GetSpeciesIDForCreatureID( creatureID )
 	end
 	
@@ -1834,7 +1831,7 @@ local function Scan_Threaded( thread_id )
 	
 	if update then
 		ArkInventory.ScanLocation( loc_id )
---		ArkInventory.LDB.Pets:Update( )
+--		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 	
 end

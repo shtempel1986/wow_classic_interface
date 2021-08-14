@@ -1,9 +1,11 @@
+-- local addonName, addonTbl = ...
+
 --[[
 
 License: All Rights Reserved, (c) 2006-2020
 
-$Revision: 2842 $
-$Date: 2021-07-07 00:09:15 +1000 (Wed, 07 Jul 2021) $
+$Revision: 2884 $
+$Date: 2021-08-01 23:22:19 +1000 (Sun, 01 Aug 2021) $
 
 ]]--
 
@@ -15,7 +17,6 @@ local string = _G.string
 local type = _G.type
 local error = _G.error
 local table = _G.table
-
 
 
 
@@ -1253,9 +1254,8 @@ ArkInventory.Const.DatabaseDefaults.global = {
 							["combat"] = true,
 						},
 						["itemlevel"] = {
-							["show"] = false,
+							["show"] = true,
 							["anchor"] = ArkInventory.Const.Anchor.Default,
-							["min"] = 1,
 							["quality"] = false,
 							["colour"] = {
 								["r"] = 1,
@@ -1264,6 +1264,17 @@ ArkInventory.Const.DatabaseDefaults.global = {
 							},
 							["font"] = {
 								["height"] = ArkInventory.Const.Font.Height,
+							},
+							["equip"] = {
+								["show"] = true,
+								["min"] = 1,
+							},
+							["bags"] = {
+								["show"] = false,
+							},
+							["stock"] = {
+								["show"] = false,
+								["total"] = true,
 							},
 						},
 						["itemcount"] = {
@@ -2746,6 +2757,11 @@ function ArkInventory.OnEnable( )
 	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_VAULT_UPDATE_BUCKET", ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] or 1.5 )
 	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_VOID_UPDATE_BUCKET", 0.5 )
 --	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_ZONE_CHANGED_BUCKET", 5 )
+	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET", 2 )
+	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET", 2 )
+	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET", 2 )
+	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET", 2 )
+	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET", 2 )
 	
 	for k, v in pairs( ArkInventory.Const.BLIZZARD.Events ) do
 		--ArkInventory.Output( v )
@@ -2803,11 +2819,11 @@ function ArkInventory.OnEnable( )
 	
 	ArkInventory.LDB.Money:Update( )
 	ArkInventory.LDB.Bags:Update( )
-	ArkInventory.LDB.Pets:Update( )
-	ArkInventory.LDB.Mounts:Update( )
-	ArkInventory.LDB.Tracking_Currency:Update( )
-	ArkInventory.LDB.Tracking_Item:Update( )
-	ArkInventory.LDB.Tracking_Reputation:Update( )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
+	ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
 	
 	ArkInventory.ExtractData( )
 	
@@ -2873,10 +2889,11 @@ function ArkInventory.ItemSortKeyGenerate( i, bar_id, codex )
 	
 	if sorting.used then
 		
-		local info = ArkInventory.ObjectInfoArray( i.h, i )
+		local info = ArkInventory.GetObjectInfo( i.h, i )
 		
 		-- slot type
-		s.slottype = info.osd.slottype or 0
+		local blizzard_id = ArkInventory.InternalIdToBlizzardBagId( i.loc_id, i.bag_id )
+		s.slottype = ArkInventory.BagType( blizzard_id )
 		
 		-- item count (system)
 		s.count = i.count or 1
@@ -2914,8 +2931,7 @@ function ArkInventory.ItemSortKeyGenerate( i, bar_id, codex )
 		
 		-- equip location
 		if i.h and info.class == "item" then
-			
-			if type( info.equiploc ) == "string" and info.equiploc ~= "" and _G[info.equiploc] then
+			if info.equiploc ~= "" and _G[info.equiploc] then
 				s.location = ArkInventory.Const.Slot.CharacterPaneOrder[info.equiploc]
 				if not s.location then
 					ArkInventory.OutputWarning( "EquipLocation [", info.equiploc, "] not coded, please let the author know." )
@@ -3031,8 +3047,8 @@ end
 
 function ArkInventory.CategoryLocationGet( loc_id, cat_id )
 	
-	-- return 1: which bar a category is located on
-	-- return 2: is it the default bar
+	-- return 1: number - which bar a category is located on
+	-- return 2: boolean - is it the default bar
 	
 	local cat_id = cat_id or ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
 	
@@ -3083,7 +3099,7 @@ function ArkInventory.CategoryGenerate( )
 		["CUSTOM"] = ArkInventory.db.option.category[ArkInventory.Const.Category.Type.Custom].data, -- CATEGORY_CUSTOM
 	}
 	
-	table.wipe( ArkInventory.Global.Category )
+	ArkInventory.Table.Wipe( ArkInventory.Global.Category )
 	
 	for tn, d in pairs( categories ) do
 		
@@ -3169,7 +3185,7 @@ end
 
 function ArkInventory.CategoryIdSplit( cat_id )
 	local cat_type, cat_num = string.match( cat_id, "(%d+)!(%d+)" )
-	return tonumber( cat_type ), tonumber( cat_num )
+	return ArkInventory.ToNumber( cat_type ), ArkInventory.ToNumber( cat_num )
 end
 
 function ArkInventory.CategoryIdBuild( cat_type, cat_num )
@@ -3986,7 +4002,7 @@ function ArkInventory.Frame_Main_Draw( frame )
 	
 end
 
-function ArkInventory.Frame_Main_Draw_Threaded( frame )
+function ArkInventory.Frame_Main_Draw_Threaded( frame, loop )
 	
 	local loc_id = frame.ARK_Data.loc_id
 	--ArkInventory.Output( "Frame_Main_Draw_Threaded( ", frame:GetName( ), " ) drawstate[", ArkInventory.Global.Location[loc_id].drawState, "]" ) --, framelevel[", frame:GetFrameLevel( ), "]" )
@@ -4045,10 +4061,13 @@ function ArkInventory.Frame_Main_Draw_Threaded( frame )
 	
 	-- do we still need to draw the window?
 	if ArkInventory.Global.Location[loc_id].drawState < ArkInventory.Const.Window.Draw.None then
+		
 		obj = _G[string.format( "%s%s", frame:GetName( ), ArkInventory.Const.Frame.Container.Name )]
 		ArkInventory.OutputThread( loc_id, " Frame_Container_Draw" )
+		
 		ArkInventory.Frame_Container_Draw( obj )
 		ArkInventory.ThreadYield_Window( loc_id )
+		
 	end
 	
 	if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Restart then
@@ -4231,6 +4250,15 @@ function ArkInventory.Frame_Main_Draw_Threaded( frame )
 		
 		ArkInventory.ThreadYield_Window( loc_id )
 		
+	end
+	
+	
+	local loop = ( loop or 0 ) + 1
+	if not codex.workpad.ready then
+		--ArkInventory.Output( "rebuilding [", loc_id, "], loop [", loop, "]" )
+		if loop <= 5 then
+			return ArkInventory.Frame_Main_Draw_Threaded( frame, loop )
+		end
 	end
 	
 	ArkInventory.Global.Location[loc_id].drawState = ArkInventory.Const.Window.Draw.None
@@ -4540,7 +4568,7 @@ function ArkInventory.Frame_Main_OnLoad( frame )
 	
 	assert( loc_id ~= nil, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -4679,16 +4707,24 @@ end
 
 function ArkInventory.Frame_Container_Calculate( frame )
 	
-	--ArkInventory.Output( "Frame_Container_Calculate( ", frame:GetName( ), " )" )
+	ArkInventory.OutputThread( "Frame_Container_Calculate: ", frame:GetName( ) )
 	
 	local loc_id = frame.ARK_Data.loc_id
 	local codex = ArkInventory.GetLocationCodex( loc_id )
 	
-	ArkInventory.Table.Clean( codex.workpad, nil, true )
---	table.wipe( codex.workpad )
+	local counter = 1
 	
-	-- break the inventory up into it's respective bars
-	ArkInventory.Frame_Container_CalculateBars( frame )
+--	repeat
+		
+		--ArkInventory.Table.Clean( codex.workpad, nil, true )
+		
+		-- break the inventory up into it's respective bars
+		ArkInventory.Frame_Container_CalculateBars( frame )
+		
+		--ArkInventory.Output( "loc_id [", loc_id, "], build loop [", counter, "]" )
+		counter = counter + 1
+		
+--	until codex.workpad.ready or counter > 100
 	
 	-- calculate what the container should look like with those bars
 	ArkInventory.Frame_Container_CalculateContainer( frame )
@@ -4709,10 +4745,13 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 	local firstemptyshown = { }
 	
 	--ArkInventory.Output( GREEN_FONT_COLOR_CODE, "Frame_Container_CalculateBars( ", frame:GetName( ), " ) for [", codex.player.data.info.name, "] start" )
-
+	
+	ArkInventory.Table.Clean( codex.workpad, nil, true )
+	
 	codex.workpad.bar = codex.workpad.bar or { }
-	table.wipe( codex.workpad.bar )
+	ArkInventory.Table.Wipe( codex.workpad.bar )
 	codex.workpad.bar_count = 1
+	codex.workpad.ready = true
 	
 	local bag
 	local cat_id
@@ -4740,7 +4779,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 		if not ArkInventory.Global.Cache.StackCompress[loc_id] then
 			ArkInventory.Global.Cache.StackCompress[loc_id] = { }
 		else
-			table.wipe( ArkInventory.Global.Cache.StackCompress[loc_id] )
+			ArkInventory.Table.Wipe( ArkInventory.Global.Cache.StackCompress[loc_id] )
 		end
 		
 	end
@@ -4761,6 +4800,9 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 			end
 			
 			if i and not ignore then
+				
+				local info = ArkInventory.GetObjectInfo( i.h )
+				codex.workpad.ready = codex.workpad.ready and info.ready
 				
 				if codex.style.window.list then
 					
@@ -4830,7 +4872,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 					
 					if stack_compress > 0 and i.h and bar_id > 0 then
 						
-						local info = ArkInventory.ObjectInfoArray( i.h, i )
+						local info = ArkInventory.GetObjectInfo( i.h, i )
 						
 						if info.stacksize > 1 then
 							
@@ -4847,7 +4889,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 							end
 							
 						end
-					
+						
 					end
 					
 				end
@@ -5211,7 +5253,6 @@ function ArkInventory.Frame_Container_Draw( frame )
 	if ArkInventory.Global.Location[loc_id].drawState <= ArkInventory.Const.Window.Draw.Recalculate then
 		
 		-- calculate what the container should look like
-		ArkInventory.OutputThread( "Frame_Container_Calculate" )
 		ArkInventory.Frame_Container_Calculate( frame )
 		ArkInventory.ThreadYield_Window( loc_id )
 		
@@ -5581,7 +5622,7 @@ function ArkInventory.Frame_Container_OnLoad( frame )
 	
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -5629,7 +5670,7 @@ function ArkInventory.Frame_Bar_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bar_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
 	
 	-- bars are essentially a pool of frames, they will be pulled from there as required
 	-- the bar_id will be set when allocated from the pool
@@ -6369,8 +6410,8 @@ function ArkInventory.Frame_Bar_Edit_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bar_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
-	bar_id = tonumber( bar_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
+	bar_id = ArkInventory.ToNumber( bar_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -6587,8 +6628,8 @@ function ArkInventory.Frame_Bag_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
-	bag_id = tonumber( bag_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
+	bag_id = ArkInventory.ToNumber( bag_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -6710,7 +6751,7 @@ end
 
 function ArkInventory.Frame_Item_GetDB( frame )
 	
-	assert( frame.ARK_Data, " invalid frame" )
+	assert( frame.ARK_Data, "invalid frame" )
 	
 	--ArkInventory.Output( "frame=[", frame:GetName( ), "]" )
 	local loc_id = frame.ARK_Data.loc_id
@@ -6743,9 +6784,9 @@ function ArkInventory.Frame_Item_OnLoad( frame, tainted )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( slot_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
-	bag_id = tonumber( bag_id )
-	slot_id = tonumber( slot_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
+	bag_id = ArkInventory.ToNumber( bag_id )
+	slot_id = ArkInventory.ToNumber( slot_id )
 	
 	frame:SetID( slot_id )
 	
@@ -6844,9 +6885,9 @@ function ArkInventory.Frame_Item_OnLoad_ListEntry( frame )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( slot_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = tonumber( loc_id )
-	bag_id = tonumber( bag_id )
-	slot_id = tonumber( slot_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
+	bag_id = ArkInventory.ToNumber( bag_id )
+	slot_id = ArkInventory.ToNumber( slot_id )
 	
 	frame:SetID( slot_id )
 	
@@ -7385,7 +7426,7 @@ function ArkInventory.Frame_Item_Update_Count( frame, codex )
 			
 			if codex.style.slot.compress.count > 0 and codex.style.slot.compress.identify and not ArkInventory.Global.Options.ShowHiddenItems then
 				
-				local info = ArkInventory.ObjectInfoArray( i.h )
+				local info = ArkInventory.GetObjectInfo( i.h )
 				if info.stacksize > 1 then
 					
 					local loc_id = frame.ARK_Data.loc_id
@@ -7476,29 +7517,26 @@ function ArkInventory.Frame_Item_Update_Level( frame, codex )
 		
 		if codex.style.slot.itemlevel.show then
 			
-			local info = ArkInventory.ObjectInfoArray( i.h, i )
+			local info = ArkInventory.GetObjectInfo( i.h, i )
 			
 			if info.class == "item" then
 				
-				-- equipable items
-				if info.equiploc ~= "" and info.equiploc ~= "INVTYPE_BAG" and info.ilvl >= codex.style.slot.itemlevel.min then
-					stock = info.ilvl
-				end
-				
-				-- artifact relics
-				if info.itemtypeid == ArkInventory.Const.ItemClass.GEM and info.itemsubtypeid == ArkInventory.Const.ItemClass.GEM_ARTIFACTRELIC then
-					stock = info.ilvl
-				end
-				
-				-- artifact power and ancient mana
-				if info.itemtypeid == ArkInventory.Const.ItemClass.CONSUMABLE and info.itemsubtypeid == ArkInventory.Const.ItemClass.CONSUMABLE_OTHER then
-					
-					stock = ArkInventory.TooltipExtractValueArtifactPower( i.h ) or 0
-					
-					if stock == 0 then
-						stock = ArkInventory.TooltipExtractValueAncientMana( i.h ) or 0
+				if codex.style.slot.itemlevel.stock.show and info.equiploc == "" and info.stock then
+					if codex.style.slot.itemlevel.stock.total then
+						stock = info.stock * i.count
+					else
+						stock = info.stock
 					end
-					
+				end
+				
+				if codex.style.slot.itemlevel.equip.show and info.equiploc ~= "" and info.equiploc ~= "INVTYPE_BAG" then
+					if info.ilvl >= codex.style.slot.itemlevel.equip.min then
+						stock = info.ilvl
+					end
+				end
+				
+				if codex.style.slot.itemlevel.bags.show and info.equiploc == "INVTYPE_BAG" then
+					stock = info.stock
 				end
 				
 			elseif info.class == "keystone" then
@@ -8011,7 +8049,6 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 			if cat_type ~= ArkInventory.Const.Category.Type.Rule then
 				local cat = ArkInventory.Global.Category[cat_id]
 				local di = ArkInventory.Frame_Item_GetDB( ArkInventory.Global.Options.OnDragSourceFrame )
-				--local info = ArkInventory.ObjectInfoArray( di.h, di )
 				GameTooltip:AddLine( string.format( ArkInventory.Localise["FRAME_ONENTER_DRAG_CATEGORY_ALT"], cat.fullname, di.h ), nil, nil, nil, true )
 			end
 			
@@ -8157,16 +8194,16 @@ function ArkInventory.Frame_Item_PreClick( frame, button )
 			if frame.ARK_Data.loc_id == ArkInventory.Const.Location.Bag then
 				if button == "RightButton" and not IsModifiedClick( ) then
 					
-					-- slot has an item
-					local itemID = select( 10, GetContainerItemInfo( frame.ARK_Data.blizzard_id, frame.ARK_Data.slot_id ) )
-					if itemID then
+					-- slot has an item?
+					local h = select( 7, GetContainerItemInfo( frame.ARK_Data.blizzard_id, frame.ARK_Data.slot_id ) )
+					if h then
 						
 						-- reagent bank is unlocked and has a free slot
 						if ArkInventory.CrossClient.IsReagentBankUnlocked( ) and GetContainerNumFreeSlots( REAGENTBANK_CONTAINER ) > 0 then
 							
 							-- its a crafting reagent
-							local craft = select( 17, GetItemInfo( itemID ) )
-							if craft then
+							local info = ArkInventory.GetObjectInfo( h )
+							if info.craft then
 								--ArkInventory.Output( "PreClick: sending item to reagent bank instead" )
 								return UseContainerItem( frame.ARK_Data.blizzard_id, frame.ARK_Data.slot_id, nil, true )
 							end
@@ -9444,8 +9481,8 @@ function ArkInventory.Frame_Changer_Slot_OnLoad( frame )
 	local framename = frame:GetName( )
 	local loc_id, bag_id = string.match( framename, "^" .. ArkInventory.Const.Frame.Main.Name .. "(%d+).-(%d+)$" )
 	
-	loc_id = tonumber( loc_id )
-	bag_id = tonumber( bag_id )
+	loc_id = ArkInventory.ToNumber( loc_id )
+	bag_id = ArkInventory.ToNumber( bag_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -9937,8 +9974,8 @@ end
 
 function ArkInventory.HookOpenAllBags( self, ... )
 	
---	ArkInventory.Output2( "---------------" )
---	ArkInventory.Output2( "HookOpenAllBags" )
+	--ArkInventory.Output( "---------------" )
+	--ArkInventory.Output( "HookOpenAllBags" )
 	
 	local who = ...
 	local whoname = who
@@ -9947,11 +9984,11 @@ function ArkInventory.HookOpenAllBags( self, ... )
 	end
 	
 	local BackpackAlreadyOpen = ArkInventory.Frame_Main_Get( ArkInventory.Const.Location.Bag ):IsVisible( )
---	ArkInventory.Output2( "backpack was open: ", BackpackAlreadyOpen )
+	--ArkInventory.Output( "backpack was open: ", BackpackAlreadyOpen )
 	
 	if whoname then
 		
-		--ArkInventory.Output2( "opened by: ", whoname )
+		--ArkInventory.Output( "opened by: ", whoname )
 		
 		if whoname == "MerchantFrame" then
 			
@@ -10086,7 +10123,7 @@ function ArkInventory.HookOpenAllBags( self, ... )
 		
 	end
 	
---	ArkInventory.Output2( "HookOpenAllBags - part 2" )
+	--ArkInventory.Output( "HookOpenAllBags - part 2" )
 	
 	if BackpackAlreadyOpen then
 		who = nil
@@ -10133,7 +10170,7 @@ function ArkInventory.HookOpenAllBags( self, ... )
 		
 	end
 	
---	ArkInventory.Output2( "bags set to opened by ", ArkInventory.Global.BagsOpenedBy )
+	--ArkInventory.Output( "bags set to opened by ", ArkInventory.Global.BagsOpenedBy )
 	
 end
 
@@ -10705,10 +10742,10 @@ function ArkInventory.CreateColour( r, g, b, a, f )
 		-- the trading parts colour has a space instead of a zero in the 3rd position for some reason
 		-- at some point i need to work out if its from the alpha or the red value, im guessing red at the moment as they are a fairly bright light blue, almost heirloom
 		
-		a = ( tonumber( a or "ff", 16 ) or 255 ) / 255
-		r = ( tonumber( r or "ff", 16 ) or 255 ) / 255
-		g = ( tonumber( g or "ff", 16 ) or 255 ) / 255
-		b = ( tonumber( b or "ff", 16 ) or 255 ) / 255
+		a = ( ArkInventory.ToNumber( a or "ff", 16 ) or 255 ) / 255
+		r = ( ArkInventory.ToNumber( r or "ff", 16 ) or 255 ) / 255
+		g = ( ArkInventory.ToNumber( g or "ff", 16 ) or 255 ) / 255
+		b = ( ArkInventory.ToNumber( b or "ff", 16 ) or 255 ) / 255
 		
 	end
 	

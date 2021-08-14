@@ -4,7 +4,7 @@
 ## Title-zhCN: [背包]ArkInventory 整合背包银行
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 30952
+## Version: 30955
 ## X-ReleaseType: 
 ## SavedVariables: ARKINVDB
 
@@ -23,7 +23,6 @@
 ## X-Website: https://github.com/arkayenro/arkinventory
 
 ## X-Curse-Project-ID: 3651
-## X-WoWI-ID: 6488
 
 
 #@no-lib-strip@
@@ -40,6 +39,7 @@ ArkInventoryClient.lua
 ArkInventoryPT.lua
 ArkInventoryCPU.lua
 ArkInventoryCodex.lua
+ArkInventoryObject.lua
 
 Locale\locale.xml
 
@@ -80,4 +80,4 @@ ArkInventoryTranslate.lua
 
 ArkInventoryRealms.lua
 
-ArkInventoryData.lua
+ArkInventoryDataExtract.lua

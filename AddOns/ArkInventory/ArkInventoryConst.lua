@@ -73,6 +73,8 @@ ArkInventory.Const = { -- constants
 				},
 			},
 			ITEMQUALITY = {
+				MISSING = -2,
+				UNKNOWN = -1,
 				POOR = ( Enum and Enum.ItemQuality.Poor ) or LE_ITEM_QUALITY_POOR or 0,
 				COMMON = ( Enum and Enum.ItemQuality.Common ) or LE_ITEM_QUALITY_COMMON or 1,
 				UNCOMMON = ( Enum and Enum.ItemQuality.Good )or LE_ITEM_QUALITY_UNCOMMON or 2,
@@ -81,18 +83,18 @@ ArkInventory.Const = { -- constants
 				LEGENDARY = ( Enum and Enum.ItemQuality.Legendary ) or LE_ITEM_QUALITY_LEGENDARY or 5,
 				ARTIFACT = ( Enum and Enum.ItemQuality.Artifact ) or LE_ITEM_QUALITY_ARTIFACT or 6,
 				HEIRLOOM = ( Enum and Enum.ItemQuality.Heirloom ) or LE_ITEM_QUALITY_HEIRLOOM or 7,
-				WOWTOKEN = ( Enum and Enum.ItemQuality.WoWToken ) or LE_ITEM_QUALITY_WOWTOKEN or 8,
+				TOKEN = ( Enum and Enum.ItemQuality.WoWToken ) or LE_ITEM_QUALITY_WOWTOKEN or 8,
 			},
 			EXPANSION = {
 				CURRENT = LE_EXPANSION_LEVEL_CURRENT or 0,
 				CLASSIC = LE_EXPANSION_CLASSIC or 0,
-				BURNING_CRUSADE = LE_EXPANSION_BURNING_CRUSADE or 1,
-				WRATH_OF_THE_LICH_KING = LE_EXPANSION_WRATH_OF_THE_LICH_KING or 2,
-				CATACLYSM = LE_EXPANSION_CATACLYSM or 3,
-				MISTS_OF_PANDARIA = LE_EXPANSION_MISTS_OF_PANDARIA or 4,
-				WARLORDS_OF_DRAENOR = LE_EXPANSION_WARLORDS_OF_DRAENOR or 5,
+				BC = LE_EXPANSION_BURNING_CRUSADE or 1,
+				WRATH = LE_EXPANSION_WRATH_OF_THE_LICH_KING or 2,
+				CATA = LE_EXPANSION_CATACLYSM or 3,
+				PANDARIA = LE_EXPANSION_MISTS_OF_PANDARIA or 4,
+				DRAENOR = LE_EXPANSION_WARLORDS_OF_DRAENOR or 5,
 				LEGION = LE_EXPANSION_LEGION or 6,
-				BATTLE_FOR_AZEROTH = LE_EXPANSION_BATTLE_FOR_AZEROTH or 7,
+				BFA = LE_EXPANSION_BATTLE_FOR_AZEROTH or 7,
 				SHADOWLANDS = LE_EXPANSION_SHADOWLANDS or 8,
 			},
 			CONTAINER = {
@@ -121,6 +123,41 @@ ArkInventory.Const = { -- constants
 			MAILBOX = {
 				MAXATTACHMENTS = ATTACHMENTS_MAX_RECEIVE,
 			},
+		},
+		
+		FUNCTION = {
+			GETITEMINFO = {
+				NAME = 1,
+				LINK = 2,
+				QUALITY = 3,
+				ILVL_BASE = 4,
+				USELEVEL = 5,
+				TYPE = 6,
+				SUBTYPE = 7,
+				STACKSIZE = 8,
+				EQUIP = 9,
+				TEXTURE = 10,
+				VENDORPRICE = 11,
+				TYPEID = 12,
+				SUBTYPEID = 13,
+				BINDING = 14,
+				EXPANSION = 15,
+				SETID = 16,
+				CRAFT = 17,
+			},
+			GETITEMINFOINSTANT = {
+				ID = 1,
+				TYPE = 2,
+				SUBTYPE = 3,
+				EQUIP = 4,
+				TEXTURE = 5,
+				TYPEID = 6,
+				SUBTYPEID = 7,
+			},
+			GETSPELLINFO = {
+				NAME = 1,
+				TEXTURE = 3,
+			}
 		},
 		
 	},
@@ -924,7 +961,7 @@ function ArkInventory.Output( ... )
 		return
 	end
 	
-	table.wipe( ArkInventory_TempOutputTable )
+	ArkInventory.Table.Wipe( ArkInventory_TempOutputTable )
 	
 	local n = select( '#', ... )
 	
@@ -1032,20 +1069,20 @@ function ArkInventory.Table.IsEmpty( src )
 	end
 end
 
-function ArkInventory.Table.Clean( src, key, nilsubtables )
+function ArkInventory.Table.Clean( tbl, key, nilsubtables )
 	
-	-- src = table to be cleaned
+	-- tbl = table to be cleaned
 	
 	-- key = a specific key you want cleaned (nil for all keys)
 	
 	-- nilsubtables (true) = if a value is a table then nil it as well
 	-- nilsubtables (false) = if a value is a table then leave the skeleton there
 	
-	if type( src ) ~= "table" then
+	if type( tbl ) ~= "table" then
 		return
 	end
 	
-	for k, v in pairs( src ) do
+	for k, v in pairs( tbl ) do
 		
 		if key == nil or key == k then
 			
@@ -1055,13 +1092,13 @@ function ArkInventory.Table.Clean( src, key, nilsubtables )
 				
 				if nilsubtables then
 					--ArkInventory.Output( "erasing subtable ", k )
-					src[k] = nil
+					tbl[k] = nil
 				end
 				
 			else
 				
 				--ArkInventory.Output( "erasing value ", k )
-				src[k] = nil
+				tbl[k] = nil
 				
 			end
 			
@@ -1069,6 +1106,12 @@ function ArkInventory.Table.Clean( src, key, nilsubtables )
 		
 	end
 	
+end
+
+function ArkInventory.Table.Wipe( tbl )
+	if type( tbl ) == "table" then
+		table.wipe( tbl )
+	end
 end
 
 function ArkInventory.Table.Copy( src )
@@ -1171,6 +1214,15 @@ function ArkInventory.Table.removeDefaults( tbl, def )
 	
 end
 
+function ArkInventory.ToNumber( v )
+	if type( v ) == "number" then
+		return v
+	elseif type( v ) == "string" then
+		local sep = string.gsub( LARGE_NUMBER_SEPERATOR, ".", "%%%1" )
+		--ArkInventory.Output("LARGE_NUMBER_SEPERATOR=[", LARGE_NUMBER_SEPERATOR, "] [", sep, "]")
+		return tonumber( ( string.gsub( v, sep, "" ) ) )
+	end
+end
 
 local function spairs_iter( a )
 	a.idx = a.idx + 1
@@ -1178,7 +1230,7 @@ local function spairs_iter( a )
 	if k ~= nil then
 		return k, a.tbl[k]
 	end
-	--table.wipe( a )
+	--ArkInventory.Table.Wipe( a )
 	a.tbl = nil
 end
 
@@ -1238,13 +1290,12 @@ end
 ]]--
 
 --[[
-
-local z = "copy"
+local z = "info"
 ArkInventory.Output( "search=", z )
 for k, v in pairs (_G) do
 	if type( k ) == "string" and type( v ) == "string" then
 		--if string.match( string.lower( k ), string.lower( z ) ) then -- found in key
-		if string.match( string.lower( v ), string.lower( z ) ) then -- found in value
+		--if string.match( string.lower( v ), string.lower( z ) ) then -- found in value
 		--if string.lower( v ) == string.lower( z ) then -- exact match with value
 			ArkInventory.Output( k, "=", v )
 		end

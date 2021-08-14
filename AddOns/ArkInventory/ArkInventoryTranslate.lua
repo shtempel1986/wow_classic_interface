@@ -89,23 +89,25 @@ local itemTable = { -- key, project, 0=name | 1=itemtype | 2=itemsubtype, item i
 local function GetWowItemData( t, id )
 	if type( id ) ~= "table" then
 		ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, string.format( "item:%s", id ) )
+		local info = ArkInventory.GetObjectInfo( id )
 		if t == 1 then
-			return ( GetItemInfo( id ) )
+			return info.name
 		elseif t == 2 then
-			return ( select( 6, GetItemInfo( id ) ) )
+			return info.itemtype
 		elseif t == 3 then
-			return ( select( 7, GetItemInfo( id ) ) )
+			return info.itemsubtype
 		end
 	else
 		local x
 		for k, v in ipairs( id ) do
 			ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, string.format( "item:%s", v ) )
+			local info = ArkInventory.GetObjectInfo( v )
 			if t == 1 then
-				x = GetItemInfo( v )
+				x = info.name
 			elseif t == 2 then
-				x = select( 6, GetItemInfo( v ) )
+				x = info.itemtype
 			elseif t == 3 then
-				x = select( 7, GetItemInfo( v ) )
+				x = info.itemsubtype
 			end
 			if x then return x end
 		end
@@ -153,7 +155,7 @@ local function GetItemBasedTranslations( )
 						
 					end
 					
-					table.wipe( itemTable[k] )
+					ArkInventory.Table.Wipe( itemTable[k] )
 					updateTable[key] = nil
 					
 				end
@@ -248,7 +250,7 @@ local function GetSpellBasedTranslations( )
 					end
 					
 					updateTable[key] = nil
-					table.wipe( spellTable[k] )
+					ArkInventory.Table.Wipe( spellTable[k] )
 					
 				end
 				
@@ -334,7 +336,7 @@ local function GetTooltipBasedTranslations( )
 				end
 				
 				updateTable[key] = nil
-				table.wipe( tooltipTable[k] )
+				ArkInventory.Table.Wipe( tooltipTable[k] )
 				
 			end
 			
@@ -395,16 +397,16 @@ frame:SetScript( "OnUpdate",
 						ArkInventory.Output( lang, " translations successfully loaded." )
 					end
 					
-					table.wipe( spellTable )
+					ArkInventory.Table.Wipe( spellTable )
 					spellTable = nil
 					
-					table.wipe( itemTable )
+					ArkInventory.Table.Wipe( itemTable )
 					itemTable = nil
 					
-					table.wipe( tooltipTable )
+					ArkInventory.Table.Wipe( tooltipTable )
 					tooltipTable = nil
 					
-					table.wipe( updateTable )
+					ArkInventory.Table.Wipe( updateTable )
 					updateTable = nil
 					
 				else

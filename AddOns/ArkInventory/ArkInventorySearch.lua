@@ -71,7 +71,6 @@ function ArkInventory.Search.GetContent( h )
 		return ""
 	end
 	
-	local osd = ArkInventory.ObjectStringDecode( h )
 	local search_id = ArkInventory.ObjectIDSearch( h )
 	local txt = ""
 	
@@ -81,7 +80,7 @@ function ArkInventory.Search.GetContent( h )
 		
 	else
 		
-		local info = ArkInventory.ObjectInfoArray( search_id )
+		local info = ArkInventory.GetObjectInfo( search_id )
 		
 		local q = info.q
 		if type( q ) == "number" then
@@ -136,25 +135,20 @@ function ArkInventory.Search.GetContent( h )
 			--tooltip:SetCurrencyTokenByID( info.osd[2] )
 			
 			--txt1 = ArkInventory.TooltipGetLine( tooltip, 2 )
-			--txt = string.format( "#%s#", info.info.description or "" )
+			--txt = string.format( "#%s#", info.description or "" )
 			
 		elseif info.class == "reputation" then
 			
 			--local object = ArkInventory.Collection.Reputation.GetByID( info.osd[2] )
 			
-			--txt = string.format( "#%s#", info.info.description or "" )
+			--txt = string.format( "#%s#", info.description or "" )
 			
 		end
 		
 		txt = string.format( "#%s# %s #%s#", info.name, txt, q )
-		
 		txt = ArkInventory.Search.CleanText( txt )
 		
-		if info.class == "currency" then
-			--ArkInventory.Output( search_id, " = ", txt )
-		end
-		
-		if info.name ~= "" then
+		if info.ready then
 			ArkInventory.Global.Cache.ItemSearchData[search_id] = txt
 		end
 		

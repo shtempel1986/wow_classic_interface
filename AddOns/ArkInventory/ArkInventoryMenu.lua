@@ -926,7 +926,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"hasEditBox", true,
 						"editBoxText", c,
 						"editBoxFunc", function( v )
-							local v = math.floor( tonumber( v ) or 0 )
+							local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
 							if v < 0 then v = 0 end
 							if v > 25 then v = 25 end
 							if codex.layout.bar.data[bar_id].width.min ~= v then
@@ -951,7 +951,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"hasEditBox", true,
 						"editBoxText", c,
 						"editBoxFunc", function( v )
-							local v = math.floor( tonumber( v ) or 0 )
+							local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
 							if v < 0 then v = 0 end
 							if v > 25 then v = 25 end
 							if codex.layout.bar.data[bar_id].width.max ~= v then
@@ -1103,7 +1103,7 @@ function ArkInventory.MenuBarOpen( frame )
 				end
 				
 				
-				local bag_id = tonumber( string.match( value, "^BAG_OPTION_(.+)" ) )
+				local bag_id = ArkInventory.ToNumber( string.match( value, "^BAG_OPTION_(.+)" ) )
 				if bag_id ~= nil then
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
@@ -1214,7 +1214,7 @@ function ArkInventory.MenuItemOpen( frame )
 	local slot_id = frame.ARK_Data.slot_id
 	local codex = ArkInventory.GetLocationCodex( loc_id )
 	local i = ArkInventory.Frame_Item_GetDB( frame )
-	local info = ArkInventory.ObjectInfoArray( i.h, i )
+	local info = ArkInventory.GetObjectInfo( i.h, i )
 	
 	local isEmpty = false
 	if not i or i.h == nil then
@@ -1521,10 +1521,10 @@ function ArkInventory.MenuItemOpen( frame )
 						if info.class == "item" then
 							
 --							ArkInventory.Lib.Dewdrop:AddLine(
---								"text", string.format( "%s (clean): %s%s", ArkInventory.Localise["MENU_ITEM_DEBUG_ITEMSTRING"], LIGHTYELLOW_FONT_COLOR_CODE, info.osd.hs ),
+--								"text", string.format( "%s (clean): %s%s", ArkInventory.Localise["MENU_ITEM_DEBUG_ITEMSTRING"], LIGHTYELLOW_FONT_COLOR_CODE, info.osd.h_rule ),
 --								"hasArrow", true,
 --								"hasEditBox", true,
---								"editBoxText", info.osd.hs
+--								"editBoxText", info.osd.h_rule
 --							)
 							
 							ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ITEM_SOULBOUND, LIGHTYELLOW_FONT_COLOR_CODE, i.sb, ArkInventory.Localise[string.format( "ITEM_BIND%s", i.sb or ArkInventory.Const.Bind.Never )] ) )
@@ -1988,7 +1988,7 @@ function ArkInventory.MenuBagOpen( frame )
 	local player_id = codex.player.data.info.player_id
 	
 	local i = ArkInventory.Frame_Item_GetDB( frame )
-	local info = ArkInventory.ObjectInfoArray( i.h, i )
+	local info = ArkInventory.GetObjectInfo( i.h, i )
 	
 	local isEmpty = false
 	if not ( blizzard_id == BACKPACK_CONTAINER or blizzard_id == BANK_CONTAINER ) then
@@ -3431,7 +3431,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 	local index = string.match( value, "^HEADER_(.+)$" )
 	if index then
 		
-		local index = tonumber( index )
+		local index = ArkInventory.ToNumber( index )
 		local parent = ArkInventory.Collection.Currency.GetByIndex( index )
 		
 		if showTitle then
@@ -3506,7 +3506,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 							else
 								-- add to text
 								codex.player.data.ldb.tracking.currency.watched[data.id] = not codex.player.data.ldb.tracking.currency.watched[data.id]
-								ArkInventory.LDB.Tracking_Currency:Update( )
+								ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 							end
 						end,
 						"value", string.format( "OPTIONS_%s", entry.index )
@@ -3547,7 +3547,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListOptions( value, codex )
 		
 		-- options
 		
-		local index = tonumber( index )
+		local index = ArkInventory.ToNumber( index )
 		
 		local entry = ArkInventory.Collection.Currency.GetByIndex( index )
 		local data = entry.data
@@ -3633,7 +3633,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListOptions( value, codex )
 			"tooltipText", desc,
 			"func", function( )
 				codex.player.data.ldb.tracking.currency.watched[data.id] = not codex.player.data.ldb.tracking.currency.watched[data.id]
-				ArkInventory.LDB.Tracking_Currency:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 			end
 		)
 		
@@ -3778,7 +3778,7 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 	local index = string.match( value, "^HEADER_(.+)$" )
 	if index then
 		
-		local index = tonumber( index )
+		local index = ArkInventory.ToNumber( index )
 		local parent = ArkInventory.Collection.Reputation.GetByIndex( index )
 		
 		if showTitle then
@@ -3856,7 +3856,7 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 								else
 									codex.player.data.ldb.tracking.reputation.watched = data.id
 								end
-								ArkInventory.LDB.Tracking_Reputation:Update( )
+								ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
 							else
 								-- add to text
 								codex.player.data.ldb.tracking.reputation.tracked[data.id] = not codex.player.data.ldb.tracking.reputation.tracked[data.id]
@@ -3899,7 +3899,7 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 		
 		-- options
 		
-		local index = tonumber( index )
+		local index = ArkInventory.ToNumber( index )
 		
 		local entry = ArkInventory.Collection.Reputation.GetByIndex( index )
 		local data = entry.data
@@ -4045,7 +4045,7 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 				else
 					codex.player.data.ldb.tracking.reputation.watched = data.id
 				end
-				ArkInventory.LDB.Tracking_Reputation:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
 			end
 		)
 		
@@ -4094,26 +4094,26 @@ function ArkInventory.MenuLDBTrackingItemOpen( frame )
 					numTokenTypes = numTokenTypes + 1
 					
 					local count = GetItemCount( k )
-					local name, h, _, _, _, _, _, _, _, icon = GetItemInfo( k )
+					local info = ArkInventory.GetObjectInfo( k )
 					local checked = codex.player.data.ldb.tracking.item.tracked[k]
-					local t1 = name
+					local t1 = info.name
 					local t2 = ArkInventory.Localise["CLICK_TO_SELECT"]
 					
 					if checked then
-						t1 = string.format( "%s%s", GREEN_FONT_COLOR_CODE, name )
+						t1 = string.format( "%s%s", GREEN_FONT_COLOR_CODE, info.name )
 						t2 = ArkInventory.Localise["CLICK_TO_DESELECT"]
 					end
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
-						"icon", icon,
+						"icon", info.texture,
 						"text", t1,
-						--"tooltipTitle", name,
+						--"tooltipTitle", info.name,
 						--"tooltipText", t2,
-						"tooltipLink", h,
+						"tooltipLink", info.h,
 						"checked", checked,
 						"func", function( )
 							codex.player.data.ldb.tracking.item.tracked[k] = not codex.player.data.ldb.tracking.item.tracked[k]
-							ArkInventory.LDB.Tracking_Item:Update( )
+							ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
 						end,
 						"hasArrow", true,
 						"value", k
@@ -4149,7 +4149,7 @@ function ArkInventory.MenuLDBTrackingItemOpen( frame )
 					"func", function( )
 						ArkInventory.db.option.tracking.items[value] = nil
 						codex.player.data.ldb.tracking.item.tracked[value] = false
-						ArkInventory.LDB.Tracking_Item:Update( )
+						ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
 					end
 				)
 				
@@ -4280,7 +4280,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 			"checked", codex.player.data.ldb.mounts.type[mountType].useall,
 			"func", function( )
 				codex.player.data.ldb.mounts.type[mountType].useall = not codex.player.data.ldb.mounts.type[mountType].useall
-				ArkInventory.LDB.Mounts:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 			end
 		)
 		
@@ -4349,7 +4349,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 	if ( level == 3 + offset ) and value then
 		
 		local mountType, index = string.match( value, "^(.-):(.-)$" )
-		index = tonumber( index )
+		index = ArkInventory.ToNumber( index )
 		
 		local md = ArkInventory.Collection.Mount.GetMount( index )
 		local usable = ArkInventory.Collection.Mount.isUsable( md.index )
@@ -4372,7 +4372,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 			"isRadio", true,
 			"func", function( )
 				selected[md.spellID] = true
-				ArkInventory.LDB.Mounts:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 			end
 		)
 		
@@ -4385,7 +4385,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 			"isRadio", true,
 			"func", function( )
 				selected[md.spellID] = false
-				ArkInventory.LDB.Mounts:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 			end
 		)
 		
@@ -4399,7 +4399,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 				"isRadio", true,
 				"func", function( )
 					selected[md.spellID] = nil
-					ArkInventory.LDB.Mounts:Update( )
+					ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 				end
 			)
 		end
@@ -4494,7 +4494,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 				"checked", codex.player.data.ldb.pets.useall,
 				"func", function( )
 					codex.player.data.ldb.pets.useall = not codex.player.data.ldb.pets.useall
-					ArkInventory.LDB.Pets:Update( )
+					ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 				end
 			)
 			
@@ -4530,7 +4530,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 		
 		if petType0 then
 			
-			petType0 = tonumber( petType0 )
+			petType0 = ArkInventory.ToNumber( petType0 )
 			local species = -1
 			
 			ArkInventory.Lib.Dewdrop:AddLine(
@@ -4566,7 +4566,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 		
 		if speciesID then
 			
-			speciesID = tonumber( speciesID )
+			speciesID = ArkInventory.ToNumber( speciesID )
 			local sd = ArkInventory.Collection.Pet.GetSpeciesInfo( speciesID )
 			
 			if sd then
@@ -4644,7 +4644,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 				"isRadio", true,
 				"func", function( )
 					selected[pd.guid] = true
-					ArkInventory.LDB.Pets:Update( )
+					ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 				end
 			)
 	
@@ -4657,7 +4657,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 				"isRadio", true,
 				"func", function( )
 					selected[pd.guid] = false
-					ArkInventory.LDB.Pets:Update( )
+					ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 				end
 			)
 			
@@ -4669,7 +4669,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 					"isRadio", true,
 					"func", function( )
 						selected[pd.guid] = nil
-						ArkInventory.LDB.Pets:Update( )
+						ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 					end
 				)
 			end

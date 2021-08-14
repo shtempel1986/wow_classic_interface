@@ -172,36 +172,33 @@ function ArkInventory.ConfigBlizzard( )
 			type = "input",
 			set = function( info, v )
 				
-				local name, h = GetItemInfo( v )
+				local a = ArkInventory.GetObjectInfo( v )
 				
-				if not name or not h then
+				if not a.name or not a.h then
 					ArkInventory.OutputWarning( "no matching item found: ", v )
 					return
 				end
 				
-				local osd = ArkInventory.ObjectStringDecode( h )
-				
-				if osd.class ~= "item" then
+				if a.class ~= "item" then
 					ArkInventory.OutputWarning( "not an item: ", v )
 					return
 				end
 				
-				local id = osd.id
 				local me = ArkInventory.GetPlayerCodex( )
 				
-				if ArkInventory.db.option.tracking.items[id] then
+				if ArkInventory.db.option.tracking.items[a.id] then
 					--remove
-					ArkInventory.db.option.tracking.items[id] = nil
-					me.player.data.ldb.tracking.item.tracked[id] = false
-					ArkInventory.Output( string.format( ArkInventory.Localise["SLASH_TRACK_REMOVE_DESC"], h ) )
+					ArkInventory.db.option.tracking.items[a.id] = nil
+					me.player.data.ldb.tracking.item.tracked[a.id] = false
+					ArkInventory.Output( string.format( ArkInventory.Localise["SLASH_TRACK_REMOVE_DESC"], a.h ) )
 				else
 					--add
-					ArkInventory.db.option.tracking.items[id] = true
-					me.player.data.ldb.tracking.item.tracked[id] = true
-					ArkInventory.Output( string.format( ArkInventory.Localise["SLASH_TRACK_ADD_DESC"], h ) )
+					ArkInventory.db.option.tracking.items[a.id] = true
+					me.player.data.ldb.tracking.item.tracked[a.id] = true
+					ArkInventory.Output( string.format( ArkInventory.Localise["SLASH_TRACK_ADD_DESC"], a.h ) )
 				end
 				
-				ArkInventory.LDB.Tracking_Item:Update( )
+				ArkInventory:SendMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET" )
 				
 			end,
 		},

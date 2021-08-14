@@ -132,11 +132,11 @@ ArkInventory.Const.Category = {
 				id = "SYSTEM_HEIRLOOM",
 				text = ArkInventory.Localise["HEIRLOOM"],
 			},
-			[448] = {
-				proj = ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
-				id = "SYSTEM_ARTIFACT_RELIC",
-				text = ArkInventory.Localise["WOW_ITEM_CLASS_GEM_ARTIFACTRELIC"],
-			},
+--			[448] = {
+--				proj = ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
+--				id = "SYSTEM_ARTIFACT_RELIC",
+--				text = ArkInventory.Localise["WOW_ITEM_CLASS_GEM_ARTIFACTRELIC"],
+--			},
 			[451] = {
 				proj = ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
 				id = "SYSTEM_MYTHIC_KEYSTONE",
@@ -249,9 +249,10 @@ ArkInventory.Const.Category = {
 				text = ArkInventory.Localise["WOW_ITEM_CLASS_CONSUMABLE_VANTUSRUNE"],
 			},
 			[450] = {
-				proj = ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
-				id = "CONSUMABLE_POWER_LEGION_ARTIFACT",
-				text = ArkInventory.Localise["ARTIFACT_POWER"],
+				id = "CONSUMABLE_POWER_SYSTEM_OLD",
+				text = ArkInventory.Localise["CATEGORY_CONSUMABLE_POWER_SYSTEM_OLD"],
+				--id = "CONSUMABLE_POWER_LEGION_ARTIFACT",
+				--text = ArkInventory.Localise["ARTIFACT_POWER"],
 			},
 			[902] = {
 				proj = not ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
@@ -588,7 +589,7 @@ function ArkInventory.ObjectIDCategory( i, isRule )
 		soulbound = 1
 	end
 	
-	local info = ArkInventory.ObjectInfoArray( i.h )
+	local info = ArkInventory.GetObjectInfo( i.h )
 	local osd = info.osd
 	local r
 	
@@ -678,7 +679,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	
 	
 	-- everything else needs the info table
-	local info = ArkInventory.ObjectInfoArray( i.h, i )
+	local info = ArkInventory.GetObjectInfo( i.h, i )
 	
 	
 	-- mythic keystone
@@ -695,18 +696,16 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		end
 	end
 	
-	
+	if not info.ready then
+		return
+	end
+
 	--ArkInventory.Output( "bag[", i.bag_id, "], slot[", i.slot_id, "] = ", info.itemtype, " [", info.itemtypeid, "] ", info.itemsubtype, "[", info.itemsubtypeid, "]" )
 	-- ArkInventory.Output( i.h, " = ", info.itemtype, " [", info.itemtypeid, "] ", info.itemsubtype, "[", info.itemsubtypeid, "]" )
 	
 	-- items only from here on
 	if info.class ~= "item" then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
-	end
-	
-	-- no item info
-	if info.name == nil then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
+		return
 	end
 	
 	-- reputation items that can be other types
@@ -716,14 +715,8 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	
 	
 	
-	-- setup tooltip for scanning
+	-- setup tooltip for scanning.  it will be ready as we've already checked
 	ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Scan, i.loc_id, i.bag_id, i.slot_id, i.h, i )
-	
-	-- tooltip not ready, set to unknown so it will try again next time
-	if not ArkInventory.TooltipIsReady( ArkInventory.Global.Tooltip.Scan ) then
-		--ArkInventory.Output2( "1 tooltip not ready: ", i.h )
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
-	end
 	
 	
 	
@@ -735,7 +728,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 			
 			-- artifact power (tooltip)
 			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, true ) then
-				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_LEGION_ARTIFACT" )
+				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 			end
 			
 			-- ancient mana (tooltip)
@@ -780,6 +773,11 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		
 	end
 	
+	-- old power systems (current power system items should have already been categorised)
+	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Consumable.Power" ) then
+		return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
+	end
+		
 	-- quest items (some are grey)
 	if info.itemtypeid == ArkInventory.Const.ItemClass.QUEST or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Quest" ) then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_QUEST" )
@@ -851,7 +849,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	-- gems
 	if info.itemtypeid == ArkInventory.Const.ItemClass.GEM or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Gems" ) then
 		if info.itemsubtypeid == ArkInventory.Const.ItemClass.GEM_ARTIFACTRELIC or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Gems.Artifact Relic" ) then
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_ARTIFACT_RELIC" )
+			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 		elseif ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.CLASSIC ) then
 			return ArkInventory.CategoryGetSystemID( "TRADEGOODS_GEMS" )
 		else
@@ -862,7 +860,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	if ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ) then
 		-- artifact power.  tooltip check is lower down
 		if ArkInventory.CrossClient.IsArtifactPowerItem( info.id ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Consumable.Artifact Power" ) then
-			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_LEGION_ARTIFACT" )
+			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 		end
 	end
 	
@@ -1415,14 +1413,6 @@ function ArkInventory.ItemCategoryGetDefaultEmpty( loc_id, bag_id )
 		end
 	end
 	
-	if clump then
-		return ArkInventory.CategoryGetSystemID( "EMPTY" )
-	else
-		return ArkInventory.CategoryGetSystemID( "EMPTY_UNKNOWN" )
-	end
-	
-	ArkInventory.Output( "code failure, should never get here" )
-	
 end
 
 function ArkInventory.ItemCategoryGetDefault( i )
@@ -1439,23 +1429,26 @@ function ArkInventory.ItemCategoryGetDefault( i )
 		
 		if i.h then
 			
-			cat = ArkInventory.ItemCategoryGetDefaultActual( i )
-			
-			if cat ~= ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" ) then
+			local cat = ArkInventory.ItemCategoryGetDefaultActual( i )
+			if cat then
 				ArkInventory.db.cache.default[cid] = cat
+				return ArkInventory.db.cache.default[cid]
+			else
+				return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
 			end
 			
 		else
 			
-			cat = ArkInventory.ItemCategoryGetDefaultEmpty( i.loc_id, i.bag_id )
+			local cat = ArkInventory.ItemCategoryGetDefaultEmpty( i.loc_id, i.bag_id )
 			
-			if cat ~= ArkInventory.CategoryGetSystemID( "EMPTY_UNKNOWN" ) then
+			if cat then
 				ArkInventory.db.cache.default[cid] = cat
+				return ArkInventory.db.cache.default[cid]
+			else
+				return ArkInventory.CategoryGetSystemID( "EMPTY_UNKNOWN" ) 
 			end
 			
 		end
-		
-		return cat
 		
 	else
 		

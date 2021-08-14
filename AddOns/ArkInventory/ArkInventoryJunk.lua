@@ -12,7 +12,7 @@ local junk_addons = {"Scrap","SellJunk","ReagentRestocker"}
 function ArkInventory.JunkProcessCheck( name )
 	for _, a in pairs( junk_addons ) do
 		--ArkInventory.Output( "checking ", a )
-		if IsAddOnLoaded( a ) then
+		if IsAddOnLoaded( a ) and _G[a] then
 			ArkInventory.OutputWarning( string.format( ArkInventory.Localise["CONFIG_JUNK_PROCESSING_DISABLED_DESC"], a ) )
 			return false, a
 		end
@@ -27,21 +27,21 @@ function ArkInventory.JunkCheck( i, codex )
 	
 	if i and i.h then
 		
-		local info = i.info or ArkInventory.ObjectInfoArray( i.h )
+		local info = i.info or ArkInventory.GetObjectInfo( i.h )
 		
-		if IsAddOnLoaded( "Scrap" ) then
+		if IsAddOnLoaded( "Scrap" ) and Scrap then
 			
 			if Scrap:IsJunk( info.id ) then
 				isJunk = true
 			end
 			
-		elseif IsAddOnLoaded( "SellJunk" ) then
+		elseif IsAddOnLoaded( "SellJunk" ) and SellJunk then
 			
 			if ( info.q == 0 and not SellJunk:isException( i.h ) ) or ( info.q ~= 0 and SellJunk:isException( i.h ) ) then
 				isJunk = true
 			end
 			
-		elseif IsAddOnLoaded( "ReagentRestocker" ) then
+		elseif IsAddOnLoaded( "ReagentRestocker" ) and ReagentRestocker then
 			
 			if ReagentRestocker:isToBeSold( info.id ) then
 				isJunk = true

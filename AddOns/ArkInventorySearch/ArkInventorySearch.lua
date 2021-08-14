@@ -2,8 +2,8 @@
 
 License: All Rights Reserved, (c) 2006-2018
 
-$Revision: 2754 $
-$Date: 2020-10-21 16:02:17 +1100 (Wed, 21 Oct 2020) $
+$Revision: 2876 $
+$Date: 2021-07-28 22:57:01 +1000 (Wed, 28 Jul 2021) $
 
 ]]--
 
@@ -26,8 +26,8 @@ function ArkInventorySearch:OnDisable( )
 	
 	ArkInventory.Search.frame = nil
 	
-	table.wipe( ArkInventorySearch.SourceTable )
-	table.wipe( ArkInventorySearch.cache )
+	ArkInventory.Table.Wipe( ArkInventorySearch.SourceTable )
+	ArkInventory.Table.Wipe( ArkInventorySearch.cache )
 	
 end
 
@@ -148,7 +148,7 @@ function ArkInventorySearch.Frame_Table_Build( frame )
 	
 	local f = frame:GetName( )
 	
-	local maxrows = tonumber( _G[string.format( "%s%s", f, "MaxRows" )]:GetText( ) )
+	local maxrows = ArkInventory.ToNumber( _G[string.format( "%s%s", f, "MaxRows" )]:GetText( ) )
 	local rows = maxrows
 	local height = 24
 	
@@ -156,7 +156,7 @@ function ArkInventorySearch.Frame_Table_Build( frame )
 	_G[string.format( "%s%s", f, "NumRows" )]:SetText( rows )
 	
 	if height == 0 then
-		height = tonumber( _G[string.format( "%s%s", f, "RowHeight" )]:GetText( ) )
+		height = ArkInventory.ToNumber( _G[string.format( "%s%s", f, "RowHeight" )]:GetText( ) )
 	end
 	_G[string.format( "%s%s", f, "RowHeight" )]:SetText( height )
 	
@@ -169,12 +169,9 @@ function ArkInventorySearch.Frame_Table_Build( frame )
 end
 
 function ArkInventorySearch.Frame_Table_Row_OnClick( frame )
-	
 	local h = _G[string.format( "%s%s", frame:GetName( ), "Id" )]:GetText( )
-	local info = ArkInventory.ObjectInfoArray( h )
-	--h = select( 2, GetItemInfo( h ) )
+	local info = ArkInventory.GetObjectInfo( h )
 	if HandleModifiedItemClick( info.h ) then return end
-	
 end
 
 function ArkInventorySearch.Frame_Table_Reset( f )
@@ -185,8 +182,8 @@ function ArkInventorySearch.Frame_Table_Reset( f )
 	
 	local t = string.format( "%s%s", f, "Table" )
 	
-	local h = tonumber( _G[string.format( "%s%s", t ,"RowHeight" )]:GetText( ) )
-	local r = tonumber( _G[string.format( "%s%s", t, "NumRows" )]:GetText( ) )
+	local h = ArkInventory.ToNumber( _G[string.format( "%s%s", t ,"RowHeight" )]:GetText( ) )
+	local r = ArkInventory.ToNumber( _G[string.format( "%s%s", t, "NumRows" )]:GetText( ) )
 	
 	_G[string.format( "%s%s", t, "SelectedRow" )]:SetText( "-1" )
 	for x = 1, r do
@@ -243,7 +240,7 @@ function ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 	filter = ArkInventory.Search.CleanText( filter )
 	--ArkInventory.Output( "table refresh, search filter = [", filter, "]" )
 	
-	table.wipe( ArkInventorySearch.SourceTable )
+	ArkInventory.Table.Wipe( ArkInventorySearch.SourceTable )
 	local c = 0
 	
 	local tt = { }
@@ -269,13 +266,13 @@ function ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 								
 								if not ArkInventorySearch.cache[id] then
 									
-									info = ArkInventory.ObjectInfoArray( id )
-									class = info.osd.class
+									info = ArkInventory.GetObjectInfo( id )
+									class = info.class
 									texture = info.texture
 									name = info.name
 									q = info.q
 									
-									if name and name ~= "" then
+									if name and name ~= ArkInventory.Localise["DATA_NOT_READY"] then
 										txt = ArkInventory.Search.GetContent( id )
 										ArkInventorySearch.cache[id] = { name = name, txt = txt, texture = texture, q = q, info = info }
 									else
@@ -377,8 +374,8 @@ function ArkInventorySearch.Frame_Table_Scroll( frame )
 	local ft = string.format( "%s%s", f, "Table" )
 	local fs = string.format( "%s%s", f, "Search" )
 
-	local height = tonumber( _G[string.format( "%s%s", ft, "RowHeight" )]:GetText( ) )
-	local rows = tonumber( _G[string.format( "%s%s", ft, "NumRows" )]:GetText( ) )
+	local height = ArkInventory.ToNumber( _G[string.format( "%s%s", ft, "RowHeight" )]:GetText( ) )
+	local rows = ArkInventory.ToNumber( _G[string.format( "%s%s", ft, "NumRows" )]:GetText( ) )
 
 	local line
 	local lineplusoffset

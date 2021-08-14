@@ -213,8 +213,9 @@ end
 function ArkInventory.API.ItemFrameItemTableGet( frame )
 	
 	-- returns the "i" table for the item assigned to the specified item frame
+	-- if its not an arkinventory frame youll get nil back
 	
-	if frame then
+	if frame and frame.ARK_Data then
 		return ArkInventory.Frame_Item_GetDB( frame )
 	end
 	

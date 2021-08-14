@@ -43,7 +43,7 @@ function ArkInventory.Tradeskill.ExtractData( )
 		ArkInventory.OutputWarning( "ArkInventory.Global.dataexport is not enabled" )
 	else
 		local x
-		table.wipe( ArkInventory.db.extract )
+		ArkInventory.Table.Wipe( ArkInventory.db.extract )
 		for enchant, ed in pairs( collection.sv.enchant ) do
 			if not collection.xref[enchant] then
 				x = string.format( "%s|%s|%s|%s|%s|%s|%s|%s|0", ed.s, ed.cat, enchant, ed.r or 0, ed.t or 0, ed.name or "", ed.rank or 0, ed.src or -1 )
@@ -99,23 +99,23 @@ function ArkInventory.Tradeskill.ImportCrossRefTable( )
 		
 		skill, category, enchant, result, taughtby, name, rank, source = strsplit( "\124", v )
 		
-		skill = tonumber( skill )
+		skill = ArkInventory.ToNumber( skill )
 		if not skill then
 			ArkInventory.Output2( "bad skill" )
 			ok = false
 		end
 		
-		category = tonumber( category )
+		category = ArkInventory.ToNumber( category )
 		if not category then
 			ArkInventory.Output2( "bad category" )
 			ok = false
 		end
 		
 		osd = ArkInventory.ObjectStringDecode( enchant )
-		if osd.id == 0 or osd.hb ~= enchant then
+		if osd.id == 0 or osd.h_base ~= enchant then
 			ok = false
 		end
-		enchant = osd.hb
+		enchant = osd.h_base
 		
 		if result ~= "-1" then
 			osd = ArkInventory.ObjectStringDecode( result )
@@ -123,16 +123,16 @@ function ArkInventory.Tradeskill.ImportCrossRefTable( )
 				ArkInventory.Output2( "bad result" )
 				ok = false
 			end
-			result = osd.hb
+			result = osd.h_base
 		end
 		
 		if taughtby ~= "-1" then
 			osd = ArkInventory.ObjectStringDecode( taughtby )
-			if osd.id == 0 or osd.hb == result then
+			if osd.id == 0 or osd.h_base == result then
 				ArkInventory.Output2( "bad taughtby" )
 				ok = false
 			end
-			taughtby = osd.hb
+			taughtby = osd.h_base
 		end
 		
 		if not name or name == "" then
@@ -140,7 +140,7 @@ function ArkInventory.Tradeskill.ImportCrossRefTable( )
 			ok = false
 		end
 		
-		rank = tonumber( rank )
+		rank = ArkInventory.ToNumber( rank )
 		if not rank then
 			ArkInventory.Output2( "bad rank" )
 			ok = false
@@ -203,7 +203,7 @@ function ArkInventory.Tradeskill.ImportCrossRefTable( )
 	end
 	
 	
-	table.wipe( ImportCrossRefTable )
+	ArkInventory.Table.Wipe( ImportCrossRefTable )
 	ImportCrossRefTable = nil
 	
 end
@@ -252,7 +252,7 @@ function ArkInventory.Tradeskill.isEnchant( h )
 	if not ArkInventory.Tradeskill.IsReady( ) then return end
 	
 	local osd = ArkInventory.ObjectStringDecode( h )
-	local info = collection.sv.enchant[osd.hb]
+	local info = collection.sv.enchant[osd.h_base]
 	if info.s ~= 0 then
 		return info
 	end
@@ -264,8 +264,8 @@ function ArkInventory.Tradeskill.isResultItem( h )
 	if not ArkInventory.Tradeskill.IsReady( ) then return end
 	
 	local osd = ArkInventory.ObjectStringDecode( h )
-	--return osd.hb, collection.result[osd.hb]
-	return ArkInventory.db.cache.tradeskill.result[osd.hb]
+	--return osd.h_base, collection.result[osd.h_base]
+	return ArkInventory.db.cache.tradeskill.result[osd.h_base]
 	
 end
 
@@ -274,7 +274,7 @@ function ArkInventory.Tradeskill.isRecipeItem( h )
 	if not ArkInventory.Tradeskill.IsReady( ) then return end
 	
 	local osd = ArkInventory.ObjectStringDecode( h )
-	return collection.taughtby[osd.hb]
+	return collection.taughtby[osd.h_base]
 	
 end
 
@@ -356,7 +356,7 @@ local function helper_LoadRecipe( skillID, rid )
 		
 		info.link = C_TradeSkillUI.GetRecipeLink( rid )
 		osd = ArkInventory.ObjectStringDecode( info.link )
-		key = osd.hb
+		key = osd.h_base
 		
 		if not cache[key] then
 			
@@ -367,9 +367,9 @@ local function helper_LoadRecipe( skillID, rid )
 			
 			info.resultLink = C_TradeSkillUI.GetRecipeItemLink( rid )
 			osd = ArkInventory.ObjectStringDecode( info.resultLink )
-			info.resultHB = osd.hb
+			info.resultHB = osd.h_base
 			
-			if osd.id == 0 or osd.hb == key then
+			if osd.id == 0 or osd.h_base == key then
 				info.resultLink = "item:0"
 				info.resultHB = "0"
 			end
@@ -378,14 +378,14 @@ local function helper_LoadRecipe( skillID, rid )
 				osd = C_TradeSkillUI.GetRecipeLink( info.previousRecipeID )
 				osd = ArkInventory.ObjectStringDecode( osd )
 				info.previousRecipeID = osd.id
-				info.previousRecipeHB = osd.hb
+				info.previousRecipeHB = osd.h_base
 			end
 			
 			if info.nextRecipeID then
 				osd = C_TradeSkillUI.GetRecipeLink( info.nextRecipeID )
 				osd = ArkInventory.ObjectStringDecode( osd )
 				info.nextRecipeID = osd.id
-				info.nextRecipeHB = osd.hb
+				info.nextRecipeHB = osd.h_base
 			end
 			
 			
@@ -459,10 +459,10 @@ local function Scan_UI( )
 			
 			
 			osd = ArkInventory.ObjectStringDecode( info.resultLink )
-			if osd.hb ~= key then
-				--collection.result[osd.hb] = key
+			if osd.h_base ~= key then
+				--collection.result[osd.h_base] = key
 				--ArkInventory.Output( "sv.result[", info.resultHB, "][", key, "] = ", skillID )
-				sv.result[osd.hb][key] = skillID
+				sv.result[osd.h_base][key] = skillID
 			end
 			
 			if update then
@@ -502,7 +502,7 @@ local function Scan_UI( )
 			
 			
 			-- now we go back up
-			table.wipe( ranks )
+			ArkInventory.Table.Wipe( ranks )
 			rank = 0
 			
 			xid = xinfo.recipeHB

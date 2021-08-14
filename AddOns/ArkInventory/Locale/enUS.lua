@@ -95,6 +95,7 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_FLASK"] = "Flask"
 	L["CATEGORY_CONSUMABLE_SCROLL"] = "Scroll"
 	L["CATEGORY_CONSUMABLE_CHAMPION_EQUIPMENT"] = "Champion Equipment"
+	L["CATEGORY_CONSUMABLE_POWER_SYSTEM_OLD"] = "Power Systems (Old)"
 	
 	
 --	bag names - used to name the empty slots in the status frame (and LDB)
@@ -416,6 +417,8 @@ if not L then return end
 	L["CONFIG_DESIGN"] = "Design"
 	L["CONFIG_DESIGN_PLURAL"] = "Designs"
 	
+	L["CONFIG_BLUEPRINT"] = "Blueprint"
+	
 	L["CONFIG_STYLE"] = "Style"
 	L["CONFIG_STYLE_PLURAL"] = "Styles"
 	L["CONFIG_STYLE_DESCRIPTION"] = "to be done"
@@ -485,18 +488,23 @@ if not L then return end
 	L["CONFIG_DESIGN_ITEM_FADE_DESC"] = "fade offline items"
 	L["CONFIG_DESIGN_ITEM_TINT_USABLE"] = "Tint Unusable"
 	L["CONFIG_DESIGN_ITEM_TINT_USABLE_DESC"] = "tint unusable items red"
-	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_SHOW"] = "Item Level"
-	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_SHOW_DESC"] = "show item level for equippable items"
-	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_SHOW_MINIMUM_DESC"] = "minimum item level to show"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL"] = "Item Level"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_DESC"] = "show item level"
 	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_QUALITY_DESC"] = "use the items quality colour for the item text"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_EQUIP_DESC"] = "show item level for equippable items"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_EQUIP_MINIMUM_DESC"] = "minimum item level to show"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_BAGS_DESC"] = "show slot count for non-equipped bags"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_STOCK"] = "Stock"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_STOCK_DESC"] = "show stock value for non-equippable items"
+	L["CONFIG_DESIGN_ITEM_ITEMLEVEL_STOCK_TOTAL_DESC"] = "enabled: show the total value for the stack\n\ndisabled: show the single value for the item"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT"] = "Stack Limit"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT_STACKS"] = "Stacks"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT_STACKS_DESC"] = "only show this many stacks of an item and hide the rest\n\nuse show hidden items to temporarily see all stacks\n\nset to zero to always display all stacks\n\nNote: displayed stacks may not be the newest or largest"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT_IDENTIFY_SHOW"] = "Add Indicator"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT_IDENTIFY_SHOW_DESC"] = "add a + character to the item count to indicate there are hidden stacks for that item"
 	L["CONFIG_DESIGN_ITEM_STACKLIMIT_IDENTIFY_POSITION_DESC"] = "where to add the indicator text"
-	L["CONFIG_DESIGN_ITEM_ITEMCOUNT_SHOW"] = "Item Count"
-	L["CONFIG_DESIGN_ITEM_ITEMCOUNT_SHOW_DESC"] = "show item stack counts"
+	L["CONFIG_DESIGN_ITEM_ITEMCOUNT"] = "Item Count"
+	L["CONFIG_DESIGN_ITEM_ITEMCOUNT_DESC"] = "show item stack counts"
 	L["CONFIG_DESIGN_ITEM_STATUSICON"] = "Status Icons"
 	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE"] = "upgrade status icon"
 	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE_SHOW_DESC"] = "show the item upgrade status icon"
@@ -526,11 +534,11 @@ if not L then return end
 	L["CONFIG_DESIGN_ITEM_BORDER_TEXTURE_OFFSET_DESC"] = "the number pixels from the outside of the image to the inside edge of the border itself (used to realign the border to the item texture)"
 	
 	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW"] = "New Items"
-	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_ENABLED_DESC"] = "temporarily assigns new items into their own category"
-	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_CUTOFF_DESC"] = "only move items to the new items category if they are less than this value."
+	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_ENABLED_DESC"] = "temporarily reassigns new items, that are within the duration period, to the %1$s category"
+	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_CUTOFF_DESC"] = "only reassign items to the new items category if they are within this duration."
 	L["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_RESET_DESC"] = "reset the new item age timer"
-	L["CONFIG_DESIGN_ITEM_OVERRIDE_PARTYLOOT_ENABLED_DESC"] = "temporarily assigns party loot / tradeable items into their own category"
-	L["CONFIG_DESIGN_ITEM_OVERRIDE_REFUNDABLE_ENABLED_DESC"] = "temporarily assigns refundable items into their own category"
+	L["CONFIG_DESIGN_ITEM_OVERRIDE_PARTYLOOT_ENABLED_DESC"] = "reassigns party loot / tradeable items to the %1$s category"
+	L["CONFIG_DESIGN_ITEM_OVERRIDE_REFUNDABLE_ENABLED_DESC"] = "reassigns refundable items to the %1$s category"
 	
 	L["CONFIG_DESIGN_ITEM_AGE"] = "Item Age"
 	L["CONFIG_DESIGN_ITEM_AGE_SHOW_DESC"] = "toggles the display of the item age text"
@@ -860,6 +868,7 @@ if not L then return end
 	L["CONDUITS"] = "Conduits"
 	L["COVENANT"] = "Covenant"
 	L["ALPHA"] = "Alpha"
+	L["BAGS"] = "Bags"
 	
 	
 -- libdatabroker
