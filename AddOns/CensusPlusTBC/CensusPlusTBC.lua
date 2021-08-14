@@ -440,6 +440,9 @@ end
 	shortened alternate will generate duplicate name hit of 3.47 duplicates /unique name
 ]]
 local function GetNameLetters()
+	if( GetLocale() == "ruRU" ) then
+		return { "а","г","е","ё","и","м","н","о","п","р","с","т","у","э","ю","я", }
+	end
 	return { "a", "b", "c", "d", "e", "f", "g", "i", "o", "p", "r", "s", "t", "u", "y" }
 end
 

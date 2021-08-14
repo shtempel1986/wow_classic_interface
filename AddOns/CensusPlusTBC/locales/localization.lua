@@ -282,6 +282,8 @@ if ( GetLocale() == "ruRU" ) then
 	CENSUSPLUS_HUMAN = "Человек";
 	CENSUSPLUS_NIGHTELF = "Ночной эльф";
 	CENSUSPlusFemale["Ночная эльфийка"] = "Ночной эльф";
+    CENSUSPLUS_DRAENEI = "Дреней"
+    CENSUSPlusFemale["Дренейка"] = "Дреней";
 
 	CENSUSPLUS_ORC = "Орк";
 	CENSUSPlusFemale["Орчиха"] = "Орк";
