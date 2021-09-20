@@ -2,8 +2,8 @@
 
 License: All Rights Reserved, (c) 2006-2018
 
-$Revision: 2886 $
-$Date: 2021-08-12 23:42:18 +1000 (Thu, 12 Aug 2021) $
+$Revision: 2913 $
+$Date: 2021-08-24 23:38:23 +1000 (Tue, 24 Aug 2021) $
 
 ]]--
 
@@ -168,11 +168,10 @@ local function helperColourGet( v )
 	
 	local f = "%.3f"
 	
-	local r = ArkInventory.ToNumber( string.format( f, v.r or 1 ) )
-	local g = ArkInventory.ToNumber( string.format( f, v.g or 1 ) )
-	local b = ArkInventory.ToNumber( string.format( f, v.b or 1 ) )
-	local a = ArkInventory.ToNumber( string.format( f, v.a or 1 ) )
-	
+	local r = tonumber( string.format( f, v.r or 1 ) )
+	local g = tonumber( string.format( f, v.g or 1 ) )
+	local b = tonumber( string.format( f, v.b or 1 ) )
+	local a = tonumber( string.format( f, v.a or 1 ) )
 	return r, g, b, a
 	
 end
@@ -184,11 +183,11 @@ local function helperColourSet( v, r, g, b, a )
 	
 	local f = "%.3f"
 	
-	v.r = ArkInventory.ToNumber( string.format( f, r or 1 ) )
-	v.g = ArkInventory.ToNumber( string.format( f, g or 1 ) )
-	v.b = ArkInventory.ToNumber( string.format( f, b or 1 ) )
+	v.r = tonumber( string.format( f, r or 1 ) )
+	v.g = tonumber( string.format( f, g or 1 ) )
+	v.b = tonumber( string.format( f, b or 1 ) )
 	if a then
-		v.a = ArkInventory.ToNumber( string.format( f, a or 1 ) )
+		v.a = tonumber( string.format( f, a or 1 ) )
 	end
 	
 end
@@ -1446,8 +1445,8 @@ function ArkInventory.ConfigInternal( )
 						},
 						autosell = {
 							order = 100,
-							name = ArkInventory.Localise["CONFIG_JUNK_SELL"],
-							desc = ArkInventory.Localise["CONFIG_JUNK_SELL_DESC"],
+							name = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"],
+							desc = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO_DESC"],
 							type = "toggle",
 							disabled = not ArkInventory.Global.Junk.process,
 							get = function( info )
@@ -1463,7 +1462,7 @@ function ArkInventory.ConfigInternal( )
 							desc = ArkInventory.Localise["CONFIG_JUNK_TESTMODE_DESC"],
 							type = "toggle",
 							disabled = function( info )
-								return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.junk.test
@@ -1480,7 +1479,7 @@ function ArkInventory.ConfigInternal( )
 							end,
 							type = "select",
 							disabled = function( info )
-								return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Junk.process
 							end,
 							values = function( )
 								local t = { }
@@ -1495,7 +1494,7 @@ function ArkInventory.ConfigInternal( )
 								return tostring( ArkInventory.db.option.junk.raritycutoff or ArkInventory.Const.BLIZZARD.GLOBAL.ITEMQUALITY.POOR )
 							end,
 							set = function( info, v )
-								ArkInventory.db.option.junk.raritycutoff = ArkInventory.ToNumber( v )
+								ArkInventory.db.option.junk.raritycutoff = tonumber( v )
 							end,
 						},
 						limit = {
@@ -1504,7 +1503,7 @@ function ArkInventory.ConfigInternal( )
 							desc = string.format( ArkInventory.Localise["CONFIG_JUNK_LIMIT_DESC"], BUYBACK_ITEMS_PER_PAGE ),
 							type = "toggle",
 							disabled = function( info )
-								return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.junk.limit
@@ -1520,8 +1519,7 @@ function ArkInventory.ConfigInternal( )
 							type = "toggle",
 							width = "half",
 							disabled = function( info )
-								--return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
-								return true
+								return not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.junk.delete
@@ -1537,7 +1535,7 @@ function ArkInventory.ConfigInternal( )
 							type = "toggle",
 							width = "half",
 							disabled = function( info )
-								return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.junk.notify
@@ -1553,7 +1551,7 @@ function ArkInventory.ConfigInternal( )
 							type = "toggle",
 							width = "half",
 							disabled = function( info )
-								return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.junk.list
@@ -1571,7 +1569,7 @@ function ArkInventory.ConfigInternal( )
 							max = 2500,
 							step = 5,
 							disabled = function( )
-								return not ArkInventory.Global.Thread.Use or not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+								return not ArkInventory.Global.Thread.Use or not ArkInventory.Global.Junk.process
 							end,
 							get = function( info )
 								return ArkInventory.db.option.thread.timeout.junksell
@@ -1595,7 +1593,7 @@ function ArkInventory.ConfigInternal( )
 									desc = ArkInventory.Localise["CONFIG_JUNK_SOULBOUND_ALREADY_KNOWN_DESC"],
 									type = "toggle",
 									disabled = function( info )
-										return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+										return not ArkInventory.Global.Junk.process
 									end,
 									get = function( info )
 										return ArkInventory.db.option.junk.soulbound.known
@@ -1610,7 +1608,7 @@ function ArkInventory.ConfigInternal( )
 									desc = ArkInventory.Localise["CONFIG_JUNK_SOULBOUND_EQUIPMENT_DESC"],
 									type = "toggle",
 									disabled = function( info )
-										return not ArkInventory.Global.Junk.process or not ArkInventory.db.option.junk.sell
+										return not ArkInventory.Global.Junk.process
 									end,
 									get = function( info )
 										return ArkInventory.db.option.junk.soulbound.equipment
@@ -2309,7 +2307,7 @@ function ArkInventory.ConfigInternal( )
 							desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_DESC"], string.lower( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_NORMAL"] ) ),
 							type = "range",
 							min = 25,
-							max = 5000,
+							max = 250,
 							step = 5,
 							disabled = function( )
 								return not ArkInventory.Global.Thread.Use
@@ -2320,7 +2318,7 @@ function ArkInventory.ConfigInternal( )
 							set = function( info, v )
 								local v = math.floor( v / 5 ) * 5
 								if v < 25 then v = 25 end
-								if v > 5000 then v = 5000 end
+								if v > 250 then v = 250 end
 								ArkInventory.db.option.thread.timeout.normal = v
 							end,
 						},
@@ -2351,7 +2349,7 @@ function ArkInventory.ConfigInternal( )
 							desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_DESC"], string.lower( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_TOOLTIP"] ) ),
 							type = "range",
 							min = 25,
-							max = 5000,
+							max = 250,
 							step = 5,
 							disabled = function( )
 								return not ArkInventory.Global.Thread.Use
@@ -2366,177 +2364,30 @@ function ArkInventory.ConfigInternal( )
 								ArkInventory.db.option.thread.timeout.tooltip = v
 							end,
 						},
-					},
-				},
-				bucket = {
-					cmdHidden = true,
-					order = 1000,
-					name = ArkInventory.Localise["CONFIG_GENERAL_TIMERS"],
-					--desc = ArkInventory.Localise["CONFIG_GENERAL_TIMERS"],
-					type = "group",
-					childGroups = "tab",
-					--inline = true,
-					args = {
-						bag = {
-							order = 100,
-							name = ArkInventory.Localise["BACKPACK"],
-							type = "group",
-							--inline = true,
-							args = {
-								custom = {
-									order = 100,
-									name = ArkInventory.Localise["CUSTOM"],
-									desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_TIMERS_DESC"], ArkInventory.Localise["BACKPACK"] ),
-									type = "toggle",
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag]
-									end,
-									set = function( info, v )
-										if not v then
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag] = nil
-										else
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag] = 0.5
-										end
-									end,
-								},
-								value = {
-									order = 200,
-									name = ArkInventory.Localise["SECONDS"],
-									type = "range",
-									min = 0.1,
-									max = 5,
-									step = 0.05,
-									disabled = function( )
-										return not ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag]
-									end,
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag] or 0.5
-									end,
-									set = function( info, v )
-										local v = math.floor( v / 0.05 ) * 0.05
-										if v < 0.1 then v = 0.1 end
-										if v > 5 then v = 5 end
-										ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag] = v
-									end,
-								},
-							},
-						},
-						reagentbank = {
-							order = 100,
-							name = ArkInventory.Localise["REAGENTBANK"],
-							type = "group",
-							args = {
-								cleanup = {
-									order = 100,
-									name = ArkInventory.Localise["RESTACK_CLEANUP_DELAY"],
-									desc = ArkInventory.Localise["RESTACK_CLEANUP_DELAY_DESC"],
-									type = "range",
-									min = 0.1,
-									max = 5,
-									step = 0.1,
-									get = function( info )
-										return ArkInventory.db.option.restack.delay or 0.1
-									end,
-									set = function( info, v )
-										local v = math.floor( v / 0.1 ) * 0.1
-										if v < 0.1 then v = 0.1 end
-										if v > 5 then v = 5 end
-										ArkInventory.db.option.restack.delay = v
-									end,
-								},
-							},
-						},
-						mail = {
-							order = 100,
-							name = ArkInventory.Localise["MAILBOX"],
-							type = "group",
-							--inline = true,
-							args = {
-								custom = {
-									order = 100,
-									name = ArkInventory.Localise["CUSTOM"],
-									desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_TIMERS_DESC"], ArkInventory.Localise["MAILBOX"] ),
-									type = "toggle",
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail]
-									end,
-									set = function( info, v )
-										if not v then
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail] = nil
-										else
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail] = 2
-										end
-									end,
-								},
-								value = {
-									order = 200,
-									name = ArkInventory.Localise["SECONDS"],
-									type = "range",
-									min = 0.1,
-									max = 10,
-									step = 0.05,
-									disabled = function( )
-										return not ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail]
-									end,
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail] or 2
-									end,
-									set = function( info, v )
-										local v = math.floor( v / 0.05 ) * 0.05
-										if v < 0.1 then v = 0.1 end
-										if v > 10 then v = 10 end
-										ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mail] = v
-									end,
-								},
-							},
-						},
-						vault = {
-							order = 100,
-							name = ArkInventory.Localise["VAULT"],
-							disabled = not ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj ),
-							type = "group",
-							--inline = true,
-							args = {
-								custom = {
-									order = 100,
-									name = ArkInventory.Localise["CUSTOM"],
-									desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_TIMERS_DESC"], ArkInventory.Localise["VAULT"] ),
-									type = "toggle",
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault]
-									end,
-									set = function( info, v )
-										if not v then
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] = nil
-										else
-											ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] = 1.5
-										end
-									end,
-								},
-								value = {
-									order = 200,
-									name = ArkInventory.Localise["SECONDS"],
-									type = "range",
-									min = 0.1,
-									max = 5,
-									step = 0.05,
-									disabled = function( )
-										return not ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault]
-									end,
-									get = function( info )
-										return ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] or 1.5
-									end,
-									set = function( info, v )
-										local v = math.floor( v / 0.05 ) * 0.05
-										if v < 0.1 then v = 0.1 end
-										if v > 5 then v = 5 end
-										ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] = v
-									end,
-								},
-							},
+						timeout_objectdata = {
+							order = 540,
+							name = ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_OBJECTDATA"],
+							desc = string.format( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_DESC"], string.lower( ArkInventory.Localise["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_OBJECTDATA"] ) ),
+							type = "range",
+							min = 25,
+							max = 250,
+							step = 5,
+							disabled = function( )
+								return not ArkInventory.Global.Thread.Use
+							end,
+							get = function( info )
+								return ArkInventory.db.option.thread.timeout.objectdata
+							end,
+							set = function( info, v )
+								local v = math.floor( v / 5 ) * 5
+								if v < 25 then v = 25 end
+								if v > 250 then v = 250 end
+								ArkInventory.db.option.thread.timeout.objectdata = v
+							end,
 						},
 					},
 				},
+				--bucket
 				messages = {
 					cmdHidden = true,
 					order = 1000,
@@ -3028,7 +2879,7 @@ function ArkInventory.ConfigInternal( )
 													ArkInventory.db.option.ui.rules.border.size = sd.size
 													ArkInventory.db.option.ui.rules.border.offset = sd.offsetdefault.window
 													ArkInventory.db.option.ui.rules.border.scale = sd.scale
-
+													
 													ArkInventoryRules.Frame_Rules_Paint( )
 													
 												end
@@ -3062,7 +2913,7 @@ function ArkInventory.ConfigInternal( )
 												return string.format( "%i", ArkInventory.db.option.ui.rules.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
 											end,
 											set = function( info, v )
-												local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+												local v = math.floor( tonumber( v ) or 0 )
 												if v < 0 then v = 0 end
 												if ArkInventory.db.option.ui.rules.border.size ~= v then
 													ArkInventory.db.option.ui.rules.border.size = v
@@ -3270,7 +3121,7 @@ function ArkInventory.ConfigInternal( )
 												return string.format( "%i", ArkInventory.db.option.ui.search.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
 											end,
 											set = function( info, v )
-												local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+												local v = math.floor( tonumber( v ) or 0 )
 												if v < 0 then v = 0 end
 												if ArkInventory.db.option.ui.search.border.size ~= v then
 													ArkInventory.db.option.ui.search.border.size = v
@@ -3387,14 +3238,32 @@ function ArkInventory.ConfigInternal( )
 							args = {
 								sorting = {
 									order = 100,
-									name = "location sorting",
-									desc = "sort locations alphabetically",
+									name = ArkInventory.Localise["CONFIG_UI_MAIN_LOCATIONSORT"],
+									desc = ArkInventory.Localise["CONFIG_UI_MAIN_LOCATIONSORT_DESC"],
 									type = "toggle",
 									get = function( info )
 										return ArkInventory.db.option.ui.sortalpha
 									end,
 									set = function( info, v )
 										ArkInventory.db.option.ui.sortalpha = v
+									end,
+								},
+								retry = {
+									order = 100,
+									name = ArkInventory.Localise["CONFIG_UI_MAIN_RETRY"],
+									desc = ArkInventory.Localise["CONFIG_UI_MAIN_RETRY_DESC"],
+									type = "range",
+									min = 0,
+									max = 10,
+									step = 1,
+									get = function( info )
+										return ArkInventory.db.option.ui.main.retry
+									end,
+									set = function( info, v )
+										local v = math.floor( v )
+										if v < -10 then v = -10 end
+										if v > 10 then v = 10 end
+										ArkInventory.db.option.ui.main.retry = v
 									end,
 								},
 							},
@@ -4404,7 +4273,7 @@ function ArkInventory.ConfigInternalCategorysetDataSystemData( path )
 		},
 		autosell = {
 			order = 200,
-			name = ArkInventory.Localise["CONFIG_JUNK_SELL"],
+			name = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"],
 			type = "toggle",
 			disabled = true,
 			get = function( info )
@@ -4524,8 +4393,8 @@ function ArkInventory.ConfigInternalCategorysetDataSystemDataItemData( path )
 		if cat == cat_id then
 			
 			local class, id, sb = string.match( item, "^(.+):(.+):(.+)$" )
-			id = ArkInventory.ToNumber( id )
-			sb = ArkInventory.ToNumber( sb )
+			id = tonumber( id )
+			sb = tonumber( sb )
 			
 			local h = string.format( "%s:%s", class, id )
 			local info = ArkInventory.GetObjectInfo( h )
@@ -4714,7 +4583,7 @@ function ArkInventory.ConfigInternalCategoryCustomList( path )
 		},
 		autosell = {
 			order = 600,
-			name = ArkInventory.Localise["CONFIG_JUNK_SELL"],
+			name = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"],
 			type = "toggle",
 			width = "half",
 			disabled = config.category.custom.show ~= 1,
@@ -4821,7 +4690,7 @@ function ArkInventory.ConfigInternalCategoryCustomListItem( path )
 				
 				ArkInventory.Lib.Dewdrop:Close( )
 				
-				if ArkInventory.ToNumber( v ) then
+				if tonumber( v ) then
 					v = string.format( "item:%s:0", v )
 				end
 				
@@ -4879,7 +4748,7 @@ function ArkInventory.ConfigInternalCategoryCustomListItemList( path )
 				
 				if not v then v = id end
 				
-				if ArkInventory.ToNumber( v ) then
+				if tonumber( v ) then
 					v = string.format( "item:%s:0", v )
 				end
 				
@@ -4935,8 +4804,8 @@ function ArkInventory.ConfigInternalCategoryCustomListItemList( path )
 		if cat_id == cat_select then
 			
 			local class, id, sb = string.match( item, "^(.+):(.+):(.+)$" )
-			id = ArkInventory.ToNumber( id )
-			sb = ArkInventory.ToNumber( sb )
+			id = tonumber( id )
+			sb = tonumber( sb )
 			
 			local h = string.format( "%s:%s", class, id )
 			local info = ArkInventory.GetObjectInfo( h )
@@ -5027,7 +4896,7 @@ function ArkInventory.ConfigInternalCategorysetDataRuleData( path )
 		},
 		autosell = {
 			order = 200,
-			name = ArkInventory.Localise["CONFIG_JUNK_SELL"],
+			name = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"],
 			type = "toggle",
 			get = function( info )
 				local id = ConfigGetNodeArg( info, #info - 1 )
@@ -6440,7 +6309,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 										return string.format( "%i", style.window.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
 									end,
 									set = function( info, v )
-										local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+										local v = math.floor( tonumber( v ) or 0 )
 										if v < 0 then v = 0 end
 										local id = ConfigGetNodeArg( info, #info - 4 )
 										local style = ArkInventory.ConfigInternalDesignGet( id )
@@ -6888,7 +6757,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 										return string.format( "%i", style.bar.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
 									end,
 									set = function( info, v )
-										local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+										local v = math.floor( tonumber( v ) or 0 )
 										if v < 0 then v = 0 end
 										local id = ConfigGetNodeArg( info, #info - 4 )
 										local style = ArkInventory.ConfigInternalDesignGet( id )
@@ -7579,7 +7448,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 									set = function( info, v )
 										local id = ConfigGetNodeArg( info, #info - 4 )
 										local style = ArkInventory.ConfigInternalDesignGet( id )
-										style.slot.border.raritycutoff = ArkInventory.ToNumber( v )
+										style.slot.border.raritycutoff = tonumber( v )
 										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
 									end,
 								},
@@ -7598,7 +7467,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 										return string.format( "%i", style.slot.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
 									end,
 									set = function( info, v )
-										local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+										local v = math.floor( tonumber( v ) or 0 )
 										if v < 0 then v = 0 end
 										local id = ConfigGetNodeArg( info, #info - 4 )
 										local style = ArkInventory.ConfigInternalDesignGet( id )
@@ -7959,7 +7828,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 										return string.format( "%i", style.slot.age.cutoff )
 									end,
 									set = function( info, v )
-										local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+										local v = math.floor( tonumber( v ) or 0 )
 										if v < 0 then v = 0 end
 										local id = ConfigGetNodeArg( info, #info - 4 )
 										local style = ArkInventory.ConfigInternalDesignGet( id )
@@ -8021,7 +7890,7 @@ function ArkInventory.ConfigInternalDesignData( path )
 											set = function( info, v )
 												local id = ConfigGetNodeArg( info, #info - 5 )
 												local style = ArkInventory.ConfigInternalDesignGet( id )
-												local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+												local v = math.floor( tonumber( v ) or 0 )
 												if v < 0 then v = 1 end
 												if style.slot.override.new.cutoff ~= v then
 													style.slot.override.new.cutoff = v

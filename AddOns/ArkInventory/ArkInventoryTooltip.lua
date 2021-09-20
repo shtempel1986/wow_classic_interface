@@ -70,6 +70,16 @@ ArkInventory.Const.BLIZZARD.TooltipFunctions = {
 	
 }
 
+function ArkInventory.TooltipTextToNumber( v )
+	if type( v ) == "number" then
+		return v
+	elseif type( v ) == "string" then
+		local sep = string.gsub( LARGE_NUMBER_SEPERATOR, ".", "%%%1" )
+		--ArkInventory.Output("LARGE_NUMBER_SEPERATOR=[", LARGE_NUMBER_SEPERATOR, "] [", sep, "]")
+		return tonumber( ( string.gsub( v, sep, "" ) ) )
+	end
+end
+
 function ArkInventory.GameTooltipHide( )
 	--GameTooltip:ClearLines( )
 	GameTooltip:Hide( )
@@ -444,8 +454,6 @@ function ArkInventory.TooltipCustomBattlepetAddDetail( tooltip, speciesID, h, i 
 	
 	--ArkInventory.Output2( "TooltipCustomBattlepetAddDetail" )
 	
-	if checkAbortItemCount( tooltip ) then return end
-	
 	if not speciesID then return end
 	
 	local h = h or ( i and i.h ) or string.format( "battlepet:%s", speciesID )
@@ -470,8 +478,11 @@ function ArkInventory.TooltipCustomBattlepetAddDetail( tooltip, speciesID, h, i 
 	else
 		info = string.format( ITEM_PET_KNOWN, numOwned, maxAllowed )
 	end
-	
 	tooltip:AddLine( info )
+	
+	
+	if checkAbortItemCount( tooltip ) then return end
+	
 	
 	local tt = { }
 	for _, pd in ArkInventory.Collection.Pet.Iterate( ) do
@@ -827,7 +838,7 @@ function ArkInventory.TooltipGetMoneyFrame( tooltip )
 	
 end
 
-function ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, BaseOnly )
+function ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, searchMode )
 	
 	local TextToFind = ArkInventory.TooltipCleanText( TextToFind )
 	if TextToFind == "" then
@@ -838,7 +849,7 @@ function ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, Ign
 	local IgnoreRight = IgnoreRight or false
 	local CaseSensitive = CaseSensitive or false
 	local maxDepth = maxDepth or 0
-	local BaseOnly = BaseOnly or false
+	local searchMode = searchMode or ArkInventory.Const.Tooltip.Search.Full
 	
 	local obj, txt
 	local nextExit = false
@@ -858,8 +869,10 @@ function ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, Ign
 			
 			txt = obj:GetText( )
 			
-			if BaseOnly and ( txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) ) then
-				nextExit = true
+			if searchMode > ArkInventory.Const.Tooltip.Search.Full then
+				if txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) then
+					nextExit = true
+				end
 			end
 			
 			if not IgnoreLeft then
@@ -905,7 +918,7 @@ function ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, Ign
 	
 end
 
-function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, BaseOnly )
+function ArkInventory.TooltipFind_NEW( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, searchMode )
 	
 	--ArkInventory.Output2( "z=[", TextToFind, "]" )
 	
@@ -918,7 +931,8 @@ function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight,
 	local IgnoreRight = IgnoreRight or false
 	local CaseSensitive = CaseSensitive or false
 	local maxDepth = maxDepth or 0
-	local BaseOnly = BaseOnly or false
+	local searchMode = searchMode or ArkInventory.Const.Tooltip.Search.Full
+	local Skip = false
 	
 	if not CaseSensitive then
 		TextToFind = string.lower( TextToFind )
@@ -935,8 +949,95 @@ function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight,
 			
 			txt = obj:GetText( )
 			
-			if BaseOnly and ( txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) ) then
-				return ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, BaseOnly )
+			if searchMode > ArkInventory.Const.Tooltip.Search.Full then
+				if txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) then
+					if searchMode == ArkInventory.Const.Tooltip.Search.Base then
+						Skip = not Skip
+					elseif searchMode == ArkInventory.Const.Tooltip.Search.Short then
+						return
+					end
+				end
+			end
+			
+			if not Skip and not IgnoreLeft then
+				
+				txt = ArkInventory.TooltipCleanText( txt )
+				if not CaseSensitive then
+					txt = string.lower( txt )
+				end
+				
+				if string.find( txt, TextToFind ) then
+					return string.find( txt, TextToFind )
+				end
+				
+			end
+			
+		end
+		
+		if not Skip and not IgnoreRight then
+			
+			obj = _G[string.format( "%s%s%s", tooltip:GetName( ), "TextRight", i )]
+			if obj and obj:IsShown( ) then
+				
+				txt = ArkInventory.TooltipCleanText( obj:GetText( ) )
+				if txt ~= "" then
+					
+					if not CaseSensitive then
+						txt = string.lower( txt )
+					end
+					
+					if string.find( txt, TextToFind ) then
+						return string.find( txt, TextToFind )
+					end
+					
+				end
+				
+			end
+			
+		end
+		
+	end
+	
+end
+
+function ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, searchMode )
+	
+	--ArkInventory.Output2( "z=[", TextToFind, "]" )
+	
+	local TextToFind = ArkInventory.TooltipCleanText( TextToFind )
+	if TextToFind == "" then
+		return false
+	end
+	
+	local IgnoreLeft = IgnoreLeft or false
+	local IgnoreRight = IgnoreRight or false
+	local CaseSensitive = CaseSensitive or false
+	local maxDepth = maxDepth or 0
+	local searchMode = searchMode or ArkInventory.Const.Tooltip.Search.Full
+	
+	if not CaseSensitive then
+		TextToFind = string.lower( TextToFind )
+	end
+	
+	local obj, txt
+	
+	for i = 2, ArkInventory.TooltipGetNumLines( tooltip ) do
+		
+		if maxDepth > 0 and i > maxDepth then return end
+		
+		obj = _G[string.format( "%s%s%s", tooltip:GetName( ), "TextLeft", i )]
+		if obj and obj:IsShown( ) then
+			
+			txt = obj:GetText( )
+			
+			if searchMode > ArkInventory.Const.Tooltip.Search.Full then
+				if txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) then
+					if searchMode == ArkInventory.Const.Tooltip.Search.Base then
+						return ArkInventory.TooltipFindBackwards( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, maxDepth, searchMode )
+					elseif searchMode == ArkInventory.Const.Tooltip.Search.Short then
+						return
+					end
+				end
 			end
 			
 			if not IgnoreLeft then
@@ -1033,15 +1134,6 @@ function ArkInventory.TooltipGetBaseStats( tooltip, activeonly )
 			if string.find( ctxt, "^%+?[%d,.]+ [%a ]+$" ) then
 				--ArkInventory.Output( "1 - ", ctxt )
 				basestat = true
---			else
---				for k, v in pairs( ArkInventory.Const.ItemStats ) do
---					local searchtxt = string.format( "^%s$", v )
---					if string.find( ctxt, searchtxt ) then
---						--ArkInventory.Output( "2 - ", ctxt )
---						basestat = true
---						break
---					end
---				end
 			end
 			
 			if started and ( txt == "" or string.find( txt, "^\10" ) or string.find( txt, "^\n" ) or string.find( txt, "^|n" ) or not basestat ) then
@@ -1082,9 +1174,9 @@ function ArkInventory.TooltipGetBaseStats( tooltip, activeonly )
 	
 end
 
-function ArkInventory.TooltipContains( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, BaseOnly )
+function ArkInventory.TooltipContains( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, searchMode )
 	
-	if ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, 0, BaseOnly ) then
+	if ArkInventory.TooltipFind( tooltip, TextToFind, IgnoreLeft, IgnoreRight, CaseSensitive, 0, searchMode ) then
 		return true
 	else
 		return false
@@ -2214,18 +2306,20 @@ function ArkInventory.TooltipObjectCountGet( search_id, thread_id )
 							
 							if ArkInventory.db.option.tooltip.itemcount.reputation and ld.e then
 								
-								local style_default = ArkInventory.Const.Reputation.Style.TooltipItemCount
-								local style = style_default
-								if ArkInventory.db.option.tooltip.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
-									style = ArkInventory.db.option.tooltip.reputation.style.count
-									if string.trim( style ) == "" then
-										style = style_default
+								if ArkInventory.Collection.Reputation.IsReady( ) then
+									local style_default = ArkInventory.Const.Reputation.Style.TooltipItemCount
+									local style = style_default
+									if ArkInventory.db.option.tooltip.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
+										style = ArkInventory.db.option.tooltip.reputation.style.count
+										if string.trim( style ) == "" then
+											style = style_default
+										end
 									end
+									
+									local osd = ArkInventory.ObjectStringDecode( ld.e )
+									local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style, osd.st, osd.bv, osd.bm, osd.ic, osd.pv, osd.pr )
+									table.insert( location_entries, string.format( "%s%s", c1, txt ) )
 								end
-								
-								local osd = ArkInventory.ObjectStringDecode( ld.e )
-								local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style, osd.st, osd.bv, osd.bm, osd.ic, osd.pv, osd.pr )
-								table.insert( location_entries, string.format( "%s%s", c1, txt ) )
 								
 							end
 							
@@ -2367,10 +2461,10 @@ function ArkInventory.TooltipDump( tooltip )
 	local c = ArkInventory.TooltipGetNumLines( tooltip )
 	ArkInventory.Output( "lines = ", c )
 	for i = 1, c do
-		local a, b = ArkInventory.TooltipGetLine( tooltip, i, true )
-		ArkInventory.Output( i, " left: ", a )
+		local a, b, ac, bc = ArkInventory.TooltipGetLine( tooltip, i, true )
+		ArkInventory.Output( i, " left: ", ac:GenerateHexColor( ), ": ", a )
 		if b ~= "" then
-			ArkInventory.Output( i, " right: ", b )
+			ArkInventory.Output( i, " right: ", bc:GenerateHexColor( ), ": ", b )
 		end
 	end
 	
@@ -2444,12 +2538,12 @@ function ArkInventory.TooltipExtractValueArtifactPower( h )
 	
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, h )
 	
-	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, true ) then
+	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 		return
 	end
 	
-	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, true )
-	amount = ArkInventory.ArkInventory.ToNumber( amount )
+	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
+	amount = ArkInventory.ArkInventory.TooltipTextToNumber( amount )
 	
 	--ArkInventory.Output2( h, "[", amount, "] [", suffix, "]" )
 	
@@ -2479,13 +2573,13 @@ function ArkInventory.TooltipExtractValueAncientMana( h )
 	
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, h )
 	
-	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, true ) then
+	if not ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 		return
 	end
 	
-	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, true )
-	amount = ArkInventory.ToNumber( amount )
-	--local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, "(%d+)(..)", false, true, true, 0, true )
+	local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
+	amount = ArkInventory.TooltipTextToNumber( amount )
+	--local _, _, amount, suffix = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, "(%d+)(..)", false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
 	
 	--ArkInventory.Output2( h, " [", amount, "] [", suffix, "]" )
 	--ArkInventory.Output2( "[", string.byte( string.sub( suffix, 1, 1 ) ), "] [", string.byte( string.sub( suffix, 2, 2 ) ), "]" )

@@ -1263,6 +1263,31 @@ data["ScarletMonasteryGraveyard"] = {
 				{ 14, 7730 }, -- Cobalt Crusher
 			},
 		},
+--@version-bcc@
+        { -- SMHeadlessHorseman
+            name = AL["Headless Horseman"],
+            npcID = 23682,
+            Level = 70,
+            DisplayIDs = {{22351}},
+            AtlasMapBossID = nil,
+			ExtraList = true,
+            [NORMAL_DIFF] = {
+                { 1,  34075 }, -- Ring of Ghoulish Delight
+                { 2,  34073 }, -- The Horseman's Signet Ring
+                { 3,  34074 }, -- Witches Band
+                { 5,  33808 }, -- The Horseman's Helm
+                { 6,  38175 }, -- The Horseman's Blade
+                { 8,  33292 }, -- Hallowed Helm
+                { 9,  34068 }, -- Weighted Jack-o'-Lantern
+                { 16, 37012 }, -- The Horseman's Reins
+                { 18, 33182 }, -- Swift Flying Broom        280% flying
+                { 19, 33176 }, -- Flying Broom              60% flying
+                { 21, 33184 }, -- Swift Magic Broom         100% ground
+                { 22, 37011 }, -- Magic Broom               60% ground
+                { 24, 33154 }, -- Sinister Squashling
+            }
+        },
+--@end-version-bcc@
 		KEYS,
 	},
 }
@@ -1700,6 +1725,16 @@ data["Uldaman"] = {
 				{ 3,  9408 }, -- Ironshod Bludgeon
 			},
 		},
+		{ -- UldObsidianSentinel
+			name = AL["Obsidian Sentinel"],
+			npcID = 7023,
+			Level = GetForVersion(42,40),
+			DisplayIDs = {{5285}},
+			AtlasMapBossID = 5,
+			[NORMAL_DIFF] = {
+				{ 1,  8053 }, -- Obsidian Power Source
+			},
+		},
 		{ -- UldAncientStoneKeeper
 			name = AL["Ancient Stone Keeper"],
 			npcID = 7206,
@@ -1734,6 +1769,7 @@ data["Uldaman"] = {
 				{ 1,  9415 }, -- Grimlok's Tribal Vestments
 				{ 2,  9416 }, -- Grimlok's Charge
 				{ 4,  9414 }, -- Oilskin Leggings
+				{ 16, 7670 }, -- Shattered Necklace Sapphire
 			},
 		},
 		{ -- UldArchaedas
@@ -1785,6 +1821,14 @@ data["Uldaman"] = {
 			AtlasMapBossID = 1,
 			[NORMAL_DIFF] = {
 				{ 1,  7740 }, -- Gni'kiv Medallion
+			},
+		},
+		{ -- UldConspicuousUrn
+			name = AL["Conspicuous Urn"],
+			ExtraList = true,
+			AtlasMapBossID = 1,
+			[NORMAL_DIFF] = {
+				{ 1,  7671 }, -- Shattered Necklace Topaz
 			},
 		},
 		{ -- UldShadowforgeCache

@@ -6,7 +6,7 @@ end
 
 
 -- INTERFACE
-Lang["Credits"] = "애드온을 테스트하는 동안 길드 |cffffd100<Divine Heresy>|r 의 지원과 격려에 매우 감사합니다, 그리고 |cffffd100Bushido @ Pyrewood Village|r 에 대한 도움을 주신 BOB에게 큰 찬사를 보냅니다!\n\n 또한 번역을 해주신 덕분에:\n  - 독어 번역: |cffffd100Sumaya @ Razorfen DE|r\n  - 노어 번역: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - 스페인어 번역: |cffffd100Coyu @ Pyrewood Village EU|r\n  - 중국어 번역: |cffffd100ly395842562|r 과 |cffffd100Icyblade|r\n  - 한글 번역: |cffffd100Drix @ 아즈샤라 KR|r\n\n/Hug Cixi/Gaya @ Remulos Horde 드림"
+Lang["Credits"] = "애드온을 테스트하는 동안 길드 |cffffd100<Divine Heresy>|r 의 지원과 격려에 매우 감사합니다, 그리고 |cffffd100Bushido @ Pyrewood Village|r 에 대한 도움을 주신 BOB에게 큰 찬사를 보냅니다!\n\n 또한 번역을 해주신 덕분에:\n  - 독어 번역: |cffffd100Sumaya @ Razorfen DE|r\n  - 노어 번역: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - 스페인어 번역: |cffffd100Coyu @ Pyrewood Village EU|r\n  - 중국어 간체 번역: |cffffd100ly395842562|r 과 |cffffd100Icyblade|r\n  - 중국어 번체 번역: |cffffd100DayZ|r @ Ivus TW|r\n  - 한글 번역: |cffffd100Drix @ 아즈샤라 KR|r\n\n/Hug Cixi/Gaya @ Remulos Horde 드림"
 Lang["Mini"] = "작게"
 Lang["Maxi"] = "크게"
 Lang["Version"] = "Attune v##VERSION## by Cixi@Remulos"
@@ -130,6 +130,21 @@ Lang["Save"] = "저장"
 Lang["Invite"] = "초대"
 Lang["Send raid invites to all listed players?"] = "나열된 모든 플레이어에게 레이드 초대를 보내시겠습니까?"
 Lang["External link"] = "온라인 데이터베이스에 연결"
+--v243
+Lang["Ogrila"] = "오그릴라"
+Lang["Ogri'la Quest Hub"] = "오그릴라 퀘스트 허브"
+Lang["Ogrila_Desc"] = "오그릴라의 개화된 오우거들은 칼날 산맥 서쪽에 자리잡고 있습니다. "
+Lang["DelInactive_TEXT"] = "비활성 삭제"
+Lang["DelInactive_DESC"] = "비활성으로 표시된 플레이어에 대한 모든 정보 삭제"
+Lang["DelInactive_CONF"] = "모든 비활성을 삭제하시겠습니까?"
+Lang["DelInactive_DONE"] = "모든 비활성 삭제됨"
+Lang["RAIDS"] = "공격대"
+Lang["KEYS"] = "열쇠"
+Lang["MISC"] = "기타"
+Lang["HEROICS"] = "영웅"
+--v244
+Lang["Ally of the Netherwing"] = "황천날개 용군단의 동맹"
+Lang["Netherwing_Desc"] = "황천의 용군단은 아웃랜드에 위치한 드래곤의 진영입니다."
 
 
 -- OPTIONS
@@ -729,6 +744,44 @@ Lang["Q1_10949"] = "검은 사원 속으로"			-- https://wow.inven.co.kr/datani
 Lang["Q2_10949"] = "어둠달 골짜기에 있는 검은 사원의 입구로 간 후 지리와 대화해야 합니다.."
 Lang["Q1_10985"] = "아카마를 위한 소동"			-- https://wow.inven.co.kr/dataninfo/wdb/edb_quest/detail.php?id=10985
 Lang["Q2_10985"] = "지리의 군대가 소동을 일으킨 후에 마이에브와 아카마가 어둠달 골짜기의 검은 사원에 진입하도록 도와야 합니다."
+--v243
+Lang["Q1_10984"] = "오우거와 대화"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
+Lang["Q2_10984"] = "샤트라스의 고난의 거리에 있는 오우거, 그록과 대화하십시오."
+Lang["Q1_10983"] = "주름투성이 모그도그"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10983
+Lang["Q2_10983"] = "칼날 산맥, 피의 투기장 바깥에 있는 탑들 중 한 곳의 꼭대기에 있는 모그도그를 찾아가야 합니다."
+Lang["Q1_10995"] = "그룰록이 아끼는 물건"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10995
+Lang["Q2_10995"] = "그룰록의 용 해골을 회수하여 칼날 산맥의 피의 투기장의 탑 맨 꼭대기에 있는 주름투성이 모그도그에게 가져가야 합니다."
+Lang["Q1_10996"] = "마그고크의 보물 상자"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10996
+Lang["Q2_10996"] = "마그고크의 보물 상자를 회수하여 칼날 산맥의 피의 투기장 탑 맨 꼭대기에 있는 주름투성이 모그도그에게 가져가야 합니다."
+Lang["Q1_10997"] = "그론에게도 깃발이..."			-- https://www.thegeekcrusade-serveur.com/db/?quest=10997
+Lang["Q2_10997"] = "슬라그의 깃발을 회수하여 칼날 산맥의 피의 투기장에 있는 탑 맨꼭대기의 주름투성이 모그도그에게 가져가야 합니다."
+Lang["Q1_10998"] = "흑마법서 회수"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10998
+Lang["Q2_10998"] = "비열한 빔골의 흑마법서를 회수한 후, 칼날 산맥의 피의 투기장에 있는 경비탑 꼭대기의 주름투성이 모그도그에게 가져갸아 합니다."
+Lang["Q1_11000"] = "영혼분쇄자에게로"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11000
+Lang["Q2_11000"] = "영혼분쇄자 스컬록에게서 스컬록의 영혼을 회수한 후, 칼날 산맥의 피의 투기장 안에 있는 경비탑의 꼭대기에 있는 모그도그에게 가져가야 합니다."
+Lang["Q1_11022"] = "모그도그와의 대화"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11022
+Lang["Q2_11022"] = "칼날 산맥의 피의 투기장의 동쪽 끝 탑 위에 있는 주름투성이 모그도그와 대화해야 합니다."
+Lang["Q1_11009"] = "오우거의 천국"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11009
+Lang["Q2_11009"] = "칼날 산맥의 오그릴라에 있는 추알로르와 대화해야 합니다."
+--v244
+Lang["Q1_10804"] = "친절"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10804
+Lang["Q2_10804"] = "어둠달 골짜기의 황천날개 벌판에 있는 모르데나이가 다 자란 황천날개 비룡 8마리에게 먹이를 주라고 부탁했습니다."
+Lang["Q1_10811"] = "넬타라쿠 찾기"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10811
+Lang["Q2_10811"] = "황천날개 용군단의 지도자인 넬타라쿠를 찾아야 합니다."
+Lang["Q1_10814"] = "넬타라쿠의 이야기"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10814
+Lang["Q2_10814"] = "넬타라쿠와 대화해서 그의 이야기를 들어야 합니다."
+Lang["Q1_10836"] = "용아귀 요새 침입"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10836
+Lang["Q2_10836"] = "어둠달 골짜기, 황천날개 벌판의 창공을 나는 넬타라쿠가 용아귀부족 오크 15명을 처치해 달라고 부탁했습니다."
+Lang["Q1_10837"] = "황천날개 마루를 향해!"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10837
+Lang["Q2_10837"] = "어둠달 골짜기, 황천날개 벌판의 창공을 나는 넬타라쿠가 황천날개 마루에 있는 황천덩굴 수정 12개를 모아오라고 부탁했습니다."
+Lang["Q1_10854"] = "넬타라쿠의 힘"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10854
+Lang["Q2_10854"] = "어둠달 골짜기, 황천날개 벌판의 창공을 나는 넬타라쿠가 사로잡힌 황천날개 비룡 5마리를 구출해 달라고 부탁했습니다."
+Lang["Q1_10858"] = "카리나쿠"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10858
+Lang["Q2_10858"] = "용아귀 요새에 있는 카리나쿠를 찾아야 합니다."
+Lang["Q1_10866"] = "늙은 줄루헤드"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10866
+Lang["Q2_10866"] = "늙은 줄루헤드를 처치한 후 손에 넣은 줄루헤드의 열쇠로 줄루헤드의 족쇄를 풀고 카리나쿠를 구출해야 합니다."
+Lang["Q1_10870"] = "황천날개 용군단의 동맹"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
+Lang["Q2_10870"] = "카리나쿠의 인도를 받아 황천날개 벌판에 있는 모르데나이에게 돌아가야 합니다."
 	
 
 -- NPC
@@ -884,6 +937,12 @@ Lang["N1_17767"] = "격노한 윈터칠"	-- https://www.thegeekcrusade-serveur.c
 Lang["N2_17767"] = "하이잘 산 첫 보스"
 Lang["N1_18528"] = "지리"	-- https://www.thegeekcrusade-serveur.com/db/?npc=18528
 Lang["N2_18528"] = "검은 사원 입구에 있음. 거대한 파랑 인형"
+--v243
+Lang["N1_22497"] = "베루"	-- https://www.thegeekcrusade-serveur.com/db/?npc=22497
+Lang["N2_22497"] = "베루는 아달과 같은 방에 있지만 파란색입니다. 그는 꼭대기 층에 있습니다."
+--v244
+Lang["N1_22113"] = "모르데나이"
+Lang["N2_22113"] = "별의 성소 바로 동쪽에 있는 황천의 들판을 걷는 블러드 엘프(스포일러 주의, 실제로는 드래곤)"
 
 
 Lang["O_1"] = "드라키사스의 낙인을 꼭 클릭하여 퀘를 완료!\n파랑 오브는 사령관 드라키사스 뒤에 있음"

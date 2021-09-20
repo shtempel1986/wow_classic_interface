@@ -47,7 +47,6 @@ A default texture will be applied to the Texture widgets if they don't have a te
 
 local _, ns = ...
 local oUF = ns.oUF
-local myGUID = UnitGUID('player')
 local HealComm = LibStub("LibHealComm-4.0")
 
 local function Update(self, event, unit)
@@ -65,21 +64,16 @@ local function Update(self, event, unit)
 		element:PreUpdate(unit)
 	end
 
-	local guid = UnitGUID(unit)
+	local GUID = UnitGUID(unit)
+	local OverTimeHeals = (HealComm:GetHealAmount(GUID, HealComm.OVERTIME_AND_BOMB_HEALS) or 0) * (HealComm:GetHealModifier(GUID) or 1)
+	local DirectHeals = UnitGetIncomingHeals(unit) or 0
+	local myIncomingHeal = DirectHeals >= DirectHeals + OverTimeHeals and DirectHeals or DirectHeals + OverTimeHeals
 
-	local allIncomingHeal = HealComm:GetHealAmount(guid, element.healType) or 0
-	local myIncomingHeal = (HealComm:GetHealAmount(guid, element.healType, nil, myGUID) or 0) * (HealComm:GetHealModifier(myGUID) or 1)
 	local health, maxHealth = UnitHealth(unit), UnitHealthMax(unit)
 	local otherIncomingHeal = 0
 
-	if(health + allIncomingHeal > maxHealth * element.maxOverflow) then
-		allIncomingHeal = maxHealth * element.maxOverflow - health
-	end
-
-	if(allIncomingHeal < myIncomingHeal) then
-		myIncomingHeal = allIncomingHeal
-	else
-		otherIncomingHeal = HealComm:GetOthersHealAmount(guid, HealComm.ALL_HEALS) or 0
+	if(health + myIncomingHeal > maxHealth * element.maxOverflow) then
+		myIncomingHeal = maxHealth * element.maxOverflow - health
 	end
 
 	if(element.myBar) then
@@ -131,6 +125,7 @@ local function Enable(self)
 
 		self:RegisterEvent('UNIT_HEALTH_FREQUENT', Path)
 		self:RegisterEvent('UNIT_MAXHEALTH', Path)
+		self:RegisterEvent('UNIT_HEAL_PREDICTION', Path)
 
 		local function HealCommUpdate(...)
 			if self.HealthPrediction and self:IsVisible() then
@@ -197,6 +192,7 @@ local function Disable(self)
 
 		self:UnregisterEvent('UNIT_MAXHEALTH', Path)
 		self:UnregisterEvent('UNIT_HEALTH_FREQUENT', Path)
+		self:UnregisterEvent('UNIT_HEAL_PREDICTION', Path)
 	end
 end
 

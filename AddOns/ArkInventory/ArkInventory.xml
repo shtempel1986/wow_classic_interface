@@ -2358,6 +2358,8 @@
 	
 	<Frame name="ARKINV_Frame16" inherits="ARKINV_TemplateFrameMain" id="16" /> <!-- reputation -->
 	
+	<Frame name="ARKINV_Frame17" inherits="ARKINV_TemplateFrameMain" id="17" /> <!-- mount equipment -->
+	
 <!-- END OF ADD ON FRAME -->
 	
 	<GameTooltip name="ARKINV_ScanTooltip" inherits="ArkScanTooltipTemplate" />

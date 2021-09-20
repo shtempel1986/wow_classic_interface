@@ -6,7 +6,7 @@ end
 
 
 -- INTERFACE
-Lang["Credits"] = "Muchas gracias a mi hermandad |cffffd100<Divine Heresy>|r por su apoyo y comprensión mientras probaba el addon y mi agradecimiento a |cffffd100Bushido @ Pyrewood Village|r por la ayuda con la TBC!\n\n También, muchas, muchas, gracias a los traductores :\n  - Traducción Alemana: |cffffd100Sumaya @ Razorfen DE|r\n  - Traducción Rusa: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - Traducción Española: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Traducción China: |cffffd100ly395842562|r y |cffffd100Icyblade|r\n  - Traducción coreana: |cffffd100Drix @ Azshara KR|r\n\n/Hug de Cixi/Gaya @ Remulos Horde"
+Lang["Credits"] = "Muchas gracias a mi hermandad |cffffd100<Divine Heresy>|r por su apoyo y comprensión mientras probaba el addon y mi agradecimiento a |cffffd100Bushido @ Pyrewood Village|r por la ayuda con la TBC!\n\n También, muchas, muchas, gracias a los traductores :\n  - Traducción Alemana: |cffffd100Sumaya @ Razorfen DE|r\n  - Traducción Rusa: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - Traducción Española: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Traducción China (simp.): |cffffd100ly395842562|r y |cffffd100Icyblade|r\n  - Traducción China (trad.): |cffffd100DayZ|r @ Ivus TW|r\n  - Traducción coreana: |cffffd100Drix @ Azshara KR|r\n\n/Hug de Cixi/Gaya @ Remulos Horde"
 Lang["Mini"] = "Mini"
 Lang["Maxi"] = "Maxi"
 Lang["Version"] = "Attune v##VERSION## de Cixi@Remulos"
@@ -130,6 +130,21 @@ Lang["Save"] = "Info Banda"
 Lang["Invite"] = "Invitar"
 Lang["Send raid invites to all listed players?"] = "¿Enviar invitaciones de incursión a todos los jugadores listados?"
 Lang["External link"] = "Enlace a una base de datos en línea"
+--v243
+Lang["Ogrila"] = "Ogri'la"
+Lang["Ogri'la Quest Hub"] = "Centro de misiones de Ogri'la"
+Lang["Ogrila_Desc"] = "Los iluminados habitantes de Ogri'la han creado su hogar en las Montañas Filospada occidentales."
+Lang["DelInactive_TEXT"] = "Eliminar inactivos"
+Lang["DelInactive_DESC"] = "Eliminar toda la información sobre los jugadores marcados como Inactivos"
+Lang["DelInactive_CONF"] = "¿Eliminar realmente todos los inactivos?"
+Lang["DelInactive_DONE"] = "Todos los inactivos eliminados"
+Lang["RAIDS"] = "BANDAS"
+Lang["KEYS"] = "TECLAS"
+Lang["MISC"] = "MISC"
+Lang["HEROICS"] = "HEROICAS"
+--v244
+Lang["Ally of the Netherwing"] = "Aliado del Ala Abisal"
+Lang["Netherwing_Desc"] = "El Ala Abisal es una facción de dragones ubicada en Terrallende."
 
 
 -- OPTIONS
@@ -729,7 +744,45 @@ Lang["Q1_10949"] = "La entrada a El Templo Oscuro"			-- https://es.tbc.wowhead.c
 Lang["Q2_10949"] = "Viaja hasta la entrada del Templo Oscuro en el Valle Sombraluna y habla con Xi'ri."
 Lang["Q1_10985"] = "Una distracción para Akama"			-- https://es.tbc.wowhead.com/quest=10985
 Lang["Q2_10985"] = "Asegúrate de que Akama y Maiev entran en El Templo Oscuro, en el Valle Sombraluna, cuando las fuerzas de Xi'ri creen una distracción."
-	
+--v243
+Lang["Q1_10984"] = "Habla con el ogro"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
+Lang["Q2_10984"] = "Habla con Grok, el ogro, en el Bajo Arrabal de la Ciudad de Shattrath."
+Lang["Q1_10983"] = "Mog'dorg el Marchito"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10983
+Lang["Q2_10983"] = "Visita a Mog'dorg el Marchito en lo alto de una de las torres que hay justo fuera del Anillo de Sangre en las Montañas Filospada."
+Lang["Q1_10995"] = "Grulloc tiene dos calaveras"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10995
+Lang["Q2_10995"] = "Consigue la calavera de dragón de Grulloc y llévasela a Mog'dorg el Marchito, que se encuentra en lo alto de la torre del Anillo de Sangre en las Montañas Filospada."
+Lang["Q1_10996"] = "Cofre del tesoro de Maggoc"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10996
+Lang["Q2_10996"] = "Consigue el cofre del tesoro de Maggoc y llévaselo a Mog'dorg el Marchito, que se encuentra en lo alto de la torre del Anillo de Sangre de las Montañas Filospada."
+Lang["Q1_10997"] = "Incluso los gronn tienen confalones"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10997
+Lang["Q2_10997"] = "Consigue el confalón de Slaag y llévaselo a Mog'dorg el Marchito, que se encuentra en lo alto de la torre del Anillo de Sangre en las Montañas Filospada."
+Lang["Q1_10998"] = "Un asunto grimoso"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10998
+Lang["Q2_10998"] = "Debes conseguir el grimorio de Vim'gol el Vil. Llévaselo a Mog'dorg el Marchito, que se encuentra en lo alto de la torre del Anillo de Sangre, en las Montañas Filospada."
+Lang["Q1_11000"] = "Dentro del Moledor de Almas"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11000
+Lang["Q2_11000"] = "Recupera el alma de Skulloc y llévasela a Mog'dorg el Marchito, que se encuentra en lo alto de la torre del Anillo de Sangre en las Montañas Filospada."
+Lang["Q1_11022"] = "Habla con Mog'dorg"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11022
+Lang["Q2_11022"] = "Habla con Mog'dorg el Marchito. Se encuentra en lo alto de la torre al este del Anillo de Sangre, en las Montañas Filospada."
+Lang["Q1_11009"] = "El cielo de los Ogros"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11009
+Lang["Q2_11009"] = "Mog'dorg el Marchito te ha pedido que hables con Chu'a'lor en Ogri'la, en las Montañas Filospada."
+--v244
+Lang["Q1_10804"] = "Bondad"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10804
+Lang["Q2_10804"] = "Mordenai, de los Campos del Ala Abisal, en el Valle Sombraluna, quiere que alimentes a ocho dracos Ala Abisal maduros."
+Lang["Q1_10811"] = "Buscar a Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10811
+Lang["Q2_10811"] = "Busca a Nelthakaru, patrón de los dracos Ala Abisal."
+Lang["Q1_10814"] = "La historia de Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10814
+Lang["Q2_10814"] = "Habla con Neltharaku y escucha su historia."
+Lang["Q1_10836"] = "Infiltrarse en la Fortaleza Faucedraco"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10836
+Lang["Q2_10836"] = "Neltharaku, que sobrevuela los Campos del Ala Abisal en el Valle Sombraluna, quiere que mates a quince orcos Faucedraco."
+Lang["Q1_10837"] = "¡Al Arrecife del Ala Abisal!"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10837
+Lang["Q2_10837"] = "Neltharaku, que sobrevuela los Campos del Ala Abisal en el Valle Sombraluna, quiere que recojas doce cristales de vid abisal del Arrecife del Ala Abisal."
+Lang["Q1_10854"] = "La fuerza de Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10854
+Lang["Q2_10854"] = "Neltharaku, que sobrevuela los Campos del Ala Abisal, en el Valle Sombraluna, quiere que liberes a 5 dracos Ala Abisal esclavizados."
+Lang["Q1_10858"] = "Karynaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10858
+Lang["Q2_10858"] = "Busca a Karynaku en la Fortaleza Faucedraco."
+Lang["Q1_10866"] = "Zuluhed el Demente"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10866
+Lang["Q2_10866"] = "Mata a Zuluhed el Demente y consigue la llave de Zuluhed. Utiliza la llave de Zuluhed en las cadenas de Zuluhed para liberar a Karynaku."
+Lang["Q1_10870"] = "Aliado del Ala Abisal"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
+Lang["Q2_10870"] = "Que Karynaku te devuelva a Mordenai en los Campos del Ala Abisal."
+
 
 -- NPC
 Lang["N1_9196"] = "Alto Señor Omokk"	-- https://es.tbc.wowhead.com/npc=9196
@@ -884,6 +937,12 @@ Lang["N1_17767"] = "Ira Fríoinvierno"	-- https://es.tbc.wowhead.com/npc=17767
 Lang["N2_17767"] = "Ira Fríoinvierno es el primer jefe de la instancia de Banda Monte Hyjal."
 Lang["N1_18528"] = "Xi'ri"	-- https://es.tbc.wowhead.com/npc=18528
 Lang["N2_18528"] = "Xi'ri se encuentra localizado en la entrada del Templo Oscuro. La cosa esa grande brillante azul. No puedes no verlo, en serio."
+--v243
+Lang["N1_22497"] = "V'eru"	-- https://www.thegeekcrusade-serveur.com/db/?npc=22497
+Lang["N2_22497"] = "V'eru está en la misma habitación que A'dal, pero es azul. Está en el rellano superior."
+--v244
+Lang["N1_22113"] = "Mordenai"
+Lang["N2_22113"] = "Un elfo de sangre (alerta de spoiler, en realidad un dragón) que camina por los campos del Ala Abisal, al este del Sagrario de las Estrellas"
 
 
 Lang["O_1"] = "Clicka en La marca de Drakkisath para completar la misión.\nLa orbe brillante detras del General Drakkisath."

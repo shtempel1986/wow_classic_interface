@@ -1046,7 +1046,7 @@ function ArkInventory.Collection.Mount.ImportCrossRefTable( )
 		
 		--ArkInventory.Output( k )
 		
-		spell = ArkInventory.ToNumber( v[1] ) or 0
+		spell = tonumber( v[1] ) or 0
 		
 		if spell > 0 then
 			
@@ -1054,7 +1054,7 @@ function ArkInventory.Collection.Mount.ImportCrossRefTable( )
 			
 			for k2, v2 in pairs( v[2] ) do
 				
-				v2 = ArkInventory.ToNumber( v2 ) or 0
+				v2 = tonumber( v2 ) or 0
 				
 				key1 = nil
 				if v2 > 0 then

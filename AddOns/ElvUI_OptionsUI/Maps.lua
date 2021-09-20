@@ -1,5 +1,5 @@
 local E, _, V, P, G = unpack(ElvUI) --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
-local C, L = unpack(select(2, ...))
+local C, L = unpack(E.OptionsUI)
 local WM = E:GetModule('WorldMap')
 local MM = E:GetModule('Minimap')
 local ACH = E.Libs.ACH
@@ -92,6 +92,12 @@ E.Options.args.maps.args.minimap.args.icons.args.battlefield.args.position = ACH
 E.Options.args.maps.args.minimap.args.icons.args.battlefield.args.scale = ACH:Range(L["Scale"], nil, 2, buttonScale)
 E.Options.args.maps.args.minimap.args.icons.args.battlefield.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets)
 E.Options.args.maps.args.minimap.args.icons.args.battlefield.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets)
+
+Maps.args.minimap.args.icons.args.lfgEye = ACH:Group(L["LFG Queue"], nil, 4)
+Maps.args.minimap.args.icons.args.lfgEye.args.position = ACH:Select(L["Position"], nil, 1, buttonPositions)
+Maps.args.minimap.args.icons.args.lfgEye.args.scale = ACH:Range(L["Scale"], nil, 2, buttonScale)
+Maps.args.minimap.args.icons.args.lfgEye.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets)
+Maps.args.minimap.args.icons.args.lfgEye.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets)
 
 Maps.args.minimap.args.icons.args.difficulty = ACH:Group(L["Instance Difficulty"], nil, 5)
 Maps.args.minimap.args.icons.args.difficulty.args.position = ACH:Select(L["Position"], nil, 1, buttonPositions)

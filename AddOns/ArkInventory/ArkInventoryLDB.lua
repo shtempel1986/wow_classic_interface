@@ -109,27 +109,26 @@ end
 function ArkInventory.LDB.Tracking_Currency:Update( )
 	
 	local loc_id = ArkInventory.Const.Location.Currency
-	
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.Collection.Currency.IsReady( ) then
-		
-		if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Currency.GetCount( ) > 0 then
-			
-			local codex = ArkInventory.GetPlayerCodex( )
-			
-			for _, object in ArkInventory.Collection.Currency.ListIterate( ) do
+	if ArkInventory.isLocationMonitored( loc_id ) then
+		if ArkInventory.Collection.Currency.IsReady( ) then
+			if ArkInventory.Collection.Currency.GetCount( ) > 0 then
 				
-				local data = object.data
-				if data and codex.player.data.ldb.tracking.currency.watched[data.id] then
-					hasText = string.format( "%s |T%s:0|t %s", hasText or "", data.iconFileID, FormatLargeNumber( data.quantity ) )
+				local codex = ArkInventory.GetPlayerCodex( )
+				
+				for _, object in ArkInventory.Collection.Currency.ListIterate( ) do
+					
+					local data = object.data
+					if data and codex.player.data.ldb.tracking.currency.watched[data.id] then
+						hasText = string.format( "%s |T%s:0|t %s", hasText or "", data.iconFileID, FormatLargeNumber( data.quantity ) )
+					end
+					
 				end
 				
 			end
-			
 		end
-		
 	else
 		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET" )
 	end
@@ -146,10 +145,6 @@ function ArkInventory.LDB.Tracking_Currency.OnClick( frame, button )
 	
 	local loc_id = ArkInventory.Const.Location.Currency
 	
-	if not ArkInventory.isLocationMonitored( loc_id ) or ( ArkInventory.Collection.Currency.GetCount( ) <= 0 ) then
-		return
-	end
-	
 	if button == "RightButton" then
 		ArkInventory.MenuLDBTrackingCurrencyOpen( frame )
 	else
@@ -162,54 +157,51 @@ function ArkInventory.LDB.Tracking_Currency:OnTooltipShow( )
 	
 	local loc_id = ArkInventory.Const.Location.Currency
 	
-	if not ArkInventory.isLocationMonitored( loc_id ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
-		return
-	end
-	
-	if ArkInventory.Collection.Currency.GetCount( ) <= 0 then
-		self:AddLine( ArkInventory.Localise["LDB_CURRENCY_NONE"], 1, 0, 0 )
-		return
-	end
-	
-	
-	self:AddLine( string.format( "%s: %s", ArkInventory.Localise["TRACKING"], ArkInventory.Localise["CURRENCY"] ) )
-	
-	local count = 0
-	local codex = ArkInventory.GetPlayerCodex( )
-	
-	for _, entry in ArkInventory.Collection.Currency.ListIterate( ) do
+	if ArkInventory.isLocationMonitored( loc_id ) then
 		
-		local data = entry.data
-		if data then
-			
-			if codex.player.data.ldb.tracking.currency.tracked[data.id] then
+		self:AddLine( string.format( "%s: %s", ArkInventory.Localise["TRACKING"], ArkInventory.Localise["CURRENCY"] ) )
+		self:AddLine( " " )
+		
+		if ArkInventory.Collection.Currency.IsReady( ) then
+			if ArkInventory.Collection.Currency.GetCount( ) > 0 then
 				
-				count = count + 1
+				local codex = ArkInventory.GetPlayerCodex( )
 				
-				if count == 1 then
-					self:AddLine( " " )
+				for _, entry in ArkInventory.Collection.Currency.ListIterate( ) do
+					
+					local data = entry.data
+					if data then
+						
+						if codex.player.data.ldb.tracking.currency.tracked[data.id] then
+							
+							local txt = FormatLargeNumber( data.quantity )
+							
+							if data.maxQuantity > 0 then
+								txt = string.format( "%s/%s", FormatLargeNumber( data.quantity ), FormatLargeNumber( data.maxQuantity ) )
+							end
+							
+							self:AddDoubleLine( data.name, txt, 1, 1, 1, 1, 1, 1 )
+							
+							if data.canEarnPerWeek and data.quantityEarnedThisWeek and data.quantityEarnedThisWeek > 0 then
+								txt = string.format( "%s/%s", FormatLargeNumber( data.quantityEarnedThisWeek ), FormatLargeNumber( data.canEarnPerWeek ) )
+								self:AddDoubleLine( string.format( "  * %s", ArkInventory.Localise["WEEKLY"] ), txt, 1, 1, 1, 1, 1, 1 )
+							end
+						
+						end
+						
+					end
+					
 				end
 				
-				local txt = FormatLargeNumber( data.quantity )
-				
-				if data.maxQuantity > 0 then
-					txt = string.format( "%s/%s", FormatLargeNumber( data.quantity ), FormatLargeNumber( data.maxQuantity ) )
-				end
-				
-				self:AddDoubleLine( data.name, txt, 1, 1, 1, 1, 1, 1 )
-				
-				if data.canEarnPerWeek and data.quantityEarnedThisWeek and data.quantityEarnedThisWeek > 0 then
-					txt = string.format( "%s/%s", FormatLargeNumber( data.quantityEarnedThisWeek ), FormatLargeNumber( data.canEarnPerWeek ) )
-					self:AddDoubleLine( string.format( "  * %s", ArkInventory.Localise["WEEKLY"] ), txt, 1, 1, 1, 1, 1, 1 )
-				end
-			
+			else
+				self:AddLine( ArkInventory.Localise["LDB_CURRENCY_NONE"], 1, 0, 0 )
 			end
-			
+		else
+			self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 		end
-		
+	else
+		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 	end
-	
 	
 	self:Show( )
 	
@@ -232,35 +224,35 @@ function ArkInventory.LDB.Tracking_Reputation:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.Collection.Reputation.IsReady( ) then
-		
-		if ArkInventory.isLocationMonitored( loc_id ) and ArkInventory.Collection.Reputation.GetCount( ) > 0 then
+	if ArkInventory.isLocationMonitored( loc_id ) then
+		if ArkInventory.Collection.Reputation.IsReady( ) then
+			if ArkInventory.Collection.Reputation.GetCount( ) > 0 then
 			
-			local codex = ArkInventory.GetPlayerCodex( )
-			
-			local style_default = ArkInventory.Const.Reputation.Style.OneLineWithName
-			local style = style_default
-			if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
-				style = ArkInventory.db.option.tracking.reputation.style.ldb
-				if string.trim( style ) == "" then
-					style = style_default
+				local codex = ArkInventory.GetPlayerCodex( )
+				
+				local style_default = ArkInventory.Const.Reputation.Style.OneLineWithName
+				local style = style_default
+				if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
+					style = ArkInventory.db.option.tracking.reputation.style.ldb
+					if string.trim( style ) == "" then
+						style = style_default
+					end
 				end
-			end
-			
-			local data = ArkInventory.Collection.Reputation.GetByID( codex.player.data.ldb.tracking.reputation.watched )
-			if data then
-				local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
-				hasText = string.format( "|T%s:0|t %s", data.icon, txt )
-			end
-			
-			if not hasText then
-				codex.player.data.ldb.tracking.reputation.watched = nil
-			end
+				
+				local data = ArkInventory.Collection.Reputation.GetByID( codex.player.data.ldb.tracking.reputation.watched )
+				if data then
+					local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
+					hasText = string.format( "|T%s:0|t %s", data.icon, txt )
+				end
+				
+				if not hasText then
+					codex.player.data.ldb.tracking.reputation.watched = nil
+				end
 			
 		end
-		
-	else
-		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
+		else
+			ArkInventory:SendMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET" )
+		end
 	end
 	
 	if hasText then
@@ -292,63 +284,60 @@ function ArkInventory.LDB.Tracking_Reputation:OnTooltipShow( )
 	
 	local loc_id = ArkInventory.Const.Location.Reputation
 	
-	if not ArkInventory.isLocationMonitored( loc_id ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
-		return
-	end
-	
-	if ArkInventory.Collection.Reputation.GetCount( ) <= 0 then
-		self:AddLine( ArkInventory.Localise["LDB_REPUTATION_NONE"], 1, 0, 0 )
-		return
-	end
-	
-	
-	self:AddLine( string.format( "%s: %s", ArkInventory.Localise["TRACKING"], ArkInventory.Localise["REPUTATION"] ) )
-	
-	if ArkInventory.Collection.Reputation.GetCount( ) > 0 then
+	if ArkInventory.isLocationMonitored( loc_id ) then
 		
-		local count = 0
-		local codex = ArkInventory.GetPlayerCodex( )
+		self:AddLine( string.format( "%s: %s", ArkInventory.Localise["TRACKING"], ArkInventory.Localise["REPUTATION"] ) )
+		self:AddLine( " " )
 		
-		local style_default = ArkInventory.Const.Reputation.Style.OneLine
-		local style = style_default
-		if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
-			style = ArkInventory.db.option.tracking.reputation.style.tooltip
-			if string.trim( style ) == "" then
-				style = style_default
-			end
-		end
-		
-		for _, entry in ArkInventory.Collection.Reputation.ListIterate( ) do
+		if ArkInventory.Collection.Reputation.IsReady( ) then
 			
-			local data = entry.data
-			if data then
+			if ArkInventory.Collection.Reputation.GetCount( ) > 0 then
 				
-				if codex.player.data.ldb.tracking.reputation.tracked[data.id] then
-					
-					count = count + 1
-					if count == 1 then
-						self:AddLine( " " )
+				local codex = ArkInventory.GetPlayerCodex( )
+				
+				local style_default = ArkInventory.Const.Reputation.Style.OneLine
+				local style = style_default
+				if ArkInventory.db.option.tracking.reputation.custom ~= ArkInventory.Const.Reputation.Custom.Default then
+					style = ArkInventory.db.option.tracking.reputation.style.tooltip
+					if string.trim( style ) == "" then
+						style = style_default
 					end
+				end
+				
+				for _, entry in ArkInventory.Collection.Reputation.ListIterate( ) do
 					
-					local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
-					
-					if codex.player.data.ldb.tracking.reputation.watched == data.id then
-						self:AddDoubleLine( data.name, txt, 0, 1, 0, 0, 1, 0 )
-					else
-						self:AddDoubleLine( data.name, txt, 1, 1, 1, 1, 1, 1 )
+					local data = entry.data
+					if data then
+						
+						if codex.player.data.ldb.tracking.reputation.tracked[data.id] then
+							
+							local txt = ArkInventory.Collection.Reputation.LevelText( data.id, style )
+							
+							if codex.player.data.ldb.tracking.reputation.watched == data.id then
+								self:AddDoubleLine( data.name, txt, 0, 1, 0, 0, 1, 0 )
+							else
+								self:AddDoubleLine( data.name, txt, 1, 1, 1, 1, 1, 1 )
+							end
+							
+						else
+							
+							codex.player.data.ldb.tracking.reputation.tracked[data.id] = false
+							
+						end
+						
 					end
-					
-				else
-					
-					codex.player.data.ldb.tracking.reputation.tracked[data.id] = false
 					
 				end
 				
+			else
+				self:AddLine( ArkInventory.Localise["LDB_REPUTATION_NONE"], 1, 0, 0 )
 			end
 			
+		else
+			self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 		end
-		
+	else
+		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 	end
 	
 	self:Show( )
@@ -408,7 +397,6 @@ end
 function ArkInventory.LDB.Tracking_Item:OnTooltipShow( )
 	
 	self:AddLine( string.format( "%s: %s", ArkInventory.Localise["TRACKING"], ArkInventory.Localise["ITEMS"] ) )
-	
 	self:AddLine( " " )
 	
 	local me = ArkInventory.GetPlayerCodex( )
@@ -518,14 +506,14 @@ function ArkInventory.LDB.Pets:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.Collection.Pet.IsReady( ) then
+	if ArkInventory.isLocationMonitored( loc_id ) then
 		
-		if ArkInventory.isLocationMonitored( loc_id ) then
+		if ArkInventory.Collection.Pet.IsReady( ) then
 			ArkInventory.LDB.Pets.Cleanup( )
+		else
+			ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 		end
 		
-	else
-		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 	
 	if hasText then
@@ -540,67 +528,67 @@ function ArkInventory.LDB.Pets:OnTooltipShow( )
 	
 	local loc_id = ArkInventory.Const.Location.Pet
 	
-	if not ArkInventory.isLocationMonitored( loc_id ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
-		return
-	end
-	
-	if not ArkInventory.Collection.Pet.IsReady( ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
-		return
-	end
-	
-	self:AddLine( ArkInventory.Localise["PET"] )
-	self:AddLine( " " )
-	
-	local numtotal = ArkInventory.Collection.Pet.GetCount( )
-	
-	if numtotal == 0 then
+	if ArkInventory.isLocationMonitored( loc_id ) then
 		
-		self:AddLine( ArkInventory.Localise["PET"], 1, 1, 1 )
+		self:AddLine( ArkInventory.Localise["PET"] )
+		self:AddLine( " " )
 		
-	else
-		
-		local me = ArkInventory.GetPlayerCodex( )
-		
-		local selected = me.player.data.ldb.pets.selected
-		local numselected = 0
-		for k, v in pairs( selected ) do
-			if v == true then
-				numselected = numselected + 1
-			end
-		end
-		
-		if me.player.data.ldb.pets.useall then
+		if ArkInventory.Collection.Pet.IsReady( ) then
 			
-			self:AddLine( string.format( "%s (%s)", ArkInventory.Localise["ALL"], numtotal ), 1, 1, 1 )
-			
-		elseif numselected == 0 then
-			
-			self:AddLine( ArkInventory.Localise["NONE"], 1, 1, 1 )
-			
-		elseif numselected == 1 then
-			
-			-- just the one selected, there may be ignored but they dont matter
-			for k, v in pairs( selected ) do
-				if v == true then
-					local pd = ArkInventory.Collection.Pet.GetByID( k )
-					local name = pd.sd.name
-					if pd.cn and pd.cn ~= "" then
-						name = string.format( "%s (%s)", name, pd.cn )
+			local numtotal = ArkInventory.Collection.Pet.GetCount( )
+			if numtotal > 0 then
+				
+				local me = ArkInventory.GetPlayerCodex( )
+				
+				local selected = me.player.data.ldb.pets.selected
+				local numselected = 0
+				for k, v in pairs( selected ) do
+					if v == true then
+						numselected = numselected + 1
 					end
-					self:AddLine( string.format( "%s: %s", ArkInventory.Localise["SELECTION"], name ), 1, 1, 1 )
 				end
+				
+				if me.player.data.ldb.pets.useall then
+					
+					self:AddLine( string.format( "%s (%s)", ArkInventory.Localise["ALL"], numtotal ), 1, 1, 1 )
+					
+				elseif numselected == 0 then
+					
+					self:AddLine( ArkInventory.Localise["NONE"], 1, 1, 1 )
+					
+				elseif numselected == 1 then
+					
+					-- just the one selected, there may be ignored but they dont matter
+					for k, v in pairs( selected ) do
+						if v == true then
+							local pd = ArkInventory.Collection.Pet.GetByID( k )
+							local name = pd.sd.name
+							if pd.cn and pd.cn ~= "" then
+								name = string.format( "%s (%s)", name, pd.cn )
+							end
+							self:AddLine( string.format( "%s: %s", ArkInventory.Localise["SELECTION"], name ), 1, 1, 1 )
+						end
+					end
+					
+				else
+					
+					-- more than one selected, there may be ignored but they dont matter
+					self:AddLine( string.format( "%s (%s/%s)", ArkInventory.Localise["SELECTION"], numselected, numtotal ), 1, 1, 1 )
+					
+				end
+				
+			else
+				self:AddLine( ArkInventory.Localise["LDB_COMPANION_NONE"], 1, 0, 0 )
 			end
 			
 		else
-			
-			-- more than one selected, there may be ignored but they dont matter
-			self:AddLine( string.format( "%s (%s/%s)", ArkInventory.Localise["SELECTION"], numselected, numtotal ), 1, 1, 1 )
-			
+			self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 		end
-		
+	else
+		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 	end
+	
+	self:Show( )
 	
 end
 
@@ -982,14 +970,12 @@ function ArkInventory.LDB.Mounts:Update( )
 	local icon = string.format( "|T%s:0|t", ArkInventory.Global.Location[loc_id].Texture )
 	local hasText
 	
-	if ArkInventory.Collection.Mount.IsReady( ) then
-		
-		if ArkInventory.isLocationMonitored( loc_id ) then
+	if ArkInventory.isLocationMonitored( loc_id ) then
+		if ArkInventory.Collection.Mount.IsReady( ) then
 			ArkInventory.LDB.Mounts.Cleanup( )
+		else
+			ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 		end
-		
-	else
-		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
 	end
 	
 	if hasText then
@@ -1004,77 +990,79 @@ function ArkInventory.LDB.Mounts:OnTooltipShow( ... )
 	
 	local loc_id = ArkInventory.Const.Location.Mount
 	
-	if not ArkInventory.isLocationMonitored( loc_id ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
-		return
-	end
-	
-	if not ArkInventory.Collection.Mount.IsReady( ) then
-		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].Name ), 1, 0, 0 )
-		return
-	end
-	
-	self:AddDoubleLine( ArkInventory.Localise["MODE"], ArkInventory.Localise["MOUNT"] )
-	self:AddLine( " " )
-	
-	ArkInventory.Collection.Mount.UpdateUsable( )
-	
-	
-	local me = ArkInventory.GetPlayerCodex( )
-	
-	for mta in pairs( ArkInventory.Const.MountTypes ) do
+	if ArkInventory.isLocationMonitored( loc_id ) then
 		
-		local mode = ArkInventory.Localise[string.upper( string.format( "LDB_MOUNTS_TYPE_%s", mta ) )]
-		local numusable, numtotal = ArkInventory.Collection.Mount.GetCount( mta )
+		self:AddDoubleLine( ArkInventory.Localise["MODE"], ArkInventory.Localise["MOUNT"] )
+		self:AddLine( " " )
 		
-		--ArkInventory.Output( mta, " / ", mode, " / ", numusable, " / ", numtotal )
-		
-		if mta ~= "x" then
+		if ArkInventory.Collection.Mount.IsReady( ) then
 			
-			if numtotal == 0 then
+			ArkInventory.Collection.Mount.UpdateUsable( )
+			
+			local me = ArkInventory.GetPlayerCodex( )
+			
+			for mta in pairs( ArkInventory.Const.MountTypes ) do
 				
-				self:AddDoubleLine( mode, ArkInventory.Localise["NONE"], 1, 1, 1, 1, 0, 0 )
+				local mode = ArkInventory.Localise[string.upper( string.format( "LDB_MOUNTS_TYPE_%s", mta ) )]
+				local numusable, numtotal = ArkInventory.Collection.Mount.GetCount( mta )
 				
-			else
+				--ArkInventory.Output( mta, " / ", mode, " / ", numusable, " / ", numtotal )
 				
-				local selected = me.player.data.ldb.mounts.type[mta].selected
-				local numselected = 0
-				for k, v in pairs( selected ) do
-					if v == true then
-						numselected = numselected + 1
-					end
-				end
-				
-				if me.player.data.ldb.mounts.type[mta].useall then
+				if mta ~= "x" then
 					
-					self:AddDoubleLine( mode, string.format( "%s (%s)", ArkInventory.Localise["ALL"], numtotal ), 1, 1, 1, 1, 1, 1 )
-					
-				elseif numselected == 0 then
-					
-					self:AddDoubleLine( mode, ArkInventory.Localise["NONE"], 1, 1, 1, 1, 1, 1 )
-					
-				elseif numselected == 1 then
-					
-					-- just the one selected, there may be ignored but they dont matter
-					for k, v in pairs( selected ) do
-						if v then
-							local name = GetSpellInfo( k )
-							self:AddDoubleLine( mode, string.format( "%s: %s", ArkInventory.Localise["SELECTION"], name ), 1, 1, 1, 1, 1, 1 )
+					if numtotal == 0 then
+						
+						self:AddDoubleLine( mode, ArkInventory.Localise["NONE"], 1, 1, 1, 1, 0, 0 )
+						
+					else
+						
+						local selected = me.player.data.ldb.mounts.type[mta].selected
+						local numselected = 0
+						for k, v in pairs( selected ) do
+							if v == true then
+								numselected = numselected + 1
+							end
 						end
+						
+						if me.player.data.ldb.mounts.type[mta].useall then
+							
+							self:AddDoubleLine( mode, string.format( "%s (%s)", ArkInventory.Localise["ALL"], numtotal ), 1, 1, 1, 1, 1, 1 )
+							
+						elseif numselected == 0 then
+							
+							self:AddDoubleLine( mode, ArkInventory.Localise["NONE"], 1, 1, 1, 1, 1, 1 )
+							
+						elseif numselected == 1 then
+							
+							-- just the one selected, there may be ignored but they dont matter
+							for k, v in pairs( selected ) do
+								if v then
+									local name = GetSpellInfo( k )
+									self:AddDoubleLine( mode, string.format( "%s: %s", ArkInventory.Localise["SELECTION"], name ), 1, 1, 1, 1, 1, 1 )
+								end
+							end
+							
+						else
+							
+							-- more than one selected, there may be ignored but they dont matter
+							self:AddDoubleLine( mode, string.format( "%s (%s/%s)", ArkInventory.Localise["SELECTION"], numselected, numtotal ), 1, 1, 1, 1, 1, 1 )
+							
+						end
+						
 					end
-					
-				else
-					
-					-- more than one selected, there may be ignored but they dont matter
-					self:AddDoubleLine( mode, string.format( "%s (%s/%s)", ArkInventory.Localise["SELECTION"], numselected, numtotal ), 1, 1, 1, 1, 1, 1 )
 					
 				end
 				
 			end
 			
+		else
+			self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_READY"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 		end
-		
+	else
+		self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 	end
+	
+	self:Show( )
 	
 end
 

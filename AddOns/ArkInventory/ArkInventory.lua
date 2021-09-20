@@ -4,8 +4,8 @@
 
 License: All Rights Reserved, (c) 2006-2020
 
-$Revision: 2884 $
-$Date: 2021-08-01 23:22:19 +1000 (Sun, 01 Aug 2021) $
+$Revision: 2923 $
+$Date: 2021-09-10 13:49:21 +1000 (Fri, 10 Sep 2021) $
 
 ]]--
 
@@ -185,6 +185,7 @@ ArkInventory.Const.Actions = {
 				else
 					local loc_id = self:GetParent( ):GetParent( ):GetID( )
 					--ArkInventory.OutputWarning( "refresh action - .Recalculate" )
+					ArkInventory.Global.Location[loc_id].retryCount = 0
 					ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
 				end
 			end,
@@ -431,6 +432,7 @@ ArkInventory.Global = { -- globals
 			JunkSell = "p09-junksell",
 			Tradeskill = "p03-tradeskill",
 			Category = "p04-category",
+			ObjectData = "p03-objectdata",
 		},
 	},
 	
@@ -550,14 +552,14 @@ ArkInventory.Global = { -- globals
 		},
 		
 		[ArkInventory.Const.Location.Vault] = {
-			proj = ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ),
+			proj = not ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.CLASSIC ),
 			id = ArkInventory.Const.Location.Vault,
 			isActive = true,
 			Internal = "vault",
 			Name = ArkInventory.Localise["VAULT"],
 			--Texture = [[Interface\Icons\INV_Misc_Coin_02]],
-			--Texture = [[Interface\ICONS\INV_Misc_Gem_Topaz_01]],
-			Texture = [[Interface\ICONS\INV_Trinket_80_Titan02d]],
+			Texture = [[Interface\ICONS\INV_Misc_Gem_Topaz_01]],
+			--Texture = [[Interface\ICONS\INV_Trinket_80_Titan02d]],
 			bagCount = 1, -- actual value set in OnLoad
 			Bags = { },
 			canRestack = true,
@@ -911,8 +913,6 @@ ArkInventory.Global = { -- globals
 		Location = ArkInventory.Const.Location.Bag,
 		ShowHiddenItems = false,
 		
-		
-		
 		SortKeyBagAssignmentSort = true,
 		
 		MoveType = nil,
@@ -990,7 +990,7 @@ BINDING_NAME_ARKINV_MENU = ArkInventory.Localise["MENU"]
 BINDING_NAME_ARKINV_CONFIG = ArkInventory.Localise["CONFIG_DESC"]
 BINDING_NAME_ARKINV_LDB_PETS_SUMMON = ArkInventory.Localise["LDB_COMPANION_SUMMON"]
 _G["BINDING_NAME_CLICK ARKINV_MountToggle:LeftButton"] = ArkInventory.Localise["LDB_MOUNTS_SUMMON"]
-
+BINDING_NAME_ARKINV_JUNK_SELL = ArkInventory.Localise["BINDING_JUNK_SELL_MANUAL"]
 
 ArkInventory.Const.DatabaseDefaults.global = {
 	["option"] = {
@@ -1449,7 +1449,7 @@ ArkInventory.Const.DatabaseDefaults.global = {
 					["used"] = "Y",
 					["name"] = ArkInventory.Localise["VAULT"],
 					["window"] = {
-						["width"] = NUM_SLOTS_PER_GUILDBANK_GROUP,
+						["width"] = ArkInventory.Const.BLIZZARD.GLOBAL.GUILDBANK.WIDTH,
 					},
 					["sort"] = {
 						["method"] = 9995,
@@ -1827,7 +1827,50 @@ ArkInventory.Const.DatabaseDefaults.global = {
 			["priority"] = true, -- true = full reagent bank first, false = fill profession bags first
 		},
 		["bucket"] = {
-			["*"] = nil
+			["*"] = nil,
+		},
+		["updatetimer"] = {
+			["**"] = {
+				default = 0.5,
+				custom = false,
+				value = nil,
+			},
+			["EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_AUCTION_LEAVE_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_AUCTION_UPDATE_MASSIVE_BUCKET"] = { default = 60 },
+			["EVENT_ARKINV_AUCTION_UPDATE_BUCKET"] = { default = 2 },
+			["EVENT_ARKINV_BAG_RESCAN_BUCKET"] = { default = 2 },
+			["EVENT_ARKINV_BAG_UPDATE_BUCKET"] = { },
+			["EVENT_ARKINV_BAG_UPDATE_COOLDOWN_BUCKET"] = { },
+			["EVENT_ARKINV_BANK_LEAVE_BUCKET"] = {  default = 0.3 },
+			["EVENT_ARKINV_CHANGER_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_MOUNT_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_TRADESKILL_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_INVENTORY_CHANGE_BUCKET"] = { },
+			["EVENT_ARKINV_LOCATION_SCANNED_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_LOCATION_DRAW_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_MAIL_LEAVE_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_MAIL_UPDATE_BUCKET"] = { default = 2 },
+			["EVENT_ARKINV_MERCHANT_LEAVE_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_TRANSMOG_LEAVE_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_PLAYER_MONEY_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_QUEST_UPDATE_BUCKET"] = { default = 4 },
+			["EVENT_ARKINV_TOOLTIP_REBUILD_QUEUE_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_VAULT_LEAVE_BUCKET"] = { default = 0.3 },
+			["EVENT_ARKINV_VAULT_UPDATE_BUCKET"] = { default = 1.5 },
+			["EVENT_ARKINV_VOID_UPDATE_BUCKET"] = { },
+			["EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET"] = { default = 2 },
+			["EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET"] = { default = 2 },
+			["EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_LDB_PET_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET"] = { default = 1 },
+			--["EVENT_ARKINV_ZONE_CHANGED_BUCKET"] = { default = 5 },
 		},
 		["bugfix"] = {
 			["framelevel"] = {
@@ -2012,6 +2055,9 @@ ArkInventory.Const.DatabaseDefaults.global = {
 		},
 		["ui"] = {
 			["sortalpha"] = true,
+			["main"] = {
+				["retry"] = 5,
+			},
 			["search"] = {
 				["scale"] = 1,
 				["background"] = {
@@ -2076,6 +2122,7 @@ ArkInventory.Const.DatabaseDefaults.global = {
 				["combat"] = 100, -- 200ms appears to be the actual limit
 				["tooltip"] = 25, -- tooltip generation queue
 				["junksell"] = 75, -- this is a minimum duration timer, not a timeout, must be above 50 (will occasionally fail when that low)
+				["objectdata"] = 25, -- object data retreival queue
 			},
 		},
 --		["suffix"] = {
@@ -2265,6 +2312,9 @@ ArkInventory.Const.DatabaseDefaults.global = {
 		},
 		["trainerspecies"] = { -- populates as you battle them
 			["*"] = false, --speciesID = { table of species + trainer pet data }
+		},
+		["reputation"] = {
+			["*"] = nil,
 		},
 		["tradeskill"] = {
 			["data"] = {
@@ -2575,19 +2625,19 @@ function ArkInventory.OnInitialize( )
 		{ "REAGENTBANK_UPDATE", "EVENT_ARKINV_REAGENTBANK_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
 		{ "PLAYERREAGENTBANKSLOTS_CHANGED", "EVENT_ARKINV_REAGENTBANK_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL }, -- a bag_update event for the reagent bank (-3)
 		
-		{ "GUILDBANKBAGSLOTS_CHANGED", "EVENT_ARKINV_VAULT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANKFRAME_CLOSED", "EVENT_ARKINV_VAULT_LEAVE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANKFRAME_OPENED", "EVENT_ARKINV_VAULT_ENTER", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANKLOG_UPDATE", "EVENT_ARKINV_VAULT_LOG", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANK_ITEM_LOCK_CHANGED", "EVENT_ARKINV_VAULT_LOCK", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANK_UPDATE_MONEY", "EVENT_ARKINV_VAULT_MONEY", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANK_UPDATE_TABS", "EVENT_ARKINV_VAULT_TABS", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "GUILDBANK_UPDATE_TEXT", "EVENT_ARKINV_VAULT_INFO", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "GUILDBANKBAGSLOTS_CHANGED", "EVENT_ARKINV_VAULT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANKFRAME_CLOSED", "EVENT_ARKINV_VAULT_LEAVE", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANKFRAME_OPENED", "EVENT_ARKINV_VAULT_ENTER", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANKLOG_UPDATE", "EVENT_ARKINV_VAULT_LOG", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANK_ITEM_LOCK_CHANGED", "EVENT_ARKINV_VAULT_LOCK", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANK_UPDATE_MONEY", "EVENT_ARKINV_VAULT_MONEY", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANK_UPDATE_TABS", "EVENT_ARKINV_VAULT_TABS", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
+		{ "GUILDBANK_UPDATE_TEXT", "EVENT_ARKINV_VAULT_INFO", ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj },
 		
-		{ "HEIRLOOMS_UPDATED", "EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "HEIRLOOMS_UPDATED", "EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Heirloom].proj },
 		
-		{ "CURRENCY_DISPLAY_UPDATE", "EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PLAYER_TRADE_CURRENCY", "EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "CURRENCY_DISPLAY_UPDATE", "EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Currency].proj },
+		{ "PLAYER_TRADE_CURRENCY", "EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Currency].proj },
 		
 		{ "MAIL_CLOSED", "EVENT_ARKINV_MAIL_LEAVE" },
 		{ "MAIL_INBOX_UPDATE", "EVENT_ARKINV_MAIL_UPDATE" },
@@ -2597,32 +2647,32 @@ function ArkInventory.OnInitialize( )
 		{ "MERCHANT_CLOSED", "EVENT_ARKINV_MERCHANT_LEAVE" },
 		{ "MERCHANT_SHOW", "EVENT_ARKINV_MERCHANT_ENTER" },
 		
-		{ "MOUNT_EQUIPMENT_APPLY_RESULT", "EVENT_ARKINV_COLLECTION_MOUNT_EQUIPMENT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "MOUNT_EQUIPMENT_APPLY_RESULT", "EVENT_ARKINV_COLLECTION_MOUNT_EQUIPMENT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
 --		{ "MOUNT_JOURNAL_SEARCH_UPDATED", "" },
 --		{ "MOUNT_JOURNAL_USABILITY_CHANGED", "" },
-		{ "NEW_MOUNT_ADDED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "NEW_MOUNT_ADDED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
 		
-		{ "BATTLE_PET_CURSOR_CLEAR", "EVENT_ARKINV_COLLECTION_PET_UPDATE" },
---		{ "CHAT_MSG_PET_BATTLE_COMBAT_LOG", "EVENT_ARKINV_COLLECTION_PET_UPDATE" },
---		{ "CHAT_MSG_PET_BATTLE_INFO", "EVENT_ARKINV_COLLECTION_PET_UPDATE" },
---		{ "CHAT_MSG_PET_INFO", "EVENT_ARKINV_COLLECTION_PET_UPDATE" },
-		{ "COMPANION_LEARNED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "COMPANION_UNLEARNED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "COMPANION_UPDATE", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL }, -- do i really need this? it triggers when other people mount/dismount as well
-		{ "NEW_PET_ADDED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_BATTLE_CLOSE", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_BATTLE_LEVEL_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_BATTLE_OPENING_DONE", "EVENT_ARKINV_BATTLEPET_OPENING_DONE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "PET_BATTLE_OVER", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "PET_BATTLE_PET_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "PET_BATTLE_PET_ROUND_RESULTS", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_BATTLE_QUEUE_STATUS", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "PET_BATTLE_XP_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_JOURNAL_LIST_UPDATE", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_JOURNAL_PET_DELETED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_JOURNAL_PET_RESTORED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_JOURNAL_PET_REVOKED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "PET_JOURNAL_PETS_HEALED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "BATTLE_PET_CURSOR_CLEAR", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "CHAT_MSG_PET_BATTLE_COMBAT_LOG", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "CHAT_MSG_PET_BATTLE_INFO", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "CHAT_MSG_PET_INFO", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "COMPANION_LEARNED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "COMPANION_UNLEARNED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "COMPANION_UPDATE", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj }, -- do i really need this? it triggers when other people mount/dismount as well
+		{ "NEW_PET_ADDED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_BATTLE_CLOSE", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_BATTLE_LEVEL_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_BATTLE_OPENING_DONE", "EVENT_ARKINV_BATTLEPET_OPENING_DONE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "PET_BATTLE_OVER", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "PET_BATTLE_PET_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "PET_BATTLE_PET_ROUND_RESULTS", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_BATTLE_QUEUE_STATUS", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+--		{ "PET_BATTLE_XP_CHANGED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_JOURNAL_LIST_UPDATE", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_JOURNAL_PET_DELETED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_JOURNAL_PET_RESTORED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_JOURNAL_PET_REVOKED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
+		{ "PET_JOURNAL_PETS_HEALED", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
 		
 --		{ "OBLITERUM_FORGE_CLOSE", "", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
 --		{ "OBLITERUM_FORGE_SHOW", "", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
@@ -2654,8 +2704,8 @@ function ArkInventory.OnInitialize( )
 		{ "TRANSMOGRIFY_CLOSE", "EVENT_ARKINV_TRANSMOG_LEAVE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
 		{ "TRANSMOGRIFY_OPEN", "EVENT_ARKINV_TRANSMOG_ENTER", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
 		
-		{ "NEW_TOY_ADDED", "EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "TOYS_UPDATED", "EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
+		{ "NEW_TOY_ADDED", "EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Toybox].proj },
+		{ "TOYS_UPDATED", "EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Toybox].proj },
 		
 		{ "UPDATE_FACTION", "EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE" }, -- triggers off gui changes and can cause infinite loops if another mod changes the gui
 		{ "CHAT_MSG_COMBAT_FACTION_CHANGE", "EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE" },
@@ -2663,13 +2713,13 @@ function ArkInventory.OnInitialize( )
 		{ "UPDATE_EXPANSION_LEVEL", "EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE" },
 		{ "QUEST_LOG_UPDATE", "EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE" },
 		
---		{ "VOID_DEPOSIT_WARNING", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "VOID_STORAGE_CONTENTS_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "VOID_STORAGE_DEPOSIT_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "VOID_STORAGE_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
-		{ "VOID_TRANSFER_DONE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL },
---		{ "VOID_STORAGE_OPEN", "", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL }, -- not used, we dont override the void
---		{ "VOID_STORAGE_CLOSE", "", ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL }, -- not used, we dont override the void
+--		{ "VOID_DEPOSIT_WARNING", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj },
+		{ "VOID_STORAGE_CONTENTS_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj },
+		{ "VOID_STORAGE_DEPOSIT_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj },
+		{ "VOID_STORAGE_UPDATE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj },
+		{ "VOID_TRANSFER_DONE", "EVENT_ARKINV_VOID_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj },
+--		{ "VOID_STORAGE_OPEN", "", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj }, -- not used, we dont override the void
+--		{ "VOID_STORAGE_CLOSE", "", ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj }, -- not used, we dont override the void
 		
 --		{ "ZONE_CHANGED", "EVENT_ARKINV_ZONE_CHANGED" },
 --		{ "ZONE_CHANGED_INDOORS", "EVENT_ARKINV_ZONE_CHANGED" },
@@ -2725,43 +2775,12 @@ function ArkInventory.OnEnable( )
 	-- init location player id
 	ArkInventory.LocationSetValue( nil, "player_id", ArkInventory.PlayerIDSelf( ) )
 	
-	-- register events
-	local bucket1 = ArkInventory.db.option.bucket[ArkInventory.Const.Location.Bag] or 0.5
-	
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_AUCTION_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_AUCTION_UPDATE_MASSIVE_BUCKET", 60 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_AUCTION_UPDATE_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_BAG_RESCAN_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_BAG_UPDATE_BUCKET", bucket1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_BAG_UPDATE_COOLDOWN_BUCKET", bucket1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_BANK_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_CHANGER_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_TRADESKILL_UPDATE_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_INVENTORY_CHANGE_BUCKET", bucket1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LOCATION_SCANNED_BUCKET", bucket1 * 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_MAIL_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_MAIL_UPDATE_BUCKET", ArkInventory.db.option.bucket[ArkInventory.Const.Location.Mailbox] or 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_MERCHANT_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_TRANSMOG_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_PLAYER_MONEY_BUCKET", 1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_QUEST_UPDATE_BUCKET", 4 ) -- update quest item glows.  not super urgent just get them there eventually
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_TOOLTIP_REBUILD_QUEUE_UPDATE_BUCKET", bucket1 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_VAULT_LEAVE_BUCKET", 0.3 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_VAULT_UPDATE_BUCKET", ArkInventory.db.option.bucket[ArkInventory.Const.Location.Vault] or 1.5 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_VOID_UPDATE_BUCKET", 0.5 )
---	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_ZONE_CHANGED_BUCKET", 5 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_CURRENCY_UPDATE_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_REPUTATION_UPDATE_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET", 2 )
-	ArkInventory:RegisterBucketMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET", 2 )
+	-- register bucket events
+	for name, timer in pairs( ArkInventory.db.option.updatetimer ) do
+		local value = timer.custom and timer.value or timer.default
+		--ArkInventory.Output( "RegisterBucketMessage( ", name, ", ", value, " )" )
+		ArkInventory:RegisterBucketMessage( name, value )
+	end
 	
 	for k, v in pairs( ArkInventory.Const.BLIZZARD.Events ) do
 		--ArkInventory.Output( v )
@@ -3185,7 +3204,7 @@ end
 
 function ArkInventory.CategoryIdSplit( cat_id )
 	local cat_type, cat_num = string.match( cat_id, "(%d+)!(%d+)" )
-	return ArkInventory.ToNumber( cat_type ), ArkInventory.ToNumber( cat_num )
+	return tonumber( cat_type ), tonumber( cat_num )
 end
 
 function ArkInventory.CategoryIdBuild( cat_type, cat_num )
@@ -3346,10 +3365,10 @@ function ArkInventory.ItemCacheClear( h )
 		
 	else
 		
+		--ArkInventory.Output( "clearing cache - ", h )
+		
 		local cid
 		local i = { h = h }
-		
-		--ArkInventory.Output( "clearing cache - ", h )
 		
 		for loc_id, loc_data in pairs( ArkInventory.Global.Location ) do
 			i.loc_id = loc_id
@@ -3372,18 +3391,20 @@ function ArkInventory.ItemCacheClear( h )
 	end
 	
 	ArkInventory.CategoryGenerate( )
-	--ArkInventory.OutputWarning( "ItemCacheClear - .Recalculate" )
-	ArkInventory.Frame_Main_DrawStatus( nil, ArkInventory.Const.Window.Draw.Recalculate )
 	
 end
 
-function ArkInventory.Frame_Main_DrawStatus( loc_id, level )
+function ArkInventory.Frame_Main_DrawStatus( location, level )
 	
 	local level = level or ArkInventory.Const.Window.Draw.None
 	
-	if ArkInventory.Global.Location[loc_id] and ArkInventory.Global.Location[loc_id].canView then
-		if level < ArkInventory.Global.Location[loc_id].drawState then
-			ArkInventory.Global.Location[loc_id].drawState = level
+	for loc_id, loc_data in pairs( ArkInventory.Global.Location ) do
+		if loc_data.canView and ( not location or loc_id == location ) then
+			--ArkInventory.Output( "set draw status for ", loc_id, " to [", level, "], it is currently [", ArkInventory.Global.Location[loc_id].drawState, "]" )
+			if level < ArkInventory.Global.Location[loc_id].drawState then
+				ArkInventory.Global.Location[loc_id].drawState = level
+				--ArkInventory.Output( "set draw status for ", loc_id, " to [", ArkInventory.Global.Location[loc_id].drawState, "] (SET)" )
+			end
 		end
 	end
 	
@@ -3474,7 +3495,7 @@ function ArkInventory.PutItemInGuildBank( tab_id )
 				ArkInventory.QueryVault( tab_id )
 			end
 			
-			for x = 1, MAX_GUILDBANK_SLOTS_PER_TAB do
+			for x = 1, ArkInventory.Const.BLIZZARD.GLOBAL.GUILDBANK.SLOTS_PER_TAB do
 				h = GetGuildBankItemLink( tab_id, x )
 				if not h then
 					if not PickupGuildBankItem( tab_id, x ) then --AutoStoreGuildBankItem
@@ -3971,6 +3992,7 @@ function ArkInventory.Frame_Main_Draw( frame )
 		return
 	end
 	
+	
 	if ArkInventory.ThreadRunning( thread_id ) then
 		
 		-- already in progress, find highest drawstate and start again
@@ -3994,6 +4016,7 @@ function ArkInventory.Frame_Main_Draw( frame )
 	-- load the co-routine, overwite existing, the garbage collector will sort it out
 	local tf = function ( )
 		ArkInventory.Frame_Main_Draw_Threaded( frame )
+		--ArkInventory.Output( "draw location ", loc_id, " complete" )
 	end
 	
 	ArkInventory.ThreadStart( thread_id, tf )
@@ -4118,7 +4141,7 @@ function ArkInventory.Frame_Main_Draw_Threaded( frame, loop )
 			-- window title text
 			local who = _G[string.format( "%s%s%s", frame:GetName( ), ArkInventory.Const.Frame.Title.Name, "Who" )]
 			local t = ""
-	
+			
 			if codex.style.title.size == ArkInventory.Const.Window.Title.SizeThin then
 				
 				-- thin size
@@ -4253,20 +4276,16 @@ function ArkInventory.Frame_Main_Draw_Threaded( frame, loop )
 	end
 	
 	
-	local loop = ( loop or 0 ) + 1
 	if not codex.workpad.ready then
-		--ArkInventory.Output( "rebuilding [", loc_id, "], loop [", loop, "]" )
-		if loop <= 5 then
-			return ArkInventory.Frame_Main_Draw_Threaded( frame, loop )
+		--ArkInventory.Frame_Main_DrawStatus( loc_id, ArkInventory.Const.Window.Draw.Recalculate )
+		if ArkInventory.Global.Location[loc_id].retryCount <= ArkInventory.db.option.ui.main.retry then
+			--ArkInventory.Output( "redraw ", loc_id, " attempt ", ArkInventory.Global.Location[loc_id].retryCount )
+			ArkInventory:SendMessage( "EVENT_ARKINV_LOCATION_DRAW_BUCKET", loc_id )
 		end
+		ArkInventory.Global.Location[loc_id].retryCount = ArkInventory.Global.Location[loc_id].retryCount + 1
+	else
+		ArkInventory.Global.Location[loc_id].drawState = ArkInventory.Const.Window.Draw.None
 	end
-	
-	ArkInventory.Global.Location[loc_id].drawState = ArkInventory.Const.Window.Draw.None
-	
---	if ArkInventory.Global.Location[loc_id].show then
---		ArkInventory.Global.Location[loc_id].show = nil
---		frame:Show( )
---	end
 	
 end
 
@@ -4362,7 +4381,11 @@ end
 
 function ArkInventory.Frame_Main_Show( loc_id, player_id )
 	
+	--ArkInventory.Output( "Frame_Main_Show( ", loc_id, ", ", player_id, " )" )
+	
 	assert( loc_id, "invalid location: nil" )
+	
+	ArkInventory.Global.Location[loc_id].retryCount = 0
 	
 	if not ArkInventory.ClientCheck( ArkInventory.Global.Location[loc_id].proj ) then
 		ArkInventory.OutputWarning( string.format( ArkInventory.Localise["MENU_LOCATION_NOT_SUPPORTED"], ArkInventory.Global.Location[loc_id].Name ) )
@@ -4568,7 +4591,7 @@ function ArkInventory.Frame_Main_OnLoad( frame )
 	
 	assert( loc_id ~= nil, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
+	loc_id = tonumber( loc_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -4712,19 +4735,10 @@ function ArkInventory.Frame_Container_Calculate( frame )
 	local loc_id = frame.ARK_Data.loc_id
 	local codex = ArkInventory.GetLocationCodex( loc_id )
 	
-	local counter = 1
+	--ArkInventory.Table.Clean( codex.workpad, nil, true )
 	
---	repeat
-		
-		--ArkInventory.Table.Clean( codex.workpad, nil, true )
-		
-		-- break the inventory up into it's respective bars
-		ArkInventory.Frame_Container_CalculateBars( frame )
-		
-		--ArkInventory.Output( "loc_id [", loc_id, "], build loop [", counter, "]" )
-		counter = counter + 1
-		
---	until codex.workpad.ready or counter > 100
+	-- break the inventory up into it's respective bars
+	ArkInventory.Frame_Container_CalculateBars( frame )
 	
 	-- calculate what the container should look like with those bars
 	ArkInventory.Frame_Container_CalculateContainer( frame )
@@ -4752,6 +4766,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 	ArkInventory.Table.Wipe( codex.workpad.bar )
 	codex.workpad.bar_count = 1
 	codex.workpad.ready = true
+	
 	
 	local bag
 	local cat_id
@@ -4801,14 +4816,14 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 			
 			if i and not ignore then
 				
-				local info = ArkInventory.GetObjectInfo( i.h )
-				codex.workpad.ready = codex.workpad.ready and info.ready
-				
 				if codex.style.window.list then
 					
 					cat_id = ArkInventory.CategoryGetSystemID( "SYSTEM_DEFAULT" )
 					
 				else
+					
+					local info = ArkInventory.GetObjectInfo( i.h, i )
+					codex.workpad.ready = codex.workpad.ready and info.ready
 					
 					local isPartyLoot = false
 					local isRefundable = false
@@ -4817,7 +4832,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 						
 						if checkPartyLoot then
 							ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Scan, loc_id, bag_id, slot_id, i.h, i )
-							if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_BIND_PARTYLOOT"], false, true, true, 0, true ) then
+							if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_BIND_PARTYLOOT"], false, true, true, 0 ) then
 								isPartyLoot = true
 								--ArkInventory.Output( "party loot = ", i.h )
 							end
@@ -4825,7 +4840,7 @@ function ArkInventory.Frame_Container_CalculateBars( frame )
 						
 						if checkRefundable and not isPartyLoot then
 							ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Scan, loc_id, bag_id, slot_id, i.h, i )
-							if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_BIND_REFUNDABLE"], false, true, true, 0, true ) then
+							if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_BIND_REFUNDABLE"], false, true, true, 0 ) then
 								isRefundable = true
 								--ArkInventory.Output( "refundable = ", i.h )
 							end
@@ -5622,7 +5637,7 @@ function ArkInventory.Frame_Container_OnLoad( frame )
 	
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
+	loc_id = tonumber( loc_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -5670,7 +5685,7 @@ function ArkInventory.Frame_Bar_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bar_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
+	loc_id = tonumber( loc_id )
 	
 	-- bars are essentially a pool of frames, they will be pulled from there as required
 	-- the bar_id will be set when allocated from the pool
@@ -6410,8 +6425,8 @@ function ArkInventory.Frame_Bar_Edit_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bar_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
-	bar_id = ArkInventory.ToNumber( bar_id )
+	loc_id = tonumber( loc_id )
+	bar_id = tonumber( bar_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -6628,8 +6643,8 @@ function ArkInventory.Frame_Bag_OnLoad( frame )
 	assert( loc_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
-	bag_id = ArkInventory.ToNumber( bag_id )
+	loc_id = tonumber( loc_id )
+	bag_id = tonumber( bag_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -6784,9 +6799,9 @@ function ArkInventory.Frame_Item_OnLoad( frame, tainted )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( slot_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
-	bag_id = ArkInventory.ToNumber( bag_id )
-	slot_id = ArkInventory.ToNumber( slot_id )
+	loc_id = tonumber( loc_id )
+	bag_id = tonumber( bag_id )
+	slot_id = tonumber( slot_id )
 	
 	frame:SetID( slot_id )
 	
@@ -6885,9 +6900,9 @@ function ArkInventory.Frame_Item_OnLoad_ListEntry( frame )
 	assert( bag_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	assert( slot_id, string.format( "xml element '%s' is not an %s frame", framename, ArkInventory.Const.Program.Name ) )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
-	bag_id = ArkInventory.ToNumber( bag_id )
-	slot_id = ArkInventory.ToNumber( slot_id )
+	loc_id = tonumber( loc_id )
+	bag_id = tonumber( bag_id )
+	slot_id = tonumber( slot_id )
 	
 	frame:SetID( slot_id )
 	
@@ -7521,7 +7536,7 @@ function ArkInventory.Frame_Item_Update_Level( frame, codex )
 			
 			if info.class == "item" then
 				
-				if codex.style.slot.itemlevel.stock.show and info.equiploc == "" and info.stock then
+				if codex.style.slot.itemlevel.stock.show and info.equiploc == "" and info.stock > 0 then
 					if codex.style.slot.itemlevel.stock.total then
 						stock = info.stock * i.count
 					else
@@ -9481,8 +9496,8 @@ function ArkInventory.Frame_Changer_Slot_OnLoad( frame )
 	local framename = frame:GetName( )
 	local loc_id, bag_id = string.match( framename, "^" .. ArkInventory.Const.Frame.Main.Name .. "(%d+).-(%d+)$" )
 	
-	loc_id = ArkInventory.ToNumber( loc_id )
-	bag_id = ArkInventory.ToNumber( bag_id )
+	loc_id = tonumber( loc_id )
+	bag_id = tonumber( bag_id )
 	
 	frame.ARK_Data = {
 		loc_id = loc_id,
@@ -10410,11 +10425,20 @@ function ArkInventory.BlizzardAPIHook( disable, reload )
 	
 	if ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ) then
 		ArkInventory.LoadAddOn( "Blizzard_Collections" )
-		ArkInventory.LoadAddOn( "Blizzard_GuildBankUI" )
-		ArkInventory.LoadAddOn( "Blizzard_VoidStorageUI" )
+		ArkInventory.LoadAddOn( "Blizzard_TradeSkillUI" )
 		--ArkInventory.LoadAddOn( "Blizzard_ScrappingMachineUI" )
 	end
 	--ArkInventory.LoadAddOn( "Blizzard_AuctionHouseUI" )
+	
+	if ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj ) then
+		ArkInventory.LoadAddOn( "Blizzard_GuildBankUI" )
+	end
+	
+	if ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj ) then
+		ArkInventory.LoadAddOn( "Blizzard_VoidStorageUI" )
+	end
+	
+	
 	
 	if not ArkInventory.Global.BlizzardAPIHook then
 		
@@ -10742,10 +10766,10 @@ function ArkInventory.CreateColour( r, g, b, a, f )
 		-- the trading parts colour has a space instead of a zero in the 3rd position for some reason
 		-- at some point i need to work out if its from the alpha or the red value, im guessing red at the moment as they are a fairly bright light blue, almost heirloom
 		
-		a = ( ArkInventory.ToNumber( a or "ff", 16 ) or 255 ) / 255
-		r = ( ArkInventory.ToNumber( r or "ff", 16 ) or 255 ) / 255
-		g = ( ArkInventory.ToNumber( g or "ff", 16 ) or 255 ) / 255
-		b = ( ArkInventory.ToNumber( b or "ff", 16 ) or 255 ) / 255
+		a = ( tonumber( a or "ff", 16 ) or 255 ) / 255
+		r = ( tonumber( r or "ff", 16 ) or 255 ) / 255
+		g = ( tonumber( g or "ff", 16 ) or 255 ) / 255
+		b = ( tonumber( b or "ff", 16 ) or 255 ) / 255
 		
 	end
 	
@@ -10806,6 +10830,9 @@ function ArkInventory.ToggleEditMode( )
 	ArkInventory.Lib.Dewdrop:Close( )
 	ArkInventory.Global.Mode.Edit = not ArkInventory.Global.Mode.Edit
 	--ArkInventory.OutputWarning( "ToggleEditMode - .restart window draw" )
+	for loc_id in pairs( ArkInventory.Global.Location ) do
+		ArkInventory.Global.Location[loc_id].retryCount = 0
+	end
 	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Restart )
 	--ArkInventory.Frame_Bar_Paint_All( )
 end
@@ -10895,7 +10922,7 @@ function ArkInventory.Frame_Vault_Log_Update( )
 		end
 		
 		if msg then
-			obj:AddMessage( string.format( "%s%s%s", msg, GUILD_BANK_LOG_TIME_PREPEND, string.format( GUILD_BANK_LOG_TIME, RecentTimeDate( year, month, day, hour ) ) ) )
+			obj:AddMessage( string.format( "%s%s%s", msg, ArkInventory.Const.BLIZZARD.GLOBAL.GUILDBANK.LOG_TIME_PREPEND, string.format( GUILD_BANK_LOG_TIME, RecentTimeDate( year, month, day, hour ) ) ) )
 		end
 		
 	end
@@ -11379,6 +11406,10 @@ function ArkInventory.ThreadYield( thread_id )
 	if thread_id == ArkInventory.Global.Thread.Format.Tooltip then
 		
 		timeout = ArkInventory.db.option.thread.timeout.tooltip
+		
+	elseif thread_id == ArkInventory.Global.Thread.Format.ObjectData then
+		
+		timeout = ArkInventory.db.option.thread.timeout.objectdata
 		
 	elseif thread_id == ArkInventory.Global.Thread.Format.Search then
 		

@@ -65,4 +65,7 @@
 		ArkInventory.LDB.Pets.OnClick( )
 	</Binding>
 	<Binding name="CLICK ARKINV_MountToggle:LeftButton" category="ADDONS" />
+	<Binding name="ARKINV_JUNK_SELL" category="ADDONS">
+		ArkInventory.JunkSell( true )
+	</Binding>
 </Bindings>

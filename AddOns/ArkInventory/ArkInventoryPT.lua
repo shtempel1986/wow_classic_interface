@@ -88,9 +88,9 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Reputation.Shadowlands.Other"] = "184120",
 	["ArkInventory.System.Reputation.BFA.Other"] = "",
 	["ArkInventory.System.Reputation.Legion.Argussian Reach"] = "152959:2170,152960:2170,152961:2170,152954:2170",
-	["ArkInventory.System.Reputation.Legion.Armies of Legionfall"] = "146949:2045,146950:2045,147727:2045,152464:2045,152954:2045",
-	["ArkInventory.System.Reputation.Legion.Army of Llght"] = "152955:2165,152956:2165,152957:2165,152958:2165",
-	["ArkInventory.System.Reputation.Legion.Court of Farondis"] = "139023:1948,141340:1948,141989:1948,146937:1948,146943:1948,147410:1948,150927:1948",
+	["ArkInventory.System.Reputation.Legion.Armies of Legionfall"] = "146949:2045,146950:2045,147727:2045,152464:2045",
+	["ArkInventory.System.Reputation.Legion.Army of the Light"] = "152955:2165,152956:2165,152957:2165,152958:2165",
+	["ArkInventory.System.Reputation.Legion.Court of Farondis"] = "139023:1900,141340:1900,141989:1900,146937:1900,146943:1900,147410:1900,150927:1900",
 	["ArkInventory.System.Reputation.Legion.Dreamweavers"] = "139021:1883,146936:1883,141339:1883,146942:1883,141988:1883,147411:1883,150926:1883",
 	["ArkInventory.System.Reputation.Legion.Highmountain Tribe"] = "139024:1828,141341:1828,141990:1828,146938:1828,146944:1828,147412:1828,150928:1828",
 	["ArkInventory.System.Reputation.Legion.The Nightfallen"] = "139026:1859,141343:1859,141992:1859,146940:1859,146946:1859,147413:1859,147416:1859,147418:1859,150930:1859",
@@ -279,6 +279,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Power.Shadowlands.Venthyr.Ember Court"] = "177230,177231,177232,177233,177234,177235,177236,177237,177238,177239,177241,177242,177243,177244,177245,180248,181436,181437,181438,181439,181440,181441,181442,181443,181444,181445,181446,181447,181448,181449,181451,181517,181518,181519,181520,181521,181522,181523,181524,181530,181532,181533,181535,181536,181537,181538,182243,182342,182296,183956,183957,184627,184628,184663",
 	["ArkInventory.Consumable.Power.Shadowlands.Conduit.Boost"] = "187216",
 	["ArkInventory.Consumable.Power.BFA.Mechagon"] = "166846,166970,166971,167562,168327,168262,168832,169610",
+	["ArkInventory.Consumable.Power.Testing"] = "184146",
 	
 	
 	
@@ -511,7 +512,8 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.XREF.Tradeskill.Tailoring"] = "m,Tradeskill.RecipeLinks.Tailoring",
 	
 	-- internal sets
-	["ArkInventory.Internal.ItemsWithStockValues"] = "m,ArkInventory.System.Reputation.Shadowlands.The Archivists Codex,ArkInventory.System.Currency.Shadowlands.Anima,ArkInventory.System.Currency.Shadowlands.Stygia,ArkInventory.System.Currency.Legion.Ancient Mana,ArkInventory.System.Currency.Draenor.Garrison Resources,ArkInventory.System.Currency.Draenor.Oil",
+	["ArkInventory.Internal.ItemsWithStockValues.Reputation.Pandaria.Other"] = "86592",
+	["ArkInventory.Internal.ItemsWithStockValues.Base"] = "m,ArkInventory.System.Reputation.Shadowlands.The Archivists Codex,ArkInventory.System.Currency.Shadowlands.Stygia,ArkInventory.System.Currency.Legion.Ancient Mana,ArkInventory.System.Currency.Draenor.Garrison Resources,ArkInventory.System.Currency.Draenor.Oil",
 	
 })
 

@@ -42,8 +42,8 @@ function ArkInventory.Collection.Reputation.ImportCrossRefTable( )
 	
 	for k, v in ArkInventory.Lib.PeriodicTable:IterateSet( "ArkInventory.System.XREF.Reputation" ) do
 		
-		item = ArkInventory.ToNumber( k ) or 0
-		rid = ArkInventory.ToNumber( v ) or 0
+		item = tonumber( k ) or 0
+		rid = tonumber( v ) or 0
 		
 		if rid > 0 and item > 0 then
 			
@@ -175,11 +175,17 @@ end
 
 function ArkInventory.Collection.Reputation.LevelText( ... )
 	
+	if not ArkInventory.Collection.Reputation.IsReady( ) then
+		return "data not ready yet"  -- !!!fix me
+	end
+	
 	local id, style, standingText, barValue, barMax, isCapped, paragonLevel, hasReward = ...
 	
 	local n = select( '#', ... )
 	
-	if n == 0 then return end
+	if n == 0 then
+		return "no repuation data"  -- !!!fix me
+	end
 	
 --[[
 	*nn* = faction name
@@ -194,7 +200,9 @@ function ArkInventory.Collection.Reputation.LevelText( ... )
 ]]--
 	
 	local object = ArkInventory.Collection.Reputation.GetByID( id )
-	if not object then return end
+	if not object then
+		return "repuation not found"  -- !!!fix me
+	end
 	
 	local name = object.name or ArkInventory.Localise["UNKNOWN"]
 	local barRemaining = 0
@@ -408,7 +416,7 @@ local function ScanBase( id )
 	if not cache[id] then
 		
 		if id > 0 then
-		
+			
 			local name, description, standingID, barMin, barMax, repValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus = GetFactionInfoByID( id )
 			
 			if name and name ~= "" then
@@ -423,6 +431,28 @@ local function ScanBase( id )
 				}
 				
 				collection.numTotal = collection.numTotal + 1
+				
+				ArkInventory.db.cache.reputation[id] = {
+					n = name,
+					d = description,
+					w = canToggleAtWar,
+					r = hasRep,
+				}
+				
+			else
+				
+				local cr = ArkInventory.db.cache.reputation[id]
+				if cr then
+					cache[id] = {
+						id = id,
+						link = string.format( "reputation:%s", id ),
+						name = cr.n,
+						description = cr.d,
+						canToggleAtWar = cr.w,
+						hasRep = cr.r,
+						icon = ArkInventory.Global.Location[ArkInventory.Const.Location.Reputation].Texture
+					}
+				end
 				
 			end
 			

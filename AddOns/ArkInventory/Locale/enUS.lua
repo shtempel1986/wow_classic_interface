@@ -318,6 +318,7 @@ if not L then return end
 	L["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_NORMAL"] = "Out of Combat"
 	L["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_COMBAT"] = "In Combat"
 	L["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_TOOLTIP"] = "Building Tooltips"
+	L["CONFIG_GENERAL_WORKAROUND_THREAD_TIMEOUT_OBJECTDATA"] = "Retreiving Object Data"
 	L["BUGFIX_TAINTED_ALERT_MOUSEOVER_DESC"] = "this item frame was created while you\nwere in combat which has caused\nit to be tainted and cannot\nbe used until you leave combat"
 	L["BUGFIX_TAINTED_ALERT_OPEN_DESC"] = "some of the item frames for this window were created while you were in combat which has caused them to be tainted and cannot be used until you leave combat"
 	
@@ -341,8 +342,9 @@ if not L then return end
 	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED"] = "Loaded"
 	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED_DESC"] = "Show a message when connected realm data is loaded"
 	
-	L["CONFIG_GENERAL_TIMERS"] = "Update Timers"
-	L["CONFIG_GENERAL_TIMERS_DESC"] = "use a custom value for the %1$s update timer"
+	L["CONFIG_GENERAL_BUCKET"] = "Update Timers"
+	L["CONFIG_GENERAL_BUCKET_DESC"] = "Adjust the update time for the %1$s\n\nUpdate timers run every X seconds allowing you to throttle window updates."
+	L["CONFIG_GENERAL_BUCKET_CUSTOM_DESC"] = "use a custom value for the %1$s update timer.\n\nThe default value for this timer is %2$0.1d seconds"
 	
 	L["CONFIG_GENERAL_TRANSMOG"] = "transmog status icon"
 	L["CONFIG_GENERAL_TRANSMOG_SHOW_DESC"] = "show transmog status icons"
@@ -562,14 +564,14 @@ if not L then return end
 	
 	
 -- junk
-	L["CONFIG_JUNK_SELL"] = "Auto Sell"
-	L["CONFIG_JUNK_SELL_DESC"] = "Sell all junk items as soon as you open a merchant window"
-	L["CONFIG_JUNK_SELL_NOTIFY_SOLD"] = "Sold your junk items for %s."
-	L["CONFIG_JUNK_SELL_NOTIFY_DESTROYED"] = "Destroyed %s junk items."
-	L["CONFIG_JUNK_SELL_NOTIFY_LIMIT"] = "Aborting auto sell due to buyback limit (%s) being reached."
+	L["CONFIG_JUNK_SELL_AUTO"] = "Auto Sell"
+	L["CONFIG_JUNK_SELL_AUTO_DESC"] = "Sell all junk items as soon as you open a merchant window"
+	L["CONFIG_JUNK_NOTIFY_SOLD"] = "Sold your junk items for %s."
+	L["CONFIG_JUNK_NOTIFY_DESTROYED"] = "Destroyed %s junk items."
+	L["CONFIG_JUNK_NOTIFY_LIMIT"] = "Aborting auto sell due to buyback limit (%s) being reached."
 	L["CONFIG_JUNK_LIMIT"] = "Limit to Buyback"
 	L["CONFIG_JUNK_LIMIT_DESC"] = "As a safety precaution stop selling your junk when the buyback limit (%i) is reached"
-	L["CONFIG_JUNK_DELETE_DESC"] = "Delete items that cannot be vendored (have no sell price)\n\nnote - this function currently does not work as blizzard have protected the DeleteCursorItem function"
+	L["CONFIG_JUNK_DELETE_DESC"] = "Delete items that cannot be vendored (have no sell price)\n\nnote - you can only delete items via the keybinding"
 	L["CONFIG_JUNK_NOTIFY_DESC"] = "Display a notification about how much gold you sold your items for"
 	L["CONFIG_JUNK_QUALITY_CUTOFF_DESC"] = "Only sell/destroy an item if its quality is at or below: %s%s|r"
 	L["CONFIG_JUNK_CATEGORY_DESC"] = "Auto sells/destroys all items assigned to %s when you talk to a vendor"
@@ -677,6 +679,11 @@ if not L then return end
 	L["CONFIG_PROFILE_CURRENT"] = "Current Profile"
 	
 	L["CONFIG_OBJECT_DELETED"] = "** Deleted %1$s [%2$s] **"
+	
+	L["CONFIG_UI_MAIN_RETRY"] = "Retry"
+	L["CONFIG_UI_MAIN_RETRY_DESC"] = "How many times to attempt building the window while item data is not ready"
+	L["CONFIG_UI_MAIN_LOCATIONSORT"] = "Location Sorting"
+	L["CONFIG_UI_MAIN_LOCATIONSORT_DESC"] = "How locations should be sorted\n\nEnabled = Sorted alphabetically.\n\nDisabled = Sorted numerically."
 	
 	
 --	configuration options > debug
@@ -862,13 +869,13 @@ if not L then return end
 	L["EXPAND"] = "Expand"
 	L["COLLAPSE"] = "Collapse"
 	L["SET"] = "Set"
-	L["COSMETIC"] = "Cosmetic"
 	L["ITEM_BIND_PARTYLOOT"] = "Party Loot"
 	L["ITEM_BIND_REFUNDABLE"] = "Refundable"
 	L["CONDUITS"] = "Conduits"
 	L["COVENANT"] = "Covenant"
 	L["ALPHA"] = "Alpha"
 	L["BAGS"] = "Bags"
+	L["BINDING_JUNK_SELL_MANUAL"] = "Sell Junk Items"
 	
 	
 -- libdatabroker
@@ -883,7 +890,7 @@ if not L then return end
 	L["LDB_OBJECT_TOOLTIP_FORMAT_DESC"] = "What format do you want to use to build the values in the LDB object tooltip"
 	
 	L["LDB_TRACKED_NONE"] = "no %1$s is currently being tracked"
-	L["LDB_LOCATION_NOT_READY"] = "%1$s journal is not ready"
+	L["LDB_LOCATION_NOT_READY"] = "%1$s data is not ready"
 	L["LDB_LOCATION_NOT_MONITORED"] = "The %1$s location is not being monitored"
 	
 	L["LDB_BAGS_COLOUR_USE"] = "Use colour"

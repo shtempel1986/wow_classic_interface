@@ -335,8 +335,8 @@ local function helper_UpgradeProfile( profile, profile_name )
 			for k, v in pairs( profile.option.category ) do
 				
 				local sb, id = strsplit( ":", k )
-				id = ArkInventory.ToNumber( id ) or 0
-				sb = ArkInventory.ToNumber( sb ) or 0
+				id = tonumber( id ) or 0
+				sb = tonumber( sb ) or 0
 				if sb > 20 then
 					local z = sb
 					sb = id

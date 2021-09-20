@@ -2,8 +2,8 @@
 
 License: All Rights Reserved, (c) 2009-2018
 
-$Revision: 2885 $
-$Date: 2021-08-12 23:42:10 +1000 (Thu, 12 Aug 2021) $
+$Revision: 2900 $
+$Date: 2021-08-15 23:38:39 +1000 (Sun, 15 Aug 2021) $
 
 ]]--
 
@@ -1309,7 +1309,7 @@ function ArkInventoryRules.System.boolean_location( ... )
 			elseif k == "guild bank" or k == "vault" or k == string.lower( ArkInventory.Localise["VAULT"] ) then
 				k = ArkInventory.Const.Location.Vault
 			elseif k == "mail" or k == string.lower( ArkInventory.Localise["MAIL"] ) or k == string.lower( ArkInventory.Localise["MAILBOX"] ) then
-				k = ArkInventory.Const.Location.Mail
+				k = ArkInventory.Const.Location.Mailbox
 			elseif k == "wearing" or k == "gear" or k == string.lower( ArkInventory.Localise["LOCATION_WEARING"] ) then
 				k = ArkInventory.Const.Location.Wearing
 			elseif k == "pet" or k == string.lower( ArkInventory.Localise["PET"] ) then
@@ -2259,7 +2259,7 @@ function ArkInventoryRules.Frame_Rules_Table_Build( frame )
 	
 	local f = frame:GetName( )
 	
-	local maxrows = ( ArkInventory.db and ArkInventory.db.option.ui.rules.rows ) or ArkInventory.ToNumber( _G[f .. "MaxRows"]:GetText( ) )
+	local maxrows = ( ArkInventory.db and ArkInventory.db.option.ui.rules.rows ) or tonumber( _G[f .. "MaxRows"]:GetText( ) )
 	if maxrows == 0 then
 		maxrows = 15
 	end
@@ -2276,7 +2276,7 @@ function ArkInventoryRules.Frame_Rules_Table_Build( frame )
 	local rows = maxrows
 	_G[f .. "NumRows"]:SetText( rows )
 	
-	local height = ArkInventory.ToNumber( _G[f .. "RowHeight"]:GetText( ) )
+	local height = tonumber( _G[f .. "RowHeight"]:GetText( ) )
 	if height == 0 then
 		height = 24
 	end
@@ -2370,8 +2370,8 @@ function ArkInventoryRules.Frame_Rules_Table_Reset( f )
 	
 	local t = f .. "Table"
 	
-	local h = ArkInventory.ToNumber( _G[t .. "RowHeight"]:GetText( ) )
-	local r = ArkInventory.ToNumber( _G[t .. "NumRows"]:GetText( ) )
+	local h = tonumber( _G[t .. "RowHeight"]:GetText( ) )
+	local r = tonumber( _G[t .. "NumRows"]:GetText( ) )
 
 	_G[t .. "SelectedRow"]:SetText( "-1" )
 	for x = 1, r do
@@ -2391,8 +2391,8 @@ function ArkInventoryRules.Frame_Rules_Table_Refresh( frame )
 	
 	local ft = f .. "Table"
 
-	local height = ArkInventory.ToNumber( _G[ft .. "RowHeight"]:GetText( ) )
-	local rows = ArkInventory.ToNumber( _G[ft .. "NumRows"]:GetText( ) )
+	local height = tonumber( _G[ft .. "RowHeight"]:GetText( ) )
+	local rows = tonumber( _G[ft .. "NumRows"]:GetText( ) )
 
 	local line
 	local lineplusoffset
@@ -2578,7 +2578,7 @@ function ArkInventoryRules.EntryFormat( data )
 	end
 	
 	local zOrder = 9999
-	zOrder = abs( ArkInventory.ToNumber( data.order ) or zOrder )
+	zOrder = abs( tonumber( data.order ) or zOrder )
 	if zOrder > 9999 then
 		zOrder = 9999
 	end
@@ -2609,7 +2609,7 @@ end
 
 function ArkInventoryRules.EntryUpdate( rid, data )
 	
-	local rid = ArkInventory.ToNumber( rid )
+	local rid = tonumber( rid )
 	ArkInventoryRules.EntryFormat( data )
 	
 	-- save the rule data at the global level
@@ -2721,7 +2721,7 @@ function ArkInventoryRules.EntryRemove( rid )
 		error( "FAILED: key is nil" )
 	end
 	
-	local rid = ArkInventory.ToNumber( rid )
+	local rid = tonumber( rid )
 	ArkInventory.ConfigInternalCategoryRuleDelete( rid )
 	
 	ArkInventory.ItemCacheClear( )
@@ -2751,7 +2751,7 @@ function ArkInventoryRules.Frame_Rules_Button_Modify( frame, t )
 	local v
 	
 	if k ~= "-1" then
-		local d = ArkInventory.ConfigInternalCategoryRuleGet( ArkInventory.ToNumber( k ) )
+		local d = ArkInventory.ConfigInternalCategoryRuleGet( tonumber( k ) )
 		_G[fmd .. "Id"]:SetText( k )
 		_G[fmd .. "Order"]:SetText( d.order or "" )
 		_G[fmd .. "Description"]:SetText( d.name or "" )
@@ -2898,7 +2898,6 @@ function ArkInventoryRules.SetObject( tbl )
 	ArkInventory.Table.Merge( tbl, i )
 	
 	i.info = ArkInventory.GetObjectInfo( i.h )
-	
 	if not i.info.ready then
 		-- do not process/cache non ready items
 		return nil

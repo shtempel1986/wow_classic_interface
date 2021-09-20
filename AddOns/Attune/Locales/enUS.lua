@@ -6,7 +6,7 @@ end
 
 
 -- INTERFACE
-Lang["Credits"] = "A huge thank you to my guild |cffffd100<Divine Heresy>|r for their support and understanding while I test the addon, and heaps of kudos to |cffffd100Bushido @ Pyrewood Village|r for the help on TBC!\n\n Also, many, many thanks to the translators:\n  - German translation: |cffffd100Sumaya @ Razorfen DE|r\n  - Russian translation: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - Spanish translation: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Chinese translation: |cffffd100ly395842562|r and |cffffd100Icyblade|r\n  - Korean translation: |cffffd100Drix @ Azshara KR|r\n\n/Hug from Cixi/Gaya @ Remulos Horde"
+Lang["Credits"] = "A huge thank you to my guild |cffffd100<Divine Heresy>|r for their support and understanding while I test the addon, and heaps of kudos to |cffffd100Bushido @ Pyrewood Village|r for the help on TBC!\n\n Also, many, many thanks to the translators:\n  - German translation: |cffffd100Sumaya @ Razorfen DE|r\n  - Russian translation: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - Spanish translation: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Chinese translation (simp.): |cffffd100ly395842562|r and |cffffd100Icyblade|r\n  - Chinese translation (trad.): |cffffd100DayZ|r @ Ivus TW|r\n  - Korean translation: |cffffd100Drix @ Azshara KR|r\n\n/Hug from Cixi/Gaya @ Remulos Horde"
 Lang["Mini"] = "Mini"
 Lang["Maxi"] = "Maxi"
 Lang["Version"] = "Attune v##VERSION## by Cixi@Remulos"
@@ -130,6 +130,21 @@ Lang["Save"] = "Save"
 Lang["Invite"] = "Invite"
 Lang["Send raid invites to all listed players?"] = "Send raid invites to all listed players?"
 Lang["External link"] = "Link to an online database"
+--v243
+Lang["Ogrila"] = "Ogri'la"
+Lang["Ogri'la Quest Hub"] = "Ogri'la Quest Hub"
+Lang["Ogrila_Desc"] = "Ogri'la is a Neutral faction in The Burning Crusade with weapons, armor, and consumables as rewards."
+Lang["DelInactive_TEXT"] = "Delete Inactive"
+Lang["DelInactive_DESC"] = "Delete all the information about players marked as Inactive"
+Lang["DelInactive_CONF"] = "Really delete all Inactive?"
+Lang["DelInactive_DONE"] = "All Inactive deleted"
+Lang["RAIDS"] = "RAIDS"
+Lang["KEYS"] = "KEYS"
+Lang["MISC"] = "MISC"
+Lang["HEROICS"] = "HEROICS"
+--v244
+Lang["Ally of the Netherwing"] = "Ally of the Netherwing"
+Lang["Netherwing_Desc"] = "The Netherwing is a faction of dragons located in Outland."
 
 
 -- OPTIONS
@@ -729,6 +744,44 @@ Lang["Q1_10949"] = "Entry Into the Black Temple"			-- https://www.thegeekcrusade
 Lang["Q2_10949"] = "Travel to the entrance to the Black Temple in Shadowmoon Valley and speak to Xi'ri."
 Lang["Q1_10985"] = "A Distraction for Akama"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10985
 Lang["Q2_10985"] = "Ensure that Akama and Maiev enter the Black Temple in Shadowmoon Valley after Xi'ri's forces create a distraction."
+--v243
+Lang["Q1_10984"] = "Speak with the Ogre"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
+Lang["Q2_10984"] = "Speak with the Ogre, Grok, in the Lower City section of Shattrath City."
+Lang["Q1_10983"] = "Mog'dorg the Wizened"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10983
+Lang["Q2_10983"] = "Visit Mog'dorg the Wizened atop one of the towers just outside the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_10995"] = "Grulloc Has Two Skulls"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10995
+Lang["Q2_10995"] = "Retrieve Grulloc's Dragon Skull and deliver it to Mog'dorg the Wizened atop the tower at the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_10996"] = "Maggoc's Treasure Chest"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10996
+Lang["Q2_10996"] = "Retrieve Maggoc's Treasure Chest and deliver it to Mog'dorg the Wizened atop the tower at the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_10997"] = "Even Gronn Have Standards"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10997
+Lang["Q2_10997"] = "Retrieve Slaag's Standard and deliver it to Mog'dorg the Wizened atop the tower at the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_10998"] = "Grim(oire) Business"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10998
+Lang["Q2_10998"] = "You must retrieve Vim'gol's Vile Grimoire. Deliver it to Mog'dorg the Wizened atop the tower at the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_11000"] = "Into the Soulgrinder"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11000
+Lang["Q2_11000"] = "Retrieve Skulloc's Soul and deliver it to Mog'dorg the Wizened atop the tower at the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_11022"] = "Speak with Mog'dorg"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11022
+Lang["Q2_11022"] = "Speak with Mog'dorg the Wizened. He stands atop the tower on the east side of the Circle of Blood in the Blade's Edge Mountains."
+Lang["Q1_11009"] = "Ogre Heaven"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11009
+Lang["Q2_11009"] = "Mog'dorg the Wizened has asked you to speak with Chu'a'lor at Ogri'la in the Blade's Edge Mountains."
+--v244
+Lang["Q1_10804"] = "Kindness"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10804
+Lang["Q2_10804"] = "Mordenai at Netherwing Fields in Shadowmoon Valley wants you to feed 8 Mature Netherwing Drakes."
+Lang["Q1_10811"] = "Seek Out Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10811
+Lang["Q2_10811"] = "Seek out Neltharaku, patron of the Netherwing Dragonflight."
+Lang["Q1_10814"] = "Neltharaku's Tale"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10814
+Lang["Q2_10814"] = "Speak with Neltharaku and listen to his story."
+Lang["Q1_10836"] = "Infiltrating Dragonmaw Fortress"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10836
+Lang["Q2_10836"] = "Neltharaku, flying high above Netherwing Fields in Shadowmoon Valley, wants you to slay 15 Dragonmaw Orcs."
+Lang["Q1_10837"] = "To Netherwing Ledge!"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10837
+Lang["Q2_10837"] = "Neltharaku, flying high above Netherwing Fields in Shadowmoon Valley, wants you to collect 12 Nethervine Crystals from Netherwing Ledge."
+Lang["Q1_10854"] = "The Force of Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10854
+Lang["Q2_10854"] = "Neltharaku, flying high above Netherwing Fields in Shadowmoon Valley, wants you to free 5 Enslaved Netherwing Drakes."
+Lang["Q1_10858"] = "Karynaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10858
+Lang["Q2_10858"] = "Seek out Karynaku at Dragonmaw Fortress."
+Lang["Q1_10866"] = "Zuluhed the Whacked"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10866
+Lang["Q2_10866"] = "Kill Zuluhed the Whacked and recover Zuluhed's Key. Use Zuluhed's Key on Zuluhed's Chains to free Karynaku."
+Lang["Q1_10870"] = "Ally of the Netherwing"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
+Lang["Q2_10870"] = "Let Karynaku return you to Mordenai in the Netherwing Fields."
 	
 
 -- NPC
@@ -884,6 +937,12 @@ Lang["N1_17767"] = "Rage Winterchill"	-- https://www.thegeekcrusade-serveur.com/
 Lang["N2_17767"] = "Rage Winterchill is the first boss in the Mount Hyjal raid instance."
 Lang["N1_18528"] = "Xi'ri"	-- https://www.thegeekcrusade-serveur.com/db/?npc=18528
 Lang["N2_18528"] = "Xi'ri is located at the entrance of the Black Temple. Big blue shiny thingy. Can't miss it either, really."
+--v243
+Lang["N1_22497"] = "V'eru"	-- https://www.thegeekcrusade-serveur.com/db/?npc=22497
+Lang["N2_22497"] = "V'eru is in the same room as A'dal, but he's blue. He's on the top landing."
+--v244
+Lang["N1_22113"] = "Mordenai"
+Lang["N2_22113"] = "A Blood Elf (spoiler alert, actually a dragon) who walks the Netherwing Fields just east of the Sanctum of the Stars"
 
 
 Lang["O_1"] = "Click Drakkisath's Brand to complete the quest.\nIt's a glowing orb located behind General Drakkisath."

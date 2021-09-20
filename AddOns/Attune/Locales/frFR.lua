@@ -6,7 +6,7 @@ end
 
 
 -- INTERFACE
-Lang["Credits"] = "Un énorme MERCI à ma guilde |cffffd100<Divine Heresy>|r pour leur support et patience pendant que je teste l'addon, et merci à |cffffd100Bushido @ Pyrewood Village|r pour l'aide sur TBC!\n\nMerci aussi beaucoup aux traducteurs:\n  - Traduction allemande: |cffffd100Sumaya @ Razorfen DE|r\n  - Traduction russe: |cffffd100Guilde Greymarch @ Flamegor RU|r\n  - Traduction espagnole: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Traduction chinoise: |cffffd100ly395842562|r et |cffffd100Icyblade|r\n  - Traduction coréenne: |cffffd100Drix @ Azshara KR|r\n\n/Hug de la part Cixi/Gaya @ Remulos Horde"
+Lang["Credits"] = "Un énorme MERCI à ma guilde |cffffd100<Divine Heresy>|r pour leur support et patience pendant que je teste l'addon, et merci à |cffffd100Bushido @ Pyrewood Village|r pour l'aide sur TBC!\n\nMerci aussi beaucoup aux traducteurs:\n  - Traduction allemande: |cffffd100Sumaya @ Razorfen DE|r\n  - Traduction russe: |cffffd100Guilde Greymarch @ Flamegor RU|r\n  - Traduction espagnole: |cffffd100Coyu @ Pyrewood Village EU|r\n  - Traduction chinoise (simp.): |cffffd100ly395842562|r et |cffffd100Icyblade|r\n  - Traditional chinoise (trad.): |cffffd100DayZ|r @ Ivus TW|r\n  - Traduction coréenne: |cffffd100Drix @ Azshara KR|r\n\n/Hug de la part Cixi/Gaya @ Remulos Horde"
 Lang["Mini"] = "Mini"
 Lang["Maxi"] = "Maxi"
 Lang["Version"] = "Attune v##VERSION## par Cixi@Remulos"
@@ -130,6 +130,21 @@ Lang["Save"] = "Sauvegarder"
 Lang["Invite"] = "Inviter"
 Lang["Send raid invites to all listed players?"] = "Inviter tous les joueurs listés a joindre le raid?"
 Lang["External link"] = "Lien vers une base de données en ligne"
+--v243
+Lang["Ogrila"] = "Ogri'la"
+Lang["Ogri'la Quest Hub"] = "Centre de quête d'Ogri'la"
+Lang["Ogrila_Desc"] = "Les citoyens éclairés d'Ogri'la ont élu domicile dans la partie ouest des Tranchantes."
+Lang["DelInactive_TEXT"] = "Supprimer les inactifs"
+Lang["DelInactive_DESC"] = "Supprimer toutes les informations sur les joueurs marqués comme inactifs"
+Lang["DelInactive_CONF"] = "Vraiment supprimer tous les inactifs ?"
+Lang["DelInactive_DONE"] = "Tous les inactifs supprimés"
+Lang["RAIDS"] = "RAIDS"
+Lang["KEYS"] = "CLEFS"
+Lang["MISC"] = "DIVERS"
+Lang["HEROICS"] = "HEROIQUES"
+--v244
+Lang["Ally of the Netherwing"] = "Allié du vol du Néant"
+Lang["Netherwing_Desc"] = "L'Aile du Néant est une faction de dragons située en Outreterre."
 
 
 -- OPTIONS
@@ -729,6 +744,44 @@ Lang["Q1_10949"] = "L'entrée dans le Temple Noir"			-- https://www.thegeekcrusa
 Lang["Q2_10949"] = "Rendez-vous à l'entrée du Temple Noir dans la vallée d'Ombrelune et allez parler à Xi'ri."
 Lang["Q1_10985"] = "Une distraction pour Akama"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10985
 Lang["Q2_10985"] = "Assurez-vous qu'Akama et Maiev pénètrent bien dans le Temple Noir de la Vallée d'Ombrelune une fois que les forces de Xi'ri auront fait diversion."
+--v243
+Lang["Q1_10984"] = "Parler avec l'ogre"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
+Lang["Q2_10984"] = "Allez voir l'Ogre, Grok, dans le quartier de la Ville basse de Shattrath."
+Lang["Q1_10983"] = "Mog'dorg le Ratatiné"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10983
+Lang["Q2_10983"] = "Allez voir Mog'dorg le Ratatiné au sommet de l'une des tours qui se trouvent devant le Cercle de sang dans les Tranchantes."
+Lang["Q1_10995"] = "Grulloc a deux crânes"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10995
+Lang["Q2_10995"] = "Emparez-vous du Crâne de dragon de Grulloc et apportez-le à Mog'dorg le Ratatiné au sommet de la tour du Cercle de sang dans les Tranchantes."
+Lang["Q1_10996"] = "Le coffre au trésor de Maggoc"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10996
+Lang["Q2_10996"] = "Emparez-vous du Coffre au trésor de Maggoc et apportez-le à Mog'dorg le Ratatiné au sommet de la tour du Cercle de sang dans les Tranchantes."
+Lang["Q1_10997"] = "L'étendard et la manière"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10997
+Lang["Q2_10997"] = "Emparez-vous de l'Étendard de Skori et apportez-le à Mog'dorg le Ratatiné au sommet de la tour du Cercle de sang dans les Tranchantes."
+Lang["Q1_10998"] = "Le tome de sa voix"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10998
+Lang["Q2_10998"] = "Emparez-vous du Grimoire infâme de Vim'gol et apportez-le à Mog'dorg le Ratatiné, au sommet de la tour du Cercle de sang, dans les Tranchantes."
+Lang["Q1_11000"] = "Face au Broyeur-d'âme"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11000
+Lang["Q2_11000"] = "Récupérez l'Âme de Crânoc et remettez-la à Mog'dorg le Ratatiné au sommet de la tour au Cercle de sang dans les Tranchantes."
+Lang["Q1_11022"] = "Parler à Mog'dorg"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11022
+Lang["Q2_11022"] = "Allez parler à Mog'dorg le Ratatiné. Il se trouve au sommet de la tour située du côté est du Cercle de sang dans les Tranchantes."
+Lang["Q1_11009"] = "Le paradis des ogres"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11009
+Lang["Q2_11009"] = "Mog'dorg le Ratatiné vous demande d'aller parler à Chu'a'lor à Ogri'la dans les Tranchantes."
+--v244
+Lang["Q1_10804"] = "Un peu de gentillesse"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10804
+Lang["Q2_10804"] = "Mordenai, aux champs de l'Aile-du-Néant, dans la vallée d'Ombrelune, veut que vous nourrissiez 8 Drakes Aile-du-Néant adultes."
+Lang["Q1_10811"] = "Trouvez Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10811
+Lang["Q2_10811"] = "Partez à la recherche de Neltharaku, le protecteur du Vol de l'Aile-du-Néant."
+Lang["Q1_10814"] = "L'histoire de Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10814
+Lang["Q2_10814"] = "Parlez à Neltharaku et écoutez son histoire."
+Lang["Q1_10836"] = "Infiltrer la forteresse Gueule-de-dragon"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10836
+Lang["Q2_10836"] = "Neltharaku, qui vole au-dessus des Champs de l'Aile-du-Néant dans la Vallée d'Ombrelune, veut que vous tuiez 15 Orcs Gueule-de-dragon."
+Lang["Q1_10837"] = "Vers l'escarpement de l'Aile-du-Néant !"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10837
+Lang["Q2_10837"] = "Neltharaku, qui vole au-dessus des champs de l'Aile-du-Néant dans la vallée d'Ombrelune, veut que vous ramassiez 12 cristaux vignéants à l'escarpement de l'Aile-du-Néant."
+Lang["Q1_10854"] = "La force de Neltharaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10854
+Lang["Q2_10854"] = "Neltharaku, qui vole au-dessus des champs de l'Aile-du-Néant dans la vallée d'Ombrelune, veut que vous libériez 5 Drakes de l'Aile-du-Néant asservis."
+Lang["Q1_10858"] = "Karynaku"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10858
+Lang["Q2_10858"] = "Trouvez Karynaku à la Forteresse Gueule-de-dragon."
+Lang["Q1_10866"] = "Zuluhed le Fourbu"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10866
+Lang["Q2_10866"] = "Tuez Zuluhed le Fourbu et récupérez la Clé de Zuluhed. Utilisez-la sur les Chaînes de Zuluhed pour libérer Karynaku."
+Lang["Q1_10870"] = "Allié du vol du Néant"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
+Lang["Q2_10870"] = "Permettez à Karynaku de vous ramener auprès de Mordenai dans les Champs de l'Aile-du-Néant."
 	
 
 -- NPC
@@ -884,6 +937,12 @@ Lang["N1_17767"] = "Rage Froidhiver"	-- https://www.thegeekcrusade-serveur.com/d
 Lang["N2_17767"] = "Rage Froidhiver est le premier boss du raid appele Mont Hyjal."
 Lang["N1_18528"] = "Xi'ri"	-- https://www.thegeekcrusade-serveur.com/db/?npc=18528
 Lang["N2_18528"] = "Xi'ri est a l'entree du Temple Noir. C'est un grand truc bleu qui brille. On ne peut pas le rater non plus."
+--v243
+Lang["N1_22497"] = "V'eru"	-- https://www.thegeekcrusade-serveur.com/db/?npc=22497
+Lang["N2_22497"] = "V'eru est dans la même pièce qu'A'dal, mais il est bleu. Il est sur le palier supérieur."
+--v244
+Lang["N1_22113"] = "Mordenai"
+Lang["N2_22113"] = "Un elfe de sang (alerte spoiler, en fait un dragon) qui parcourt les champs de l'Aile du Néant juste à l'est du Sanctum des étoiles"
 
 
 Lang["O_1"] = "Clickez la Marque de Drakkisath pour completer la quete.\nC'est le globe brillant qui se trouve juste derriere Drakkisath."

@@ -29,30 +29,38 @@ function ArkInventory.JunkCheck( i, codex )
 		
 		local info = i.info or ArkInventory.GetObjectInfo( i.h )
 		
-		if IsAddOnLoaded( "Scrap" ) and Scrap then
+		if info.ready then
 			
-			if Scrap:IsJunk( info.id ) then
-				isJunk = true
-			end
-			
-		elseif IsAddOnLoaded( "SellJunk" ) and SellJunk then
-			
-			if ( info.q == 0 and not SellJunk:isException( i.h ) ) or ( info.q ~= 0 and SellJunk:isException( i.h ) ) then
-				isJunk = true
-			end
-			
-		elseif IsAddOnLoaded( "ReagentRestocker" ) and ReagentRestocker then
-			
-			if ReagentRestocker:isToBeSold( info.id ) then
-				isJunk = true
-			end
-			
-		elseif codex then
-			
-			if not isJunk then
-				local cat_id = ArkInventory.ItemCategoryGet( i )
-				local cat_type, cat_num = ArkInventory.CategoryIdSplit( cat_id )
-				isJunk = i.q <= ArkInventory.db.option.junk.raritycutoff and codex.catset.category.junk[cat_type][cat_num] == true
+			if IsAddOnLoaded( "Scrap" ) and Scrap then
+				
+				if Scrap:IsJunk( info.id ) then
+					isJunk = true
+				end
+				
+			elseif IsAddOnLoaded( "SellJunk" ) and SellJunk then
+				
+				if ( info.q == 0 and not SellJunk:isException( i.h ) ) or ( info.q ~= 0 and SellJunk:isException( i.h ) ) then
+					isJunk = true
+				end
+				
+			elseif IsAddOnLoaded( "ReagentRestocker" ) and ReagentRestocker then
+				
+				if ReagentRestocker:isToBeSold( info.id ) then
+					isJunk = true
+				end
+				
+			elseif codex then
+				
+				if not isJunk then
+					local cat_id = ArkInventory.ItemCategoryGet( i )
+					local cat_type, cat_num = ArkInventory.CategoryIdSplit( cat_id )
+					
+					isJunk = i.q <= ArkInventory.db.option.junk.raritycutoff and codex.catset.category.junk[cat_type][cat_num] == true
+--					if isJunk then
+--						ArkInventory.Output( i.h, " = ", cat_type, "!", cat_num )
+--					end
+				end
+				
 			end
 			
 		end
@@ -125,7 +133,7 @@ function ArkInventory.JunkIterate( )
 	
 end
 
-local function JunkSell_Threaded( thread_id )
+local function JunkSell_Threaded( thread_id, manual )
 	
 --	ArkInventory.Output( "start amount ", GetMoney( ) )
 	ArkInventory.Global.Junk.money = GetMoney( )
@@ -139,11 +147,6 @@ local function JunkSell_Threaded( thread_id )
 			return
 		end
 		
-		if not ArkInventory.Global.Mode.Merchant then
-			--ArkInventory.Output( "ABORTED (MERCHANT WAS CLOSED)" )
-			return
-		end
-		
 		if vendorPrice > 0 then
 			
 			ArkInventory.Global.Junk.sold = ArkInventory.Global.Junk.sold + 1
@@ -151,30 +154,30 @@ local function JunkSell_Threaded( thread_id )
 			if limit > 0 and ArkInventory.Global.Junk.sold > limit then
 				-- limited to buyback page
 				ArkInventory.Global.Junk.sold = limit
-				ArkInventory.Output( string.format( ArkInventory.Localise["CONFIG_JUNK_SELL_NOTIFY_LIMIT"], limit ) )
+				ArkInventory.Output( string.format( ArkInventory.Localise["CONFIG_JUNK_NOTIFY_LIMIT"], limit ) )
 				return
 			end
 			
-			if ArkInventory.db.option.junk.list then
+			if ArkInventory.db.option.junk.list and ArkInventory.Global.Mode.Merchant then
 				ArkInventory.Output( string.format( ArkInventory.Localise["CONFIG_JUNK_LIST_SELL_DESC"], itemCount, itemLink, ArkInventory.MoneyText( itemCount * vendorPrice, true ) ) )
 			end
 			
 			if not ArkInventory.db.option.junk.test then
 				
-				UseContainerItem( blizzard_id, slot_id )
-				
 				-- this will sometimes fail, without any notifcation, so you cant just add up the values as you go
 				-- GetMoney doesnt update in real time so also cannot be used here
 				-- next best thing, record how much money we had beforehand and how much we have at the next PLAYER_MONEY, then output it there
 				
-				ArkInventory.ThreadYield( thread_id )
+				if ArkInventory.Global.Mode.Merchant then
+					UseContainerItem( blizzard_id, slot_id )
+					ArkInventory.ThreadYield( thread_id )
+				end
 				
 			end
 			
 		elseif vendorPrice == 0 then
 			
-			if false and ArkInventory.db.option.junk.delete then
---[[
+			if manual and ArkInventory.db.option.junk.delete then
 				
 				ArkInventory.Global.Junk.destroyed = ArkInventory.Global.Junk.destroyed + 1
 				
@@ -186,14 +189,14 @@ local function JunkSell_Threaded( thread_id )
 					
 					-- might fail, might prompt user if quality is green or higher
 					PickupContainerItem( blizzard_id, slot_id )
-					-- made protected after 9.0.2 so can no longer delete items
+					-- made protected after 9.0.2 so can no longer delete items automatically, using keybinding instead
+					-- must also run non threaded or it will fail due to being no longer being the same execution path that was launched from the keybinding
 					DeleteCursorItem( )
 					
 					ArkInventory.ThreadYield( thread_id )
 					
 				end
 				
-]]--
 			end
 			
 		end
@@ -212,16 +215,20 @@ local function JunkSell_Threaded( thread_id )
 	
 end
 
-function ArkInventory.JunkSell( )
+function ArkInventory.JunkSell( manual )
 	
 	--ArkInventory.Output2( "JunkSell" )
 	
 	if not ArkInventory.Global.Junk.process then return end
 	
-	if not ArkInventory.db.option.junk.sell then return end
+	if not manual and not ArkInventory.db.option.junk.sell then return end
+	
+	if manual then
+		ArkInventory.Output( string.format( "%s%s started manually", LIGHTYELLOW_FONT_COLOR_CODE, ArkInventory.Localise["BINDING_JUNK_SELL_MANUAL"] ) )
+	end
 	
 	if not ArkInventory.Global.Thread.Use then
-		ArkInventory.OutputWarning( ArkInventory.Localise["CONFIG_JUNK_SELL"], " aborted, threads are currently disabled" )
+		ArkInventory.OutputWarning( ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"], " aborted, threads are currently disabled" )
 	end
 	
 	ArkInventory.Global.Junk.sold = 0
@@ -231,22 +238,25 @@ function ArkInventory.JunkSell( )
 	local thread_id = ArkInventory.Global.Thread.Format.JunkSell
 	
 	if ArkInventory.Global.Junk.running then
-		ArkInventory.OutputWarning( ArkInventory.Localise["CONFIG_JUNK_SELL"], " is already running, please wait" )
+		ArkInventory.OutputWarning( ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"], " is already running, please wait" )
 		--return
 	end
 	
-	if not ArkInventory.Global.Thread.Use then
+	if manual or not ArkInventory.Global.Thread.Use then
+		local tmp = ArkInventory.Global.Thread.Use
+		ArkInventory.Global.Thread.Use = false
 		local tz = debugprofilestop( )
 		ArkInventory.OutputThread( thread_id, " start" )
-		JunkSell_Threaded( thread_id )
+		JunkSell_Threaded( thread_id, manual )
 		tz = debugprofilestop( ) - tz
 		ArkInventory.OutputThread( string.format( "%s took %0.0fms", thread_id, tz ) )
+		ArkInventory.Global.Thread.Use = tmp
 		return
 	end
 	
 	local tf = function ( )
 		ArkInventory.Global.Junk.running = true
-		JunkSell_Threaded( thread_id )
+		JunkSell_Threaded( thread_id, manual )
 		ArkInventory.Global.Junk.running = false
 	end
 	

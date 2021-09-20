@@ -681,6 +681,9 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	-- everything else needs the info table
 	local info = ArkInventory.GetObjectInfo( i.h, i )
 	
+	if not info.ready then
+		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
+	end
 	
 	-- mythic keystone
 	if info.class == "keystone" then
@@ -696,16 +699,12 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		end
 	end
 	
-	if not info.ready then
-		return
-	end
-
 	--ArkInventory.Output( "bag[", i.bag_id, "], slot[", i.slot_id, "] = ", info.itemtype, " [", info.itemtypeid, "] ", info.itemsubtype, "[", info.itemsubtypeid, "]" )
 	-- ArkInventory.Output( i.h, " = ", info.itemtype, " [", info.itemtypeid, "] ", info.itemsubtype, "[", info.itemsubtypeid, "]" )
 	
 	-- items only from here on
 	if info.class ~= "item" then
-		return
+		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
 	end
 	
 	-- reputation items that can be other types
@@ -719,7 +718,6 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	ArkInventory.TooltipSetItem( ArkInventory.Global.Tooltip.Scan, i.loc_id, i.bag_id, i.slot_id, i.h, i )
 	
 	
-	
 	-- currencies and power
 	if ArkInventory.ClientCheck( ArkInventory.Const.BLIZZARD.CLIENT.CODE.RETAIL ) then
 		
@@ -727,48 +725,44 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		if info.expansion == ArkInventory.Const.BLIZZARD.GLOBAL.EXPANSION.LEGION then
 			
 			-- artifact power (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, true ) then
+			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 			end
 			
 			-- ancient mana (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, true ) then
+			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "SYSTEM_CURRENCY" )
 			end
 			
 		end
 		
-		-- covenant (other)
-		if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Consumable.Power.Shadowlands" ) then
-			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS" )
-		end
+		-- bfa used azerite which acted more like a currency you earnt than an item you collected
 		
 		-- shadowlands
 		if info.expansion == ArkInventory.Const.BLIZZARD.GLOBAL.EXPANSION.SHADOWLANDS then
 			
-			-- conduits (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_POTENCY"], false, true, false, 0, true ) then
-				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
-			end
-			
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_FINESSE"], false, true, false, 0, true ) then
-				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
-			end
-			
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_ENDURANCE"], false, true, false, 0, true ) then
-				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
-			end
-			
-			-- anima (tooltip)
-			if POWER_TYPE_ANIMA and ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ANIMA"], false, true, false, 0, true ) then
+			if ArkInventory.CrossClient.IsAnimaItemByID( info.id ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_ANIMA" )
 			end
 			
-		end
-		
-		-- other currency items
-		if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.XREF.Currency" ) then
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_CURRENCY" )
+			-- conduits (tooltip)
+			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_POTENCY"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
+			end
+			
+			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_FINESSE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
+			end
+			
+			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_ENDURANCE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
+			end
+			
+			-- covenant (other)
+			if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Consumable.Power.Shadowlands" ) then
+				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS" )
+			end
+			
 		end
 		
 	end
@@ -777,13 +771,19 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Consumable.Power" ) then
 		return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 	end
-		
+	
+	-- currency items
+	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.XREF.Currency" ) then
+		-- currency items
+		return ArkInventory.CategoryGetSystemID( "SYSTEM_CURRENCY" )
+	end
+	
 	-- quest items (some are grey)
 	if info.itemtypeid == ArkInventory.Const.ItemClass.QUEST or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Quest" ) then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_QUEST" )
 	end
 	
-	-- cosmetic items
+	-- cosmetic items (tooltip check is further down)
 	if ( info.itemtypeid == ArkInventory.Const.ItemClass.ARMOR and info.itemsubtypeid == ArkInventory.Const.ItemClass.ARMOR_COSMETIC ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Equipment.Cosmetic" ) then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_EQUIPMENT_COSMETIC" )
 	end
@@ -980,7 +980,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	if ArkInventory.db.option.junk.soulbound.known and not ArkInventory.Global.Location[i.loc_id].isOffline then
 		if i.loc_id == ArkInventory.Const.Location.Bag or i.loc_id == ArkInventory.Const.Location.Bank then
 			if ArkInventory.IsBound( i.sb ) then
-				if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["ALREADY_KNOWN"], false, true, true, true ) then
+				if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["ALREADY_KNOWN"], false, true, false, ArkInventory.Const.Tooltip.Search.Base ) then
 					--ArkInventory.Output( i.name, " is junk?" )
 					return ArkInventory.CategoryGetSystemID( "SYSTEM_JUNK" )
 				end
@@ -990,7 +990,10 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	
 	-- equipable items (tooltip)
 	if info.equiploc ~= "" or info.itemtypeid == ArkInventory.Const.ItemClass.WEAPON or info.itemtypeid == ArkInventory.Const.ItemClass.ARMOR or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Armor Token" ) then
-		if i.sb == ArkInventory.Const.Bind.Account then
+		
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ITEM_COSMETIC"], false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_EQUIPMENT_COSMETIC" )
+		elseif i.sb == ArkInventory.Const.Bind.Account then
 			return ArkInventory.CategoryGetSystemID( "SYSTEM_EQUIPMENT_ACCOUNTBOUND" )
 		elseif i.sb == ArkInventory.Const.Bind.Pickup then
 			if ArkInventory.db.option.junk.soulbound.equip and not ArkInventory.Global.Location[i.loc_id].isOffline then
@@ -1006,16 +1009,15 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	end
 	
 	-- toy (tooltip)
-	if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["ITEM_TOY_ONUSE"], false, true, true, true ) then
+	if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_ITEM_TOY_ONUSE"], false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_TOY" )
 	end
 	
 	
 	-- categorise based off characters primary professions
-	
-	if codex.player.data.tradeskill.priority > 0 then
+	if codex.player.data.tradeskill and codex.player.data.tradeskill.priority > 0 then
 		
-		local _, _, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, true, 0, true )
+		local _, _, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short )
 		
 		-- priority profession
 		for x = 1, ArkInventory.Const.Tradeskill.numPrimary do
@@ -1168,7 +1170,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		end
 		
 		-- class requirement (via tooltip)
-		local _, _, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_CLASS"], false, true, true, 0, true )
+		local _, _, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_CLASS"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
 		if req and string.find( req, codex.player.data.info.class_local ) then
 			return ArkInventory.CategoryGetSystemID( string.format( "CLASS_%s", codex.player.data.info.class ) )
 		end
@@ -1180,30 +1182,30 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	if info.itemtypeid == ArkInventory.Const.ItemClass.CONSUMABLE then
 		
 		-- food
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_FOOD"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_FOOD"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_FOOD" )
 		end
 		
 		-- drink
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_DRINK"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_DRINK"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_DRINK" )
 		end
 		
 		-- potions
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_POTION_HEAL"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_POTION_HEAL"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POTION_HEAL" )
 		end
 		
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_POTION_MANA"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_POTION_MANA"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POTION_MANA" )
 		end
 		
 		-- elixir
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_ELIXIR_BATTLE"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_ELIXIR_BATTLE"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_ELIXIR_BATTLE" )
 		end
 		
-		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_ELIXIR_GUARDIAN"] ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_ITEM_TOOLTIP_ELIXIR_GUARDIAN"], false, true, true, ArkInventory.Const.Tooltip.Search.Short ) then
 			return ArkInventory.CategoryGetSystemID( "CONSUMABLE_ELIXIR_GUARDIAN" )
 		end
 		
@@ -1246,7 +1248,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		
 		if info.itemsubtypeid == ArkInventory.Const.ItemClass.MISC_OTHER then
 			
-			if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["BATTLEPET"] ) then
+			if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["BATTLEPET"], false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
 				if ArkInventory.IsBound( i.sb ) then
 					return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_COMPANION_BOUND" )
 				else
@@ -1259,7 +1261,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	end
 	
 	-- quest items (via tooltip)
-	if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ITEM_BIND_QUEST, false, true, true ) then
+	if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, ITEM_BIND_QUEST, false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_QUEST" )
 	end
 	
@@ -1292,7 +1294,6 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	if info.itemtypeid == ArkInventory.Const.ItemClass.MISC then
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_MISC" )
 	end
-	
 	
 	
 	return ArkInventory.CategoryGetSystemID( "SYSTEM_DEFAULT" )
@@ -1413,6 +1414,8 @@ function ArkInventory.ItemCategoryGetDefaultEmpty( loc_id, bag_id )
 		end
 	end
 	
+	return ArkInventory.CategoryGetSystemID( "EMPTY_UNKNOWN" ) 
+	
 end
 
 function ArkInventory.ItemCategoryGetDefault( i )
@@ -1423,38 +1426,24 @@ function ArkInventory.ItemCategoryGetDefault( i )
 		return ArkInventory.db.cache.default[cid]
 	end
 	
-	if ArkInventory.TranslationsLoaded then
-		
-		local cat
+	
+--	if ArkInventory.TranslationsLoaded then
 		
 		if i.h then
-			
 			local cat = ArkInventory.ItemCategoryGetDefaultActual( i )
-			if cat then
-				ArkInventory.db.cache.default[cid] = cat
-				return ArkInventory.db.cache.default[cid]
-			else
-				return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
-			end
-			
+			ArkInventory.db.cache.default[cid] = cat
+			return ArkInventory.db.cache.default[cid]
 		else
-			
 			local cat = ArkInventory.ItemCategoryGetDefaultEmpty( i.loc_id, i.bag_id )
-			
-			if cat then
-				ArkInventory.db.cache.default[cid] = cat
-				return ArkInventory.db.cache.default[cid]
-			else
-				return ArkInventory.CategoryGetSystemID( "EMPTY_UNKNOWN" ) 
-			end
-			
+			ArkInventory.db.cache.default[cid] = cat
+			return ArkInventory.db.cache.default[cid]
 		end
 		
-	else
+--	else
 		
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
+--		return ArkInventory.CategoryGetSystemID( "SYSTEM_UNKNOWN" )
 		
-	end
+--	end
 	
 end
 

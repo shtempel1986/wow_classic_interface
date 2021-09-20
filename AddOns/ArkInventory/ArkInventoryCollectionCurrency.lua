@@ -41,7 +41,7 @@ function ArkInventory.Collection.Currency.ImportCrossRefTable( )
 	
 	for item, value in ArkInventory.Lib.PeriodicTable:IterateSet( "ArkInventory.System.XREF.Currency" ) do
 		
-		cid = ArkInventory.ToNumber( value ) or 0
+		cid = tonumber( value ) or 0
 		
 		if cid > 0 then
 			

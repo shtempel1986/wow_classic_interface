@@ -2,6 +2,7 @@
  * fix (maybe) - you can assign a bag to the top row and the layout wont care about adding an extra row above it as bag assignment is hardcoded in the layout code and not an actual category
  * change - find some way to make the mount menu more manageable
  * add - ability to delete everything from an imported profile in one go
+ * add - rule function lootable() to cover any items that can be opened/looted
  
  * adding - (not fully implemented) right click on a bar label for the ability to transfer all items in that bar to the bank/backpack.
           - note 1: will only work on bars that have a name.
@@ -13,30 +14,66 @@
  
  
  
-*3.09.55 (13-AUG-2021)*
+*3.09.57 (16-SEP-2021)*
+ * fixed - conflict with skillet.  scan on load is now ignored if skillet is loaded and enabled.  you have to open the blizzard tradeskill window to trigger a scan, it will not scan the skillet window.
+ * fixed - issue with extracting the stock value from tooltip for some languages
+ * fixed - (classic) issue with ITEM_COSMETIC not existing
+ * fixed - (bcc) guild bank should now be working properly.  thanks to the Variance guild on Myzrael for the invite so i could test.
+ * fixed - issue with a variable that should have been local
+ * changed - guild bank icon as its current one did not work in bcc
+ * changed - window redraws when item data is eventually retrieved have been lowered to refresh to stop full rebuilds when you dont have sorting set to instant
+ 
+*3.09.56 (27-AUG-2021)*
  * fixed - issue with languages that use a period (.), or nothing, for their thousands separator
  * fixed - issue with auto close not working when at the auction house (typo in code)
  * fixed - issue with void storage hyperlinks
- * added - data correction code for GetItemInfo
- * changed - rule function outfit( ) requires an exact match on the set name
  * fixed - issue with ldb object for tracked items when the item data wasnt ready (the squished up tooltip)
  * fixed - will ignore reagentrestocker issues until it has been updated
- * changed - decreased memory usage by caching and consolidating a bunch of data tables
- * added - categorisation for some fishing items
- * added - config option settings > design > items > item level > stock level (disabled by default) to display values for items that have "stock" values, eg ancient mana, anima, korthian relics.  bags will show the slot count.
  * fixed - the unknown category assignment was getting cached so it would never recheck once the item data become available
  * fixed - issue with toggling the bonusid count/search config options
- * added - category consumable > power systems (old)
- * removed - category system > artifact relic, and consumable > artifact power.  those items will now be assigned the power systems (old) category
- * changed - the config option settings > design > items > item level has been broken down into equip/bags/stock options
- * added - bonus ids that change the item name (eg shadowlands legendaries) so that they show up in searches under their actual name and not the base item name
  * fixed - a restack started while dead (not ghost) would cause the client to lock up
  * fixed - issue converting string to number if there are thousand seperator characters in them
  * fixed - the window layout should build correctly when viewing other character data, and in general when item data isnt available yet.  it should also try up to five times to rebuild the window while item data is not available.
- * updated - config option layout for profile and item override to (hopefully) makes some things clearer
+ * fixed - (classic ptr) issue with reagent, explosive, and devices categories not having default values after being removed in the ptr
+ * fixed - issue with reputation tooltips when repuation level text is nil due to the data not being ready yet
+ * fixed - issue with mailbox update timer config option
+ * fixed - issue with location() rule function for the mailbox
+ * fixed - issue with bag rescan queue
+ * fixed - issue with object caching for money (in mail)
+ * fixed - restack code issue where the API can return a bag type of nil so it looks like a (non zero) profession bag
+ * fixed - primary tradeskill assignment error with the vault after erasing its data
+ * fixed - the window layout should build correctly when viewing other character data, and in general when item data isnt ready yet.  it will try up to five times (by default) to rebuild the window while item data is not ready.
+ * fixed - issues with some of the legion rep tokens
+ * fixed - issue with "unknown" reputation objects in the search window.  these were from other faction reputations and should now work properly.
+ * fixed - the custom battlepet tooltip will now contain the "collected (x/y)" line even with item counts disabled
+ * added - data correction code for GetItemInfo
+ * added - categorisation for some fishing items
+ * added - config option settings > design > items > item level > stock level (disabled by default) to display values for items that have "stock" values, eg ancient mana, anima, korthian relics.  bags will show the slot count.
+ * added - category consumable > power systems (old)
+ * removed - category system > artifact relic, and consumable > artifact power.  those items will now be assigned the power systems (old) category
+ * added - bonus ids that change the item name (eg shadowlands legendaries) so that they show up in searches under their actual name and not the base item name
+ * added - object data retrieval is now queued and threaded, it will not process while in combat so if you login while in combat you may end up with one big block of items until youre out of combat
+ * added - a warning message will be generated if data cannot be retrieved after 5 attempts.  the warning will only be output once per item per session.  you can enable debug mode to see any further retry failures.
+ * note - if you copied your savedvariables file, or imported a profile, from a higher expansion, please ensure you remove any higher expansion items from the LDB item tracking list.  they will cause warnings
+ * added - config option advanced > threads > retrieving object data
+ * removed - update timers have been temporarily removed
+ * added - keybinding for manual junk sell.  if you are not at a merchant it will only destroy any non sellable items.  when at a merchant it will both sell and destroy.
+ * note - when manually selling/destroying the threading has to be temporarily disabled which may cause some items to not sell (if you are at a merchant).
+ * added - config option advanced > other > ui > retry - specify how many times it should rebuild the window while item data is not ready, before giving up
+ * changed - rule function outfit( ) requires an exact match on the set name
+ * changed - decreased memory usage by caching and consolidating a bunch of data tables
+ * changed - the config option settings > design > items > item level has been broken down into equip/bags/stock options
  * changed - bag scans will now yield after each slot has been scanned, not each bag.
  * changed - ldb object updates for item, currency, reputation, pet, and mount, will now wait until you are out of combat
- * fixed - (classic ptr) issue with reagent, explosive, and devices categories not having default values after being removed in the ptr
+ * changed - the New Item category is now using the C_NewItem API so moving an existing item to another slot will no longer see it as new
+ * changed - if item data isnt ready when its scanned another scan is queued
+ * changed - config option for junk > auto sell now only applies to auto selling when opening a merchant, and no longer disables the other options.  destroying non sellable items can only be done via the keybinding.
+ * changed - using the API to work out which items are anima items
+ * changed - scan code cleaned up
+ * updated - config option layout for profile and item override to (hopefully) makes some things clearer
+ 
+*3.09.55 (13-AUG-2021)*
+ * no longer available
 
 *3.09.54 (13-AUG-2021)*
  * no longer available

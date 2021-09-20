@@ -5,19 +5,15 @@ local _, ns = ...
 local ElvUF = ns.oUF
 assert(ElvUF, 'ElvUI was unable to locate oUF.')
 
-local _G = _G
 local max = max
-local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown
 local RegisterAttributeDriver = RegisterAttributeDriver
 
 function UF:Construct_TankFrames()
-	self:SetScript('OnEnter', _G.UnitFrame_OnEnter)
-	self:SetScript('OnLeave', _G.UnitFrame_OnLeave)
+	self:SetScript('OnEnter', UF.UnitFrame_OnEnter)
+	self:SetScript('OnLeave', UF.UnitFrame_OnLeave)
 
-	self.RaisedElementParent = CreateFrame('Frame', nil, self)
-	self.RaisedElementParent.TextureParent = CreateFrame('Frame', nil, self.RaisedElementParent)
-	self.RaisedElementParent:SetFrameLevel(self:GetFrameLevel() + 100)
+	self.RaisedElementParent = UF:CreateRaisedElement(self)
 
 	self.Health = UF:Construct_HealthBar(self, true)
 	self.Name = UF:Construct_NameText(self)
@@ -35,6 +31,7 @@ function UF:Construct_TankFrames()
 		self.AuraWatch = UF:Construct_AuraWatch(self)
 		self.RaidDebuffs = UF:Construct_RaidDebuffs(self)
 		self.AuraHighlight = UF:Construct_AuraHighlight(self)
+		self.HealthPrediction = UF:Construct_HealComm(self)
 
 		self.unitframeType = 'tank'
 	else
@@ -141,6 +138,7 @@ function UF:Update_TankFrames(frame, db)
 		UF:Configure_RaidDebuffs(frame)
 		UF:Configure_AuraHighlight(frame)
 		UF:Configure_AuraWatch(frame)
+		UF:Configure_HealComm(frame)
 	end
 
 	frame:UpdateAllElements('ElvUI_UpdateAllElements')

@@ -107,6 +107,12 @@ ArkInventory.Const = { -- constants
 					JUNK = LE_BAG_FILTER_FLAG_JUNK or 5,
 				},
 			},
+			GUILDBANK = {
+				WIDTH = NUM_GUILDBANK_COLUMNS or 14,
+				HEIGHT = NUM_SLOTS_PER_GUILDBANK_GROUP or 7,
+				SLOTS_PER_TAB = MAX_GUILDBANK_SLOTS_PER_TAB or 98,
+				LOG_TIME_PREPEND = GUILD_BANK_LOG_TIME_PREPEND or "|cff009999  ",
+			},
 			VOIDSTORAGE = {
 				SLOTMAX = VOID_STORAGE_MAX or 80,
 				PAGES = VOID_STORAGE_PAGES or 2,
@@ -781,40 +787,6 @@ ArkInventory.Const = { -- constants
 		SharedMediaType = "arkinventory-icons-transmog",
 	},
 	
-	ItemStats = { 
-		
---[[
-		ITEM_MOD_AGILITY_SHORT,
-		ITEM_MOD_ATTACK_POWER_SHORT,
-		ITEM_MOD_BLOCK_RATING_SHORT,
-		ITEM_MOD_BLOCK_VALUE_SHORT,
-		ITEM_MOD_CRIT_RATING_SHORT,
-		ITEM_MOD_DEFENSE_SKILL_RATING_SHORT,
-		ITEM_MOD_DODGE_RATING_SHORT,
-		ITEM_MOD_EXPERTISE_RATING_SHORT,
-		ITEM_MOD_EXTRA_ARMOR_SHORT,
-		ITEM_MOD_HASTE_RATING_SHORT,
-		ITEM_MOD_HIT_RATING_SHORT,
-		ITEM_MOD_HIT_TAKEN_RATING_SHORT,
-		ITEM_MOD_INTELLECT_SHORT,
-		ITEM_MOD_MASTERY_RATING_SHORT,
-		ITEM_MOD_PARRY_RATING_SHORT,
-		ITEM_MOD_PVP_POWER_SHORT,
-		ITEM_MOD_SPELL_POWER_SHORT,
-		ITEM_MOD_SPIRIT_SHORT,
-		ITEM_MOD_STAMINA_SHORT,
-		ITEM_MOD_STRENGTH_SHORT,
-		ITEM_MOD_VERSATILITY,
-		
-		ITEM_MOD_CR_AVOIDANCE_SHORT,
-		ITEM_MOD_CR_LIFESTEAL_SHORT,
-		ITEM_MOD_CR_MULTISTRIKE_SHORT,
-		ITEM_MOD_CR_SPEED_SHORT,
-		ITEM_MOD_CR_STURDINESS_SHORT,
-]]--
-		
-	},
-	
 	Class = {
 		Account = "ACCOUNT",
 		Guild = "GUILD",
@@ -834,6 +806,12 @@ ArkInventory.Const = { -- constants
 		-- used to convert tooltip:SetText into tooltip:SetHyperlink
 		customHyperlinkFormat = "ArkInventory!!!%s",
 		customHyperlinkMatch = "^ArkInventory!!!(.+)$",
+		
+		Search = {
+			Full = 0, -- checks everything
+			Base = 1, -- meant to skip around items in patterns/recipes
+			Short = 2, -- stops at the first blank line
+		},
 	},
 	
 	CategoryTypes = { "SYSTEM", "CONSUMABLE", "TRADEGOODS", "SKILL", "CLASS", "EMPTY", "CUSTOM", "RULE", },
@@ -1214,16 +1192,6 @@ function ArkInventory.Table.removeDefaults( tbl, def )
 	
 end
 
-function ArkInventory.ToNumber( v )
-	if type( v ) == "number" then
-		return v
-	elseif type( v ) == "string" then
-		local sep = string.gsub( LARGE_NUMBER_SEPERATOR, ".", "%%%1" )
-		--ArkInventory.Output("LARGE_NUMBER_SEPERATOR=[", LARGE_NUMBER_SEPERATOR, "] [", sep, "]")
-		return tonumber( ( string.gsub( v, sep, "" ) ) )
-	end
-end
-
 local function spairs_iter( a )
 	a.idx = a.idx + 1
 	local k = a[a.idx]
@@ -1289,12 +1257,13 @@ for x = 352170, 352180 do
 end
 ]]--
 
+-- item_openable = right click to open
 --[[
-local z = "info"
+local z = "thousands"
 ArkInventory.Output( "search=", z )
 for k, v in pairs (_G) do
 	if type( k ) == "string" and type( v ) == "string" then
-		--if string.match( string.lower( k ), string.lower( z ) ) then -- found in key
+		if string.match( string.lower( k ), string.lower( z ) ) then -- found in key
 		--if string.match( string.lower( v ), string.lower( z ) ) then -- found in value
 		--if string.lower( v ) == string.lower( z ) then -- exact match with value
 			ArkInventory.Output( k, "=", v )

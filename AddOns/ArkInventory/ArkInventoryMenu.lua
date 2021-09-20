@@ -926,7 +926,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"hasEditBox", true,
 						"editBoxText", c,
 						"editBoxFunc", function( v )
-							local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+							local v = math.floor( tonumber( v ) or 0 )
 							if v < 0 then v = 0 end
 							if v > 25 then v = 25 end
 							if codex.layout.bar.data[bar_id].width.min ~= v then
@@ -951,7 +951,7 @@ function ArkInventory.MenuBarOpen( frame )
 						"hasEditBox", true,
 						"editBoxText", c,
 						"editBoxFunc", function( v )
-							local v = math.floor( ArkInventory.ToNumber( v ) or 0 )
+							local v = math.floor( tonumber( v ) or 0 )
 							if v < 0 then v = 0 end
 							if v > 25 then v = 25 end
 							if codex.layout.bar.data[bar_id].width.max ~= v then
@@ -1073,7 +1073,7 @@ function ArkInventory.MenuBarOpen( frame )
 						end
 					)
 					
-					local text = ArkInventory.Localise["CONFIG_JUNK_SELL"]
+					local text = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"]
 					local desc = string.format( ArkInventory.Localise["CONFIG_JUNK_CATEGORY_DESC"], cat.fullname )
 					
 					if codex.catset.category.junk[cat_type][cat_num] then
@@ -1103,7 +1103,7 @@ function ArkInventory.MenuBarOpen( frame )
 				end
 				
 				
-				local bag_id = ArkInventory.ToNumber( string.match( value, "^BAG_OPTION_(.+)" ) )
+				local bag_id = tonumber( string.match( value, "^BAG_OPTION_(.+)" ) )
 				if bag_id ~= nil then
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
@@ -1495,7 +1495,6 @@ function ArkInventory.MenuItemOpen( frame )
 					local bagtype = ArkInventory.Const.Slot.Data[ArkInventory.BagType( blizzard_id )].name
 					
 					ArkInventory.Lib.Dewdrop:AddLine( )
-					
 					ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["LOCATION"], LIGHTYELLOW_FONT_COLOR_CODE, loc_id, ArkInventory.Global.Location[loc_id].Name ) )
 					ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["BAG"], LIGHTYELLOW_FONT_COLOR_CODE, bag_id, blizzard_id ) )
 					ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["SLOT"], LIGHTYELLOW_FONT_COLOR_CODE, slot_id, bagtype ) )
@@ -1618,6 +1617,8 @@ function ArkInventory.MenuItemOpen( frame )
 					
 					cid = ArkInventory.ObjectIDRule( i )
 					ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s (%s): %s%s", ArkInventory.Localise["MENU_ITEM_DEBUG_CACHE"], ArkInventory.Localise["CATEGORY_RULE"], LIGHTYELLOW_FONT_COLOR_CODE, cid ) )
+					
+					ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s", "Data is ready", LIGHTYELLOW_FONT_COLOR_CODE, tostring(info.ready) ) )
 					
 					if i.h then
 						if info.class == "item" then
@@ -1938,7 +1939,7 @@ function ArkInventory.MenuItemCategoryAssignOpen( offset, level, value, i, loc_i
 				end
 			)
 			
-			local text = ArkInventory.Localise["CONFIG_JUNK_SELL"]
+			local text = ArkInventory.Localise["CONFIG_JUNK_SELL_AUTO"]
 			local desc = string.format( ArkInventory.Localise["CONFIG_JUNK_CATEGORY_DESC"], cat.fullname )
 			
 			if codex.catset.category.junk[cat_type][cat_num] then
@@ -3431,7 +3432,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 	local index = string.match( value, "^HEADER_(.+)$" )
 	if index then
 		
-		local index = ArkInventory.ToNumber( index )
+		local index = tonumber( index )
 		local parent = ArkInventory.Collection.Currency.GetByIndex( index )
 		
 		if showTitle then
@@ -3547,7 +3548,7 @@ function ArkInventory.MenuLDBTrackingCurrencyListOptions( value, codex )
 		
 		-- options
 		
-		local index = ArkInventory.ToNumber( index )
+		local index = tonumber( index )
 		
 		local entry = ArkInventory.Collection.Currency.GetByIndex( index )
 		local data = entry.data
@@ -3778,7 +3779,7 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 	local index = string.match( value, "^HEADER_(.+)$" )
 	if index then
 		
-		local index = ArkInventory.ToNumber( index )
+		local index = tonumber( index )
 		local parent = ArkInventory.Collection.Reputation.GetByIndex( index )
 		
 		if showTitle then
@@ -3899,7 +3900,7 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 		
 		-- options
 		
-		local index = ArkInventory.ToNumber( index )
+		local index = tonumber( index )
 		
 		local entry = ArkInventory.Collection.Reputation.GetByIndex( index )
 		local data = entry.data
@@ -4349,7 +4350,7 @@ function ArkInventory.MenuLDBMountsEntries( offset, level, value )
 	if ( level == 3 + offset ) and value then
 		
 		local mountType, index = string.match( value, "^(.-):(.-)$" )
-		index = ArkInventory.ToNumber( index )
+		index = tonumber( index )
 		
 		local md = ArkInventory.Collection.Mount.GetMount( index )
 		local usable = ArkInventory.Collection.Mount.isUsable( md.index )
@@ -4530,7 +4531,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 		
 		if petType0 then
 			
-			petType0 = ArkInventory.ToNumber( petType0 )
+			petType0 = tonumber( petType0 )
 			local species = -1
 			
 			ArkInventory.Lib.Dewdrop:AddLine(
@@ -4566,7 +4567,7 @@ function ArkInventory.MenuLDBPetsEntries( offset, level, value )
 		
 		if speciesID then
 			
-			speciesID = ArkInventory.ToNumber( speciesID )
+			speciesID = tonumber( speciesID )
 			local sd = ArkInventory.Collection.Pet.GetSpeciesInfo( speciesID )
 			
 			if sd then

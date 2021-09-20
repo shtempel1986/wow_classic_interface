@@ -2,6 +2,21 @@
 
 ArkInventory.CrossClient = { }
 
+
+function ArkInventory.CrossClient.IsAnimaItemByID( ... )
+	
+	if C_Item and C_Item.IsAnimaItemByID then
+		
+		return C_Item.IsAnimaItemByID( ... )
+		
+	else
+		
+		return false
+		
+	end
+	
+end
+
 function ArkInventory.CrossClient.GetProfessionInfo( ... )
 	
 	if GetProfessionInfo then
@@ -34,6 +49,7 @@ function ArkInventory.CrossClient.GetProfessions( ... )
 		
 	else
 		
+		local good = false
 		local skills = { }
 		local skillnum = 0
 		local header1 = string.lower( ArkInventory.Localise["TRADESKILLS"] )

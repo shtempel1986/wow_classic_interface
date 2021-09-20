@@ -1115,7 +1115,7 @@ function ArkInventory.Collection.Pet.ImportCrossRefTable( )
 		
 		--ArkInventory.Output( k, " - ", npc )
 		
-		npc = ArkInventory.ToNumber( v[1] ) or 0
+		npc = tonumber( v[1] ) or 0
 		if npc > 0 then
 			
 			speciesID = ArkInventory.Collection.Pet.GetSpeciesIDForCreatureID( npc )
@@ -1125,7 +1125,7 @@ function ArkInventory.Collection.Pet.ImportCrossRefTable( )
 				
 				for k2, v2 in pairs( v[2] ) do
 					
-					v2 = ArkInventory.ToNumber( v2 ) or 0
+					v2 = tonumber( v2 ) or 0
 					
 					key1 = nil
 					if v2 > 0 then
@@ -1460,7 +1460,7 @@ function ArkInventory.Collection.Pet.GetSpeciesIDfromGUID( guid )
 	local creatureID = string.match( guid or "", "Creature%-.-%-.-%-.-%-.-%-(.-)%-.-$" )
 	--ArkInventory.Output( creatureID, " / ", guid )
 	if creatureID then
-		creatureID = ArkInventory.ToNumber( creatureID ) or 0
+		creatureID = tonumber( creatureID ) or 0
 		return ArkInventory.Collection.Pet.GetSpeciesIDForCreatureID( creatureID )
 	end
 	

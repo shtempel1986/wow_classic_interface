@@ -1,5 +1,5 @@
 local E, _, V, P, G = unpack(ElvUI) --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
-local C, L = unpack(select(2, ...))
+local C, L = unpack(E.OptionsUI)
 local UF = E:GetModule('UnitFrames')
 local ACD = E.Libs.AceConfigDialog
 local ACH = E.Libs.ACH
@@ -1728,24 +1728,11 @@ local function GetOptionsTable_HealPrediction(updateFunc, groupName, numGroup, s
 				name = L["Height"],
 				min = -1, max = 500, step = 1,
 			},
-			healType = {
-				order = 2,
-				type = "select",
-				name = L["Type"],
-				values = {
-					ALL_HEALS = 'All Heals',
-					CHANNEL_HEALS = 'Channel Heals',
-					DIRECT_HEALS = 'Direct Heals',
-					HOT_HEALS = 'HoTs',
-					OVERTIME_HEALS = 'HoTs & Channel',
-					CASTED_HEALS = 'Direct & Channel Heals',
-				},
-			},
 			colorsButton = {
 				order = 3,
 				type = 'execute',
 				name = L["COLORS"],
-				func = function() ACD:SelectGroup('ElvUI', 'unitframe', 'generalOptionsGroup', 'allColorsGroup', 'healPrediction') end,
+				func = function() ACD:SelectGroup('ElvUI', 'unitframe', 'allColorsGroup') end,
 				disabled = function() return not E.UnitFrames.Initialized end,
 			},
 			anchorPoint = {
@@ -1758,23 +1745,11 @@ local function GetOptionsTable_HealPrediction(updateFunc, groupName, numGroup, s
 					CENTER = 'CENTER'
 				}
 			},
-			absorbStyle = {
-				order = 6,
-				type = 'select',
-				name = L["Absorb Style"],
-				values = {
-					NONE = L["NONE"],
-					NORMAL = L["Normal"],
-					REVERSED = L["Reversed"],
-					WRAPPED = L["Wrapped"],
-					OVERFLOW = L["Overflow"]
-				},
-			},
 			overflowButton = {
 				order = 7,
 				type = 'execute',
 				name = L["Max Overflow"],
-				func = function() ACD:SelectGroup('ElvUI', 'unitframe', 'generalOptionsGroup', 'allColorsGroup', 'healPrediction') end,
+				func = function() ACD:SelectGroup('ElvUI', 'unitframe', 'allColorsGroup') end,
 				disabled = function() return not E.UnitFrames.Initialized end,
 			},
 			warning = ACH:Description(function()
@@ -2570,7 +2545,7 @@ local function GetOptionsTable_GeneralGroup(updateFunc, groupName, numUnits)
 		end
 	end
 
-	if groupName == 'raid' or groupName == 'raid40' or groupName == 'raidpet' then
+	if groupName == 'raid' or groupName == 'raid40' then
 		config.args.positionsGroup.args.numGroups.disabled = function() return E.db.unitframe.smartRaidFilter end
 		config.args.visibilityGroup.args.visibility.disabled = function() return E.db.unitframe.smartRaidFilter end
 	end
@@ -3667,30 +3642,6 @@ E.Options.args.unitframe = {
 								others = {
 									order = 4,
 									name = L["Others"],
-									type = 'color',
-									hasAlpha = true,
-								},
-								absorbs = {
-									order = 5,
-									name = L["Absorbs"],
-									type = 'color',
-									hasAlpha = true,
-								},
-								healAbsorbs = {
-									order = 6,
-									name = L["Heal Absorbs"],
-									type = 'color',
-									hasAlpha = true,
-								},
-								overabsorbs = {
-									order = 7,
-									name = L["Over Absorbs"],
-									type = 'color',
-									hasAlpha = true,
-								},
-								overhealabsorbs = {
-									order = 8,
-									name = L["Over Heal Absorbs"],
 									type = 'color',
 									hasAlpha = true,
 								},
@@ -5001,7 +4952,6 @@ E.Options.args.unitframe.args.groupUnits.args.raidpet = {
 			type = 'toggle',
 			order = 1,
 			name = L["Enable"],
-			disabled = function() return E.db.unitframe.smartRaidFilter end,
 		},
 		configureToggle = {
 			order = 2,
@@ -5121,6 +5071,7 @@ E.Options.args.unitframe.args.groupUnits.args.tank = {
 		cutaway = GetOptionsTable_Cutaway(UF.CreateAndUpdateHeaderGroup, 'tank'),
 		debuffs = GetOptionsTable_Auras('debuffs', UF.CreateAndUpdateHeaderGroup, 'tank'),
 		fader = GetOptionsTable_Fader(UF.CreateAndUpdateHeaderGroup, 'tank'),
+		healPredction = GetOptionsTable_HealPrediction(UF.CreateAndUpdateHeaderGroup, 'tank'),
 		name = GetOptionsTable_Name(UF.CreateAndUpdateHeaderGroup, 'tank'),
 		rdebuffs = GetOptionsTable_RaidDebuff(UF.CreateAndUpdateHeaderGroup, 'tank'),
 	},
@@ -5207,6 +5158,7 @@ E.Options.args.unitframe.args.groupUnits.args.assist = {
 		cutaway = GetOptionsTable_Cutaway(UF.CreateAndUpdateHeaderGroup, 'assist'),
 		debuffs = GetOptionsTable_Auras('debuffs', UF.CreateAndUpdateHeaderGroup, 'assist'),
 		fader = GetOptionsTable_Fader(UF.CreateAndUpdateHeaderGroup, 'assist'),
+		healPredction = GetOptionsTable_HealPrediction(UF.CreateAndUpdateHeaderGroup, 'assist'),
 		name = GetOptionsTable_Name(UF.CreateAndUpdateHeaderGroup, 'assist'),
 		rdebuffs = GetOptionsTable_RaidDebuff(UF.CreateAndUpdateHeaderGroup, 'assist'),
 	},

@@ -6,7 +6,7 @@ end
 
 
 -- INTERFACE
-Lang["Credits"] = "非常感谢我的行会|cffffd100<Divine Heresy>|r在我测试插件时给予的支持和理解，并感谢|cffffd100Bushido @ Pyrewood Village|r在TBC上的帮助！\n\n 另外，非常感谢翻译人员：\n  - 德语翻译: |cffffd100Sumaya @ Razorfen DE|r\n  - 俄语翻译: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - 西班牙语翻译: |cffffd100Coyu @ Pyrewood Village EU|r\n  - 中文翻译: |cffffd100ly395842562|r 和 |cffffd100Icyblade|r\n  - 韩语翻译: |cffffd100Drix @ Azshara KR|r\n\n/Hug 来自 Cixi/Gaya @ Remulos Horde"
+Lang["Credits"] = "非常感谢我的行会|cffffd100<Divine Heresy>|r在我测试插件时给予的支持和理解，并感谢|cffffd100Bushido @ Pyrewood Village|r在TBC上的帮助！\n\n 另外，非常感谢翻译人员：\n  - 德语翻译: |cffffd100Sumaya @ Razorfen DE|r\n  - 俄语翻译: |cffffd100Greymarch Guild @ Flamegor RU|r\n  - 西班牙语翻译: |cffffd100Coyu @ Pyrewood Village EU|r\n  - 简体中文翻译: |cffffd100ly395842562|r 和 |cffffd100Icyblade|r\n  - 繁体中文翻译: |cffffd100DayZ 三指打天下|r 和 |cffffd100薇兒 @ Ivus TW|r\n  - 韩语翻译: |cffffd100Drix @ Azshara KR|r\n\n/Hug 来自 Cixi/Gaya @ Remulos Horde"
 Lang["Mini"] = "缩小"
 Lang["Maxi"] = "放大"
 Lang["Version"] = "Attune v##VERSION## by Cixi@Remulos"
@@ -130,6 +130,21 @@ Lang["Save"] = "保存"
 Lang["Invite"] = "邀请"
 Lang["Send raid invites to all listed players?"] = "向所有列出的玩家发送突袭邀请？"
 Lang["External link"] = "链接到在线数据库"
+--v243
+Lang["Ogrila"] = "奥格瑞拉"
+Lang["Ogri'la Quest Hub"] = "奥格瑞拉宣教中心"
+Lang["Ogrila_Desc"] = "聪明而开化的奥格瑞拉食人魔居住在刀锋山的西部区域。"
+Lang["DelInactive_TEXT"] = "删除不活动"
+Lang["DelInactive_DESC"] = "删除有关标记为非活动的玩家的所有信息"
+Lang["DelInactive_CONF"] = "真的删除所有非活动吗？"
+Lang["DelInactive_DONE"] = "已删除所有非活动"
+Lang["RAIDS"] = "团队"
+Lang["KEYS"] = "钥匙"
+Lang["MISC"] = "杂项"
+Lang["HEROICS"] = "英雄"
+--v244
+Lang["Ally of the Netherwing"] = "灵翼之盟"
+Lang["Netherwing_Desc"] = "虚空之翼是位于外域的一个龙派系。"
 
 
 -- OPTIONS
@@ -729,6 +744,44 @@ Lang["Q1_10949"] = "进入黑暗神殿"			-- https://cn.tbc.wowhead.com/?quest=1
 Lang["Q2_10949"] = "转至影月谷的黑暗神殿入口处，与克希利谈一谈。"
 Lang["Q1_10985"] = "帮助阿卡玛"			-- https://cn.tbc.wowhead.com/?quest=10985
 Lang["Q2_10985"] = "在克希利的军队发动佯攻之后，保护阿卡玛和玛维进入影月谷内的黑暗神殿。"
+--v243
+Lang["Q1_10984"] = "援助食人魔"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
+Lang["Q2_10984"] = "与沙塔斯城贫民窟的食人魔格罗科尔谈一谈。"
+Lang["Q1_10983"] = "枯瘦的莫戈多格"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10983
+Lang["Q2_10983"] = "与枯瘦的莫戈多格谈一谈，他就在刀锋山鲜血之环外的某座塔顶上。"
+Lang["Q1_10995"] = "格鲁洛克的巨龙颅骨"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10995
+Lang["Q2_10995"] = "夺回格鲁洛克的巨龙颅骨，将其交给刀锋山鲜血之环塔顶上的枯瘦的莫戈多格。"
+Lang["Q1_10996"] = "玛古克的宝箱"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10996
+Lang["Q2_10996"] = "夺取玛古克的宝箱，将它交给刀锋山鲜血之环塔顶上的枯瘦的莫戈多格。"
+Lang["Q1_10997"] = "戈隆的军旗"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10997
+Lang["Q2_10997"] = "夺取斯莱格的军旗，将其交给刀锋山鲜血之环塔顶上的枯瘦的莫戈多格。"
+Lang["Q1_10998"] = "维姆高尔的魔典"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10998
+Lang["Q2_10998"] = "夺取维姆高尔的魔典，并将它带回刀锋山内鲜血之环的塔顶上，交给枯瘦的莫戈多格。"
+Lang["Q1_11000"] = "磨魂者"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11000
+Lang["Q2_11000"] = "夺得斯古洛克的灵魂，然后返回刀锋山的鲜血之环，将它交给塔楼顶部的枯瘦的莫戈多格。"
+Lang["Q1_11022"] = "与莫戈多格会面"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11022
+Lang["Q2_11022"] = "与枯瘦的莫戈多格谈一谈，他就在刀锋山鲜血之环东侧的塔楼顶部。"
+Lang["Q1_11009"] = "食人魔的天堂"			-- https://www.thegeekcrusade-serveur.com/db/?quest=11009
+Lang["Q2_11009"] = "枯瘦的莫戈多格要求你与刀锋山奥格瑞拉的库洛尔谈一谈。"
+--v244
+Lang["Q1_10804"] = "友善"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10804
+Lang["Q2_10804"] = "影月谷灵翼平原的莫德奈要你喂养8只成熟的灵翼幼龙。"
+Lang["Q1_10811"] = "寻找奈尔萨拉库"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10811
+Lang["Q2_10811"] = "寻找奈尔萨拉库，虚空龙族的领袖。"
+Lang["Q1_10814"] = "奈尔萨拉库的故事"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10814
+Lang["Q2_10814"] = "与奈尔萨拉库谈一谈，听听他的故事。"
+Lang["Q1_10836"] = "攻击龙喉要塞"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10836
+Lang["Q2_10836"] = "杀死15名龙喉兽人，然后向飞翔在影月谷灵翼平原上空的奈尔萨拉库复命。"
+Lang["Q1_10837"] = "前往灵翼浮岛！"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10837
+Lang["Q2_10837"] = "前往灵翼浮岛收集12枚灵藤水晶，然后向飞翔在影月谷灵翼平原上空的奈尔萨拉库复命。"
+Lang["Q1_10854"] = "奈尔萨拉库之力"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10854
+Lang["Q2_10854"] = "解救5只被奴役的灵翼幼龙，然后向飞翔在影月谷灵翼平原上空的奈尔萨拉库复命。"
+Lang["Q1_10858"] = "卡瑞纳库"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10858
+Lang["Q2_10858"] = "前往龙喉要塞，寻找卡瑞纳库。"
+Lang["Q1_10866"] = "疲惫的祖鲁希德"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10866
+Lang["Q2_10866"] = "杀死疲惫的祖鲁希德，取回祖鲁希德的钥匙，并用它打开祖鲁希德的锁链，释放卡瑞纳库。"
+Lang["Q1_10870"] = "灵翼之盟"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
+Lang["Q2_10870"] = "让卡瑞纳库把你送回灵翼平原的莫德奈身边。"
 	
 
 -- NPC
@@ -884,6 +937,12 @@ Lang["N1_17767"] = "雷基·冬寒"	-- https://cn.tbc.wowhead.com/?npc=17767
 Lang["N2_17767"] = "雷基·冬寒是海加尔山的一号首领."
 Lang["N1_18528"] = "克希利"	-- https://cn.tbc.wowhead.com/?npc=18528
 Lang["N2_18528"] = "克希利位于黑暗神殿的门外."
+--v243
+Lang["N1_22497"] = "弗埃卢"	-- https://www.thegeekcrusade-serveur.com/db/?npc=22497
+Lang["N2_22497"] = "弗埃盧和阿達爾在同一個房間，但他是藍色的。 他在頂層著陸。"
+--v244
+Lang["N1_22113"] = "莫德奈"
+Lang["N2_22113"] = "一个血精灵（剧透警报，实际上是一条龙）走在星辰圣殿东边的虚空之翼领域"
 
 
 Lang["O_1"] = "击杀达基萨斯将军以完成任务。\n位于达基萨斯将军后面的发光球."

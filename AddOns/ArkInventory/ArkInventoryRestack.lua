@@ -75,7 +75,7 @@ local function RestackBagCheck( loc_id, bag_id )
 		abort = loc_id
 	end
 	
-	return abort, bagType, numSlots
+	return abort, bagType or 0, numSlots or 0
 	
 end
 
@@ -211,7 +211,7 @@ local function FindPartialStack( loc_id, cl, cb, bp, cs, id )
 		
 		local bag_id = cb
 		
-		for slot_id = 1, MAX_GUILDBANK_SLOTS_PER_TAB do
+		for slot_id = 1, ArkInventory.Const.BLIZZARD.GLOBAL.GUILDBANK.SLOTS_PER_TAB do
 			
 			if not ArkInventory.Global.Mode.Vault or bag_id ~= GetCurrentGuildBankTab( ) then
 				-- no longer at the vault or changed tabs, abort
@@ -805,7 +805,7 @@ local function StackVault( )
 	
 	Restack_Yield( loc_id )
 	
-	for slot_id = MAX_GUILDBANK_SLOTS_PER_TAB, 1, -1 do
+	for slot_id = ArkInventory.Const.BLIZZARD.GLOBAL.GUILDBANK.SLOTS_PER_TAB, 1, -1 do
 		
 		if not ArkInventory.Global.Mode.Vault or bag_id ~= GetCurrentGuildBankTab( ) then
 			-- no longer at the vault or changed tabs, abort

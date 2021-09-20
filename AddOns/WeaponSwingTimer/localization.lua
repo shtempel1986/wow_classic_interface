@@ -47,7 +47,9 @@ local L = addon_data.localization_table
     L["Auto Shot Cooldown Color"]="Auto Shot Cooldown Color"
     L["Auto Shot Cast Color"]="Auto Shot Cast Color"
 	L["Hunter Specific Settings"]="Hunter Specific Settings"
-    L["Multi-Shot cast bar"]=" Show Multi-Shot Casts"
+    L["Aimed Shot cast bar"]=" Aimed Shot cast bar"
+    L["Allows the cast bar to show Aimed Shot casts."]="Allows the cast bar to show Aimed Shot casts."
+    L["Multi-Shot cast bar"]=" Multi-Shot cast bar"
     L["Allows the cast bar to show Multi-Shot casts."]="Allows the cast bar to show Multi-Shot casts."
     L["Latency bar"]=" Latency bar"
     L["Shows a bar that represents latency on cast bar."]="Shows a bar that represents latency on cast bar."
@@ -88,6 +90,11 @@ local L = addon_data.localization_table
 	L["Multi-Shot"]="Multi-Shot"
 	L["Aimed Shot"]="Aimed Shot"
 	L["Shoot"]="Shoot"
+	L["Quick Shots"]="Quick Shots"
+	L["Rapid Shot"]="Rapid Shot"
+	L["Berserking"]="Berserking"
+	L["Kiss of the Spider"]="Kiss of the Spider"
+	L["Curse of Tongues"]="Curse of Tongues"
 
 if GetLocale() == "deDE" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Vielen Dank, dass Sie die WeaponSwingTimer-Version installiert haben"

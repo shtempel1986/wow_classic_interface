@@ -274,7 +274,7 @@ local function GetWowTooltipTextHelper( id )
 	
 	ArkInventory.TooltipSetHyperlink( ArkInventory.Global.Tooltip.Scan, string.format( "item:%s", id ) )
 	
-	local _, _, skill, level = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, true, 0, true )
+	local _, _, skill, level = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
 	
 	if skill and level then
 		--ArkInventory.Output( "tooltip: got ", id, ", skill = ", skill, ", level = ", level )
