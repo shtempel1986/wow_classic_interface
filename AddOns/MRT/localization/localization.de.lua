@@ -418,7 +418,7 @@ L.cd2InspectHaste = "%+(%d+) Tempo"
 L.cd2InspectHasteGem = "NOT USABLE IN THIS LOCALE"
 L.cd2InspectMastery = "%+(%d+) Meisterschaft"
 L.cd2InspectMasteryGem = "NOT USABLE IN THIS LOCALE"
-L.cd2InspectCrit = "%+(%d+) Kritische Trefferchcance"
+L.cd2InspectCrit = "%+(%d+) Kritischer Trefferwert"
 L.cd2InspectCritGem = "NOT USABLE IN THIS LOCALE"
 L.cd2InspectCritGemLegendary = "%+%]%](%d+) Krit,"
 L.cd2InspectSpirit = "%+(%d+) Spirit"
@@ -1045,4 +1045,4 @@ L.creatureNames = {	--> Used LibBabble-CreatureType and WowHead
 	[3] = "Wildheit",
 }
 
-L.TranslateBy = "Ruuldan, Gyffes und Cathlin von IHL-Gilneas EU und Ilki(Magier). Wenn Ihr fehler oder Verbesserungen findet lasst es uns wissen IHL-Gilneas.de"
+L.TranslateBy = "Ruuldan, Gyffes und Cathlin von IHL-Gilneas EU und Ilki. Wenn ihr Fehler oder Verbesserungen findet, lasst es uns wissen IHL-Gilneas.de"

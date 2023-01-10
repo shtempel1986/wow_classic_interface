@@ -227,13 +227,38 @@ local function scanTalents()
 	local numTabs = GetNumTalentTabs()
 	for t = 1, numTabs do
 		local numTalents = GetNumTalents(t)
+		local treeTals = {}
 		for i = 1, numTalents do
-			local _, _, _, _, rank = GetTalentInfo(t, i)
-			table.insert(tals, rank)
+			local _, _, tier, column, rank = GetTalentInfo(t, i)
+			if not treeTals[tier] then
+				treeTals[tier] = {}
+			end
+			treeTals[tier][column] = rank
+		end
+
+		for t, byCol in Amr.spairs(treeTals) do
+			for c, r in Amr.spairs(byCol) do
+				table.insert(tals, r)
+			end
 		end
 	end
 
 	Amr.db.char.Talents[1] = table.concat(tals, "")
+end
+
+local function scanGlyphs()
+
+	local glyphs = {}
+	for i = 1, GetNumGlyphSockets() do
+		local enabled, _, spellId = GetGlyphSocketInfo(i)
+		if enabled then
+			if spellId then
+				table.insert(glyphs, spellId)
+			end
+		end
+	end
+
+	Amr.db.char.Glyphs[1] = glyphs
 end
 
 -- Returns a data object containing all information about the current player needed for an export:
@@ -252,7 +277,11 @@ function Amr:ExportCharacter()
 	-- scan current spec's talents just before exporting
 	scanTalents()
 
+	-- scan current spec's glyphs just before exporting
+	scanGlyphs()
+
 	data.Talents = Amr.db.char.Talents	
+	data.Glyphs = Amr.db.char.Glyphs
 	data.Equipped = Amr.db.char.Equipped	
 	data.BagItems = Amr.db.char.BagItems
 
@@ -279,3 +308,5 @@ Amr:AddEventHandler("BANKFRAME_CLOSED", onBankClosed)
 Amr:AddEventHandler("BAG_UPDATE", onBankUpdated)
 
 Amr:AddEventHandler("CHARACTER_POINTS_CHANGED", scanTalents)
+Amr:AddEventHandler("GLYPH_ADDED", scanGlyphs)
+Amr:AddEventHandler("GLYPH_UPDATED", scanGlyphs)

@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("HyjalWaveTimers", "DBM-Hyjal")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210605153940")
+mod:SetRevision("20221129003558")
 
 mod:RegisterEvents(
 	"GOSSIP_SHOW",
@@ -30,22 +30,27 @@ local bossNames = {
 }
 
 function mod:GOSSIP_SHOW()
-	if not GetRealZoneText() == L.HyjalZoneName then return end
+	if  GetRealZoneText() ~= L.HyjalZoneName then return end
 	local target = UnitName("target")
 	if target == L.Thrall or target == L.Jaina then
-		local table = C_GossipInfo.GetOptions()
-		if table[1] and table[1].name then
-			local selection = table[1].name
+		local table = C_GossipInfo and C_GossipInfo.GetOptions and C_GossipInfo.GetOptions()
+		local selection
+		if table and table[1] and table[1].name then
+			selection = table[1].name
+		else
+			selection = GetGossipOptions()
+		end
+		if selection then
 			if selection == L.RageGossip then
 				boss = 1
 				self:SendSync("boss", 1)
 			elseif selection == L.AnetheronGossip then
 				boss = 2
 				self:SendSync("boss", 2)
-			elseif selection == L.KazrogalGossip then
+			elseif selection == L.KazrogalGossip or (L.KazrogalGossipF and selection == L.KazrogalGossipF) then
 				boss = 3
 				self:SendSync("boss", 3)
-			elseif selection == L.AzgalorGossip then
+			elseif selection == L.AzgalorGossip or (L.AzgalorGossipF and selection == L.AzgalorGossipF) then
 				boss = 4
 				self:SendSync("boss", 4)
 			end
@@ -56,7 +61,7 @@ mod.QUEST_PROGRESS = mod.GOSSIP_SHOW
 
 function mod:UPDATE_UI_WIDGET(table)
 	local id = table.widgetID
-	if id ~= 528 then return end
+	if not (id == 528 or id == 3121) then return end
 	local widgetInfo = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo(id)
 	local text = widgetInfo.text
 	if not text then return end
@@ -67,8 +72,8 @@ function mod:UPDATE_UI_WIDGET(table)
 	self:WaveFunction(currentWave)
 end
 
-function mod:OnSync(msg, arg)
-	if msg == "boss" then
+function mod:OnSync(msg, arg, sender)
+	if msg == "boss" and sender then
 		boss = tonumber(arg)
 	end
 end

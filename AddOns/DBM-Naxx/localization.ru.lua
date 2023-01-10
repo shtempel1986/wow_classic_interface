@@ -11,14 +11,7 @@ L:SetGeneralLocalization({
 	name = "Ануб'Рекан"
 })
 
-L:SetWarningLocalization({
-	SpecialLocust		= "Жуки-трупоеды",
-	WarningLocustFaded	= "Жуки-трупоеды исчезают"
-})
-
 L:SetOptionLocalization({
-	SpecialLocust		= "Cпец-предупреждение для Жуков-трупоедов",
-	WarningLocustFaded	= "Предупреждение для исчезновения Жуков-трупоедов",
 	ArachnophobiaTimer	= "Отсчет времени для Арахнофобия (достижение)"
 })
 
@@ -43,12 +36,12 @@ L:SetWarningLocalization({
 })
 
 L:SetOptionLocalization({
-	WarningEmbraceExpire	= "Предупреждение, когда Объятие Вдовы исчезает",
-	WarningEmbraceExpired	= "Предупреждение, когда Объятие Вдовы закончится"
+	WarningEmbraceExpire	= "Показать предупреждение, когда Объятие Вдовы исчезает",
+	WarningEmbraceExpired	= "Показать предупреждение, когда Объятие Вдовы закончится"
 })
 
 L:SetMiscLocalization({
-	Pull					= "Склонитесь передо мной, черви!"--Not actually pull trigger, but often said on pull
+	Pull					= "Склонитесь передо мной, черви!"
 })
 
 ---------------
@@ -90,7 +83,7 @@ L:SetGeneralLocalization({
 
 L:SetWarningLocalization({
 	WarningTeleportNow	= "Телепортация",
-	WarningTeleportSoon	= "Телепортация через 20 секунд"
+	WarningTeleportSoon	= "Телепортация через 10 секунд"
 })
 
 L:SetTimerLocalization({
@@ -106,7 +99,9 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	Pull				= "Смерть чужакам!"
+	Pull				= "Умри, преступник!",
+	Adds				= "Восстаньте, мои воины! Восстаньте и сразитесь вновь!",
+	AddsTwo				= "raises more skeletons!"
 })
 
 --------------------------
@@ -134,7 +129,7 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	Pull				= "Теперь вы принадлежите мне!"
+	Pull				= "Пришло ваше время..."
 })
 
 ---------------
@@ -211,11 +206,12 @@ L:SetMiscLocalization({
 })
 
 L:SetOptionLocalization({
-	WarningChargeChanged	= "Предупреждение, когда ваша полярность изменена",
-	WarningChargeNotChanged	= "Предупреждение, когда ваша полярность не изменена",
-	ArrowsEnabled			= "Отображать стрелки (обычная \"2-сторонняя\" стратегия)",
-	ArrowsRightLeft			= "Стрелки влево/вправо для \"4-сторонней\" стратегии",
-	ArrowsInverse			= "Обратная \"4-сторонняя\" стратегия (вправо, если полярность изменена, влево, если нет)"
+	WarningChargeChanged	= "Показывать предупреждение, когда Ваша полярность изменена",
+	WarningChargeNotChanged	= "Показывать предупреждение, когда Ваша полярность не изменена",
+	AirowEnabled			= "Показывать стрелки во время смены полярности",
+	TwoCamp					= "Показывать стрелки (обычная \"2-сторонняя\" стратегия)",
+	ArrowsRightLeft			= "Показывать стрелки влево/вправо для \"4-сторонней\" стратегии (показать стрелку влево, если полярность изменилась, вправо - не изменилась)",
+	ArrowsInverse			= "Обратная \"4-сторонняя\" стратегия (вправо, если полярность изменена, влево - не изменена)"
 })
 
 L:SetWarningLocalization({
@@ -257,7 +253,7 @@ L:SetGeneralLocalization({
 })
 
 L:SetOptionLocalization({
-	TimerWave			= "Отсчет времени до волны",
+	TimerWave			= "Отсчет времени до следующей волны",
 	TimerPhase2			= "Отсчет времени до фазы 2",
 	WarningWaveSoon		= "Предупреждать перед следующей волной",
 	WarningWaveSpawned	= "Предупреждение для волны призыва",
@@ -299,14 +295,18 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	WarningMarkSoon				= "Предупреждать перед следующими знаками",
-	SpecialWarningMarkOnPlayer	= "Спец-предупреждение, когда >4 знаков на вас"
+	WarningMarkNow				= "Предупреждение для знаков",
+	SpecialWarningMarkOnPlayer	= "Спецпредупреждение, когда на Вас более 4-х знаков",
+	timerMark					= "Показать таймер для следующего знака Всадника (с количеством)"
 })
 
 L:SetTimerLocalization({
+	timerMark	= "Знак %d",
 })
 
 L:SetWarningLocalization({
 	WarningMarkSoon				= "Знак %d через 3 секунды",
+	WarningMarkNow				= "Знак %d",
 	SpecialWarningMarkOnPlayer	= "%s: %s"
 })
 
@@ -331,28 +331,22 @@ L:SetOptionLocalization({
 	WarningAirPhaseNow	= "Объявлять Воздушную фазу",
 	WarningLanded		= "Объявлять Наземную фазу",
 	TimerAir			= "Отсчет времени до Воздушной фазы",
-	TimerLanding		= "Отсчет времени до приземления",
-	TimerIceBlast		= "Отсчет времени до Ледяного дыхания",
-	WarningDeepBreath	= "Специальное объявление Ледяного Дыхания",
-	WarningIceblock		= "Кричать, когда вы в Ледяной глыбе"
+	TimerLanding		= "Отсчет времени до приземления"
 })
 
 L:SetMiscLocalization({
 	EmoteBreath			= "%s делает глубокий вдох.",
-	WarningYellIceblock	= "Я в Ледяной глыбе!"
 })
 
 L:SetWarningLocalization({
 	WarningAirPhaseSoon	= "Воздушная фаза через 10 секунд",
 	WarningAirPhaseNow	= "Воздушная фаза",
-	WarningLanded		= "Сапфирон приземляется",
-	WarningDeepBreath	= "Ледяное дыхание"
+	WarningLanded		= "Сапфирон приземляется"
 })
 
 L:SetTimerLocalization({
 	TimerAir		= "Воздушная фаза",
-	TimerLanding	= "Приземление",
-	TimerIceBlast	= "Ледяное дыхание"
+	TimerLanding	= "Приземление"
 })
 
 ------------------
@@ -367,7 +361,7 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	TimerPhase2			= "Отсчет времени до фазы 2",
-	specwarnP2Soon		= "Спец-предупреждение за 10 секунд до вступления Кел'Тузада в бой",
+	specwarnP2Soon		= "Спецпредупреждение за 10 секунд до вступления Кел'Тузада в бой",
 	warnAddsSoon		= "Предупреждать заранее о Стражах Ледяной Короны"
 })
 

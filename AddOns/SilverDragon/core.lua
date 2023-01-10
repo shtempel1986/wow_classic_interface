@@ -7,10 +7,15 @@ SilverDragon = addon
 SilverDragon.NAMESPACE = ns -- for separate addons
 addon.events = LibStub("CallbackHandler-1.0"):New(addon)
 
+ns.CLASSIC = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
+ns.CLASSICERA = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC -- forever vanilla
+
+local faction = UnitFactionGroup("player")
+
 local Debug
 do
 	local TextDump = LibStub("LibTextDump-1.0")
-	local debuggable = GetAddOnMetadata(myname, "Version") == 'v20501.0'
+	local debuggable = GetAddOnMetadata(myname, "Version") == '@'..'project-version@'
 	local _window
 	local function GetDebugWindow()
 		if not _window then
@@ -42,12 +47,6 @@ do
 	Debug = addon.Debug
 end
 
-local mfloor, mpow, mabs = math.floor, math.pow, math.abs
-local tinsert, tremove = table.insert, table.remove
-local ipairs, pairs = ipairs, pairs
-local IsInInstance, GetCurrentMapAreaID, SetMapByID, SetMapToCurrentZone = IsInInstance, GetCurrentMapAreaID, SetMapByID, SetMapToCurrentZone
-local wowVersion, buildRevision, _, buildTOC = GetBuildInfo()
-
 BINDING_HEADER_SILVERDRAGON = "SilverDragon"
 _G["BINDING_NAME_CLICK SilverDragonPopupButton:LeftButton"] = "Target last found mob"
 _G["BINDING_NAME_CLICK SilverDragonMacroButton:LeftButton"] = "Scan for nearby mobs"
@@ -55,14 +54,16 @@ _G["BINDING_NAME_CLICK SilverDragonMacroButton:LeftButton"] = "Scan for nearby m
 addon.escapes = {
 	-- |TTexturePath:size1:size2:xoffset:yoffset:dimx:dimy:coordx1:coordx2:coordy1:coordy2|t
 	-- |A:atlas:height:width[:offsetX:offsetY]|a
-	-- leftClick = [[|A:NPE_LeftClick:19:18:1:|a]],
-	-- rightClick = [[|A:NPE_RightClick:20:20:1:|a]],
-	leftClick = [[|TInterface\TUTORIALFRAME\UI-TUTORIAL-FRAME:19:11:-1:0:512:512:9:67:227:306|t]],
-	rightClick = [[|TInterface\TUTORIALFRAME\UI-TUTORIAL-FRAME:20:12:0:-1:512:512:9:66:332:411|t]],
+	leftClick = CreateAtlasMarkup("newplayertutorial-icon-mouse-leftbutton", 12, 15),
+	rightClick = CreateAtlasMarkup("newplayertutorial-icon-mouse-rightbutton", 12, 15),
 	keyDown = [[|TInterface\TUTORIALFRAME\UI-TUTORIAL-FRAME:0:0:0:-1:512:512:9:66:437:490|t]],
 	green = _G.GREEN_FONT_COLOR_CODE,
 	red = _G.RED_FONT_COLOR_CODE,
 }
+if ns.CLASSIC then
+	addon.escapes.leftClick = [[|TInterface\TUTORIALFRAME\UI-TUTORIAL-FRAME:19:11:-1:0:512:512:9:67:227:306|t]]
+	addon.escapes.rightClick = [[|TInterface\TUTORIALFRAME\UI-TUTORIAL-FRAME:20:12:0:-1:512:512:9:66:332:411|t]]
+end
 
 
 addon.datasources = {
@@ -85,6 +86,7 @@ addon.datasources = {
 	}
 	--]]
 }
+addon.treasuresources = {}
 local mobdb = setmetatable({}, {
 	__index = function(t, id)
 		for source, data in pairs(addon.datasources) do
@@ -102,6 +104,10 @@ local mobsByZone = {
 	-- [zoneid] = { [mobid] = {coord, ...}
 }
 ns.mobsByZone = mobsByZone
+local mobNamesByZone = {
+	-- [zoneid] = { [mobname] = mobid, ... }
+}
+ns.mobNamesByZone = mobNamesByZone
 local questMobLookup = {
 	-- [questid] = { [mobid] = true, ... }
 }
@@ -110,10 +116,90 @@ local vignetteMobLookup = {
 	-- [name] = { [mobid] = true, ... }
 }
 ns.vignetteMobLookup = vignetteMobLookup
-function addon:RegisterMobData(source, data)
-	addon.datasources[source] = data
+ns.vignetteTreasureLookup = {
+	-- [vignetteid] = { data },
+}
+function addon:RegisterMobData(source, data, updated)
+	if not updated then
+		if not self.HASWARNEDABOUTOLDDATA then
+			self.HASWARNEDABOUTOLDDATA = true
+			return self:Print(("You have an old SilverDragon_%s folder, which can be removed"):format(source))
+		end
+		return
+	end
+	if not addon.datasources[source] then addon.datasources[source] = {} end
+	MergeTable(addon.datasources[source], data)
+end
+function addon:RegisterTreasureData(source, data, updated)
+	if not updated then return end
+	if not addon.treasuresources[source] then addon.treasuresources[source] = {} end
+	MergeTable(addon.treasuresources[source], data)
 end
 do
+	function addon:RegisterHandyNotesData(source, uiMapID, points, defaults)
+		-- convenience for me, really...
+		addon.datasources[source] = addon.datasources[source] or {}
+		addon.treasuresources[source] = addon.treasuresources[source] or {}
+		for coord, point in pairs(points) do
+			if point.npc or point.vignette then
+				if defaults then
+					for k,v in pairs(defaults) do
+						if k == "note" and point[k] then
+							point[k] = v .. "\n" .. point[k]
+						end
+						point[k] = point[k] or v
+					end
+				end
+				local data = {
+					name=point.label,
+					locations={[uiMapID]={coord}},
+					loot=point.loot,
+					notes=point.note,
+					active=point.active,
+					requires=point.require or point.hide_before,
+					vignette=point.vignette,
+					quest=point.quest,
+				}
+				if point.route and type(point.route) == "table" then
+					data.routes = {[uiMapID] = {point.route}}
+				end
+				if point.routes then
+					data.routes = {[uiMapID] = point.routes}
+				end
+				if point.npc then
+					addon.datasources[source][point.npc] = data
+					if point.achievement and point.criteria then
+						if not ns.achievements[point.achievement] then
+							ns.achievements[point.achievement] = {}
+						end
+						ns.achievements[point.achievement][point.npc] = point.criteria
+					end
+				else
+					addon.treasuresources[source][point.vignette] = data
+				end
+			end
+		end
+	end
+end
+do
+	local function addQuestMobLookup(mobid, quest)
+		if type(quest) == "table" then
+			if quest.alliance then
+				return addQuestMobLookup(mobid, faction == "Alliance" and quest.alliance or quest.horde)
+			end
+			for _, questid in ipairs(quest) do
+				if not questMobLookup[quest] then
+					questMobLookup[quest] = {}
+				end
+				questMobLookup[quest][mobid] = true
+			end
+		else
+			if not questMobLookup[quest] then
+				questMobLookup[quest] = {}
+			end
+			questMobLookup[quest][mobid] = true
+		end
+	end
 	local function addMobToLookups(mobid, mobdata)
 		if mobdata.hidden then
 			return
@@ -128,12 +214,7 @@ do
 		end
 		-- In the olden days, we had one mob per quest and/or vignette. Alas...
 		if mobdata.quest then
-			local questMobs = questMobLookup[mobdata.quest]
-			if not questMobs then
-				questMobs = {}
-				questMobLookup[mobdata.quest] = questMobs
-			end
-			questMobs[mobid] = true
+			addQuestMobLookup(mobid, mobdata.quest)
 		end
 		if mobdata.vignette then
 			local vignetteMobs = vignetteMobLookup[mobdata.vignette]
@@ -152,12 +233,17 @@ do
 		for source, data in pairs(addon.datasources) do
 			if addon.db.global.datasources[source] then
 				for mobid, mobdata in pairs(data) do
-					self:NameForMob(mobid) -- prime cache
-
 					mobdata.id = mobid
 					mobdata.source = source
 
 					addMobToLookups(mobid, mobdata)
+				end
+			end
+		end
+		for source, data in pairs(addon.treasuresources) do
+			if addon.db.global.datasources[source] then
+				for vignetteid, vignettedata in pairs(data) do
+					ns.vignetteTreasureLookup[vignetteid] = vignettedata
 				end
 			end
 		end
@@ -182,19 +268,11 @@ function addon:OnInitialize()
 			always = {
 			},
 			ignore = {
+				['*'] = false,
+				[64403] = true, -- Alani
 			},
 			ignore_datasource = {
 				-- "BurningCrusade" = true,
-			},
-		},
-		locale = {
-			quest_name = {
-				-- store localized quest names
-				-- [id] = "name"
-			},
-			mob_name = {
-				-- store localized mob names
-				-- [id] = "name"
 			},
 		},
 		profile = {
@@ -202,9 +280,16 @@ function addon:OnInitialize()
 			delay = 1200, -- number of seconds to wait between recording the same mob
 			instances = false,
 			taxi = true,
+			charloot = false,
+			lootappearances = true,
 		},
 	}, true)
 	globaldb = self.db.global
+
+	if self.db.locale and self.db.locale.mob_name then
+		self.db.locale.mob_name = nil
+		self.db.locale.quest_name = nil
+	end
 
 	if SilverDragon2DB and SilverDragon2DB.global then
 		-- Migrating some data from v2
@@ -226,11 +311,6 @@ function addon:OnInitialize()
 
 		_G["SilverDragon2DB"] = nil
 	end
-
-	-- TODO: move to miner, remove at the source
-	-- Total hack. I'm very disappointed in myself. Blood Seeker is flagged as tamemable, but really isn't.
-	-- (It despawns in 10-ish seconds, and shows up high in the sky.)
-	-- globaldb.mob_tameable[3868] = nil
 end
 
 function addon:OnEnable()
@@ -268,62 +348,12 @@ function addon:SetCustom(id, watch, quiet)
 	return true
 end
 
-do
-	local mobNameToId = {}
-	local questNameToId = {}
-
-	local cache_tooltip = CreateFrame("GameTooltip", "SDCacheTooltip", _G.UIParent, "GameTooltipTemplate")
-	cache_tooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
-	local function TextFromHyperlink(link)
-		cache_tooltip:ClearLines()
-		cache_tooltip:SetHyperlink(link)
-		local text = SDCacheTooltipTextLeft1:GetText()
-		if text and text ~= "" and text ~= UNKNOWN then
-			return text
-		end
-	end
-	function addon:NameForMob(id, unit)
-		if not self.db.locale.mob_name[id] then
-			local name = TextFromHyperlink(("unit:Creature-0-0-0-0-%d"):format(id))
-			if unit and not name then
-				name = UnitName(unit)
-			end
-			if name and name ~= UNKNOWNOBJECT then
-				self.db.locale.mob_name[id] = name
-			end
-		end
-		if self.db.locale.mob_name[id] then
-			mobNameToId[self.db.locale.mob_name[id]] = id
-		end
-		return self.db.locale.mob_name[id] or (mobdb[id] and mobdb[id].name)
-	end
-	function addon:IdForMob(name)
-		return mobNameToId[name]
-	end
-	function addon:NameForQuest(id)
-		if not self.db.locale.quest_name[id] then
-			local name = TextFromHyperlink(("quest:%d"):format(id))
-			if name then
-				name = name:gsub("Vignette: ", "")
-				self.db.locale.quest_name[id] = name
-			end
-		end
-		if self.db.locale.quest_name[id] then
-			questNameToId[self.db.locale.quest_name[id]] = id
-		end
-		return self.db.locale.quest_name[id]
-	end
-	function addon:IdForQuest(name)
-		return questNameToId[name]
-	end
-end
-
--- returns name, questid, vignette, tameable, last_seen, times_seen
+-- returns name, vignette, tameable, last_seen, times_seen
 function addon:GetMobInfo(id)
 	if mobdb[id] then
 		local m = mobdb[id]
-		local name = addon:NameForMob(id)
-		return name, m.quest, m.vignette or name, m.tameable, globaldb.mob_seen[id], globaldb.mob_count[id]
+		local name = self:NameForMob(id)
+		return name, m.vignette or name, m.tameable, globaldb.mob_seen[id], globaldb.mob_count[id]
 	end
 end
 function addon:IsMobInZone(id, zone)
@@ -331,24 +361,56 @@ function addon:IsMobInZone(id, zone)
 		return mobsByZone[zone][id]
 	end
 end
-function addon:IsMobInPhase(id, zone)
-	if mobdb[id] then
-		if not mobdb[id].phase then
-			return true
+do
+	local poi_expirations = {}
+	local poi_zone_expirations = {}
+	local pois_byzone = {}
+	local function refreshPois(zone)
+		local now = time()
+		if not poi_zone_expirations[zone] or now > poi_zone_expirations[zone] then
+			Debug("Refreshing zone POIs", zone)
+			pois_byzone[zone] = wipe(pois_byzone[zone] or {})
+			for _, poi in ipairs(C_AreaPoiInfo.GetAreaPOIForMap(zone)) do
+				pois_byzone[zone][poi] = true
+				poi_expirations[poi] = now + (C_AreaPoiInfo.GetAreaPOISecondsLeft(poi) or 60)
+			end
+			poi_zone_expirations[zone] = now + 1
 		end
-		if not mobdb[id].locations[zone] then
-			return false
+	end
+	local function checkPois(...)
+		for i=1, select("#", ...), 2 do
+			local zone, poi = select(i, ...)
+			local now = time()
+			if now > (poi_expirations[poi] or 0) then
+				refreshPois(zone)
+				poi_expirations[poi] = poi_expirations[poi] or (now + 60)
+			end
+			if pois_byzone[zone][poi] then
+				return true
+			end
 		end
-		return mobdb[id].phase == C_Map.GetMapArtID(zone)
+	end
+	function addon:IsMobInPhase(id, zone)
+		local phased, poi = true, true
+		if not mobdb[id] then return end
+		if mobdb[id].art then
+			phased = mobdb[id].art == C_Map.GetMapArtID(zone)
+		end
+		if mobdb[id].poi then
+			poi = checkPois(unpack(mobdb[id].poi))
+		end
+		return phased and poi
 	end
 end
 -- Returns id, addon:GetMobInfo(id)
-function addon:GetMobByCoord(zone, coord)
+function addon:GetMobByCoord(zone, coord, include_ignored)
 	if not mobsByZone[zone] then return end
 	for id, locations in pairs(mobsByZone[zone]) do
-		for _, mob_coord in ipairs(locations) do
-			if coord == mob_coord then
-				return id, self:GetMobInfo(id)
+		if self:IsMobInPhase(id, zone) and include_ignored or not self:ShouldIgnoreMob(id) then
+			for _, mob_coord in ipairs(locations) do
+				if coord == mob_coord then
+					return id, self:GetMobInfo(id)
+				end
 			end
 		end
 	end
@@ -367,7 +429,7 @@ end
 
 do
 	local lastseen = {}
-	function addon:NotifyForMob(id, zone, x, y, is_dead, source, unit, silent, force)
+	function addon:NotifyForMob(id, zone, x, y, is_dead, source, unit, silent, force, vignetteGUID)
 		self.events:Fire("Seen_Raw", id, zone, x, y, is_dead, source, unit)
 
 		if silent then
@@ -389,7 +451,8 @@ do
 		globaldb.mob_count[id] = globaldb.mob_count[id] + 1
 		globaldb.mob_seen[id] = time()
 		lastseen[id..zone] = time()
-		self.events:Fire("Seen", id, zone, x, y, is_dead, source, unit)
+		self.events:Fire("Seen", id, zone, x or 0, y or 0, is_dead, source, unit, vignetteGUID)
+		return true
 	end
 end
 do
@@ -398,7 +461,6 @@ do
 			[32491] = true, -- Time-Lost
 		},
 	}
-	local faction = UnitFactionGroup("player")
 	function addon:ShouldIgnoreMob(id, zone)
 		if globaldb.ignore[id] then
 			return true
@@ -436,94 +498,3 @@ function addon:CheckNearby()
 
 	self.events:Fire("Scan", zone)
 end
-
--- Utility:
-
-do
-	local valid_unit_types = {
-		Creature = true, -- npcs
-		Vehicle = true, -- vehicles
-	}
-	local function npcIdFromGuid(guid)
-		if not guid then return end
-		local unit_type, id = guid:match("(%a+)-%d+-%d+-%d+-%d+-(%d+)-.+")
-		if not (unit_type and valid_unit_types[unit_type]) then
-			return
-		end
-		return tonumber(id)
-	end
-	ns.IdFromGuid = npcIdFromGuid
-	function addon:UnitID(unit)
-		return npcIdFromGuid(UnitGUID(unit))
-	end
-	function addon:FindUnitWithID(id)
-		if self:UnitID('target') == id then
-			return 'target'
-		end
-		if self:UnitID('mouseover') == id then
-			return 'mouseover'
-		end
-		for _, nameplate in ipairs(C_NamePlate.GetNamePlates()) do
-			if self:UnitID(nameplate.namePlateUnitToken) == id then
-				return nameplate.namePlateUnitToken
-			end
-		end
-		if IsInGroup() then
-			local prefix = IsInRaid() and 'raid' or 'party'
-			for i=1, GetNumGroupMembers() do
-				local unit = prefix .. i .. 'target'
-				if self:UnitID(unit) == id then
-					return unit
-				end
-			end
-		end
-	end
-end
-
-addon.round = function(num, precision)
-	return mfloor(num * mpow(10, precision) + 0.5) / mpow(10, precision)
-end
-
-function addon:FormatLastSeen(t)
-	t = tonumber(t)
-	if not t or t == 0 then return NEVER end
-	local currentTime = time()
-	local minutes = mfloor(((currentTime - t) / 60) + 0.5)
-	if minutes > 119 then
-		local hours = mfloor(((currentTime - t) / 3600) + 0.5)
-		if hours > 23 then
-			return mfloor(((currentTime - t) / 86400) + 0.5).." day(s)"
-		else
-			return hours.." hour(s)"
-		end
-	else
-		return minutes.." minute(s)"
-	end
-end
-
-addon.zone_names = setmetatable({}, {__index = function(self, mapid)
-	if not mapid then
-		return
-	end
-	local mapdata = C_Map.GetMapInfo(mapid)
-	if mapdata then
-		self[mapid] = mapdata.name
-		return mapdata.name
-	end
-end,})
-
--- Location
-
-function addon:GetCoord(x, y)
-	return floor(x * 10000 + 0.5) * 10000 + floor(y * 10000 + 0.5)
-end
-
-function addon:GetXY(coord)
-	return floor(coord / 10000) / 10000, (coord % 10000) / 10000
-end
-
--- Classic compat stubs
-
-function ns.UpdateTooltipWithCompletion() end
-function ns.CompletionStatus() end
-function ns.AchievementMobStatus() end

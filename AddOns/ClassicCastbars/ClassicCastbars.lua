@@ -1,5 +1,5 @@
 if _G.WOW_PROJECT_ID ~= _G.WOW_PROJECT_CLASSIC then
-    return print("|cFFFF0000[ERROR] You're using the Vanilla version of ClassicCastbars on a non-vanilla client. Please download the correct version.|r") -- luacheck: ignore
+    return (_G.message or print)("[ERROR] You're using the Vanilla version of ClassicCastbars on a non-vanilla client. Please download the correct version.") -- luacheck: ignore
 end
 
 local _, namespace = ...
@@ -23,7 +23,6 @@ addon.defaultConfig = namespace.defaultConfig
 addon.activeFrames = activeFrames
 addon.activeTimers = activeTimers
 addon.npcCastUninterruptibleCache = npcCastUninterruptibleCache
-namespace.addon = addon
 
 -- upvalues for speed
 local strsplit = _G.string.split
@@ -76,7 +75,7 @@ function addon:CheckCastModifiers(unitID, cast)
 
     -- Debuffs
     if not cast.isChanneled and not cast.hasCastSlowModified then
-        for i = 1, 16 do
+        for i = 1, 40 do -- 16 in classic era but 40 in season of mastery
             local _, _, _, _, _, _, _, _, _, spellID = UnitAura(unitID, i, "HARMFUL")
             if not spellID then break end -- no more debuffs
 
@@ -101,7 +100,7 @@ function addon:CheckCastModifiers(unitID, cast)
     -- Buffs
     local libCD = LibStub and LibStub("LibClassicDurations", true)
     local GetUnitAura = libCD and libCD.UnitAuraDirect or UnitAura
-    for i = 1, 32 do
+    for i = 1, 40 do
         local name = GetUnitAura(unitID, i, "HELPFUL")
         if not name then break end -- no more buffs
 
@@ -243,7 +242,7 @@ function addon:DeleteCast(unitGUID, isInterrupted, skipDeleteCache, isCastComple
 
     local cast = activeTimers[unitGUID]
     if cast then
-        cast.isInterrupted = isInterrupted -- SPELL_INTERRUPT
+        cast.isInterrupted = isInterrupted
         cast.isCastComplete = isCastComplete -- SPELL_CAST_SUCCESS
         self:StopAllCasts(unitGUID, noFadeOut)
         activeTimers[unitGUID] = nil
@@ -337,10 +336,8 @@ function addon:ToggleUnitEvents(shouldReset)
 
     if self.db.party.enabled then
         self:RegisterEvent("GROUP_ROSTER_UPDATE")
-        self:RegisterEvent("GROUP_JOINED")
     else
         self:UnregisterEvent("GROUP_ROSTER_UPDATE")
-        self:UnregisterEvent("GROUP_JOINED")
     end
 
     if shouldReset then
@@ -358,7 +355,7 @@ function addon:PLAYER_ENTERING_WORLD(isInitialLogin)
     PoolManager:GetFramePool():ReleaseAll() -- also removes castbar._data references
     self:SetFocusDisplay(nil)
 
-    if self.db.party.enabled and IsInGroup() then
+    if self.db.party.enabled then
         self:GROUP_ROSTER_UPDATE()
     end
 end
@@ -419,12 +416,6 @@ function addon:PLAYER_LOGIN()
         self.db.arena.castFont = _G.STANDARD_TEXT_FONT
         self.db.party.castFont = _G.STANDARD_TEXT_FONT
         self.db.npcCastUninterruptibleCache = CopyTable(namespace.defaultConfig.npcCastUninterruptibleCache)
-    end
-
-    -- config is not needed anymore if options are not loaded
-    if not IsAddOnLoaded("ClassicCastbars_Options") then
-        self.defaultConfig = nil
-        namespace.defaultConfig = nil
     end
 
     if self.db.player.enabled then
@@ -497,8 +488,8 @@ function addon:GROUP_ROSTER_UPDATE()
         activeGUIDs[unitID] = UnitGUID(unitID) or nil
 
         if activeGUIDs[unitID] then
-            -- hide castbar incase party frames were shifted around
-            self:StopCast(unitID, true)
+            self:StopCast(unitID, true) -- always hide castbar incase party frames were shifted around
+            self:StartCast(activeGUIDs[unitID], unitID) -- restart any potential casts
         else
             -- party member no longer exists, release castbar
             local castbar = activeFrames[unitID]
@@ -509,7 +500,6 @@ function addon:GROUP_ROSTER_UPDATE()
         end
     end
 end
-addon.GROUP_JOINED = addon.GROUP_ROSTER_UPDATE
 
 -- Upvalues for combat log events
 local bit_band = _G.bit.band

@@ -1,10 +1,10 @@
-## Interface: 20501
+## Interface: 20502
 ## X-Curse-Project-ID: 383394
 ## X-WoWI-ID: 25592
 ## X-Wago-ID: Rn6VPLGd
 ## Title: EZDownRank
 ## Author: Buds
-## Version: v2.6.0
+## Version: v2.6.1
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## OptionalDeps: LibGetFrame-1.0 VuhDo

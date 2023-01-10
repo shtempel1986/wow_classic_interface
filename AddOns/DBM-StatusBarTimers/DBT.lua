@@ -88,6 +88,7 @@ DBT.DefaultOptions = {
 	FillUpBars = true,
 	TimerPoint = "TOPRIGHT",
 	Sort = "Sort",
+	DesaturateValue = 1,
 	-- Huge bar
 	EnlargeBarTime = 11,
 	HugeBarXOffset = 0,
@@ -121,7 +122,6 @@ DBT.DefaultOptions = {
 	ClickThrough = false,
 	KeepBars = true,
 	FadeBars = true,
-	StripCDText = true,
 	Texture = "Interface\\AddOns\\DBM-StatusBarTimers\\textures\\default.blp",
 	Font = "standardFont",
 	FontFlag = "None",
@@ -160,7 +160,7 @@ end
 do
 	local CreateFrame, GetTime, IsShiftKeyDown = CreateFrame, GetTime, IsShiftKeyDown
 
-	local function onUpdate(self, elapsed)
+	local function onUpdate(self)
 		if self.obj then
 			self.obj.curTime = GetTime()
 			self.obj.delta = self.obj.curTime - self.obj.lastUpdate
@@ -220,7 +220,7 @@ do
 		local spark = bar:CreateTexture("$parentSpark", "OVERLAY")
 		spark:SetPoint("CENTER", bar, "CENTER")
 		spark:SetSize(32, 64)
-		spark:SetTexture("Interface\\AddOns\\DBM-Core\\textures\\Spark.blp")
+		spark:SetTexture("Interface\\AddOns\\DBM-StatusBarTimers\\textures\\Spark.blp")
 		spark:SetBlendMode("ADD")
 		local timer = bar:CreateFontString("$parentTimer", "OVERLAY", "GameFontHighlightSmall")
 		timer:SetPoint("RIGHT", bar, "RIGHT", -1, 0.5)
@@ -334,6 +334,16 @@ do
 end
 
 do
+	local gsub = string.gsub
+
+	local function fixElv(optionName)
+		if DBT.Options[optionName]:lower():find("interface\\addons\\elvui\\media\\") then
+			DBT.Options[optionName] = gsub(DBT.Options[optionName], gsub("Interface\\AddOns\\ElvUI\\Media\\", "(%a)", function(v)
+				return "[" .. v:upper() .. v:lower() .. "]"
+			end), "Interface\\AddOns\\ElvUI\\Core\\Media\\")
+		end
+	end
+
 	function DBT:LoadOptions(id)
 		if not DBT_AllPersistentOptions then
 			DBT_AllPersistentOptions = {}
@@ -358,6 +368,9 @@ do
 		if self.Options.Sort == true then
 			self.Options.Sort = "Sort"
 		end
+		-- Migrate ElvUI changes
+		fixElv("Texture")
+		fixElv("Font")
 	end
 
 	function DBT:CreateProfile(id)
@@ -688,7 +701,7 @@ function barPrototype:SetText(text, inlineIcon)
 		inlineIcon = nil
 	end
 	-- Force change color type 7 to custom inlineIcon
-	_G[self.frame:GetName().."BarName"]:SetText(((self.colorType and self.colorType == 7 and DBT.Options.Bar7CustomInline) and DBM_CORE_L.IMPORTANT_ICON or inlineIcon or "") .. text)
+	_G[self.frame:GetName().."BarName"]:SetText(((self.colorType and self.colorType == 7 and DBT.Options.Bar7CustomInline) and DBM_COMMON_L.IMPORTANT_ICON or inlineIcon or "") .. text)
 end
 
 function barPrototype:SetIcon(icon)
@@ -748,7 +761,8 @@ function barPrototype:Update(elapsed)
 	local isMoving = self.moving
 	local isFadingIn = self.fadingIn
 	local colorCount = self.colorType
-	local enlargeHack = self.dummyEnlarge or colorCount == 7 and barOptions.Bar7ForceLarge
+	local enlargeEnabled = DBT.Options.HugeBarsEnabled
+	local enlargeHack = self.dummyEnlarge or colorCount == 7 and barOptions.Bar7ForceLarge and enlargeEnabled
 	local enlargeTime = barOptions.EnlargeBarTime or 11
 	local isEnlarged = self.enlarged and not paused
 	local fillUpBars = isEnlarged and barOptions.FillUpLargeBars or not isEnlarged and barOptions.FillUpBars
@@ -777,6 +791,9 @@ function barPrototype:Update(elapsed)
 				b = barOptions.StartColorB + (barOptions.EndColorB - barOptions.StartColorB) * (1 - timerValue/totaltimeValue)
 			end
 		end
+		if not enlargeEnabled and timerValue > enlargeTime then
+			r, g, b = barOptions.DesaturateValue * r, barOptions.DesaturateValue * g, barOptions.DesaturateValue * b
+		end
 		bar:SetStatusBarColor(r, g, b)
 		if sparkEnabled then
 			spark:SetVertexColor(r, g, b)
@@ -786,14 +803,14 @@ function barPrototype:Update(elapsed)
 		return self:Cancel()
 	else
 		if fillUpBars then
-			if currentStyle == "NoAnim" and isEnlarged and not enlargeHack then
+			if currentStyle == "NoAnim" and timerValue <= enlargeTime and not enlargeHack then
 				-- Simple/NoAnim Bar mimics BW in creating a new bar on large bar anchor instead of just moving the small bar
 				bar:SetValue(1 - timerValue/(totaltimeValue < enlargeTime and totaltimeValue or enlargeTime))
 			else
 				bar:SetValue(1 - timerValue/totaltimeValue)
 			end
 		else
-			if currentStyle == "NoAnim" and isEnlarged and not enlargeHack then
+			if currentStyle == "NoAnim" and timerValue <= enlargeTime and not enlargeHack then
 				-- Simple/NoAnim Bar mimics BW in creating a new bar on large bar anchor instead of just moving the small bar
 				bar:SetValue(timerValue/(totaltimeValue < enlargeTime and totaltimeValue or enlargeTime))
 			else
@@ -884,7 +901,7 @@ function barPrototype:Update(elapsed)
 		self:ApplyStyle()
 		DBT:UpdateBars(true)
 	end
-	if not paused and (timerValue <= enlargeTime) and not self.small and not isEnlarged and isMoving ~= "enlarge" and DBT.Options.HugeBarsEnabled then
+	if not paused and (timerValue <= enlargeTime) and not self.small and not isEnlarged and isMoving ~= "enlarge" and enlargeEnabled then
 		self:RemoveFromList()
 		self:Enlarge()
 	end
@@ -926,7 +943,7 @@ function barPrototype:ApplyStyle()
 		end
 	else
 		local barStartRed, barStartGreen, barStartBlue
-		if self.colorType then
+		if self.colorType and self.colorType >= 1 then
 			local colorCount = self.colorType
 			if colorCount == 1 then--Add
 				barStartRed, barStartGreen, barStartBlue = barOptions.StartColorAR, barOptions.StartColorAG, barOptions.StartColorAB
@@ -1117,8 +1134,7 @@ do
 	end
 
 	function DBT:SetSkin(id)
-		local skin = skins[id]
-		if not skin then
+		if not skins[id] then
 			error("Skin '" .. id .. "' doesn't exist", 2)
 		end
 		local DBM_UsedProfile = DBM_UsedProfile or "Default"
@@ -1130,12 +1146,12 @@ do
 		end
 		if not DBT_AllPersistentOptions[DBM_UsedProfile][id] then
 			DBT_AllPersistentOptions[DBM_UsedProfile][id] = DBT_AllPersistentOptions[DBM_UsedProfile].DBM or {}
-			for option, value in pairs(skin.Defaults) do
+			for option, value in pairs(skins[id].Defaults) do
 				DBT_AllPersistentOptions[DBM_UsedProfile][id][option] = value
 			end
 		end
 		self:ApplyProfile(id, true)
-		for option, value in pairs(skin.Options) do
+		for option, value in pairs(skins[id].Options) do
 			self:SetOption(option, value, true)
 		end
 		self:SetOption("Skin", id) -- Forces an UpdateBars and ApplyStyle

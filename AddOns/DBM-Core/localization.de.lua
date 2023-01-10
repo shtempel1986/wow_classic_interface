@@ -1,5 +1,4 @@
 if GetLocale() ~= "deDE" then return end
-
 if not DBM_CORE_L then DBM_CORE_L = {} end
 
 local L = DBM_CORE_L
@@ -37,20 +36,30 @@ L.MOD_AVAILABLE				= "Das Mod \"%s\" ist für diese Zone/Boss verfügbar. Du kan
 
 L.COMBAT_STARTED				= "Kampf gegen %s hat begonnen. Viel Glück! :)";
 L.COMBAT_STARTED_IN_PROGRESS	= "Du wurdest in den laufenden Kampf gegen %s verwickelt. Viel Glück! :)"
-L.GUILD_COMBAT_STARTED		= "Kampf gegen %s wurde von deiner Gilde begonnen."
+--L.GUILD_COMBAT_STARTED		= "Kampf gegen %s wurde von deiner Gilde begonnen."--Uncomment when updated, args have changed
+L.SCENARIO_STARTED			= "%s gestartet. Viel Glück! :)"
+L.SCENARIO_STARTED_IN_PROGRESS	=	"Du bist dem laufenden Szenario %s beigetreten. Viel Glück! :)"
 L.BOSS_DOWN					= "%s besiegt nach %s!"
 L.BOSS_DOWN_I				= "%s besiegt! Das war dein %d. Sieg."
 L.BOSS_DOWN_L				= "%s besiegt nach %s! Dein letzter Sieg hat %s gedauert und der schnellste %s. Das war dein %d. Sieg."
 L.BOSS_DOWN_NR				= "%s besiegt nach %s! Das ist ein neuer Rekord! (Der alte Rekord war %s.) Das war dein %d. Sieg."
-L.GUILD_BOSS_DOWN			= "%s wurde durch deine Gilde besiegt nach %s!"
+--L.GUILD_BOSS_DOWN			= "%s wurde durch deine Gilde besiegt nach %s!"--Uncomment when updated, args have changed
+L.SCENARIO_COMPLETE			= "%s abgeschlossen nach %s!"
+L.SCENARIO_COMPLETE_I		= "%s abgeschlossen! Das war dein %d. Abschluss."
+L.SCENARIO_COMPLETE_L		= "%s abgeschlossen nach %s! Dein letzter Abschluss hat %s gedauert und der schnellste %s. Das war dein %d. Abschluss."
+L.SCENARIO_COMPLETE_NR		= "%s abgeschlossen nach %s! Das ist ein neuer Rekord! (Der alte Rekord war %s.) Das war dein %d. Abschluss."
 L.COMBAT_ENDED_AT			= "Kampf gegen %s (%s) hat nach %s aufgehört."
 L.COMBAT_ENDED_AT_LONG		= "Kampf gegen %s (%s) hat nach %s aufgehört. Das war deine %d. Niederlage auf diesem Schwierigkeitsgrad."
-L.GUILD_COMBAT_ENDED_AT		= "Deine Gilde war %s (%s) unterlegen nach %s."
+--L.GUILD_COMBAT_ENDED_AT		= "Deine Gilde war %s (%s) unterlegen nach %s."--Uncomment when updated, args have changed
+L.SCENARIO_ENDED_AT			= "%s abgebrochen nach %s."
+L.SCENARIO_ENDED_AT_LONG		= "%s abgebrochen nach %s. Das war dein %d. Abbruch auf diesem Schwierigkeitsgrad."
 L.COMBAT_STATE_RECOVERED		= "Kampf gegen %s hat vor %s begonnen, Neukalibrierung der Timer erfolgt..."
 L.TRANSCRIPTOR_LOG_START		= "\"Transcriptor\"-Aufzeichnung gestartet."
 L.TRANSCRIPTOR_LOG_END		= "\"Transcriptor\"-Aufzeichnung beendet."
 
 L.MOVIE_SKIPPED				= "DBM hat versucht eine Videosequenz automatisch zu überspringen."
+L.BONUS_SKIPPED				= "DBM hat das Beutefenster für den Bonuswurf automatisch geschlossen. Tippe /dbmbonusroll binnen drei Minuten, um es bei Bedarf anzuzeigen."
+L.BONUS_EXPIRED				= "Du hast versucht mittels /dbmbonusroll ein Beutefenster für den Bonuswurf zu öffnen. Es ist derzeit aber leider kein Bonuswurf aktiv."
 
 L.AFK_WARNING				= "Du bist \"AFK\" und im Kampf (%d Prozent Gesundheit verbleibend), Alarmsound ausgelöst.  Entferne deine \"AFK\"-Markierung oder deaktiviere diese Alarmierung unter \"Sonstige Funktionen\", falls du nicht \"AFK\" bist."
 
@@ -85,18 +94,18 @@ L.NOTE_SHARE_FAIL			= "%s hat versucht eine Notiz mit dir für %s zu teilen. Ein
 L.NOTEHEADER					= "Gib deine Notiz für %s hier ein. Umschließe Spielernamen mit >< für Klassenfarben. Trenne Notizen mit '/' bei Alarmen mit mehreren Notizen."
 L.NOTEFOOTER					= "'OK' um die Änderungen zu akzeptieren, sonst 'Abbrechen'"
 L.NOTESHAREDHEADER			= "%s hat die Notiz unten für %s geteilt. Falls du sie akzeptierst, wird deine derzeitige Notiz überschrieben."
-L.NOTESHARED				= "Deine Notiz wurde an die Gruppe gesendet."
-L.NOTESHAREERRORSOLO		= "Einsam? Du solltest keine Notizen mit dir selbst teilen."
+L.NOTESHARED					= "Deine Notiz wurde an die Gruppe gesendet."
+L.NOTESHAREERRORSOLO			= "Einsam? Du solltest keine Notizen mit dir selbst teilen."
 L.NOTESHAREERRORBLANK		= "Leere Notizen können nicht geteilt werden."
 L.NOTESHAREERRORGROUPFINDER	= "In automatischen Gruppen der Gruppensuche können keine Notizen geteilt werden."
 L.NOTESHAREERRORALREADYOPEN	= "Die geteilte Notiz kann nicht geöffnet werden während der Notizeditor bereits geöffnet ist, damit die gerade von dir bearbeitete Notiz nicht verloren geht."
 
 L.ALLMOD_DEFAULT_LOADED		= "Standardeinstellungen für alle Mods dieser Instanz geladen."
 L.ALLMOD_STATS_RESETED		= "Alle Mod-Statistiken wurden zurückgesetzt."
-L.MOD_DEFAULT_LOADED		= "Standardeinstellungen für diesen Kampf geladen."
+L.MOD_DEFAULT_LOADED			= "Standardeinstellungen für diesen Kampf geladen."
 
 L.WORLDBOSS_ENGAGED			= "Kampf gegen %s wurde möglicherweise auf deinem Realm bei %s Prozent Leben begonnen. (gesendet von %s)"
-L.WORLDBOSS_DEFEATED		= "%s wurde möglichweise auf deinem Realm besiegt. (gesendet von %s)"
+L.WORLDBOSS_DEFEATED			= "%s wurde möglichweise auf deinem Realm besiegt. (gesendet von %s)"
 
 L.TIMER_FORMAT_SECS			= "%.2f |4Sekunde:Sekunden;"
 L.TIMER_FORMAT_MINS			= "%d |4Minute:Minuten;"
@@ -132,6 +141,12 @@ L.WHISPER_COMBAT_END_KILL			= "%s hat %s besiegt!"
 L.WHISPER_COMBAT_END_KILL_STATS		= "%s hat %s besiegt! Das war der %d. Sieg."
 L.WHISPER_COMBAT_END_WIPE_AT			= "%s war %s bei %s unterlegen."
 L.WHISPER_COMBAT_END_WIPE_STATS_AT	= "%s war %s bei %s unterlegen. Das war die %d. Niederlage auf diesem Schwierigkeitsgrad."
+--Scenarios (no percents. words like "fighting" or "wipe" changed to better fit scenarios)
+L.AUTO_RESPOND_WHISPER_SCENARIO		= "%s ist beschäftigt in %s (%d/%d Spieler am Leben)"
+L.WHISPER_SCENARIO_END_KILL			= "%s hat %s abgeschlossen!"
+L.WHISPER_SCENARIO_END_KILL_STATS	= "%s hat %s abgeschlossen! Das war der %d. Abschluss."
+L.WHISPER_SCENARIO_END_WIPE			= "%s hat %s abgebrochen."
+L.WHISPER_SCENARIO_END_WIPE_STATS	= "%s hat %s abgebrochen. Das war der %d. Abbruch auf diesem Schwierigkeitsgrad."
 
 L.VERSIONCHECK_HEADER		= "Boss Mod - Versionen"
 L.VERSIONCHECK_ENTRY			= "%s: %s (%s) %s"--One Boss mod
@@ -146,15 +161,13 @@ L.VOICE_DISABLED				= "Du hast derzeit mindestens einen DBM Sprachpack installie
 L.VOICE_COUNT_MISSING		= "Für die Countdown-Stimme %d ist ein Sprach-/Zählpack ausgewählt, der nicht gefunden werden konnte. Die Stimme wurde auf die Standardeinstellung zurückgesetzt: %s."
 --L.BIG_WIGS
 
-L.UPDATEREMINDER_HEADER			= "Deine Version von Deadly Boss Mods ist veraltet.\n Version %s (%s) kann über Curse, WoWI oder von deadlybossmods.com heruntergeladen werden."
-L.UPDATEREMINDER_HEADER_ALPHA	= "Deine ALPHA-Version von Deadly Boss Mods ist veraltet.\nDu liegst mindestens %d Revisionen zurück. Es wird empfohlen bei einer Entscheidung für ALPHA-Versionen immer die neueste ALPHA-Version zu nutzen. Ansonsten sollte die neueste RELEASE-Version genutzt werden. ALPHA-Versionen haben eine strengere Versionsprüfung, da diese Entwicklungsversionen von DBM sind."
+L.UPDATEREMINDER_HEADER			= "Deine Version von Deadly Boss Mods ist veraltet.\n Version %s (%s) kann über Curse/Twitch, WoWI oder von deadlybossmods.com heruntergeladen werden."
 L.UPDATEREMINDER_FOOTER			= "Drücke " .. (IsMacClient() and "Cmd-C" or "Strg+C")  ..  " um den Downloadlink in die Zwischenablage zu kopieren."
 L.UPDATEREMINDER_FOOTER_GENERIC	= "Drücke " .. (IsMacClient() and "Cmd-C" or "Strg+C")  ..  " um den Link in die Zwischenablage zu kopieren."
 L.UPDATEREMINDER_DISABLE			= "WARNUNG: Da dein Deadly Boss Mods zu veraltet ist, hat es sich zwangsweise deaktiviert und kann erst nach einer Aktualisierung wieder genutzt werden. Derart alter und inkompatibler Code kann zu einem schlechten Spielerlebnis bei dir oder deinen Schlachtzugsmitgliedern führen."
 L.UPDATEREMINDER_HOTFIX			= "Deine Version von DBM hat bekannte Probleme während dieses Bosskampfes, die durch ein Update auf die neueste DBM-Version behoben werden können."
 L.UPDATEREMINDER_HOTFIX_ALPHA	= "Deine Version von DBM hat bekannte Probleme während dieses Bosskampfes, die in einer künftigen DBM-Version behoben sind (oder in der neuesten Alphaversion)."
 L.UPDATEREMINDER_MAJORPATCH		= "WARNUNG: Da dein Deadly Boss Mods veraltet und deshalb leider für diesen Major Patch des Spiels nicht mehr geeignet ist, hat es sich bis zu einer Aktualisierung deaktiviert. Alter und inkompatibler Code kann zu einem schlechten Spielerlebnis bei dir oder deinen Schlachtzugsmitgliedern führen. Bitte lade dir baldmöglichst eine neue Version von deadlybossmods.com oder Curse herunter."
-L.UPDATEREMINDER_TESTVERSION		= "WARNUNG: Du benutzt eine Version von Deadly Boss Mods die nicht für diese Version des Spiels gedacht ist. Bitte lade dir eine zum Spiel passende Version von deadlybossmods.com oder Curse herunter."
 L.VEM							= "WARNUNG: Du benutzt Deadly Boss Mods zusammen mit Voice Encounter Mods. DBM läuft nicht in dieser Konfiguration und wird deshalb nicht geladen."
 L.OUTDATEDPROFILES					= "WARNUNG: DBM-Profiles ist mit dieser Version von DBM nicht kompatibel. Es muss entfernt werden bevor DBM genutzt werden kann um Konflikte zu vermeiden."
 L.DPMCORE						= "WARNUNG: Deadly Pvp Mods (DPM) wird nicht mehr gepflegt und ist mit dieser Version von DBM nicht kompatibel. Es muss entfernt werden bevor DBM genutzt werden kann um Konflikte zu vermeiden."
@@ -221,47 +234,8 @@ L.SLASHCMD_HELP2				= {
 	"/dbm lag: Prüft die Latenz im gesamten Schlachtzug.",
 	"/dbm durability: Prüft die Haltbarkeit im gesamten Schlachtzug."
 }
-L.TIMER_USAGE	= {
-	"DBM-Timer Kommandos:",
-	"/dbm timer <sec> <text>: Startet einen <sec> Sekunden langen Timer mit deinem <text>.",
-	"/dbm ltimer <sec> <text>: Startet einen Timer, der automatisch wiederholt wird, bis er abgebrochen wird.",
-	"/dbm broadcast timer/ltimer/cltimer <sec> <text>: schickt den Timer an den Schlachtzug (nur als Leiter/Assistent).",
-	"/dbm timer endloop: Stoppt alle ltimer-.",
-}
 
 L.ERROR_NO_PERMISSION				= "Du hast nicht die benötigte Berechtigung für diesen Befehl!"
-
---Common Locals
-L.NEXT							= "Nächste %s"
-L.COOLDOWN						= "%s CD"
-L.UNKNOWN					= "unbekannt"
-L.LEFT						= "Links"
-L.RIGHT						= "Rechts"
-L.BOTH						= "Beide"
-L.BACK						= "Hinten"
-L.SIDE						= "Seite"
-L.TOP						= "Oben"
-L.BOTTOM						= "Unten"
-L.MIDDLE						= "Mitte"
-L.FRONT						= "Vorne"
-L.EAST						= "Osten"
-L.WEST						= "Westen"
-L.NORTH						= "Norden"
-L.SOUTH						= "Süden"
-L.INTERMISSION				= "Übergang"
-L.ORB						= "Kugel"
-L.CHEST							= "Kiste"
-L.NO_DEBUFF						= "Kein %s"
-L.ALLY							= "Verbündeten"
-L.ADD								= "Add"
-L.ADDS							= "Adds"
-L.ROOM_EDGE					= "Rand des Raums"
-L.FAR_AWAY					= "Weit weg"
-L.BREAK_LOS					= "Meide Sichtlinie"
-L.SAFE						= "Sicher"
-L.SHIELD						= "Schutzschild"
-L.INCOMING						= "%s kommt"
---Common Locals end
 
 L.BREAK_USAGE				= "Ein Pause-Timer kann nicht länger als 60 Minuten sein. Beachte bitte, dass für Pausen-Timer die Zeit in Minuten (und nicht in Sekunden) anzugeben ist."
 L.BREAK_START				= "Pause startet jetzt -- du hast %s! (gesendet von: %s)"
@@ -289,7 +263,7 @@ L.AUTO_ANNOUNCE_TEXTS.spell		= "%s"
 L.AUTO_ANNOUNCE_TEXTS.ends 		= "%s ist beendet"
 L.AUTO_ANNOUNCE_TEXTS.endtarget	= "%s ist beendet: >%%s<"
 L.AUTO_ANNOUNCE_TEXTS.fades		= "%s ist beendet"
-L.AUTO_ANNOUNCE_TEXTS.adds		= "%s verbleibend: %%d"
+L.AUTO_ANNOUNCE_TEXTS.addsleft		= "%s verbleibend: %%d"
 L.AUTO_ANNOUNCE_TEXTS.cast		= "Wirkt %s: %.1f Sek"
 L.AUTO_ANNOUNCE_TEXTS.soon		= "%s bald"
 L.AUTO_ANNOUNCE_TEXTS.sooncount	= "%s (%%s) bald"
@@ -307,7 +281,7 @@ L.AUTO_ANNOUNCE_OPTIONS.spell		= "Zeige Warnung für $spell:%s"
 L.AUTO_ANNOUNCE_OPTIONS.ends		= "Zeige Warnung, wenn $spell:%s beendet ist"
 L.AUTO_ANNOUNCE_OPTIONS.endtarget	= "Zeige Warnung, wenn $spell:%s beendet ist"
 L.AUTO_ANNOUNCE_OPTIONS.fades		= "Zeige Warnung, wenn $spell:%s beendet ist"
-L.AUTO_ANNOUNCE_OPTIONS.adds		= "Verkünde die Anzahl der verbleibenden $spell:%s"
+L.AUTO_ANNOUNCE_OPTIONS.addsleft	= "Verkünde die Anzahl der verbleibenden $spell:%s"
 L.AUTO_ANNOUNCE_OPTIONS.cast		= "Zeige Warnung, wenn $spell:%s gewirkt wird"
 L.AUTO_ANNOUNCE_OPTIONS.soon		= prewarnOption
 L.AUTO_ANNOUNCE_OPTIONS.sooncount	= prewarnOption
@@ -405,7 +379,7 @@ L.AUTO_TIMER_TEXTS.active		= "%s endet"--Buff/Debuff/event on boss
 L.AUTO_TIMER_TEXTS.fades		= "%s schwindet"--Buff/Debuff on players
 L.AUTO_TIMER_TEXTS.ai			= "%s KI"
 L.AUTO_TIMER_TEXTS.cd			= "%s CD"
-L.AUTO_TIMER_TEXTS.cdcount		= "%s CD (%%s)"
+L.AUTO_TIMER_TEXTS.cdcount		= "%s (%%s) CD"
 L.AUTO_TIMER_TEXTS.cdsource	= "%s CD: >%%s<"
 L.AUTO_TIMER_TEXTS.cdspecial	= "Spezial CD"
 L.AUTO_TIMER_TEXTS.next		= "Nächster %s"
@@ -439,18 +413,11 @@ L.AUTO_TIMER_OPTIONS.addscustom	= "Zeige Zeit bis Adds erscheinen"
 L.AUTO_TIMER_OPTIONS.roleplay	= "Dauer des Rollenspiels anzeigen"
 
 
-L.AUTO_ICONS_OPTION_TEXT			= "Setze Zeichen auf Ziele von $spell:%s"
-L.AUTO_ICONS_OPTION_TEXT2		= "Setze Zeichen auf $spell:%s"
+L.AUTO_ICONS_OPTION_TARGETS			= "Setze Zeichen auf Ziele von $spell:%s"
+L.AUTO_ICONS_OPTION_NPCS		= "Setze Zeichen auf $spell:%s"
 L.AUTO_ARROW_OPTION_TEXT			= "Zeige DBM-Pfeil zum Hingehen zum von $spell:%s betroffenen Ziel"
 L.AUTO_ARROW_OPTION_TEXT2		= "Zeige DBM-Pfeil zum Weggehen vom von $spell:%s betroffenen Ziel"
 L.AUTO_ARROW_OPTION_TEXT3		= "Zeige DBM-Pfeil zum Hingehen zum richtigen Ort für $spell:%s"
-L.AUTO_VOICE_OPTION_TEXT			= "Spiele gesprochene Warnungen für $spell:%s"
-L.AUTO_VOICE2_OPTION_TEXT		= "Spiele gesprochene Warnungen für Phasenwechsel"
-L.AUTO_VOICE3_OPTION_TEXT		= "Spiele gesprochene Warnungen für ankommende Adds"
-L.AUTO_VOICE4_OPTION_TEXT		= "Spiele gesprochene Warnungen für schlechte Dinge auf dem Boden"
-L.AUTO_COUNTDOWN_OPTION_TEXT		= "Spiele akustischen Countdown bis $spell:%s gewirkt wird"
-L.AUTO_COUNTDOWN_OPTION_TEXT2	= "Spiele akustischen Countdown bis $spell:%s schwindet"
-L.AUTO_COUNTOUT_OPTION_TEXT		= "Zähle akustisch die Dauer von $spell:%s"
 
 L.AUTO_YELL_OPTION_TEXT.shortyell	= "Schreie, wenn du von $spell:%s betroffen bist"
 L.AUTO_YELL_OPTION_TEXT.yell			= "Schreie (mit Spielernamen), wenn du von $spell:%s betroffen bist"
@@ -536,15 +503,85 @@ L.LAG_FOOTER					= "Keine Antwort: %s"
 L.LDB_TOOLTIP_HELP1	= "Links-Klick, um DBM zu öffnen."
 L.LDB_TOOLTIP_HELP2	= "Rechts-Klick, um das Konfigurationsmenü zu öffnen."
 
-L.LDB_LOAD_MODS		= "Lade Boss Mod"
-
-L.LDB_ENABLE_BOSS_MOD	= "Aktiviere Boss Mod"
-
-L.WORLD_BUFFS.hordeOny		= "Miembros de la Horda, ciudadanos de Orgrimmar, vengan y reúnanse para homenajear un hecho heroico" --needs translation
 L.WORLD_BUFFS.allianceOny	= "Bürger und Verbündete Stormwinds, am heutigen Tage ist Geschichte geschrieben worden."
-L.WORLD_BUFFS.hordeNef		= "NEFARIAN IS SLAIN! People of Orgrimmar"    --needs translation
 L.WORLD_BUFFS.allianceNef	= "Angehörige der Allianz, der Herrscher des Blackrocks wurde besiegt!"
 L.WORLD_BUFFS.zgHeart		= "Nun ist nur noch ein letzter Schritt nötig, um uns von der Bedrohung des Seelenschinders zu befreien"
 L.WORLD_BUFFS.zgHeartBooty	= "Der Blutgott, der Seelenschinder, wurde besiegt! Wir werden nicht länger unterdrückt!"
 L.WORLD_BUFFS.zgHeartYojamba= "Beginnt mit dem Ritual, meine Diener. Wir müssen das Herz von Hakkar wieder in das Nichts verbannen!"
 L.WORLD_BUFFS.rendHead		= "Rend Blackhand, der falsche Kriegshäuptling, ist gefallen!"
+L.WORLD_BUFFS.hordeOny		= "Mitglieder der Horde, Bewohner von Ogrimmar, kommt und sammelt euch um den Held der Horde zu feiern"
+L.WORLD_BUFFS.hordeNef		= "NEFARIAN WURDE GETÖTET! Einwohner von Orgrimmar"
+
+L.COPY_URL_DIALOG_NEWS="Die aktuellsten Meldungen findest du immer unter dem unten stehenden Link"
+L.LOAD_MOD_TOC_MISMATCH="%s konnte nicht geladen werden das es für einen WoW Patch (%s) designt wurde der aktuell nicht verfügbar ist. Wenn das Update verfügbar ist funktioniert dieser Mod automatisch."
+L.RAID_DOWN="%s gecleared nach %s"
+L.RAID_DOWN_L="%s gecleared nach %s! Dein schnellster Clear hat %s gedauert."
+L.RAID_DOWN_NR="%s gecleared nach %s! Dies ist ein neue Record! (der Alte Rekord war %s)."
+L.WORLDBUFF_STARTED="%s wurde auf deinem Realm für die Fraktion %s gestartet (Gesendet von %s)."
+L.OPTION_CATEGORY_SPECWARNINGS="Spezialansagen"
+L.OPTION_CATEGORY_YELLS="Schreie"
+L.OPTION_CATEGORY_NAMEPLATES="Namensplaketten"
+L.OPTION_CATEGORY_ICONS="Icons"
+L.OUTDATEDSPELLTIMERS="WARNUNG: DBM-SpellTimers funktioniert nicht mehr und muss deaktiviert werden damit " .. L.DBM .. " richtig funktioniert."
+L.VICTORYSOUND="WARNUNG: DBM-VictorySound ist nicht kompatible mit dieser version von " .. L.DBM .. " und muss, um Konflikte zu vermeiden, deaktiviert werden damit " .. L.DBM .. " genutzt werden kann."
+L.OUTDATEDRLT="WARNUNG: DBM-RaidLeadTools funktioniert nicht mehr und muss entfernt werden damit " .. L.DBM .. "  richtig funktioniert."
+L.DBMLOOTREMINDER="WARNUNG: 3rd party mod DBM-LootReminder ist installiert. Dieses Addon ist nicht mehr Kompatibel mit dem Retail WoW Client und führt dazu das " .. L.DBM .. " nicht mehr funktioniert und keine Pull-Timer mehr senden kann. Komplette Entfernung des Addons wird empfohlen."
+L.RANGECHECK_HEADERT="Abstandscheck (%dy-%dP)"
+L.RANGECHECK_IN_RANGE_TEXT="%d in Reichweite"
+L.RANGECHECK_HEADER="Abstandscheck (%dy)"
+L.RANGECHECK_RHEADER="Radar-Abstandscheck (%dy)"
+L.RANGECHECK_RHEADERT="Radar-Abstandscheck (%dy-%dP)"
+L.RANGERADAR_RHEADER="Radarabstand:%d Spieler:%d"
+L.RANGERADAR_HEADER="Abstand:%d Spieler:%d"
+L.INFOFRAME_SETCOLS="Setze maximale Spaltenanzahl"
+L.INFOFRAME_AGGRO="Aggro"
+L.TIMER_USAGE	= {
+	"DBM-Timer Kommandos:",
+	"-----------------",
+	"/dbm timer <sec> <text>: Startet einen <sec> Sekunden langen Timer mit deinem <text>.",
+	"/dbm ltimer <sec> <text>: Startet einen Timer, der automatisch wiederholt wird, bis er abgebrochen wird.",
+	"/dbm broadcast timer/ltimer/cltimer <sec> <text>: schickt den Timer an den Schlachtzug (nur als Leiter/Assistent).",
+	"/dbm timer endloop: Stoppt alle ltimer-.",
+}
+L.TIME_TOO_SHORT="Pull-Timer muss länger als 3 Sekunden sein"
+L.AUTO_ANNOUNCE_TEXTS.targetsource=">%%s< wirkt %s auf >%%s<"
+L.AUTO_ANNOUNCE_TEXTS.countdown="%s in %%ds"
+L.AUTO_ANNOUNCE_TEXTS.bait="%s bald - bait jetzt"
+L.AUTO_ANNOUNCE_TEXTS.moveto="%s - gehe zu >%%s<"
+L.AUTO_ANNOUNCE_OPTIONS.targetNF="Verkünde Ziele von $spell:%s (ignoriert globalen Ziel Filtert)"
+L.AUTO_ANNOUNCE_OPTIONS.targetsource="Verkünde Ziele von $spell:%s (mit Quelle)"
+L.AUTO_ANNOUNCE_OPTIONS.countdown="Zeige Vorwarnungs-Countdown für $spell:%s"
+L.AUTO_ANNOUNCE_OPTIONS.bait="Zeige Vorwarnungs (zum Baiten) für $spell:%s"
+L.AUTO_ANNOUNCE_OPTIONS.moveto="Zeige Warnung für Bewegungen zu Spieler oder Ort für $spell:%s"
+L.AUTO_SPEC_WARN_TEXTS.bait="%s bald - bait jetzt"
+L.AUTO_SPEC_WARN_TEXTS.youposcount="%s (%%s) (Position: %%s) auf dir!"
+L.AUTO_SPEC_WARN_TEXTS.dodgecount="%s (%%s) - Angriff ausweichen"
+L.AUTO_SPEC_WARN_TEXTS.soak="%s - soaken"
+L.AUTO_SPEC_WARN_TEXTS.soakcount="%s - soake %%s"
+L.AUTO_SPEC_WARN_TEXTS.targetchange="Zielwechsel - wechsel zu  %%s"
+L.AUTO_SPEC_WARN_OPTIONS.bait="Spezialvorwarnung (zum Baiten) für $spell:%s"
+L.AUTO_SPEC_WARN_OPTIONS.youposcount="Spezialwarnung (mit Position und Zählung), wenn du von $spell:%s betroffen bist"
+L.AUTO_SPEC_WARN_OPTIONS.dodgecount="Spezialwarnung (mit Zählung) zum Ausweichen bei $spell:%s"
+L.AUTO_SPEC_WARN_OPTIONS.soak="Spezialwarnung zum Soaken für $spell:%s"
+L.AUTO_SPEC_WARN_OPTIONS.soakcount="Spezialwarnung (mit Zählung) zum Soaken für $spell:%s"
+L.AUTO_SPEC_WARN_OPTIONS.targetchange="Spezialwarnung für wechsel des Prioritätsziels"
+L.AUTO_TIMER_TEXTS.targetcount="%s (%%2$s): %%1$s"
+L.AUTO_TIMER_TEXTS.castcount="%s (%%s)"
+L.AUTO_TIMER_TEXTS.roleplay="GUILD_INTEREST_RP oder \"Rollenspiel\""
+L.AUTO_TIMER_OPTIONS.target="Dauer des Debuffs für $spell:%s anzeigen"
+L.AUTO_TIMER_OPTIONS.targetcount="Dauer des Debuffs (mit Zählung) für $spell:%s anzeigen"
+L.AUTO_TIMER_OPTIONS.castcount="Wirkzeit (mit Zählung) von $spell:%s anzeigen"
+L.AUTO_ICONS_OPTION_TARGETS_MELEE_A="Setze Zeichen auf Ziele von $spell:%s beginnend mit melee und nach Alphabetischer Reihenfolge"
+L.AUTO_ICONS_OPTION_TARGETS_MELEE_R="Setze Zeichen auf Ziele von $spell:%s beginnend mit melee und nach Raidroster Reihenfolge"
+L.AUTO_ICONS_OPTION_TARGETS_RANGED_A="Setze Zeichen auf Ziele von $spell:%s beginnend mit ranged und nach Alphabetischer Reihenfolge"
+L.AUTO_ICONS_OPTION_TARGETS_RANGED_R="Setze Zeichen auf Ziele von $spell:%s beginnend mit ranged und nach Raidroster Reihenfolge"
+L.AUTO_ICONS_OPTION_TARGETS_ALPHA="Setze Zeichen auf Ziele von $spell:%s nach Alphabetischer Reihenfolge"
+L.AUTO_ICONS_OPTION_TARGETS_ROSTER="Setze Zeichen auf Ziele von $spell:%s  nach Raidroster Reihenfolge"
+L.AUTO_ICONS_OPTION_CONFLICT="(kann zu Konflikten mit anderen Optionen führen)"
+L.AUTO_YELL_OPTION_TEXT.shortposition="Schreie (mit Position), wenn du von $spell:%s betroffen bist"
+L.AUTO_YELL_OPTION_TEXT.position="Schreie (mit Position und Spielername), wenn du von $spell:%s betroffen bist"
+L.AUTO_YELL_OPTION_TEXT.repeatplayer="Schreie wiederholt (mit Spielername) wenn du von $spell:%s betroffen bist"
+L.AUTO_YELL_OPTION_TEXT.repeaticon="Schreie wiederholt (mit Icon) wenn du von $spell:%s betroffen bist"
+L.AUTO_INFO_FRAME_OPTION_TEXT3="Zeige Infofenster für $spell:%s (falls der Schwellwert von %%s übertroffen ist)"
+L.AUTO_SPEEDCLEAR_OPTION_TEXT="Zeige Timer für den schnellsten Clear von %s"
+L.SILENTMODE_IS="stummer Modus ist"

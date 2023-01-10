@@ -17,7 +17,7 @@ function module.Looks:Legendary(popup)
 	popup.close:SetPoint("TOPRIGHT", -18, -24)
 
 	popup.modelbg:SetPoint("TOPLEFT", 48, -32)
-	self:SizeModel(popup, 4)
+	self:SizeModel(popup, 1)
 
 	popup.title:SetPoint("TOPLEFT", popup.modelbg, "TOPRIGHT", 11, -16)
 	popup.source:SetPoint("BOTTOMRIGHT", -20, 26)
@@ -32,6 +32,7 @@ function module.Looks:Legendary(popup)
 	popup.shine:SetPoint("BOTTOMLEFT", 10, 24)
 
 	popup.raidIcon:SetPoint("BOTTOM", popup.modelbg, "TOP", 0, -8)
+	popup.lootIcon:SetPoint("CENTER", popup.modelbg, "BOTTOMLEFT", 0, 0)
 
 	popup.dead:SetAllPoints(popup.modelbg)
 end

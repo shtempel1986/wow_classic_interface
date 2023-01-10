@@ -21,33 +21,66 @@ function module:ResetLook(popup)
 end
 
 function module:ShowFrame(data)
-	if not self.db.profile.show then return end
 	if not (data and data.id) then return end
-	if not self.popup then
-		self.popup = self:CreatePopup()
-	end
-	local popup = self.popup
+	local popup = self:Acquire(self.db.profile.style)
 	popup.data = data
 
-	local name = core:NameForMob(data.id, data.unit)
-	if name then
-		local macrotext = "/cleartarget \n/targetexact "..name
-		popup:SetAttribute("macrotext1", macrotext)
+	if data.type == "mob" then
+		local name = core:NameForMob(data.id, data.unit)
+		if name then
+			local macrotext = "/cleartarget \n/targetexact "..name
+			popup:SetAttribute("macrotext1", macrotext)
+		end
+		if data.unit and GetRaidTargetIndex(data.unit) then
+			popup:SetRaidIcon(GetRaidTargetIndex(data.unit))
+		end
+	else
+		popup:SetAttribute("macrotext1", "")
 	end
 
 	if popup:IsVisible() then
 		popup:Hide()
 	end
 
+	self:RefreshData(popup)
 	popup:Show()
 
-	self:RefreshMobData(popup)
+	self:SetModel(popup)
 
-	self:ShowModel(popup)
+	return popup
+end
 
-	if data.unit and GetRaidTargetIndex(data.unit) then
-		popup:SetRaidIcon(GetRaidTargetIndex(data.unit))
+function module:RefreshData(popup)
+	local data = popup.data
+	if data.type == "mob" then
+		self:RefreshMobData(popup)
+	else
+		self:RefreshLootData(popup)
 	end
+	local isTreasure = data.type == "loot"
+	local anyLoot = ns.Loot.GetLootTable(data.id, isTreasure)
+	if anyLoot and #anyLoot > 0 then
+		popup.lootIcon.count:SetText("?")
+		popup.lootIcon:Show()
+	else
+		popup.lootIcon:Hide()
+	end
+	ns.Loot.OnceAllLootLoaded(data.id, data.type == "loot", function(loot)
+		if popup.waitingToHide then return end
+		local hasLoot, lootCount, suitableLootCount = ns.Loot.HasLoot(data.id, isTreasure)
+		if hasLoot then
+			popup.lootIcon:Show()
+			popup.lootIcon.count:SetText(suitableLootCount)
+		else
+			popup.lootIcon:Hide()
+		end
+		if ns.Loot.Status(data.id, true, data.type == "loot") then
+			-- all loot is collected
+			popup.lootIcon.complete:Show()
+		else
+			popup.lootIcon.complete:Hide()
+		end
+	end)
 end
 
 function module:RefreshMobData(popup)
@@ -62,16 +95,53 @@ function module:RefreshMobData(popup)
 		popup.status:SetText("")
 	end
 end
+function module:RefreshLootData(popup)
+	local data = popup.data
+	popup.title:SetText(data.name or UNKNOWN)
+	popup.source:SetText("vignette")
+	-- TODO: work out the Treasure of X achievements?
+	popup.status:SetText("")
+	popup.raidIcon:Hide()
+end
 
-function module:ShowModel(popup)
+local models = {
+	question = {
+		model = [[Interface\Buttons\talktomequestionmark.mdx]],
+		position = {4, 0, 1.5},
+		scale = 4.25,
+	},
+	loot = {
+		-- https://wow.tools/files/#search=type%3Am2%2Ctreasure&page=1&sort=0&desc=asc
+		{
+			model = 1100065, -- world/skillactivated/containers/treasurechest01hd.m2
+			position = nil,
+			scale = nil,
+		},
+		{
+			model = 3189119, -- world/expansion08/doodads/valkyr/9vl_aspirants_treasurechest_large01.m2
+			position = {-8, 0, 0.5},
+			scale = nil,
+		}
+	}
+}
+local function applyModelSettings(model, settings)
+	model:SetModel(settings.model)
+	if settings.scale then model:SetModelScale(settings.scale) end
+	if settings.position then model:SetPosition(unpack(settings.position)) end
+	if settings.facing then model:SetFacing(settings.facing) end
+end
+
+function module:SetModel(popup)
 	-- reset the model
 	popup.model:ClearModel()
 	popup.model:SetModelScale(1)
+	popup.model:SetModelAlpha(1)
 	popup.model:SetPosition(0, 0, 0)
 	popup.model:SetFacing(0)
+	popup.model.fallback:Hide()
 
 	local data = popup.data
-	if (data.id or data.unit) and not self:IsModelBlacklisted(data.id, data.unit) then
+	if (data.type == "mob" and data.id or data.unit) and not self:IsModelBlacklisted(data.id, data.unit) then
 		if data.unit then
 			popup.model:SetUnit(data.unit)
 		else
@@ -79,16 +149,19 @@ function module:ShowModel(popup)
 		end
 
 		popup.model:SetPortraitZoom(1)
+	elseif data.type == "loot" then
+		popup.model.fallback:SetAtlas("BonusLoot-Chest")
+		popup.model.fallback:Show()
+		-- I could do a 3d model, but since I can't get the right model for the treasure, it's arguably confusing
+		-- applyModelSettings(popup.model, models.loot[1])
 	else
-		popup.model:SetModelScale(4.25)
-		popup.model:SetPosition(4, 0, 1.5)
-		popup.model:SetModel([[Interface\Buttons\talktomequestionmark.mdx]])
+		applyModelSettings(popup.model, models.question)
 	end
 end
 
 do
 	local bad_ids = {
-		[83008] = true, -- Haakun the All-Consuming
+		-- [83008] = true, -- Haakun the All-Consuming
 	}
 	function module:IsModelBlacklisted(id, unit)
 		if not (id or unit) then
@@ -112,7 +185,7 @@ end
 -- copy the Button metatable on to this, because otherwise we lose all regular frame methods
 local PopupMixin = {}
 
-function module:CreatePopup()
+function module:CreatePopup(look)
 	-- Set up the frame
 	local name = "SilverDragonPopupButton"
 	do
@@ -122,22 +195,18 @@ function module:CreatePopup()
 			i = i + 1
 		end
 	end
-	local popup = CreateFrame("Button", name, UIParent, "SecureActionButtonTemplate, SecureHandlerShowHideTemplate" .. (BackdropTemplateMixin and ", BackdropTemplate" or ""))
+	local popup = CreateFrame("Button", name, UIParent, "SecureActionButtonTemplate, SecureHandlerShowHideTemplate, BackdropTemplate")
 	Mixin(popup, PopupMixin)
-	module.popup = popup
 
 	popup:SetSize(276, 96)
-	-- TODO: a stack
-	popup:SetPoint("CENTER", self.anchor, "CENTER")
+
 	popup:SetScale(self.db.profile.anchor.scale)
 	popup:SetMovable(true)
 	popup:SetClampedToScreen(true)
-	popup:RegisterForClicks("AnyUp")
+	popup:RegisterForClicks("AnyDown", "AnyUp") -- dragonflight: anydown+anyup required to function
 
 	popup:SetAttribute("type", "macro")
-	popup:SetAttribute("_onshow", "self:Enable()")
-	popup:SetAttribute("_onhide", "self:Disable()")
-	-- Can't do type=click + clickbutton=close because then it'd be right-clicking the close button which also ignores the mob
+	-- macrotext is set elsewhere
 	popup:SetAttribute("macrotext2", "/click " .. popup:GetName() .. "CloseButton")
 
 	popup:Hide()
@@ -147,19 +216,37 @@ function module:CreatePopup()
 	popup.background = background
 	background:SetBlendMode("BLEND")
 
-	local modelbg = popup:CreateTexture(nil, "BORDER")
+	local modelbg = popup:CreateTexture(nil, "BORDER", nil, 2)
 	popup.modelbg = modelbg
 	modelbg:SetTexture([[Interface\FrameGeneral\UI-Background-Marble]])
 	modelbg:SetSize(52, 52)
 
 	local model = CreateFrame("PlayerModel", nil, popup)
 	popup.model = model
+	local modelfallback = model:CreateTexture(nil, "ARTWORK")
+	modelfallback:SetAllPoints(model)
+	modelfallback:Hide()
+	model.fallback = modelfallback
 
 	local raidIcon = model:CreateTexture(nil, "OVERLAY")
 	popup.raidIcon = raidIcon
 	raidIcon:SetSize(16, 16)
 	raidIcon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
 	raidIcon:Hide()
+
+	local lootIcon = CreateFrame("Button", nil, popup)
+	popup.lootIcon = lootIcon
+	lootIcon:SetSize(40, 40)
+	lootIcon.texture = lootIcon:CreateTexture(nil, "OVERLAY", nil, 0)
+	lootIcon.texture:SetAllPoints(lootIcon)
+	lootIcon.texture:SetAtlas("ShipMissionIcon-Treasure-MapBadge")
+	lootIcon:Hide()
+	lootIcon.complete = lootIcon:CreateTexture(nil, "OVERLAY", nil, 1)
+	lootIcon.complete:SetAllPoints(lootIcon)
+	lootIcon.complete:SetAtlas("pvpqueue-conquestbar-checkmark")
+	lootIcon.complete:Hide()
+	lootIcon.count = lootIcon:CreateFontString(nil, "OVERLAY", "GameFontHighlightOutline")
+	lootIcon.count:SetAllPoints(lootIcon)
 
 	local dead = model:CreateTexture(nil, "OVERLAY")
 	popup.dead = dead
@@ -269,7 +356,12 @@ function module:CreatePopup()
 	popup.close:SetScript("OnEnter", popup.scripts.CloseOnEnter)
 	popup.close:SetScript("OnLeave", popup.scripts.CloseOnLeave)
 
-	self:ApplyLook(popup, self.db.profile.style)
+	popup.lootIcon:SetScript("OnEnter", popup.scripts.LootOnEnter)
+	popup.lootIcon:SetScript("OnLeave", popup.scripts.LootOnLeave)
+	popup.lootIcon:SetScript("OnClick", popup.scripts.LootOnClick)
+	popup.lootIcon:SetScript("OnHide", popup.scripts.LootOnHide)
+
+	self:ApplyLook(popup, look)
 
 	return popup
 end
@@ -296,7 +388,13 @@ function PopupMixin:SetRaidIcon(icon)
 end
 
 function PopupMixin:DoIgnore()
-	if self.data and self.data.id then
+	if not (self.data and self.data.id) then return end
+	if self.data.type == "loot" then
+		local vignette = core:GetModule("Scan_Vignettes", true)
+		if vignette then
+			vignette.db.profile.ignore[self.data.id] = self.data.name
+		end
+	else
 		core:SetIgnore(self.data.id, true)
 	end
 end
@@ -325,6 +423,7 @@ function PopupMixin:Reset()
 	self.animFade:Stop()
 
 	self.raidIcon:Hide()
+	self.lootIcon:Hide()
 	self.dead:SetAlpha(0)
 	self.model:ClearModel()
 
@@ -337,20 +436,41 @@ PopupMixin.scripts = {
 		self[event](self, event, ...)
 	end,
 	OnEnter = function(self)
-		if self.waitingToHide then
+		if self.waitingToHide or not self.data then
 			-- we're "hidden" via alpha==0 now, so no tooltip
 			return
 		end
 
 		local anchor = (self:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
 		GameTooltip:SetOwner(self, anchor, 0, -60)
-		GameTooltip:AddLine(escapes.leftClick .. " " .. TARGET)
-		GameTooltip:AddLine(escapes.keyDown .. ALT_KEY_TEXT .. " + " .. escapes.leftClick .. " + " .. DRAG_MODEL .. "  " .. MOVE_FRAME)
-		--GameTooltip:AddLine(escapes.keyDown .. CTRL_KEY_TEXT .. " + " .. escapes.leftClick .. "  " .. MAP_PIN )
-		--if C_Map.CanSetUserWaypointOnMap(self.data.zone) and self.data.x > 0 and self.data.y > 0 then
-		--	GameTooltip:AddLine(escapes.keyDown .. SHIFT_KEY_TEXT .. " + " .. escapes.leftClick .. "  " .. TRADESKILL_POST )
-		--end
-		GameTooltip:AddLine(escapes.rightClick .. " " .. CLOSE)
+		if self.data.type == "mob" then
+			GameTooltip:AddDoubleLine(escapes.leftClick .. " " .. TARGET, escapes.rightClick .. " " .. CLOSE)
+		else
+			GameTooltip:AddDoubleLine(" ", escapes.rightClick .. " " .. CLOSE)
+		end
+		local uiMapID, x, y = module:GetPositionFromData(self.data, false)
+		if uiMapID and x and y then
+			GameTooltip:AddDoubleLine(core.zone_names[uiMapID] or UNKNOWN, ("%.1f, %.1f"):format(x * 100, y * 100),
+				0, 1, 0,
+				0, 1, 0
+			)
+		else
+			GameTooltip:AddDoubleLine("Location", UNKNOWN,
+				0, 1, 0,
+				1, 0, 0
+			)
+		end
+		if self.data.vignetteID then
+			GameTooltip:AddDoubleLine("Vignette ID", self.data.vignetteID, 0, 1, 1, 0, 1, 1)
+		end
+
+		GameTooltip:AddDoubleLine(ALT_KEY_TEXT .. " + " .. escapes.leftClick .. " + " .. DRAG_MODEL, MOVE_FRAME)
+		if module:CanPoint(uiMapID) then
+			GameTooltip:AddDoubleLine(CTRL_KEY_TEXT .. " + " .. escapes.leftClick, MAP_PIN )
+		end
+		if uiMapID and x and y then
+			GameTooltip:AddDoubleLine(SHIFT_KEY_TEXT .. " + " .. escapes.leftClick, TRADESKILL_POST )
+		end
 		GameTooltip:Show()
 
 		self.glow.animIn:Stop() -- in case
@@ -373,30 +493,27 @@ PopupMixin.scripts = {
 	OnUpdate = function(self, elapsed)
 		self.elapsed = self.elapsed + elapsed
 		if self.elapsed > 0.5 then
-			if not self.model:GetModelFileID() then
+			if not self.model:GetModelFileID() and not self.model.fallback:IsShown() then
 				-- Sometimes models don't load the first time you request them for some reason. In this case,
 				-- re-requesting it seems to be needed. This might be a client bug, so testing whether it's still
 				-- necessary would be wise. (Added in 70100, reproducing by flying around Pandaria works pretty well.)
 				Debug("Poll for model reload")
-				module:ShowModel(self)
+				module:SetModel(self)
 			end
 			self.elapsed = 0
 		end
 	end,
 	OnMouseDown = function(self, button)
+		if self.waitingToHide then
+			return
+		end
 		if button == "RightButton" then
 			-- handled in the secure click handler
 			return
-		--elseif IsControlKeyDown() then
-		--	module:Point()
+		elseif IsControlKeyDown() then
+			module:Point(self.data)
 		elseif IsShiftKeyDown() then
-			-- worldmap:uiMapId:x:y
-			local data = self.data
-			local x, y = data.x, data.y
-			if not (x > 0 and y > 0) then
-				x, y = HBD:GetPlayerZonePosition()
-			end
-			module:SendLinkToMob(data.id, data.zone, x, y)
+			module:SendLinkFromData(self.data)
 		elseif IsAltKeyDown() then
 			module.anchor:StartMoving()
 		end
@@ -405,17 +522,19 @@ PopupMixin.scripts = {
 		module.anchor:StopMovingOrSizing()
 		if not InCombatLockdown() then
 			LibWindow.SavePosition(module.anchor)
+			module:Reflow()
 		end
 	end,
 	-- hooked:
 	OnShow = function(self)
 		if not self.data then
 			-- Things which show/hide UIParent (cinematics) *might* get us here without data
-			return self:Hide()
+			return self:HideWhenPossible()
 		end
 		module:ResetLook(self)
 
 		self:SetAlpha(1)
+		self:SetScale(module.db.profile.anchor.scale)
 
 		self.glow:Show()
 		self.glow.animIn:Play()
@@ -436,6 +555,8 @@ PopupMixin.scripts = {
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 		self.elapsed = 0
+
+		core.events:Fire("PopupShow", self.data.id, self.data.zone, self.data.x, self.data.y, self)
 	end,
 	OnHide = function(self)
 		if self.data then
@@ -448,9 +569,15 @@ PopupMixin.scripts = {
 		end
 
 		self.waitingToHide = false
+		self.automaticClose = nil
+
+		module:Release(self)
 	end,
 	-- Close button
 	CloseOnEnter = function(self)
+		if self:GetParent().waitingToHide then
+			return
+		end
 		local anchor = (self:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
 		GameTooltip:SetOwner(self, anchor, 0, 0)
 		GameTooltip:AddLine(escapes.leftClick .. " " .. CLOSE)
@@ -460,12 +587,68 @@ PopupMixin.scripts = {
 	CloseOnLeave = function(self)
 		GameTooltip:Hide()
 	end,
+	-- Loot icon
+	LootOnEnter = function(self)
+		if self:GetParent().waitingToHide then
+			return
+		end
+		local data = self:GetParent().data
+		if not (data and data.id) then return end
+		local anchor = (self:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
+		GameTooltip:SetOwner(self, anchor, 0, 0)
+		GameTooltip:SetFrameStrata("TOOLTIP")
+		if data.type == "mob" then
+			GameTooltip:AddDoubleLine(core:GetMobLabel(data.id), "Loot")
+		else
+			GameTooltip:AddDoubleLine(data.name or UNKNOWN, "Loot")
+		end
+		ns.Loot.Summary.UpdateTooltip(GameTooltip, data.id, false, data.type == "loot")
+		GameTooltip:AddLine(CLICK_FOR_DETAILS, 0, 1, 1)
+		GameTooltip:Show()
+	end,
+	LootOnLeave = function(self)
+		GameTooltip:Hide()
+	end,
+	LootOnClick = function(self, button)
+		if self:GetParent().waitingToHide then
+			return
+		end
+		if not self.window then
+			local data = self:GetParent().data
+			self.window = ns.Loot.Window.ShowForMob(data.id, false, data.type == "loot")
+			self.window:SetParent(self)
+			self.window:Hide()
+		end
+		if not self.window:IsShown() then
+			self.window:ClearAllPoints()
+			if self:GetParent():GetCenter() > UIParent:GetCenter() then
+				self.window:SetPoint("RIGHT", self:GetParent(), "LEFT")
+			else
+				self.window:SetPoint("LEFT", self:GetParent(), "RIGHT")
+			end
+			self.window:Show()
+		else
+			self.window:Hide()
+		end
+	end,
+	LootOnHide = function(self)
+		if self.window then
+			ns.Loot.Window.Release(self.window)
+		end
+		self.window = nil
+	end,
 	-- Common animations
 	AnimationHideParent = function(self)
 		self:GetParent():Hide()
 	end,
 	AnimationRequestHideParent = function(self)
-		self:GetParent():HideWhenPossible()
+		local parent = self:GetParent()
+		if parent.model:IsVisible() then
+			-- 10.0 bug: the models within a Model don't inherit alpha
+			-- We *can* directly set the interior model alpha, though
+			parent.model:SetModelAlpha(0)
+		end
+		parent:HideWhenPossible()
 	end,
 }
 function PopupMixin:COMBAT_LOG_EVENT_UNFILTERED()

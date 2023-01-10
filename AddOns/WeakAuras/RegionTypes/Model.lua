@@ -1,4 +1,5 @@
-if not WeakAuras.IsCorrectVersion() then return end
+if not WeakAuras.IsLibsOK() then return end
+--- @type string, Private
 local AddonName, Private = ...
 
 local SharedMedia = LibStub("LibSharedMedia-3.0");
@@ -14,12 +15,12 @@ local default = {
   model_y = 0,
   model_z = 0,
   -- SetTransform
-  model_st_tx = 0,
+  model_st_tx = 40,
   model_st_ty = 0,
   model_st_tz = 0,
-  model_st_rx = 270,
+  model_st_rx = 90,
   model_st_ry = 0,
-  model_st_rz = 0,
+  model_st_rz = 90,
   model_st_us = 40,
   width = 200,
   height = 200,
@@ -40,7 +41,7 @@ local default = {
   borderOffset = 5,
   borderInset = 11,
   borderSize = 16,
-  borderBackdrop = "Blizzard Tooltip",
+  borderBackdrop = "Blizzard Tooltip"
 };
 
 local screenWidth, screenHeight = math.ceil(GetScreenWidth() / 20) * 20, math.ceil(GetScreenHeight() / 20) * 20;
@@ -79,14 +80,18 @@ local regionFunctions = {
 -- Called when first creating a new region/display
 local function create(parent)
   -- Main region
-  local region = CreateFrame("FRAME", nil, UIParent);
+  local region = CreateFrame("Frame", nil, UIParent);
   region.regionType = "model"
   region:SetMovable(true);
   region:SetResizable(true);
-  region:SetMinResize(1, 1);
+  if region.SetResizeBounds then
+    region:SetResizeBounds(1, 1)
+  else
+    region:SetMinResize(1, 1)
+  end
 
   -- Border region
-  local border = CreateFrame("frame", nil, region, BackdropTemplateMixin and "BackdropTemplate");
+  local border = CreateFrame("Frame", nil, region, "BackdropTemplate");
   region.border = border;
 
   WeakAuras.regionPrototype.create(region);
@@ -95,12 +100,21 @@ local function create(parent)
     region[k] = v
   end
 
+  region.AnchorSubRegion = WeakAuras.regionPrototype.AnchorSubRegion
+
   -- Return complete region
   return region;
 end
 
+function Private.ModelSetTransformFixed(self, tx, ty, tz, rx, ry, rz, s)
+  -- In Dragonflight the api changed, this converts to the new api
+  self:SetTransform(CreateVector3D(tx, ty, tz), CreateVector3D(rx, ry, rz), -s)
+end
+
 local function CreateModel()
-  return CreateFrame("PlayerModel", nil, UIParent)
+  local frame = CreateFrame("PlayerModel", nil, UIParent)
+  frame.SetTransformFixed = WeakAuras.IsRetail() and  Private.ModelSetTransformFixed or frame.SetTransform
+  return frame
 end
 
 -- Keep the two model apis separate
@@ -120,9 +134,9 @@ local function ConfigureModel(region, model, data)
   WeakAuras.SetModel(model, data.model_path, data.model_fileId, data.modelIsUnit, data.modelDisplayInfo)
   model:SetPortraitZoom(data.portraitZoom and 1 or 0);
   model:ClearTransform()
-  if (data.api) then
+  if data.api then
     model:MakeCurrentCameraCustom()
-    model:SetTransform(data.model_st_tx / 1000, data.model_st_ty / 1000, data.model_st_tz / 1000,
+    model:SetTransformFixed(data.model_st_tx / 1000, data.model_st_ty / 1000, data.model_st_tz / 1000,
       rad(data.model_st_rx), rad(data.model_st_ry), rad(region.rotation), data.model_st_us / 1000);
   else
     model:SetPosition(data.model_z, data.model_x, data.model_y);
@@ -148,6 +162,11 @@ local function ConfigureModel(region, model, data)
       Private.StartProfileSystem("model");
       if (event ~= "UNIT_MODEL_CHANGED" or UnitIsUnit(unitId, unit)) then
         WeakAuras.SetModel(model, data.model_path, data.model_fileId, data.modelIsUnit, data.modelDisplayInfo)
+        if(data.advance and model:HasAnimation(data.sequence)) then
+          model:SetAnimation(data.sequence)
+        else
+          model:SetAnimation(0)
+        end
       end
       Private.StopProfileSystem("model");
     end
@@ -259,12 +278,12 @@ local function modify(parent, region, data)
     region:Scale(region.scalex, region.scaley);
   end
 
-  -- Roate model
+  -- Rotate model
   function region:Rotate(degrees)
     region.rotation = degrees;
     if region.model then
-      if (data.api) then
-        region.model:SetTransform(data.model_st_tx / 1000, data.model_st_ty / 1000, data.model_st_tz / 1000,
+      if data.api then
+        region.model:SetTransformFixed(data.model_st_tx / 1000, data.model_st_ty / 1000, data.model_st_tz / 1000,
           rad(data.model_st_rx), rad(data.model_st_ry), rad(degrees), data.model_st_us / 1000);
       else
         region.model:SetFacing(rad(region.rotation));
@@ -272,7 +291,7 @@ local function modify(parent, region, data)
     end
   end
 
-  if (data.api) then
+  if data.api then
     region:Rotate(data.model_st_rz);
   else
     region:Rotate(data.rotation);
@@ -305,9 +324,9 @@ end
 do
   function Private.PreShowModels(self, event)
     Private.StartProfileSystem("model");
-    for id, data in pairs(WeakAuras.regions) do
+    for id, data in pairs(Private.regions) do
       Private.StartProfileAura(id);
-      if data.region.toShow then
+      if data.region and data.region.toShow then
         if (data.regionType == "model") then
           data.region:PreShow();
         end
@@ -319,8 +338,11 @@ do
     end
     Private.StopProfileSystem("model");
   end
- end
+end
 
+local function validate(data)
+  Private.EnforceSubregionExists(data, "subbackground")
+end
 
 -- Register new region type with WeakAuras
-WeakAuras.RegisterRegionType("model", create, modify, default, GetProperties);
+WeakAuras.RegisterRegionType("model", create, modify, default, GetProperties, validate);

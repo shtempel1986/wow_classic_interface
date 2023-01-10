@@ -115,13 +115,11 @@ function Amr:RenderTabOptions(container)
 	_chkAh, desc = createCheck(container, "shopAh", L.OptionsShopAhName, L.OptionsShopAhDesc)
 	_chkAh:SetPoint("TOPLEFT", desc2.frame, "BOTTOMLEFT", -24, -20)
 	
-	--[[
-	_chkEm, desc = createCheck(container, "disableEm", L.OptionsDisableEmName, L.OptionsDisableEmDesc)
-	_chkEm:SetPoint("TOPLEFT", desc2.frame, "BOTTOMLEFT", -24, -20)
-	]]
+	_chkEm, desc2 = createCheck(container, "disableEm", L.OptionsDisableEmName, L.OptionsDisableEmDesc)
+	_chkEm:SetPoint("TOPLEFT", desc.frame, "BOTTOMLEFT", -24, -20)
 
-	_txtScale, desc2 = createSmallTextbox(container, "uiScale", L.OptionsUiScaleName, L.OptionsUiScaleDesc)
-	_txtScale:SetPoint("TOPLEFT", desc.frame, "BOTTOMLEFT", -43, -20)
+	_txtScale, desc = createSmallTextbox(container, "uiScale", L.OptionsUiScaleName, L.OptionsUiScaleDesc)
+	_txtScale:SetPoint("TOPLEFT", desc2.frame, "BOTTOMLEFT", -43, -20)
 	
 	-- initialize state of controls
 	Amr:RefreshOptionsUi()

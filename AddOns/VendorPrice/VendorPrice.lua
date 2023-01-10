@@ -1,7 +1,11 @@
 VendorPrice = {}
 local VP = VendorPrice
 
+local isVanilla = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+
 local SELL_PRICE_TEXT = format("%s:", SELL_PRICE)
+local overridePrice
 
 local CharacterBags = {}
 for i = CONTAINER_BAG_OFFSET+1, 23 do
@@ -14,38 +18,64 @@ for i = firstBankBag, lastBankBag do
 	CharacterBags[i] = true
 end
 
+local FIRST_KEYRING_INVSLOT = 107
+
 local function IsMerchant(tt)
 	if MerchantFrame:IsShown() then
 		local name = tt:GetOwner():GetName()
-		if name then -- bagnon sanity check
+		if name then
 			return not (name:find("Character") or name:find("TradeSkill"))
 		end
 	end
 end
 
+-- source was only really used for auctionator
 local function ShouldShowPrice(tt, source)
-	return not IsMerchant(tt) --and not VP:HasAuctionator(source)
+	return not IsMerchant(tt)
 end
 
 -- OnTooltipSetItem fires twice for recipes
 local function CheckRecipe(tt, classID, isOnTooltipSetItem)
-	if classID == LE_ITEM_CLASS_RECIPE and isOnTooltipSetItem then
+	if classID == Enum.ItemClass.Recipe and isOnTooltipSetItem then
 		tt.isFirstMoneyLine = not tt.isFirstMoneyLine
 		return tt.isFirstMoneyLine
 	end
 end
 
-function VP:SetPrice(tt, source, count, item, isOnTooltipSetItem)
+-- modify the tooltip when pressing shift, has a small delay
+local _SetTooltipMoney = SetTooltipMoney
+function SetTooltipMoney(frame, money, ...)
+	if IsShiftKeyDown() and overridePrice then
+		_SetTooltipMoney(frame, overridePrice, ...)
+	else
+		_SetTooltipMoney(frame, money, ...)
+		overridePrice = nil
+	end
+end
+
+GameTooltip:HookScript("OnHide", function()
+	overridePrice = nil
+end)
+
+function VP:SetPrice(tt, noWrath, source, count, item, isOnTooltipSetItem)
 	if ShouldShowPrice(tt, source) then
 		count = count or 1
 		item = item or select(2, tt:GetItem())
 		if item then
 			local sellPrice, classID = select(11, GetItemInfo(item))
 			if sellPrice and sellPrice > 0 and not CheckRecipe(tt, classID, isOnTooltipSetItem) then
-				if IsShiftKeyDown() and count > 1 then
-					SetTooltipMoney(tt, sellPrice, nil, SELL_PRICE_TEXT)
-				else
-					SetTooltipMoney(tt, sellPrice * count, nil, SELL_PRICE_TEXT)
+				local isShift = IsShiftKeyDown() and count > 1
+				local displayPrice = isShift and sellPrice or sellPrice * count
+				if isVanilla then
+					SetTooltipMoney(tt, displayPrice, nil, SELL_PRICE_TEXT)
+				elseif isWrath then
+					if noWrath then
+						if isShift then
+							overridePrice = displayPrice
+						end
+					else
+						SetTooltipMoney(tt, displayPrice, nil, SELL_PRICE_TEXT)
+					end
 				end
 				tt:Show()
 			end
@@ -56,20 +86,20 @@ end
 local SetItem = {
 	SetAction = function(tt, slot)
 		if GetActionInfo(slot) == "item" then
-			VP:SetPrice(tt, "SetAction", GetActionCount(slot))
+			VP:SetPrice(tt, true, "SetAction", GetActionCount(slot))
 		end
 	end,
 	SetAuctionItem = function(tt, auctionType, index)
 		local _, _, count = GetAuctionItemInfo(auctionType, index)
-		VP:SetPrice(tt, "SetAuctionItem", count)
+		VP:SetPrice(tt, false, "SetAuctionItem", count)
 	end,
 	SetAuctionSellItem = function(tt)
 		local _, _, count = GetAuctionSellItemInfo()
-		VP:SetPrice(tt, "SetAuctionSellItem", count)
+		VP:SetPrice(tt, true, "SetAuctionSellItem", count)
 	end,
 	SetBagItem = function(tt, bag, slot)
 		local _, count = GetContainerItemInfo(bag, slot)
-		VP:SetPrice(tt, "SetBagItem", count)
+		VP:SetPrice(tt, true, "SetBagItem", count)
 	end,
 	--SetBagItemChild
 	--SetBuybackItem -- already shown
@@ -78,10 +108,10 @@ local SetItem = {
 		local _, _, count = GetCraftReagentInfo(index, reagent)
 		 -- otherwise returns an empty link
 		local itemLink = GetCraftReagentItemLink(index, reagent)
-		VP:SetPrice(tt, "SetCraftItem", count, itemLink)
+		VP:SetPrice(tt, true, "SetCraftItem", count, itemLink)
 	end,
 	SetCraftSpell = function(tt)
-		VP:SetPrice(tt, "SetCraftSpell")
+		VP:SetPrice(tt, true, "SetCraftSpell")
 	end,
 	--SetHyperlink -- item information is not readily available
 	SetInboxItem = function(tt, messageIndex, attachIndex)
@@ -91,44 +121,46 @@ local SetItem = {
 		else
 			count, itemID = select(14, GetInboxHeaderInfo(messageIndex))
 		end
-		VP:SetPrice(tt, "SetInboxItem", count, itemID)
+		VP:SetPrice(tt, false, "SetInboxItem", count, itemID)
 	end,
 	SetInventoryItem = function(tt, unit, slot)
 		local count
 		if not CharacterBags[slot] then
 			count = GetInventoryItemCount(unit, slot)
 		end
-		VP:SetPrice(tt, "SetInventoryItem", count)
+		if slot < FIRST_KEYRING_INVSLOT then
+			VP:SetPrice(tt, VP:IsShown(BankFrame), "SetInventoryItem", count)
+		end
 	end,
 	--SetInventoryItemByID
 	--SetItemByID
 	SetLootItem = function(tt, slot)
 		local _, _, count = GetLootSlotInfo(slot)
-		VP:SetPrice(tt, "SetLootItem", count)
+		VP:SetPrice(tt, false, "SetLootItem", count)
 	end,
 	SetLootRollItem = function(tt, rollID)
 		local _, _, count = GetLootRollItemInfo(rollID)
-		VP:SetPrice(tt, "SetLootRollItem", count)
+		VP:SetPrice(tt, false, "SetLootRollItem", count)
 	end,
 	--SetMerchantCostItem -- alternate currency
 	--SetMerchantItem -- already shown
 	SetQuestItem = function(tt, questType, index)
 		local _, _, count = GetQuestItemInfo(questType, index)
-		VP:SetPrice(tt, "SetQuestItem", count)
+		VP:SetPrice(tt, false, "SetQuestItem", count)
 	end,
 	SetQuestLogItem = function(tt, _, index)
 		local _, _, count = GetQuestLogRewardInfo(index)
-		VP:SetPrice(tt, "SetQuestLogItem", count)
+		VP:SetPrice(tt, false, "SetQuestLogItem", count)
 	end,
 	--SetRecipeReagentItem -- retail
 	--SetRecipeResultItem -- retail
 	SetSendMailItem = function(tt, index)
 		local count = select(4, GetSendMailItem(index))
-		VP:SetPrice(tt, "SetSendMailItem", count)
+		VP:SetPrice(tt, true, "SetSendMailItem", count)
 	end,
 	SetTradePlayerItem = function(tt, index)
 		local _, _, count = GetTradePlayerItemInfo(index)
-		VP:SetPrice(tt, "SetTradePlayerItem", count)
+		VP:SetPrice(tt, true, "SetTradePlayerItem", count)
 	end,
 	SetTradeSkillItem = function(tt, index, reagent)
 		local count
@@ -137,14 +169,14 @@ local SetItem = {
 		else -- show minimum instead of maximum count
 			count = GetTradeSkillNumMade(index)
 		end
-		VP:SetPrice(tt, "SetTradeSkillItem", count)
+		VP:SetPrice(tt, false, "SetTradeSkillItem", count)
 	end,
 	SetTradeTargetItem = function(tt, index)
 		local _, _, count = GetTradeTargetItemInfo(index)
-		VP:SetPrice(tt, "SetTradeTargetItem", count)
+		VP:SetPrice(tt, false, "SetTradeTargetItem", count)
 	end,
 	SetTrainerService = function(tt, index)
-		VP:SetPrice(tt, "SetTrainerService")
+		VP:SetPrice(tt, true, "SetTrainerService")
 	end,
 }
 
@@ -154,7 +186,7 @@ end
 
 ItemRefTooltip:HookScript("OnTooltipSetItem", function(tt)
 	local item = select(2, tt:GetItem())
-	if item then --and not VP:HasAuctionator("OnTooltipSetItem") then
+	if item then
 		local sellPrice, classID = select(11, GetItemInfo(item))
 		if sellPrice and sellPrice > 0 and not CheckRecipe(tt, classID, true) then
 			SetTooltipMoney(tt, sellPrice, nil, SELL_PRICE_TEXT)

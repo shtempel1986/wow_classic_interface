@@ -41,22 +41,25 @@ QuestieJourney.questCategoryKeys = {
     EVENTS = 7,
 }
 
+
 function QuestieJourney:Initialize()
     local continents = {}
     for id, name in pairs(l10n.continentLookup) do
         continents[id] = l10n(name)
     end
+    coroutine.yield()
     continents[QuestieJourney.questCategoryKeys.CLASS] = QuestiePlayer:GetLocalizedClassName()
 
+    coroutine.yield()
     self.continents = continents
-    self.zoneMap = ZoneDB:GetZonesWithQuests()
+    self.zoneMap = ZoneDB:GetZonesWithQuests(true)
     self.zones = ZoneDB:GetRelevantZones()
-
+    coroutine.yield()
     self:BuildMainFrame()
 end
 
 function QuestieJourney:BuildMainFrame()
-    if (QuestieJourneyFrame == nil) then
+    if not QuestieJourneyFrame then
         local journeyFrame = AceGUI:Create("Frame")
         journeyFrame:SetCallback("OnClose", function()
             isWindowShown = false
@@ -113,19 +116,24 @@ function QuestieJourney:IsShown()
 end
 
 function QuestieJourney:ToggleJourneyWindow()
-    if (not isWindowShown) then
-        PlaySound(882)
+    -- There are ways to toggle this function before the frame has been created
+    if QuestieJourneyFrame then
+        if (not isWindowShown) then
+            PlaySound(882)
 
-        local treeGroup = _QuestieJourney:HandleTabChange(_QuestieJourney.containerCache, _QuestieJourney.lastOpenWindow)
-        if treeGroup then
-            _QuestieJourney.treeCache = treeGroup
+            local treeGroup = _QuestieJourney:HandleTabChange(_QuestieJourney.containerCache, _QuestieJourney.lastOpenWindow)
+            if treeGroup then
+                _QuestieJourney.treeCache = treeGroup
+            end
+
+            QuestieJourneyFrame:Show()
+            isWindowShown = true
+        else
+            QuestieJourneyFrame:Hide()
+            isWindowShown = false
         end
-
-        QuestieJourneyFrame:Show()
-        isWindowShown = true
     else
-        QuestieJourneyFrame:Hide()
-        isWindowShown = false
+        Questie:Error("QuestieJourney:ToggleJourneyWindow() called before QuestieJourneyFrame was initialized!")
     end
 end
 
@@ -148,7 +156,7 @@ function QuestieJourney:AcceptQuest(questId)
         Event = "Quest",
         SubType = "Accept",
         Quest = questId,
-        Level = QuestiePlayer:GetPlayerLevel(),
+        Level = QuestiePlayer.GetPlayerLevel(),
         Timestamp = time()
     }
 
@@ -177,7 +185,7 @@ function QuestieJourney:AbandonQuest(questId)
             Event = "Quest",
             SubType = "Abandon",
             Quest = questId,
-            Level = QuestiePlayer:GetPlayerLevel(),
+            Level = QuestiePlayer.GetPlayerLevel(),
             Timestamp = time()
         }
 
@@ -192,7 +200,7 @@ function QuestieJourney:CompleteQuest(questId)
         Event = "Quest",
         SubType = "Complete",
         Quest = questId,
-        Level = QuestiePlayer:GetPlayerLevel(),
+        Level = QuestiePlayer.GetPlayerLevel(),
         Timestamp = time()
     }
 

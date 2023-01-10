@@ -1,7 +1,7 @@
 local _, namespace = ...
+local addon = ClassicCastbars
 local AnchorManager = namespace.AnchorManager
 local PoolManager = namespace.PoolManager
-local addon = namespace.addon
 local activeFrames = addon.activeFrames
 
 local strfind = _G.string.find
@@ -14,6 +14,7 @@ local InCombatLockdown = _G.InCombatLockdown
 local nonLSMBorders = {
     ["Interface\\CastingBar\\UI-CastingBar-Border-Small"] = true,
     ["Interface\\CastingBar\\UI-CastingBar-Border"] = true,
+    [130873] = true,
 }
 
 local isClassic = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC
@@ -22,23 +23,15 @@ local function GetStatusBarBackgroundTexture(statusbar)
     if statusbar.Background then return statusbar.Background end
 
     for _, v in pairs({ statusbar:GetRegions() }) do
-        --[====[@version-classic@
-        if v.GetTexture and strfind(v:GetTexture() or "", "Color-") then
+        if v.GetTexture and strfind("UI-StatusBar", v:GetTexture() or "") then
             return v
         end
-        --@end-version-classic@]====]
-
-        --@version-bcc@
-        if v.GetTexture and strfind("UI-StatusBar", v:GetTexture() or "") then -- TODO: test on classic
-            return v
-        end
-        --@end-version-bcc@
     end
 end
 
 function addon:GetCastbarFrame(unitID)
     -- PoolManager:DebugInfo()
-    if unitID == "player" then return CastingBarFrame end
+    if unitID == "player" then return end -- no point returning CastingBarFrame here, we only skin it, not replace it and its events
 
     if activeFrames[unitID] then
         return activeFrames[unitID]
@@ -50,7 +43,7 @@ function addon:GetCastbarFrame(unitID)
 end
 
 function addon:SetTargetCastbarPosition(castbar, parentFrame)
-    if not isClassic and parentFrame:GetName() == "TargetFrame" then
+    if not isClassic and (parentFrame == _G.TargetFrame or parentFrame == _G.FocusFrame) then
         if ( parentFrame.haveToT ) then
             if ( parentFrame.buffsOnTop or parentFrame.auraRows <= 1 ) then
                 castbar:SetPoint("TOPLEFT", parentFrame, "BOTTOMLEFT", 25, -21 )
@@ -199,11 +192,17 @@ function addon:SetCastbarStyle(castbar, cast, db, unitID)
             castbar.BorderFrameLSM:SetAlpha(0)
         end
 
-        -- Update border to match castbar size
-        local width, height = ceil(castbar:GetWidth() * 1.16), ceil(castbar:GetHeight() * 1.16)
-        castbar.Border:ClearAllPoints()
-        castbar.Border:SetPoint("TOPLEFT", width, height+1)
-        castbar.Border:SetPoint("BOTTOMRIGHT", -width, -height)
+        --[[if WOW_PROJECT_ID == 1 then -- is Dragonflight / retail
+            castbar.Border:ClearAllPoints()
+            castbar.Border:SetPoint("TOPLEFT", -1, 1)
+            castbar.Border:SetPoint("BOTTOMRIGHT", 1, -1)
+        else]]
+            -- Update border to match castbar size
+            local width, height = ceil(castbar:GetWidth() * 1.16), ceil(castbar:GetHeight() * 1.16)
+            castbar.Border:ClearAllPoints()
+            castbar.Border:SetPoint("TOPLEFT", width, height+1)
+            castbar.Border:SetPoint("BOTTOMRIGHT", -width, -height)
+        --end
     else
         -- Using border sat by LibSharedMedia
         self:SetLSMBorders(castbar, cast, db)
@@ -293,24 +292,30 @@ function addon:SetCastbarStatusColorsOnDisplay(castbar, cast, db)
 end
 
 function addon:DisplayCastbar(castbar, unitID)
+    local cast = castbar._data
+    if not cast then return end
+
     local parentFrame = AnchorManager:GetAnchor(unitID)
     if not parentFrame then return end
 
     local db = self.db[self:GetUnitType(unitID)]
-    local cast = castbar._data
 
     castbar.animationGroup = castbar.animationGroup or self:CreateFadeAnimationGroup(castbar)
-    castbar.animationGroup:Stop()
+    if castbar.animationGroup:IsPlaying() then
+        castbar.animationGroup:Stop()
+    end
 
     -- Note: since frames are recycled and we also allow having different styles
     -- between castbars for all the unitframes, we need to always update the style here
     -- incase it was modified to something else on last recycle
-    self:SetCastbarStatusColorsOnDisplay(castbar, cast, db)
     self:SetCastbarStyle(castbar, cast, db, unitID)
     self:SetCastbarIconAndText(castbar, cast, db)
     self:SetCastbarFonts(castbar, cast, db)
+    self:SetCastbarStatusColorsOnDisplay(castbar, cast, db)
 
     if unitID == "target" and self.db.target.autoPosition then
+        self:SetTargetCastbarPosition(castbar, parentFrame)
+    elseif not isClassic and unitID == "focus" and self.db.focus.autoPosition then
         self:SetTargetCastbarPosition(castbar, parentFrame)
     else
         castbar:SetPoint(db.position[1], parentFrame, db.position[2], db.position[3])
@@ -330,10 +335,16 @@ end
 
 function addon:HideCastbar(castbar, unitID, skipFadeOut)
     if skipFadeOut then
+        if castbar.animationGroup then
+            castbar.animationGroup:Stop()
+        end
+        castbar.BorderShield:Hide()
         castbar:SetAlpha(0)
         castbar:Hide()
         return
     end
+
+    if castbar:GetAlpha() <= 0 then return end
 
     local cast = castbar._data
     if cast then
@@ -347,7 +358,7 @@ function addon:HideCastbar(castbar, unitID, skipFadeOut)
 
         if cast.isCastComplete then -- SPELL_CAST_SUCCESS
             if castbar.Border:GetAlpha() == 1 or cast.isUninterruptible then
-                if castbar.BorderShield:IsShown() or nonLSMBorders[castbar.Border:GetTextureFilePath() or ""] then
+                if castbar.BorderShield:IsShown() or nonLSMBorders[castbar.Border:GetTextureFilePath() or ""] or nonLSMBorders[castbar.Border:GetTexture() or ""] then
                     if cast.isUninterruptible then
                         castbar.Flash:SetVertexColor(0.7, 0.7, 0.7, 1)
                     elseif cast.isChanneled then
@@ -374,7 +385,7 @@ function addon:HideCastbar(castbar, unitID, skipFadeOut)
         end
     end
 
-    if castbar:GetAlpha() > 0 and castbar.fade then
+    if castbar.fade then
         if not castbar.fade:IsPlaying() then
             castbar.fade:SetStartDelay(0) -- reset
             if cast then
@@ -386,9 +397,9 @@ function addon:HideCastbar(castbar, unitID, skipFadeOut)
             --[====[@version-classic@
             castbar.fade:SetDuration(cast and cast.isInterrupted and 1.2 or 0.3)
             --@end-version-classic@]====]
-            --@version-bcc@
+            --@non-version-classic@
             castbar.fade:SetDuration(0.6)
-            --@end-version-bcc@
+            --@end-non-version-classic@
             castbar.animationGroup:Play()
         end
     end
@@ -398,13 +409,19 @@ end
 -- Player & Focus Castbar Stuff
 --------------------------------------------------------------
 
-local function ColorPlayerCastbar(db)
-    db = db or addon.db.player
+local function ColorPlayerCastbar()
+    local db = addon.db.player
     if not db.enabled then return end
 
+    if CastingBarFrame_SetNonInterruptibleCastColor then
+        -- TODO: fix me
+        CastingBarFrame_SetNonInterruptibleCastColor(CastingBarFrame, unpack(db.statusColorUninterruptible))
+    else
+        CastingBarFrame.iconWhenNoninterruptible = false
+    end
+
     CastingBarFrame_SetStartCastColor(CastingBarFrame, unpack(db.statusColor))
-	CastingBarFrame_SetStartChannelColor(CastingBarFrame, unpack(db.statusColorChannel))
-	CastingBarFrame_SetNonInterruptibleCastColor(CastingBarFrame, unpack(db.statusColorUninterruptible))
+    CastingBarFrame_SetStartChannelColor(CastingBarFrame, unpack(db.statusColorChannel))
     CastingBarFrame_SetFailedCastColor(CastingBarFrame, unpack(db.statusColorFailed))
     --if CastingBarFrame.isTesting then
         CastingBarFrame:SetStatusBarColor(unpack(db.statusColor))
@@ -422,8 +439,8 @@ function addon:SkinPlayerCastbar()
     local db = self.db.player
     if not db.enabled then return end
 
-    if not CastingBarFrame:IsEventRegistered("UNIT_SPELLCAST_START") then
-        print("|cFFFF0000[ClassicCastbars] Incompatibility detected for player castbar. You most likely have another addon disabling the Blizzard castbar.|r") -- luacheck: ignore
+    if not CastingBarFrame.showCastbar or not CastingBarFrame:IsEventRegistered("UNIT_SPELLCAST_START") then
+        print("|cFFFF0000[ClassicCastbars] Incompatibility detected for player castbar. You most likely have another addon disabling the default Blizzard castbar.|r") -- luacheck: ignore
     end
 
     if not CastingBarFrame.Timer then
@@ -446,7 +463,7 @@ function addon:SkinPlayerCastbar()
         end)
 
         hooksecurefunc(CastingBarFrame.Text, "SetText", function(_, text)
-            if text then
+            if text and text.len then
                 CastingBarFrame.Timer:SetPoint("RIGHT", CastingBarFrame, (text:len() >= 19) and 30 or -6, 0)
             end
         end)
@@ -457,13 +474,6 @@ function addon:SkinPlayerCastbar()
         CastingBarFrame:HookScript("OnShow", function(frame)
             if frame.Icon:GetTexture() == 136235 then
                 frame.Icon:SetTexture(136243)
-            end
-
-            if not addon.playerColorChangesRan then
-                -- Color castbar on first OnShow triggered aswell with a small delay. Hopefully fixes an issue where other addons or scripts
-                -- can cause conflicts by overwriting our color values
-                addon.playerColorChangesRan = true
-                C_Timer.After(0.3, ColorPlayerCastbar)
             end
         end)
 
@@ -492,8 +502,6 @@ function addon:SkinPlayerCastbar()
         CastingBarFrame.Flash:SetTexture(nil) -- Hide it by removing texture. SetAlpha() or Hide() wont work without messing with blizz code
     end
 
-    ColorPlayerCastbar(db)
-
     CastingBarFrame.Text:ClearAllPoints()
     CastingBarFrame.Text:SetPoint(db.textPoint)
     CastingBarFrame.Text:SetJustifyH(db.textPoint)
@@ -518,6 +526,8 @@ function addon:SkinPlayerCastbar()
 
     self:SetCastbarStyle(CastingBarFrame, nil, db, "player")
     self:SetCastbarFonts(CastingBarFrame, nil, db)
+    hooksecurefunc("CastingBarFrame_OnLoad", ColorPlayerCastbar)
+    C_Timer.After(GetTickTime(), ColorPlayerCastbar)
 end
 
 --[====[@version-classic@

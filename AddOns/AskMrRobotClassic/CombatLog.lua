@@ -32,12 +32,14 @@ local function renderAutoLogSection(instanceId, container, i, autoLbls, autoChks
 	
 	if i == 1 then
 		lbl:SetPoint("TOPLEFT", _chkAutoAll.frame, "BOTTOMLEFT", -1, -15)
-	elseif (i + 1) % 3 == 0 then
+	elseif (i + 1) % 4 == 0 then
 		lbl:SetPoint("TOPLEFT", autoLbls[i - 1].frame, "TOPRIGHT", 40, 0)
-	elseif i % 3 == 0 then
+	elseif (i + 2) % 4 == 0 then
+		lbl:SetPoint("TOPLEFT", autoLbls[i - 1].frame, "TOPRIGHT", 40, 0)
+	elseif i % 4 == 0 then
 		lbl:SetPoint("TOPLEFT", autoLbls[i - 1].frame, "TOPRIGHT", 40, 0)		
 	else
-		lbl:SetPoint("TOPLEFT", autoChks[i - 3].frame, "BOTTOMLEFT", 0, -30)
+		lbl:SetPoint("TOPLEFT", autoChks[i - 4].frame, "BOTTOMLEFT", 0, -30)
 	end
 
 	local line = AceGUI:Create("AmrUiPanel")
@@ -47,22 +49,22 @@ local function renderAutoLogSection(instanceId, container, i, autoLbls, autoChks
 	line:SetPoint("TOPLEFT", lbl.frame, "BOTTOMLEFT", 1, -7)
 	line:SetPoint("TOPRIGHT", lbl.frame, "BOTTOMRIGHT", 0, -7)
 	
-	local chkNormal = createDifficultyCheckBox(instanceId, Amr.Difficulties.Normal, container)
-	chkNormal:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", 0, -8)
+	local chkMythic = createDifficultyCheckBox(instanceId, Amr.Difficulties.Normal, container)
+	chkMythic:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", 0, -8)
 
-	--[[
-	local chkNormal = createDifficultyCheckBox(instanceId, Amr.Difficulties.Normal, container)
+	local chkNormal = createDifficultyCheckBox(instanceId, Amr.Difficulties.Normal25, container)
 	chkNormal:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", 0, -30)
 
-	-- find the widest of mythic/normal
-	local w = math.max(chkMythic:GetWidth(), chkNormal:GetWidth())
-	
-	local chkHeroic = createDifficultyCheckBox(instanceId, Amr.Difficulties.Heroic, container)
-	chkHeroic:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", w + 20, -8)
-	
-	local chkLfr = createDifficultyCheckBox(instanceId, Amr.Difficulties.Lfr, container)
-	chkLfr:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", w + 20, -30)
-	]]
+	if #Amr.InstanceDifficulties[instanceId] > 2 then
+		-- find the widest of mythic/normal
+		local w = math.max(chkMythic:GetWidth(), chkNormal:GetWidth())
+		
+		local chkHeroic = createDifficultyCheckBox(instanceId, Amr.Difficulties.Heroic, container)
+		chkHeroic:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", w + 20, -8)
+		
+		local chkLfr = createDifficultyCheckBox(instanceId, Amr.Difficulties.Heroic25, container)
+		chkLfr:SetPoint("TOPLEFT", line.frame, "BOTTOMLEFT", w + 20, -30)
+	end
 
 	return lbl, chkNormal
 end
@@ -153,7 +155,7 @@ end
 local function isAnyAutoLoggingEnabled()
 	local anyChecked = false
 	for i, instanceId in ipairs(Amr.InstanceIdsOrdered) do
-		for k, difficultyId in pairs(Amr.Difficulties) do
+		for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 			if Amr.db.profile.Logging.Auto[instanceId][difficultyId] then
 				anyChecked = true
 				break
@@ -169,7 +171,7 @@ local function isAllAutoLoggingEnabled()
 	-- see if all auto-logging options are enabled
 	local allChecked = true
 	for i, instanceId in ipairs(Amr.InstanceIdsOrdered) do
-		for k, difficultyId in pairs(Amr.Difficulties) do
+		for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 			if not Amr.db.profile.Logging.Auto[instanceId][difficultyId] then
 				allChecked = false
 				break
@@ -258,7 +260,7 @@ function Amr:RefreshLogUi()
 		if not Amr.db.profile.Logging.Auto[instanceId] then
 			Amr.db.profile.Logging.Auto[instanceId] = {}
 		end
-		for k, difficultyId in pairs(Amr.Difficulties) do
+		for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 			_autoChecks[instanceId][difficultyId]:SetChecked(Amr.db.profile.Logging.Auto[instanceId][difficultyId])
 		end
 	end
@@ -321,7 +323,7 @@ function Amr:ToggleAllAutoLog()
 	local val = not isAllAutoLoggingEnabled()
 	
 	for i, instanceId in ipairs(Amr.InstanceIdsOrdered) do
-		for k, difficultyId in pairs(Amr.Difficulties) do
+		for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 			Amr.db.profile.Logging.Auto[instanceId][difficultyId] = val
 		end
 	end

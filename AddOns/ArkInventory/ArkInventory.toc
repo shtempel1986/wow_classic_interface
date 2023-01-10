@@ -1,14 +1,13 @@
-## Interface: 90100
+## Interface: 100002
 
 ## Title: ArkInventory
-## Title-zhCN: [背包]ArkInventory 整合背包银行
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 30957
+## Version: 31012
 ## X-ReleaseType: 
 ## SavedVariables: ARKINVDB
 
-## Notes: Allows you to view all items from all your characters on the same account, when-ever and where-ever you want.
+## Notes: Allows you to view all items from all your characters on the same account, when ever and where ever you want.
 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
@@ -16,68 +15,75 @@
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 
-## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0, BattlePetBreedID, Outfitter, ItemRack, GearQuipper, GearQuipper-TBC, ClosetGnome, SellJunk, Scrap, ReagentRestocker, TradeSkillMaster, Skillet
+## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0, BattlePetBreedID, Outfitter, ItemRack, GearQuipper, ClosetGnome, SellJunk, Scrap, ReagentRestocker, TradeSkillMaster, Skillet, Peddler
 ## X-Embeds: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0
 
 ## X-Category: Inventory
 ## X-Website: https://github.com/arkayenro/arkinventory
 
 ## X-Curse-Project-ID: 3651
+## X-WoWI-ID: 6488
+## X-Wago-ID: rkGr1XKy
+
+## t-Curse-Project-ID: 581591
+## t-WoWI-ID: 26395
+## t-Wago-ID: 5bGo1860
 
 
 #@no-lib-strip@
 ArkInventoryExternals.xml
 #@end-no-lib-strip@
-ArkInventoryExternals.lua
+Core\ArkInventoryExternals.lua
 
 Libs\ArkDewdrop\lib.xml
 Libs\LibDataBroker\lib.xml
 
 
-ArkInventoryConst.lua
-ArkInventoryClient.lua
-ArkInventoryPT.lua
-ArkInventoryCPU.lua
-ArkInventoryCodex.lua
-ArkInventoryObject.lua
+Core\ArkInventoryConst.lua
+Core\ArkInventoryClient.lua
+Core\ArkInventoryPT.lua
+Core\ArkInventoryCPU.lua
+Core\ArkInventoryCodex.lua
+Core\ArkInventoryObject.lua
 
 Locale\locale.xml
 
-ArkInventoryCategory.lua
-ArkInventory.lua
-ArkInventoryAPI.lua
+Core\ArkInventoryCategory.lua
+Core\ArkInventory.lua
+Core\ArkInventoryAPI.lua
 
-ArkInventoryStorage.lua
-ArkInventoryRestack.lua
-ArkInventoryTransfer.lua
-ArkInventoryMenu.lua
-ArkInventoryRules.lua
-ArkInventorySearch.lua
-ArkInventoryUpgrades.lua
+Core\ArkInventoryStorage.lua
+Core\ArkInventoryRestack.lua
+Core\ArkInventoryTransfer.lua
+Core\ArkInventoryMenu.lua
+Core\ArkInventoryRules.lua
+Core\ArkInventorySearch.lua
+Core\ArkInventoryUpgrades.lua
 
-ArkInventoryCollectionPet.lua
-ArkInventoryCollectionMount.lua
-ArkInventoryCollectionToybox.lua
-ArkInventoryCollectionHeirloom.lua
-ArkInventoryCollectionReputation.lua
-ArkInventoryCollectionCurrency.lua
-ArkInventoryTradeskill.lua
+Core\ArkInventoryCollectionPet.lua
+Core\ArkInventoryCollectionMount.lua
+Core\ArkInventoryCollectionToybox.lua
+Core\ArkInventoryCollectionHeirloom.lua
+Core\ArkInventoryCollectionReputation.lua
+Core\ArkInventoryCollectionCurrency.lua
+Core\ArkInventoryTradeskill.lua
 
-ArkInventoryTooltip.lua
-ArkInventoryMoney.lua
-ArkInventoryMedia.lua
+Core\ArkInventoryTooltip.lua
+Core\ArkInventoryMoney.lua
+Core\ArkInventoryMedia.lua
 
-ArkInventoryJunk.lua
+Core\ArkInventoryAction.lua
 
-ArkInventory.xml
+Core\ArkInventory.xml
 
-ArkInventoryConfig.lua
-ArkInventoryLDB.lua
+Core\ArkInventoryConfig.lua
+Core\ArkInventoryLDB.lua
 
-ArkInventoryStaticPopups.lua
+Core\ArkInventoryStaticPopups.lua
 
-ArkInventoryTranslate.lua
+Core\ArkInventoryTranslate.lua
 
-ArkInventoryRealms.lua
+Core\ArkInventoryRealms.lua
 
-ArkInventoryDataExtract.lua
+Core\ArkInventoryDataExtract.lua
+Core\ArkInventoryTools.lua

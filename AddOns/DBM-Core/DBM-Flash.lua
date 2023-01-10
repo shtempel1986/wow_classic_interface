@@ -12,11 +12,11 @@ local frame, duration, elapsed, totalRepeat
 --------------------
 --  Create Frame  --
 --------------------
-frame = CreateFrame("Frame", "DBMFlash", UIParent, DBM:IsShadowlands() and "BackdropTemplate")
-frame:Hide()
-frame:SetBackdrop({
-	bgFile	= "Interface\\Tooltips\\UI-Tooltip-Background" -- 137056
-})
+frame = CreateFrame("Frame", "DBMFlash", UIParent, "BackdropTemplate")
+frame.backdropInfo = {
+	bgFile = "Interface\\Tooltips\\UI-Tooltip-Background" -- 137056
+}
+frame:ApplyBackdrop()
 frame:SetAllPoints(UIParent)
 frame:SetFrameStrata("BACKGROUND")
 frame:Hide()

@@ -16,8 +16,9 @@ function module.Looks:Minimal(popup, config)
     popup.status:SetFont([[Fonts\ARIALN.TTF]], 12, "OUTLINE")
     popup.status:SetTextColor(1.0, 1.0, 1.0)
 
-    popup.modelbg:SetPoint("TOPLEFT", 1, -1)
-    popup.modelbg:SetPoint("BOTTOMLEFT", 1, 1)
+    popup.modelbg:SetTexture(false)
+    popup.modelbg:SetPoint("TOPLEFT", 1, -2)
+    popup.modelbg:SetPoint("BOTTOMLEFT", 1, 2)
     popup.modelbg:SetWidth(popup:GetHeight())
     self:SizeModel(popup, 0, 0)
 
@@ -40,6 +41,10 @@ function module.Looks:Minimal(popup, config)
     popup.shine:SetSize(171, 75)
 
     popup.raidIcon:SetPoint("BOTTOM", popup.modelbg, "TOP", 0, -8)
+
+    popup.lootIcon:SetPoint("BOTTOMLEFT", popup.modelbg)
+    popup.lootIcon.texture:SetAtlas("VignetteLoot")
+    popup.lootIcon:SetSize(24, 24)
 
     popup.dead:SetAllPoints(popup.modelbg)
 

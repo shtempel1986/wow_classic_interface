@@ -240,6 +240,7 @@ function Options.AddButton(Text,func)
 	Options.Btn[ButtonName]:SetScript("OnClick", func)
 	Options.Btn[ButtonName]:SetText(Text)
 	Options.Btn[ButtonName]:SetWidth( Options.Btn[ButtonName]:GetTextWidth()+20 )
+	Options.Btn[ButtonName]:SetHeight(25)
 	return Options.Btn[ButtonName]
 end
 
@@ -397,7 +398,57 @@ function Options.AddColorButton(DB,Var,Init,Text,width)
 	return but
 end
 
+function Options.AddDrop(DB,Var,Init,MenuItems) 
+	local c=Options.Frames.count+1
+	Options.Frames.count=c	
+	local ButtonName=Options.Prefix .."BUTTON_"..c
+	Options.Vars[ButtonName]=Var
+	Options.Vars[ButtonName.."_init"]=Init
+	Options.Vars[ButtonName.."_db"]=DB
+	
+	if DB~=nil and Var~=nil then
+		if DB[Var] == nil then DB[Var]=Init end
+	end
 
+	Options.Btn[ButtonName] = CreateFrame("Frame", ButtonName , Options.CurrentPanel, "UIDropDownMenuTemplate")
+	if Options.inLine~=true or Options.LineRelativ ==nil then
+		Options.Btn[ButtonName]:SetPoint("TOPLEFT", Options.NextRelativ,"BOTTOMLEFT", Options.NextRelativX, Options.NextRelativY)
+		Options.NextRelativ=ButtonName
+		Options.LineRelativ=ButtonName
+		Options.NextRelativX=0
+		Options.NextRelativY=0
+	else
+		Options.Btn[ButtonName]:SetPoint("TOP", Options.LineRelativ,"TOP", 0, 0)
+		Options.Btn[ButtonName]:SetPoint("LEFT", Options.LineRelativ.."Text","RIGHT", 0, 3)
+		Options.LineRelativ=ButtonName
+	end
+
+	local dropdown_width = 0
+    local dd_title = Options.Btn[ButtonName]:CreateFontString(Options.Btn[ButtonName], 'OVERLAY', 'GameFontNormal')
+	for _, item in pairs(MenuItems) do -- Sets the dropdown width to the largest item string width.
+        dd_title:SetText(item)
+        local text_width = dd_title:GetStringWidth() + 20
+        if text_width > dropdown_width then
+            dropdown_width = text_width
+        end
+    end
+	UIDropDownMenu_SetWidth(Options.Btn[ButtonName], dropdown_width)
+	UIDropDownMenu_SetText(Options.Btn[ButtonName], DB[Var])
+	
+	-- Create and bind the initialization function to the dropdown menu
+	UIDropDownMenu_Initialize(Options.Btn[ButtonName], function(self, level, menuList)
+	 local info = UIDropDownMenu_CreateInfo()
+	 for k, v in pairs(MenuItems) do
+		info.text = v
+		info.func = function(b)
+			UIDropDownMenu_SetText(Options.Btn[ButtonName], b.value)
+			DB[Var] = b.value
+			Init = b.value
+		end
+		UIDropDownMenu_AddButton(info)
+	   end
+	end)
+end
 
 function Options.EditCheckBox(toEdit,DB,Var,Init,Text,width)
 	local ButtonName=toEdit:GetName()
@@ -438,9 +489,7 @@ function Options.AddText(TXT,width,centre)
 	textbox:SetText(TXT)
 	textbox:SetPoint("TOPLEFT",Options.NextRelativ,"BOTTOMLEFT", Options.NextRelativX, Options.NextRelativY-2)
 	textbox:SetScale(Options.scale)
-	
-	
-	
+
 	if width==nil or width==0 then 
 		textbox:SetWidth(textbox:GetStringWidth())
 	elseif width<0 then

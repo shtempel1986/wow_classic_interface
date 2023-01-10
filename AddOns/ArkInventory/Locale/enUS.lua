@@ -1,4 +1,4 @@
-local L = LibStub( "AceLocale-3.0" ):NewLocale( "ArkInventory", "enUS", true, false )
+﻿local L = LibStub( "AceLocale-3.0" ):NewLocale( "ArkInventory", "enUS", true, false )
 if not L then return end
 
 -- post updated translations at http://groups.google.com/group/wow-arkinventory (modify this file and include as an attachment)
@@ -46,7 +46,7 @@ if not L then return end
 	
 	
 --	status bar/bag text
-	L["STATUS_NO_DATA"] = "ERR"
+	L["STATUS_NO_DATA"] = "No Data"
 	L["STATUS_PURCHASE"] = "Buy"
 	
 	
@@ -89,13 +89,16 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_FOOD_PET"] = "Pet Food"
 	L["CATEGORY_CONSUMABLE_POTION_HEAL"] = "Health (Potion/Stone)"
 	L["CATEGORY_CONSUMABLE_POTION_MANA"] = "Mana (Potion/Gem)"
+	L["CATEGORY_CONSUMABLE_ELIXIR"] = "Elixir"
 	L["CATEGORY_CONSUMABLE_ELIXIR_BATTLE"] = "Elixir (Battle)"
 	L["CATEGORY_CONSUMABLE_ELIXIR_GUARDIAN"] = "Elixir (Guardian)"
 	L["CATEGORY_CONSUMABLE_BANDAGE"] = "Bandage"
+	L["CATEGORY_CONSUMABLE_POTION"] = "Potion"
 	L["CATEGORY_CONSUMABLE_FLASK"] = "Flask"
 	L["CATEGORY_CONSUMABLE_SCROLL"] = "Scroll"
 	L["CATEGORY_CONSUMABLE_CHAMPION_EQUIPMENT"] = "Champion Equipment"
 	L["CATEGORY_CONSUMABLE_POWER_SYSTEM_OLD"] = "Power Systems (Old)"
+	L["CATEGORY_CONSUMABLE_ABILITIES_AND_ACTIONS"] = "Abilities and Actions"
 	
 	
 --	bag names - used to name the empty slots in the status frame (and LDB)
@@ -114,7 +117,7 @@ if not L then return end
 	L["STATUS_SHORTNAME_MAILBOX"] = "Mail"
 	L["STATUS_SHORTNAME_MINING"] = "Mng"
 	L["STATUS_SHORTNAME_MOUNT"] = "Mnt"
-	L["STATUS_SHORTNAME_REAGENTBANK"] = "Rgt"
+	L["STATUS_SHORTNAME_REAGENT"] = "Rgt"
 	L["STATUS_SHORTNAME_FISHING"] = "Fish"
 	L["STATUS_SHORTNAME_TOKEN"] = "Tkn"
 	L["STATUS_SHORTNAME_TOY"] = "Toy"
@@ -134,7 +137,7 @@ if not L then return end
 	L["MENU_CHARACTER_SWITCH_ERASE_DESC"] = "Erase %1$s data for %2$s"
 	
 	L["MENU_LOCATION_TOGGLE"] = "Toggle Location"
-	L["MENU_LOCATION_TOGGLE_DESC"] = "toggles the display of the %1$s window"
+	L["MENU_LOCATION_TOGGLE_DESC"] = "toggles displaying the %1$s window"
 	L["MENU_LOCATION_NOT_SUPPORTED"] = "The %1$s location is not supported in this client"
 	
 	
@@ -185,8 +188,7 @@ if not L then return end
 	L["MENU_BAR"] = "Bar"
 	L["MENU_BAR_TITLE"] = "Bar %1$s"
 	L["MENU_BAR_CATEGORY_DESC"] = "click to assign category %1$s to bar %2$s"
-	L["MENU_BAR_CATEGORY_CURRENT"] = "Categories assigned"
-	L["MENU_BAR_CATEGORY_ASSIGN"] = "Assignable Categories"
+	L["MENU_BAR_CATEGORY_LABEL"] = "%1$s - %2$s"
 	L["MENU_BAR_CATEGORY_REMOVE_DESC"] = "click to remove %1$s from bar %2$s\n\nthe category will revert to the default bar" -- 1 is the category name, 2 is the bar number
 	L["MENU_BAR_CATEGORY_HIDDEN_DESC"] = "click to toggle the hidden state of this category.\n\nitems in a hidden category will not display in normal mode"
 	L["MENU_BAR_CATEGORY_MOVE_START_DESC"] = "Initiates moving %1$s\n\nyou then need to click on the bar or an item in that bar where you want it to go and choose the complete option"
@@ -241,6 +243,7 @@ if not L then return end
 	L["CONFIG"] = "Config"
 	L["CONFIG_DESC"] = "Configuration Options"
 	L["CONFIG_IS_PER_CHARACTER"] = "\n\nNote - This option is per character so its setting only applies to %1$s."
+	L["CONFIG_IS_CVAR"] = "\n\nNote - This option is a global CVAR and will apply to all characters."
 	
 --	configuration options > system
 	L["CONFIG_GENERAL_DESC"] = "Display Options"
@@ -253,7 +256,6 @@ if not L then return end
 	L["CONFIG_GENERAL_REPOSITION_ONSHOW"] = "Reposition on Show"
 	L["CONFIG_GENERAL_REPOSITION_ONSHOW_DESC"] = "If a window is off screen this will reposition it back on screen when it is re-opened"
 	
-	L["CONFIG_SORTING_WHEN"] = "When"
 	L["CONFIG_SORTING_WHEN_DESC"] = "When to re-sort the windows"
 	L["CONFIG_SORTING_WHEN_INSTANT"] = "Instantly"
 	L["CONFIG_SORTING_WHEN_INSTANT_DESC"] = "Re-Sorting will occur after every item change"
@@ -341,6 +343,9 @@ if not L then return end
 	L["CONFIG_GENERAL_MESSAGES_RULES_REGISTRATION_DESC"] = "Show a message for each third party rule registration"
 	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED"] = "Loaded"
 	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED_DESC"] = "Show a message when connected realm data is loaded"
+	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE"] = "Object Cache"
+	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE_NOTFOUND"] = "Not Found"
+	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE_NOTFOUND_DESC"] = "Show a message when object data is not returned from the server after five attempts"
 	
 	L["CONFIG_GENERAL_BUCKET"] = "Update Timers"
 	L["CONFIG_GENERAL_BUCKET_DESC"] = "Adjust the update time for the %1$s\n\nUpdate timers run every X seconds allowing you to throttle window updates."
@@ -382,15 +387,7 @@ if not L then return end
 	
 --	configuration options > auto
 	L["CONFIG_AUTO"] = "Auto Open/Close"
-	L["CONFIG_AUTO_BANK"] = "Bank"
-	L["CONFIG_AUTO_VAULT"] = "Guild Bank"
-	L["CONFIG_AUTO_MAILBOX"] = "Mailbox"
-	L["CONFIG_AUTO_MERCHANT"] = "Merchant/Vendor"
-	L["CONFIG_AUTO_TRADE"] = "Trade"
-	L["CONFIG_AUTO_AUCTION"] = "Auction House"
-	L["CONFIG_AUTO_VOID"] = "Void Storage"
 	L["CONFIG_AUTO_SCRAP"] = "Scrapping Machine"
-	L["CONFIG_AUTO_TRANSMOG"] = "Transmogrifier"
 	L["CONFIG_AUTO_COMBAT"] = "Enter Combat"
 	
 	L["CONFIG_AUTO_OPEN"] = "Auto Open"
@@ -406,13 +403,14 @@ if not L then return end
 	L["CONFIG_CONTROL_MONITOR_DESC"] = "monitor changes to %1$s data." -- %1$s = location name, **removed ** %2$s = chacracter name
 	L["CONFIG_CONTROL_SAVE_DESC"] = "save %1$s data so that you can view it while on another character (or offline)." -- %1$s = location name, **removed ** %2$s = chacracter name
 	L["CONFIG_CONTROL_NOTIFY_ERASE_DESC"] = "generate a notification when erasing %s data"
-	L["CONFIG_CONTROL_OVERRIDE"] = "Override"
 	L["CONFIG_CONTROL_OVERRIDE_DESC"] = "override the original Blizzard %2$s so that %1$s controls it instead.\n\ndisabling this option will return the standard Blizzard %2$s functionality.\n\nyou will still be able to open the %1$s %2$s when this is disabled but you will need to configure and use a keybinding instead." -- %1$s = program, %2$s = location
 	L["CONFIG_CONTROL_SPECIAL_DESC"] = "whether to treat the %2$s window as special or not.\n\nall special windows are closed when the ESCAPE key is pressed.\n\nyou will need to reload the UI for this setting to take effect." -- %1$s = program, %2$s = location
 	L["CONFIG_CONTROL_ANCHOR_LOCK_DESC"] = "lock the %1$s window so it can't be moved" -- %1$s = location name
 	L["CONFIG_CONTROL_REPOSITION_NOW"] = "Reposition Now"
 	L["CONFIG_CONTROL_REPOSITION_NOW_DESC"] = "Repositions the %1$s window back onto the screen now" -- %1$s = location name
 	L["CONFIG_CONTROL_BLUEPRINT_DESC"] = "select which %2$s to use when generating the %1$s window" -- %1$s = location name
+	L["CONFIG_CONTROL_WITH_ARKINV"] = "Click to override the original Blizzard %2$s so that %1$s controls it instead." -- %1$s = program, %2$s = location
+	L["CONFIG_CONTROL_WITH_BLIZZARD"] = "Click to testore the original Blizzard %2$s so that %1$s no longer controls it." -- %1$s = program, %2$s = location
 	
 	
 --	configuration settings > design/style/layout
@@ -420,6 +418,7 @@ if not L then return end
 	L["CONFIG_DESIGN_PLURAL"] = "Designs"
 	
 	L["CONFIG_BLUEPRINT"] = "Blueprint"
+	L["CONFIG_BLUEPRINT_VALIDATE"] = "The %%1$s [%%2$s] being used by the %1$s location no longer exists.  Please check %2$s > %3$s > %4$s > %5$s > %6$s"
 	
 	L["CONFIG_STYLE"] = "Style"
 	L["CONFIG_STYLE_PLURAL"] = "Styles"
@@ -435,6 +434,9 @@ if not L then return end
 	L["CONFIG_DESIGN_WINDOW_WIDTH_DESC"] = "set the maximum number of items to display in a single row"
 	L["CONFIG_DESIGN_WINDOW_HEIGHT_DESC"] = "set the maximum height of the window (in pixels)\n\nif you have more items than will fit then the window will scroll, less items and it will shrink"
 	L["CONFIG_DESIGN_WINDOW_BACKGROUND_COLOUR_DESC"] = "set the background colour of the window"
+	L["CONFIG_DESIGN_WINDOW_SCROLLBAR"] = "Scroll Bar"
+	L["CONFIG_DESIGN_WINDOW_SCROLLBAR_STYLE_DESC"] = "set the background style of the windows scroll bar"
+	L["CONFIG_DESIGN_WINDOW_SCROLLBAR_COLOUR_DESC"] = "set the background colour of the windows scroll bar"
 	L["CONFIG_DESIGN_WINDOW_BORDER_SHOW_DESC"] = "display a border around the window"
 	L["CONFIG_DESIGN_WINDOW_BORDER_STYLE_DESC"] = "set the border style for the window"
 	L["CONFIG_DESIGN_WINDOW_BORDER_COLOUR_DESC"] = "set the border colour for the window"
@@ -508,25 +510,28 @@ if not L then return end
 	L["CONFIG_DESIGN_ITEM_ITEMCOUNT"] = "Item Count"
 	L["CONFIG_DESIGN_ITEM_ITEMCOUNT_DESC"] = "show item stack counts"
 	L["CONFIG_DESIGN_ITEM_STATUSICON"] = "Status Icons"
-	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE"] = "upgrade status icon"
-	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE_SHOW_DESC"] = "show the item upgrade status icon"
-	L["CONFIG_DESIGN_ITEM_STATUSICON_JUNK"] = "junk status icon"
-	L["CONFIG_DESIGN_ITEM_STATUSICON_JUNK_SHOW_DESC"] = "show the junk status icon"
+	L["CONFIG_DESIGN_ITEM_STATUSICON_TEXT"] = "%1$s icon"
+	L["CONFIG_DESIGN_ITEM_STATUSICON_DESC"] = "Enabled: Show the %1$s when required.\n\nDisabled: Never show the %1$s."
+	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE"] = UPGRADE or "Upgrade"
 	L["CONFIG_DESIGN_ITEM_STATUSICON_QUEST_BANG_DESC"] = "show the quest bang (!) icon"
 	L["CONFIG_DESIGN_ITEM_STATUSICON_QUEST_BORDER_DESC"] = "show the quest border"
 	L["CONFIG_DESIGN_ITEM_SIZE"] = "Base Item Size"
 	L["CONFIG_DESIGN_ITEM_SIZE_DESC"] = "set the size of the item icon before it is scaled (default size is %d)"
 	
 	L["CONFIG_DESIGN_ITEM_OVERLAY"] = "Overlays"
-	L["CONFIG_DESIGN_ITEM_OVERLAY_AZERITE"] = "Azerite"
+	L["CONFIG_DESIGN_ITEM_OVERLAY_TEXT"] = "%1$s overlay"
 	L["CONFIG_DESIGN_ITEM_OVERLAY_NZOTH"] = "N'Zoth Corruption"
-	L["CONFIG_DESIGN_ITEM_OVERLAY_DESC"] = "Enabled: Use the %1$s item overlay when required.\n\nDisabled: Do not use the %1$s item overlay."
+	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK"] = "Profession Quality"
+	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_NUMBER_DESC"] = "Enabled: Show the %1$s as a number\n\nDisabled: Show the %1$s as an icon"
+	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_CUSTOM_DESC"] = "Enabled: Use a custom colour for the %1$s\n\nDisabled: Use the default colours for the %1$s"
+	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_COLOUR_DESC"] = "Set the colour of the %1$s"
 	
 	L["CONFIG_DESIGN_ITEM_COOLDOWN_SHOW_DESC"] = "Display cooldowns"
-	L["CONFIG_DESIGN_ITEM_COOLDOWN_GLOBAL"] = "Update on GCD"
-	L["CONFIG_DESIGN_ITEM_COOLDOWN_GLOBAL_DESC"] = "Refresh the window to show cooldowns when a Global Cooldown event is triggered"
+	L["CONFIG_DESIGN_ITEM_COOLDOWN_NUMBER"] = COUNTDOWN_FOR_COOLDOWNS_TEXT
+	L["CONFIG_DESIGN_ITEM_COOLDOWN_NUMBER_DESC"] = "Show the remaining cooldown as a number"
 	L["CONFIG_DESIGN_ITEM_COOLDOWN_COMBAT"] = "Refresh in combat"
-	L["CONFIG_DESIGN_ITEM_COOLDOWN_COMBAT_DESC"] = "Refresh the window to show cooldowns while in combat, or wait until combat has ended"
+	L["CONFIG_DESIGN_ITEM_COOLDOWN_COMBAT_DESC"] = "Show cooldowns while in combat, or wait until combat has ended"
+	L["CONFIG_DESIGN_ITEM_COOLDOWN_ONOPEN_DESC"] = "Refresh the window when opened to show any new cooldowns"
 	
 	L["CONFIG_DESIGN_ITEM_BORDER_SHOW_DESC"] = "show borders around items or not"
 	L["CONFIG_DESIGN_ITEM_BORDER_STYLE_DESC"] = "set the border style for items"
@@ -563,28 +568,53 @@ if not L then return end
 	L["CONFIG_DESIGN_ITEM_EMPTY_POSITION_DESC"] = "how empty slots should be positioned when sorted"
 	
 	
--- junk
-	L["CONFIG_JUNK_SELL_AUTO"] = "Auto Sell"
-	L["CONFIG_JUNK_SELL_AUTO_DESC"] = "Sell all junk items as soon as you open a merchant window"
-	L["CONFIG_JUNK_NOTIFY_SOLD"] = "Sold your junk items for %s."
-	L["CONFIG_JUNK_NOTIFY_DESTROYED"] = "Destroyed %s junk items."
-	L["CONFIG_JUNK_NOTIFY_LIMIT"] = "Aborting auto sell due to buyback limit (%s) being reached."
-	L["CONFIG_JUNK_LIMIT"] = "Limit to Buyback"
-	L["CONFIG_JUNK_LIMIT_DESC"] = "As a safety precaution stop selling your junk when the buyback limit (%i) is reached"
-	L["CONFIG_JUNK_DELETE_DESC"] = "Delete items that cannot be vendored (have no sell price)\n\nnote - you can only delete items via the keybinding"
-	L["CONFIG_JUNK_NOTIFY_DESC"] = "Display a notification about how much gold you sold your items for"
-	L["CONFIG_JUNK_QUALITY_CUTOFF_DESC"] = "Only sell/destroy an item if its quality is at or below: %s%s|r"
-	L["CONFIG_JUNK_CATEGORY_DESC"] = "Auto sells/destroys all items assigned to %s when you talk to a vendor"
-	L["CONFIG_JUNK_LIST_DESC"] = "Display a notification for each item that is sold or destroyed."
-	L["CONFIG_JUNK_LIST_SELL_DESC"] = "Selling: %s x %s for %s"
-	L["CONFIG_JUNK_LIST_DESTROY_DESC"] = "Destroying: %s x %s"
-	L["CONFIG_JUNK_TESTMODE"] = "Test Mode"
-	L["CONFIG_JUNK_TESTMODE_DESC"] = "When this option is enabled no items are actually sold or destroyed.\n\nUse with the List option to see what would normally get sold or destroyed."
-	L["CONFIG_JUNK_TESTMODE_ALERT"] = "Test mode is enabled in your config, no items were actually sold or destroyed."
-	L["CONFIG_JUNK_TIMER_DESC"] = "the number of millseconds to wait before processing the next item"
-	L["CONFIG_JUNK_PROCESSING_DISABLED_DESC"] = "All junk selling options have been disabled due to the %s addon being loaded"
-	L["CONFIG_JUNK_SOULBOUND_ALREADY_KNOWN_DESC"] = "Categorise any soulbound item (typically recipes), that you already know, as junk"
-	L["CONFIG_JUNK_SOULBOUND_EQUIPMENT_DESC"] = "Categorise any soulbound equipable item, that you cannot use, as junk"
+-- actions
+	L["CONFIG_ACTION"] = "Actions"
+	L["CONFIG_ACTION_TYPE"] = "%s: %s - %s"
+	L["CONFIG_ACTION_TYPE_DESC"] = "Set the action type for %s to %s"
+	L["CONFIG_ACTION_WHEN_DESC"] = "Set when the action for %s runs to %s"
+	L["CONFIG_ACTION_ENABLE_DESC"] = "Enable the %s action"
+	
+	L["CONFIG_ACTION_MANUAL_RUN"] = "Manual Action (Vendor, Mail)"
+	L["CONFIG_ACTION_TESTMODE"] = "Test Mode"
+	
+	L["CONFIG_ACTION_VENDOR_SELL"] = "Vendor items"
+	L["CONFIG_ACTION_VENDOR_AUTOMATIC_DESC"] = "Process automatic junk action items when you open a vendor"
+	L["CONFIG_ACTION_VENDOR_MANUAL_DESC"] = "Process all junk action items when you press the manual action keybinding at a vendor"
+	L["CONFIG_ACTION_VENDOR_LIMIT"] = "Limit to Buyback"
+	L["CONFIG_ACTION_VENDOR_LIMIT_DESC"] = "As a safety precaution stop selling your junk items when the buyback limit (%i) is reached"
+	L["CONFIG_ACTION_VENDOR_LIMIT_ABORT"] = "Processing aborted due to buyback limit (%s) being reached."
+	L["CONFIG_ACTION_VENDOR_SOLD"] = "Sold your junk items for %s."
+	L["CONFIG_ACTION_VENDOR_SOLD_DESC"] = "Display a notification about how much gold you sold your items for"
+	L["CONFIG_ACTION_VENDOR_QUALITY_CUTOFF_DESC"] = "Only sell/destroy an item if its quality is at or below: %s%s|r"
+	L["CONFIG_ACTION_VENDOR_LIST_DESC"] = "Display a notification for each item that is sold or destroyed."
+	L["CONFIG_ACTION_VENDOR_LIST_SELL_DESC"] = "Sold: %s x %s for %s"
+	L["CONFIG_ACTION_VENDOR_TIMER_DESC"] = "the number of millseconds to wait before processing the next item"
+	L["CONFIG_ACTION_VENDOR_COMBAT_DESC"] = "If enabled will keep selling/destroying items while in combat"
+	
+	L["CONFIG_ACTION_VENDOR_DESTROY"] = "Destroy junk items"
+	L["CONFIG_ACTION_VENDOR_DESTROY_DESC"] = "Delete items that cannot be vendored (have no sell price)\n\nnote - you can only delete items via the keybinding, and only one item at a time, or by right clicking on the item when at a vendor."
+	L["CONFIG_ACTION_VENDOR_DESTROY_LIST"] = "Destroyed: %s x %s"
+	L["CONFIG_ACTION_VENDOR_DESTROY_MORE"] = "You have %s more item(s) that can be destroyed."
+	L["CONFIG_ACTION_VENDOR_DESTROY_TEST"] = "Test mode is enabled, no items were actually destroyed."
+	
+	L["CONFIG_ACTION_VENDOR_TESTMODE"] = "Test mode is enabled, no items were actually sold."
+	L["CONFIG_ACTION_VENDOR_TESTMODE_DESC"] = "When this option is enabled no items are actually sold or destroyed.\n\nUse with the List option to see what would normally get sold or destroyed."
+	L["CONFIG_ACTION_VENDOR_PROCESSING_DISABLED_DESC"] = "All junk selling options have been disabled due to the %s addon being loaded"
+	
+	L["CONFIG_ACTION_VENDOR_SOULBOUND_ALREADY_KNOWN_DESC"] = "Categorise any soulbound item (typically recipes), that you already know, as junk"
+	L["CONFIG_ACTION_VENDOR_SOULBOUND_EQUIPMENT_DESC"] = "Categorise soulbound equipable items, that you cannot use, as junk"
+	L["CONFIG_ACTION_VENDOR_SOULBOUND_ITEMLEVEL_DESC"] = "Ignore the item level requirement when categorising soulbound equipable items, that you cannot use, as junk"
+	
+	L["CONFIG_ACTION_MAIL_SEND"] = "Send items"
+	L["CONFIG_ACTION_MAIL_AUTOMATIC_DESC"] = "Process automatic mail action items when you open a mailbox"
+	L["CONFIG_ACTION_MAIL_MANUAL_DESC"] = "Process all mail action items when you press the manual action keybinding at a mailbox"
+	L["CONFIG_ACTION_MAIL_TESTMODE"] = "Test mode is enabled, no items were actually sent."
+	L["CONFIG_ACTION_MAIL_TESTMODE_DESC"] = "When this option is enabled no items are actually sent.\n\nUse with the List option to see what would normally get sent."
+	L["CONFIG_ACTION_MAIL_QUALITY_CUTOFF_DESC"] = "Only send an item if its quality is at or below: %s%s|r"
+	L["CONFIG_ACTION_MAIL_LIST_DESC"] = "Display a notification for each item that is sent."
+	L["CONFIG_ACTION_MAIL_TIMER_DESC"] = "the number of millseconds (approx) to wait before treating the send as failed"
+	
 	
 	
 -- sorting
@@ -614,8 +644,10 @@ if not L then return end
 	L["CONFIG_SORTING_INCLUDE_LOCATION_DESC"] = "include item equip locations when sorting.\n\nnote: only affects items that can be equipped"
 	L["CONFIG_SORTING_INCLUDE_ITEMTYPE"] = "item type and subtype"
 	L["CONFIG_SORTING_INCLUDE_ITEMTYPE_DESC"] = "include item type and subtype when sorting."
-	L["CONFIG_SORTING_INCLUDE_CATEGORY"] = "item category"
-	L["CONFIG_SORTING_INCLUDE_CATEGORY_DESC"] = "include item category in sorting your inventory"
+	L["CONFIG_SORTING_INCLUDE_CATEGORY"] = "category id"
+	L["CONFIG_SORTING_INCLUDE_CATEGORY_DESC"] = "include category id in sorting your inventory"
+	L["CONFIG_SORTING_INCLUDE_CATNAME"] = "category name"
+	L["CONFIG_SORTING_INCLUDE_CATNAME_DESC"] = "include category name in sorting your inventory"
 	L["CONFIG_SORTING_INCLUDE_ITEMUSELEVEL"] = "item (use) level"
 	L["CONFIG_SORTING_INCLUDE_ITEMUSELEVEL_DESC"] = "include item (use) level when sorting."
 	L["CONFIG_SORTING_INCLUDE_ITEMSTATLEVEL"] = "item (stat) level"
@@ -636,6 +668,8 @@ if not L then return end
 	L["CONFIG_SORTING_INCLUDE_SLOTID_DESC"] = "include slot id when sorting."
 	L["CONFIG_SORTING_INCLUDE_COUNT"] = "item count"
 	L["CONFIG_SORTING_INCLUDE_COUNT_DESC"] = "include item count when sorting."
+	L["CONFIG_SORTING_INCLUDE_RANK"] = "profession quality"
+	L["CONFIG_SORTING_INCLUDE_RANK_DESC"] = "include the profession quality when sorting."
 	
 	L["CONFIG_SORTING_DIRECTION_DESC"] = "if this is ticked then %1$s will be sorted in descending order\n\nif this is not ticked %1$s will be sorted in ascending order"
 	L["CONFIG_SORTING_ORDER"] = "Sort Order"
@@ -666,9 +700,8 @@ if not L then return end
 	
 	L["CONFIG_RULE_SHOWDISABLED"] = "Show Disabled Rules"
 	L["CONFIG_RULE_SHOWDISABLED_DESC"] = "toggles the display of disabled rules"
-	L["CONFIG_RULE_WIDTH_DESC"] = "the width of the rules window"
-	L["CONFIG_RULE_ROWS"] = "Rows"
-	L["CONFIG_RULE_ROWS_DESC"] = "the number of rules to display in the list"
+	L["CONFIG_LIST_WIDTH_DESC"] = "the width of the window"
+	L["CONFIG_LIST_ROWS_DESC"] = "the number of entries to display in the list"
 	
 	L["CONFIG_CATEGORY_SET"] = "Category Set"
 	L["CONFIG_CATEGORY_SET_PLURAL"] = "Category Sets"
@@ -800,6 +833,7 @@ if not L then return end
 	L["ANCHOR"] = "Anchor Point"
 	L["ANCHOR_TEXT1"] = "set the anchor point for the %1$s window" -- window name  (bags, bank, vault)
 	L["ANCHOR_TEXT2"] = "set the anchor point for the %1$s" -- object name (bars, items)
+	L["ANCHOR_TEXT3"] = "set which corner of the %1$s the %2$s should start from" -- object parent name (window, bar), object name (bars, items)
 	L["BORDER_DESC"] = "border options"
 	L["FILE"] = "File"
 	L["HEIGHT"] = "Height"
@@ -817,6 +851,7 @@ if not L then return end
 	L["ASCENDING"] = "Ascending"
 	L["DESCENDING"] = "Descending"
 	L["LOCATION"] = "Location"
+	L["LOCATIONS"] = "Locations"
 	L["DHMS"] = "dhms"
 	L["RANDOM"] = "Random"
 	L["RELOAD"] = "Reload"
@@ -875,7 +910,20 @@ if not L then return end
 	L["COVENANT"] = "Covenant"
 	L["ALPHA"] = "Alpha"
 	L["BAGS"] = "Bags"
-	L["BINDING_JUNK_SELL_MANUAL"] = "Sell Junk Items"
+	L["OPTION_NOT_AVILABLE_EXPANSION"] = "This option is not available in this expansion"
+	L["SIZE"] = "Size"
+	L["AZERITE"] = "Azerite"
+	L["COSMETIC"] = COSMETIC or ITEM_COSMETIC or "Cosmetic"
+	L["WHEN"] = "When"
+	L["RECIPIENT"] = "Recipient"
+	L["ACTIONS"] = "Actions"
+	L["ROWS"] = "Rows"
+	L["DESTINATION"] = "Destination"
+	L["ASSIGNED"] = "Assigned"
+	L["ASSIGNABLE"] = "Assignable"
+	L["OVERRIDE"] = "Override"
+	L["SELECTED"] = "Selected"
+	L["UNSELECTED"] = "Unselected"
 	
 	
 -- libdatabroker
@@ -884,10 +932,13 @@ if not L then return end
 	L["LDB_OBJECT_TEXT_SET_DESC"] = "Set this %1$s as the LDB object text"
 	L["LDB_OBJECT_TEXT_INCLUDE"] = "Include in Text"
 	L["LDB_OBJECT_TEXT_INCLUDE_DESC"] = "Include the icon and count for this %1$s in the LDB object text"
-	L["LDB_OBJECT_TEXT_FORMAT DESC"] = "What format do you want to use to build the values in the LDB object text"
+	L["LDB_OBJECT_TEXT_FORMAT_DESC"] = "What format do you want to use to build the values in the LDB object text"
 	L["LDB_OBJECT_TOOLTIP_INCLUDE"] = "Include in Tooltip"
 	L["LDB_OBJECT_TOOLTIP_INCLUDE_DESC"] = "Include the icon and count for this %1$s in the LDB object tooltip"
 	L["LDB_OBJECT_TOOLTIP_FORMAT_DESC"] = "What format do you want to use to build the values in the LDB object tooltip"
+	
+	L["LDB_ITEMS_SHOWZERO"] = "Show Zero"
+	L["LDB_ITEMS_SHOWZERO_DESC"] = "Show items that have a count of zero"
 	
 	L["LDB_TRACKED_NONE"] = "no %1$s is currently being tracked"
 	L["LDB_LOCATION_NOT_READY"] = "%1$s data is not ready"
@@ -908,6 +959,7 @@ if not L then return end
 	L["LDB_MOUNTS_USEFORLAND_DESC"] = "adds your %1$s mounts to your %2$s mount selections"
 	L["LDB_MOUNTS_FLYING_DISMOUNT_DESC"] = "Enabled = allows you to dismount while flying.\n\nDisabled = you need to land before you can dismount\n\nnote: does not effect spell casting while flying, use the interface options to set that"
 	L["LDB_MOUNTS_FLYING_DISMOUNT_WARNING"] = "You are currently flying, please land to select another mount"
+	L["LDB_MOUNTS_FLYING_DRAGONRIDING_DESC"] = "swap air and land mounts when in the dragon isles so that the summon mount keybinding will get dragonriding mounts by default.\n\nYou will need to hold shift to get an alternative land mount"
 	L["LDB_MOUNTS_SUMMON"] = "Summon Mount"
 	L["LDB_MOUNTS_NODATA"] = "Unknown / Changed"
 	L["LDB_MOUNTS_TRAVEL_FORM"] = "Use %1$s"

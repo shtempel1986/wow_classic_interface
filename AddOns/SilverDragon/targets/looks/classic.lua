@@ -24,6 +24,7 @@ function module.Looks:Classic(popup)
 	popup.close:SetPoint("TOPRIGHT", -3, -3)
 
 	-- popup.modelbg:SetPoint("BOTTOMLEFT", 3, 3)
+	popup.modelbg:SetTexture(false)
 	popup.modelbg:SetSize(popup:GetHeight() - 20, popup:GetHeight() - 20)
 	popup.modelbg:SetPoint("TOPLEFT", popup.title, "BOTTOMLEFT", 0, -2)
 	popup.modelbg:SetPoint("BOTTOMLEFT", popup, "BOTTOMLEFT", 4, 4)
@@ -54,5 +55,8 @@ function module.Looks:Classic(popup)
 	select(3, popup.shine.animIn:GetAnimations()):SetOffset(70, 0)
 
 	popup.raidIcon:SetPoint("BOTTOMRIGHT", popup.background, "TOPLEFT", 12, -12)
+
+	popup.lootIcon:SetSize(24, 24)
+	popup.lootIcon:SetPoint("CENTER", popup.background, "BOTTOMLEFT", -2, 2)
 	popup.dead:SetAllPoints(popup.modelbg)
 end

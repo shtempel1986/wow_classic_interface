@@ -32,6 +32,7 @@ local function Loot(self, popup)
     popup.shine:SetPoint("BOTTOMLEFT", 10, 24)
 
     popup.raidIcon:SetPoint("BOTTOM", popup.modelbg, "TOP", 0, -8)
+    popup.lootIcon:SetPoint("CENTER", popup.modelbg, "BOTTOMLEFT", 0, 0)
 
     popup.dead:SetAllPoints(popup.modelbg)
 end
@@ -40,8 +41,6 @@ function module.Looks:Loot_MoreAwesome(popup)
     Loot(self, popup)
     popup.background:SetAtlas("loottoast-moreawesome", true)
 end
-
-local shadowlands = select(4, GetBuildInfo()) >= 90000
 
 function module.Looks:Loot_QuestReward(popup)
     Loot(self, popup)
@@ -62,16 +61,14 @@ function module.Looks:Loot_Horde(popup)
 end
 function module.Looks:Loot_Azerite(popup)
     Loot(self, popup)
-    popup.background:SetAtlas(shadowlands and "loottoast-bg-azerite" or "loottoast-azerite", true)
+    popup.background:SetAtlas("loottoast-azerite", true)
 end
 function module.Looks:Loot_NZoth(popup)
     Loot(self, popup)
-    popup.background:SetAtlas(shadowlands and "loottoast-bg-nzoth" or "loottoast-nzoth", true)
+    popup.background:SetAtlas("loottoast-nzoth", true)
 end
 
-if shadowlands then
-    function module.Looks:Loot_Oribos(popup)
-        Loot(self, popup)
-        popup.background:SetAtlas("loottoast-oribos", true)
-    end
+function module.Looks:Loot_Oribos(popup)
+    Loot(self, popup)
+    popup.background:SetAtlas("loottoast-oribos", true)
 end

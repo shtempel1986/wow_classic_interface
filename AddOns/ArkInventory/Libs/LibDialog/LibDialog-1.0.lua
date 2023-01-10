@@ -31,7 +31,7 @@ if not lib then
     return
 end -- No upgrade needed
 
-local dialog_prototype = _G.CreateFrame("Frame", nil, _G.UIParent, BackdropTemplateMixin and "BackdropTemplate")
+local dialog_prototype = _G.CreateFrame("Frame", nil, _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate")
 local dialog_meta = {
     __index = dialog_prototype
 }
@@ -115,13 +115,11 @@ local active_dialogs = lib.active_dialogs
 local active_buttons = lib.active_buttons
 local active_checkboxes = lib.active_checkboxes
 local active_editboxes = lib.active_editboxes
-local active_icons = lib.active_icons
 
 local dialog_heap = lib.dialog_heap
 local button_heap = lib.button_heap
 local checkbox_heap = lib.checkbox_heap
 local editbox_heap = lib.editbox_heap
-local icon_heap = lib.icon_heap
 
 -----------------------------------------------------------------------
 -- Helper functions.
@@ -243,12 +241,17 @@ local function _Dialog_OnShow(dialog)
 end
 
 local function _Dialog_OnHide(dialog)
+    local delegate = dialog.delegate
+	
+    if not delegate then
+        return
+    end
+
     _G.PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE, "Master")
 
     -- Required so lib:ActiveDialog() will return false if called from code which is called from the delegate's on_hide
     _RecycleWidget(dialog, active_dialogs, dialog_heap)
 
-    local delegate = dialog.delegate
     if delegate.on_hide then
         delegate.on_hide(dialog, dialog.data)
     end
@@ -259,7 +262,7 @@ local function _Dialog_OnHide(dialog)
         local delegate
         repeat
             delegate = _ProcessQueue()
-            until not delegate
+        until not delegate
     end
 end
 

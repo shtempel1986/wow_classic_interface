@@ -51,6 +51,8 @@ local defaultSpecTimers = {
 	[270] = 10, -- Monk: Mistweaver
 	[577] = 10, -- Demon Hunter: Havoc
 	[581] = 10, -- Demon Hunter: Vengeance	
+	[1467] = 10,
+	[1468] = 10,
 }
 
 module.db.specIcons = ExRT.GDB.ClassSpecializationIcons
@@ -225,7 +227,42 @@ function module:slash(arg,msgDeformatted)
 			module.db.lasttimertopull = time_needed + 1
 			module.db.timertopull = time_needed
 			CreateTimers(time_needed,L.timerattack)
-		end	
+		end
+	elseif arg:find("^cleutimer ") then
+		--/rt cleutimer UNIT_DIED 177286 240 sound
+		local u_event,filter,time = msgDeformatted:match("^cleutimer ([^ ]+) (%d+) (%d+)")
+		if time then
+			filter = tonumber(filter)
+			time = tonumber(time)
+			local sound = arg:find("sound") and true or false
+			if u_event == "UNIT_DIED" then
+				function module.main.COMBAT_LOG_EVENT_UNFILTERED(_,event,_,sourceGUID,sourceName,sourceFlags,_,destGUID,destName,destFlags,_,spellID)
+					if u_event == event and ExRT.F.GUIDtoID(destGUID) == filter then
+						module.frame.total = -time
+						if sound then
+							C_Timer.After(time,function()
+								pcall(PlaySoundFile, [[Interface\AddOns\WeakAuras\Media\Sounds\AirHorn.ogg]], "Master")
+							end)
+						end
+					end
+				end
+			else
+				function module.main.COMBAT_LOG_EVENT_UNFILTERED(_,event,_,sourceGUID,sourceName,sourceFlags,_,destGUID,destName,destFlags,_,spellID)
+					if u_event == event and spellID == filter then
+						module.frame.total = -time
+						if sound then
+							C_Timer.After(time,function()
+								pcall(PlaySoundFile, [[Interface\AddOns\WeakAuras\Media\Sounds\AirHorn.ogg]], "Master")
+							end)
+						end
+					end
+				end
+			end
+			module:RegisterEvents('COMBAT_LOG_EVENT_UNFILTERED')
+			print('added',u_event,filter,time,sound)
+		else
+			print('wrong syntax')
+		end
 	elseif arg == "help" then
 		print("|cff00ff00/rt pull|r - run pull timer with 10 seconds")
 		print("|cff00ff00/rt pull X|r - run pull timer with X seconds")
@@ -413,9 +450,9 @@ function module.options:Load()
 		VMRT.Timers.specTimes[spec] = val
 	end
 	
-	self.scrollFrame = ELib:ScrollFrame(self):Size(678,220):Point("TOP",0,-413):Height(600):Shown(not ExRT.isClassic)
+	self.scrollFrame = ELib:ScrollFrame(self):Size(678,220):Point("TOP",0,-413):Height(700):Shown(not ExRT.isClassic)
 	ELib:Border(self.scrollFrame,0)
-	self.scrollFrameText = ELib:Text(self,L.TimerSpecTimerHeader,12):Size(620,30):Point("BOTTOMLEFT",self.scrollFrame,"TOPLEFT",5,5):Bottom():Shown(not ExRT.isClassic)
+	self.scrollFrameText = ELib:Text(self,L.TimerSpecTimerHeader,12):Size(620,30):Point("BOTTOMLEFT",self.scrollFrame,"TOPLEFT",5,1):Bottom():Shown(not ExRT.isClassic)
 	self.scrollFrame.C.classTitles = {}
 	self.scrollFrame.C.classFrames = {}
 	for key, class in ipairs(module.db.classNames) do
@@ -446,7 +483,7 @@ function module.options:Load()
 			specFrame.specEditBox.id = spec
 		end
 	end
-	self.scrollFrame.C.ButtonToDefaultTimers = ELib:Button(self.scrollFrame.C,L.TimerSpecTimerDefault):Size(255,20):Point("TOP",0,-560):OnClick(function()
+	self.scrollFrame.C.ButtonToDefaultTimers = ELib:Button(self.scrollFrame.C,L.TimerSpecTimerDefault):Size(255,20):Point("TOP",0,-670):OnClick(function()
 		VMRT.Timers.specTimes = tableCopy(defaultSpecTimers)
 		for key, class in ipairs(module.db.classNames) do
 			for specRow, spec in ipairs(module.db.specByClass[class]) do
@@ -506,7 +543,7 @@ function module.main:ADDON_LOADED()
 end
 
 function module.main:PLAYER_REGEN_DISABLED()
-	if not module.frame.encounter then 
+	if not module.frame.encounter and module.frame.total >= 0 then 
 		module.frame.total = 0 
 	end
 	module.frame.inCombat = true

@@ -46,6 +46,7 @@ local function initializeDb()
 			LastVersion = 0,           -- used to clean out old stuff	
 			FirstUse = true,           -- true if this is first time use, gets cleared after seeing the export help splash window
 			Talents = {},              -- for each spec, selected talents
+			Glyphs = {},
 			Equipped = {},             -- for each spec, slot id to item info
 			BagItems = {},             -- list of item info for bags
 			BankItems = {},            -- list of item info for bank
@@ -96,13 +97,18 @@ local function initializeDb()
 			Amr.db.profile.Logging.Auto[instanceId] = byDiff
 			addedLogging[instanceId] = byDiff
 		end
-				
-		for k, difficultyId in pairs(Amr.Difficulties) do
+		
+		for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 			if not byDiff[difficultyId] then
 				byDiff[difficultyId] = false
 			else
 				hasSomeLogging = true
 			end
+		end
+
+		if #Amr.InstanceDifficulties[instanceId] < 4 then
+			byDiff[3] = nil
+			byDiff[4] = nil
 		end
 	end	
 
@@ -114,7 +120,7 @@ local function initializeDb()
 	
 	if hasSomeLogging then		
 		for instanceId, byDiff in pairs(addedLogging) do
-			for k, difficultyId in pairs(Amr.Difficulties) do
+			for j, difficultyId in ipairs(Amr.InstanceDifficulties[instanceId]) do
 				byDiff[difficultyId] = true
 			end
 		end

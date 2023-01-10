@@ -111,7 +111,7 @@ function GBB.UpdateGroupList()
 		table.sort(GBB.DBChar.GroupList,function(a,b) return a.lastSeen<b.lastSeen end)	
 	end
 		
-	if not GroupBulletinBoardFrame:IsVisible() or GBB.Tool.GetSelectedTab(GroupBulletinBoardFrame)~=2 then
+	if not GroupBulletinBoardFrame:IsVisible() or GBB.Tool.GetSelectedTab(GroupBulletinBoardFrame)~=3 then
 		return
 	end
 	GBB.EditNote(nil)
@@ -215,7 +215,7 @@ function GBB.InitGroupList()
 	
 
 	GroupBulletinBoardFrame_GroupFrame:SetFading(false);
-	GroupBulletinBoardFrame_GroupFrame:SetFontObject(GameFontNormal);
+	GroupBulletinBoardFrame_GroupFrame:SetFontObject(GBB.DB.FontSize);
 	GroupBulletinBoardFrame_GroupFrame:SetJustifyH("LEFT");
 	GroupBulletinBoardFrame_GroupFrame:SetHyperlinksEnabled(true);
 	GroupBulletinBoardFrame_GroupFrame:SetScript("OnHyperlinkClick",ClickHyperlink)

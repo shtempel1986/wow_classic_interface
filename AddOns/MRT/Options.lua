@@ -34,7 +34,11 @@ ELib:ShadowInside(Options)
 Options.bossButton:Hide()
 Options.backToInterface:SetScript("OnClick",function ()
 	MRT.Options.Frame:Hide()
-	InterfaceOptionsFrame:Show()
+	if MRT.is10 then
+		SettingsPanel:Show()
+	else
+		InterfaceOptionsFrame:Show()
+	end
 end)
 
 
@@ -143,20 +147,37 @@ Options.modulesList:Update()
 
 MRT.Options.InBlizzardInterface = CreateFrame( "Frame", nil )
 MRT.Options.InBlizzardInterface.name = "Method Raid Tools"
-InterfaceOptions_AddCategory(MRT.Options.InBlizzardInterface)
+if MRT.is10 then
+	local category = Settings.RegisterCanvasLayoutCategory(MRT.Options.InBlizzardInterface, "Method Raid Tools")
+	Settings.RegisterAddOnCategory(category)
+else
+	InterfaceOptions_AddCategory(MRT.Options.InBlizzardInterface)
+end
 MRT.Options.InBlizzardInterface:Hide()
 
 MRT.Options.InBlizzardInterface:SetScript("OnShow",function (self)
-	if InterfaceOptionsFrame:IsShown() then
-		InterfaceOptionsFrame:Hide()
+	if MRT.is10 then
+		if SettingsPanel:IsShown() then
+			HideUIPanel(SettingsPanel)
+		end
+	else
+		if InterfaceOptionsFrame:IsShown() then
+			InterfaceOptionsFrame:Hide()
+		end
 	end
 	MRT.Options:Open()
 	self:SetScript("OnShow",nil)
 end)
 
 MRT.Options.InBlizzardInterface.button = ELib:Button(MRT.Options.InBlizzardInterface,"Method Raid Tools",0):Size(400,25):Point("TOP",0,-100):OnClick(function ()
-	if InterfaceOptionsFrame:IsShown() then
-		InterfaceOptionsFrame:Hide()
+	if MRT.is10 then
+		if SettingsPanel:IsShown() then
+			HideUIPanel(SettingsPanel)
+		end
+	else
+		if InterfaceOptionsFrame:IsShown() then
+			InterfaceOptionsFrame:Hide()
+		end
 	end
 	MRT.Options:Open()
 end)
@@ -239,6 +260,13 @@ MiniMapIcon:SetScript("OnLeave", function(self)
 	self.anim:Stop()
 	self.iconMini:Hide()
 end)
+if MRT.is10 then
+	MiniMapIcon.icon:SetSize(20,20)
+	MiniMapIcon.iconMini:SetSize(20,20)
+	MiniMapIcon.icon:SetPoint("CENTER",1,0)
+	MiniMapIcon.iconMini:SetPoint("CENTER", 1, 0)
+end
+
 
 
 MiniMapIcon.anim = MiniMapIcon:CreateAnimationGroup()
@@ -287,12 +315,15 @@ local function IconMoveButton(self)
 		if y > 0 then q = q + 2 end
 		local minimapShape = GetMinimapShape and GetMinimapShape() or "ROUND"
 		local quadTable = minimapShapes[minimapShape]
+		local w = (Minimap:GetWidth() / 2) + 5
+		local h = (Minimap:GetHeight() / 2) + 5
 		if quadTable[q] then
-			x, y = x*80, y*80
+			x, y = x*w, y*h
 		else
-			local diagRadius = 103.13708498985 --math.sqrt(2*(80)^2)-10
-			x = math.max(-80, math.min(x*diagRadius, 80))
-			y = math.max(-80, math.min(y*diagRadius, 80))
+			local diagRadiusW = sqrt(2*(w)^2)-10
+			local diagRadiusH = sqrt(2*(h)^2)-10
+			x = max(-w, min(x*diagRadiusW, w))
+			y = max(-h, min(y*diagRadiusH, h))
 		end
 		self:ClearAllPoints()
 		self:SetPoint("CENTER", Minimap, "CENTER", x, y)
@@ -391,6 +422,20 @@ function MRT.Options:Open(PANEL)
 	end
 end
 
+function MRT.Options:OpenByModuleName(moduleName)
+	for i=1,#Options.Frames do
+		if Options.Frames[i].moduleName == moduleName then
+			Options:Show()
+
+			Options:SetPage(Options.Frames[i])
+
+			Options.modulesList.selected = i
+			Options.modulesList:Update()
+			return Options.Frames[i]
+		end
+	end
+end
+
 MRT.F.menuTable = {
 { text = L.minimapmenu, isTitle = true, notCheckable = true, notClickable = true },
 { text = L.minimapmenuset, func = MRT.Options.Open, notCheckable = true, keepShownOnClick = true, },
@@ -409,6 +454,7 @@ function MRT.Options:UpdateModulesList()
 end
 
 ----> Options
+local OptionsFrame_title
 
 function OptionsFrame:AddSnowStorm(maxSnowflake)
 	local sf = OptionsFrame.SnowStorm or CreateFrame("ScrollFrame", nil, Options)
@@ -598,7 +644,7 @@ function OptionsFrame:AddDeathStar(maxDeathStars,deathStarType)
 			OptionsFrame:AddDeathStar(self.maxDeathStars,deathStarType)
 		end)
 
-		OptionsFrame.score = ELib:Text(OptionsFrame,"Score: 0",28):Point("RIGHT",OptionsFrame.title,"CENTER",85,-27):Color("FF9117"):Font("Interface\\AddOns\\"..GlobalAddonName.."\\media\\FiraSansMedium.ttf",20)
+		OptionsFrame.score = ELib:Text(OptionsFrame,"Score: 0",28):Point("RIGHT",OptionsFrame_title,"CENTER",85,-27):Color("FF9117"):Font("Interface\\AddOns\\"..GlobalAddonName.."\\media\\FiraSansMedium.ttf",20)
 	end
 
 	sf.snow = sf.snow or {}
@@ -735,7 +781,7 @@ end
 
 
 OptionsFrame.image = ELib:Texture(OptionsFrame,"Interface\\AddOns\\"..GlobalAddonName.."\\media\\OptionLogo2"):Point("TOPLEFT",15,5):Size(140,140)
-OptionsFrame.title = ELib:Texture(OptionsFrame,"Interface\\AddOns\\"..GlobalAddonName.."\\media\\logoname2"):Point("LEFT",OptionsFrame.image,"RIGHT",15,-5):Size(512*0.7,128*0.7)
+OptionsFrame_title = ELib:Texture(OptionsFrame,"Interface\\AddOns\\"..GlobalAddonName.."\\media\\logoname2"):Point("LEFT",OptionsFrame.image,"RIGHT",15,-5):Size(512*0.7,128*0.7)
 
 local askFrame_show
 local pmove_pos = 40
@@ -828,11 +874,11 @@ OptionsFrame.dateChecks:SetScript("OnShow",function(self)
 
 	if (today.month == 5 and today.day == 4) then
 		OptionsFrame.image:SetTexture("Interface\\AddOns\\"..GlobalAddonName.."\\media\\OptionLogom4")
-		OptionsFrame.title:Color("FF9117")
+		OptionsFrame_title:Color("FF9117")
 		if math.random(1,5) == 4 then
-			OptionsFrame.title:Color("ff0000")	--you are sith
+			OptionsFrame_title:Color("ff0000")	--you are sith
 		else	
-			OptionsFrame.title:Color("00ff00")
+			OptionsFrame_title:Color("00ff00")
 		end
 
 		OptionsFrame:AddDeathStar()
@@ -844,6 +890,14 @@ OptionsFrame.dateChecks:SetScript("OnShow",function(self)
 		OptionsFrame.image:SetTexture("Interface\\AddOns\\"..GlobalAddonName.."\\media\\OptionLogost")
 
 		OptionsFrame:AddDeathStar(nil,2)
+
+		return
+	end
+
+	if (today.month == 4 and today.day == 28) then
+		local s = 0.39
+		OptionsFrame_title:Size(512*0.7,128*0.7*s):TexCoord(0,1,0,s):Point("LEFT",OptionsFrame.image,"RIGHT",15,-5+128*s*0.4*0.5):Color(0, 87/255, 183/255,1)
+		local OptionsFrame_title2 = ELib:Texture(OptionsFrame,"Interface\\AddOns\\"..GlobalAddonName.."\\media\\logoname2"):Point("TOP",OptionsFrame_title,"BOTTOM"):Size(512*0.7,128*0.7*(1-s)):TexCoord(0,1,s,1):Color(255/255, 221/255, 0,1)
 
 		return
 	end
@@ -869,8 +923,8 @@ do
 			askFrame:SetSize(M_WIDTH,M_HEIGHT)
 			askFrame:SetPoint("CENTER")
 			askFrame:SetFrameStrata("DIALOG")
-			local mainbg = ELib:Texture(askFrame,[[Interface\AddOns\MRT\media\askjt]]):TexCoord(0,1,0,650/1024):Size(M_WIDTH,M_HEIGHT):Point("TOPLEFT")
-			local hiddenask = ELib:Texture(askFrame,[[Interface\AddOns\MRT\media\askjt]]):TexCoord(0,146/1024,651/1024,874/1024):Size(147,223):Point("CENTER",mainbg,35,-112)
+			local mainbg = ELib:Texture(askFrame,[[Interface\AddOns\MRT\media\askjt]],"BACKGROUND"):TexCoord(0,1,0,650/1024):Size(M_WIDTH,M_HEIGHT):Point("TOPLEFT")
+			local hiddenask = ELib:Texture(askFrame,[[Interface\AddOns\MRT\media\askjt]],"BORDER"):TexCoord(0,146/1024,651/1024,874/1024):Size(147,223):Point("CENTER",mainbg,35,-112)
 			hiddenask:SetAlpha(0)
 
 			askFrame:SetMovable(true)
@@ -1107,7 +1161,7 @@ end
 OptionsFrame.Changelog = ELib:ScrollFrame(OptionsFrame):Size(680,180):Point("TOP",0,-335):OnShow(function(self)
 	local text = MRT.Options.Changelog or ""
 	text = text:gsub("(v%.%d+([^\n]*).-\n\n)",function(a,b)
-		if (b == "-Classic" and MRT.isClassic and not MRT.isBC) or (b == "-BC" and MRT.isBC) or ((b ~= "-Classic" and b ~= "-BC") and not MRT.isClassic) then
+		if (b == "-Classic" and MRT.isClassic and not MRT.isBC) or (b == "-BC" and MRT.isBC and not MRT.isLK) or (b == "-LK" and MRT.isLK) or ((b ~= "-Classic" and b ~= "-BC" and b ~= "-LK") and not MRT.isClassic) then
 			return a
 		else
 			return ""

@@ -1,6 +1,6 @@
 -- AskMrRobotClassic-Serializer will serialize and communicate character data between users.
 
-local MAJOR, MINOR = "AskMrRobotClassic-Serializer", 6
+local MAJOR, MINOR = "AskMrRobotClassic-Serializer", 11
 local Amr, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not Amr then return end -- already loaded by something else
@@ -150,40 +150,66 @@ Amr.FactionIds = {
 }
 
 Amr.InstanceIds = {
-	Onyxia = 249,
-	MoltenCore = 409,
-	Bwl = 469,
-	ZulGurub = 309,
-	Aq20 = 509,
-	Aq40 = 531,
 	Naxx = 533,
-	Kara = 532,
-	Serpentshrine = 548,
-	TempestKeep = 550,
-	Hyjal = 534,
-	BlackTemple = 564,
-	Sunwell = 580,
-	Gruul = 565,
-	Mag = 544
+	Eye = 616,
+	Obsidian = 615,
+	Ulduar = 603,
+	Trial = 649,
+	Onyxia = 249,
+	Icecrown = 631,
+	Ruby = 724
+	--MoltenCore = 409,
+	--Bwl = 469,
+	--ZulGurub = 309,
+	--Aq20 = 509,
+	--Aq40 = 531,
+	--Kara = 532,
+	--Serpentshrine = 548,
+	--TempestKeep = 550,
+	--Hyjal = 534,
+	--BlackTemple = 564,
+	--Sunwell = 580,
+	--Gruul = 565,
+	--Mag = 544,
+	--ZulAman = 568
 }
 
 -- instances that AskMrRobot currently supports logging for
 Amr.SupportedInstanceIds = {
-	[249] = true,
-	[409] = true,
-	[469] = true,
-	[309] = true,
-	[509] = true,
-	[531] = true,
 	[533] = true,
-	[532] = true,
-	[548] = true,
-	[550] = true,
-	[534] = true,
-	[564] = true,
-	[580] = true,
-	[565] = true,
-	[544] = true
+	[616] = true,
+	[615] = true,
+	[603] = true,
+	[649] = true,
+	[249] = true,
+	[631] = true,
+	[724] = true
+	--[409] = true,
+	--[469] = true,
+	--[309] = true,
+	--[509] = true,
+	--[531] = true,
+	--[532] = true,
+	--[548] = true,
+	--[550] = true,
+	--[534] = true,
+	--[564] = true,
+	--[580] = true,
+	--[565] = true,
+	--[544] = true,
+	--[568] = true
+}
+
+-- available difficulties for raids
+Amr.InstanceDifficulties = {
+    [533] = {1, 2},
+    [616] = {1, 2},
+	[615] = {1, 2},
+	[603] = {1, 2},
+	[649] = {1, 2, 3, 4},
+	[249] = {1, 2},
+	[631] = {1, 2, 3, 4},
+	[724] = {1, 2, 3, 4}
 }
 
 
@@ -654,6 +680,7 @@ function Amr:GetPlayerData()
 
 	--ret.Specs = {}
     ret.Talents = {}
+	ret.Glyphs = {}
 
 	ret.Equipped = {}	
 	readEquippedItems(ret)
@@ -845,7 +872,7 @@ function Amr:SerializePlayerData(data, complete)
 	
 	table.insert(fields, ".s1") -- indicates the start of a spec block
 	table.insert(fields, data.Class)
-	table.insert(fields, data.Talents[1] or "")			
+	table.insert(fields, data.Talents[1] or "")	
 
     -- export equipped gear
     if data.Equipped and data.Equipped[1] then
@@ -882,6 +909,14 @@ function Amr:SerializePlayerData(data, complete)
         table.insert(fields, ".inv")
         appendItemsToExport(fields, itemObjects)
     end
+
+	-- append glyphs to maintain backwards compatability	
+	if data.Glyphs and data.Glyphs[1] then
+		table.insert(fields, ".gly")
+		for i, glyphId in ipairs(data.Glyphs[1]) do
+			table.insert(fields, glyphId)
+		end
+	end
 
     return "$" .. table.concat(fields, ";") .. "$"
 

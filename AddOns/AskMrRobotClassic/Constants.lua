@@ -17,6 +17,7 @@ Amr.RaceIds = Amr.Serializer.RaceIds
 Amr.FactionIds = Amr.Serializer.FactionIds
 Amr.InstanceIds = Amr.Serializer.InstanceIds
 Amr.SupportedInstanceIds = Amr.Serializer.SupportedInstanceIds
+Amr.InstanceDifficulties = Amr.Serializer.InstanceDifficulties
 Amr.ParseItemLink = Amr.Serializer.ParseItemLink
 Amr.IsSupportedInstanceId = Amr.Serializer.IsSupportedInstanceId
 Amr.IsSupportedInstance = Amr.Serializer.IsSupportedInstance
@@ -107,6 +108,7 @@ Amr.SpecIcons = {
 }
 
 Amr.ClassIcons = {
+    ["DEATHKNIGHT"] = "spell_deathknight_classicon",
     ["DRUID"] = "classicon_druid",
     ["HUNTER"] = "classicon_hunter",
     ["MAGE"] = "classicon_mage",
@@ -119,10 +121,13 @@ Amr.ClassIcons = {
 }
 
 -- instance IDs ordered in preferred display order
-Amr.InstanceIdsOrdered = { 532, 565, 544, 548, 550, 534, 564, 580, 249, 409, 469, 309, 509, 531, 533 }
+Amr.InstanceIdsOrdered = { 533, 616, 615, 603, 649, 249, 631, 724 }
 
 Amr.Difficulties = {
-    Normal = 1
+    Normal = 1,
+    Normal25 = 2,
+    Heroic = 3,
+    Heroic25 = 4
 }
 
 -- get the game's spec id from the AMR spec id

@@ -1,7 +1,7 @@
-## Interface: 20501
+## Interface: 30400
 ## Title : EquipmentSets
-## Version : 1.1.2-tbcc
-## Notes: Allows you to save your own gear presets and switch between them. -- You can also use "/unequipall" to remove all your gear at once. // Note: Ammo and Trinket bugs haven't been fixed yet, this is simply an update to make the addon compatible with TBC Classic.
+## Version : 1.2.0b-WOTLKC
+## Notes: Allows you to save your own gear presets and switch between them. -- You can also use "/unequipall" to remove all your gear at once.
 ## SavedVariablesPerCharacter: savedSet1 savedSet2 savedSet3 savedSet4 savedSet5 savedSet6 savedSet7 savedSet8 savedSet9 savedSet10 loadSlotTitles
 ## DefaultState : enabled
 ## Author: Fr0stwing

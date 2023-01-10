@@ -1,4 +1,4 @@
-local L = LibStub( "AceLocale-3.0" ):NewLocale( "ArkInventory", "ruRU" )
+﻿local L = LibStub( "AceLocale-3.0" ):NewLocale( "ArkInventory", "ruRU" )
 if not L then return end
 
 -- post updated translations at http://groups.google.com/group/wow-arkinventory (modify this file and include as an attachment)
@@ -89,13 +89,16 @@ if not L then return end
 	L["CATEGORY_CONSUMABLE_FOOD_PET"] = "Еда (питомцев)"
 	L["CATEGORY_CONSUMABLE_POTION_HEAL"] = "Здоровье (зелье/камень)"
 	L["CATEGORY_CONSUMABLE_POTION_MANA"] = "Мана (зелье/камень)"
+--	L["CATEGORY_CONSUMABLE_ELIXIR"] = ""
 	L["CATEGORY_CONSUMABLE_ELIXIR_BATTLE"] = "Эликсир (боевой)"
 	L["CATEGORY_CONSUMABLE_ELIXIR_GUARDIAN"] = "Эликсир (охранный)"
 --	L["CATEGORY_CONSUMABLE_BANDAGE"] = ""
+--	L["CATEGORY_CONSUMABLE_POTION"] = ""
 --	L["CATEGORY_CONSUMABLE_FLASK"] = ""
 --	L["CATEGORY_CONSUMABLE_SCROLL"] = ""
 --	L["CATEGORY_CONSUMABLE_CHAMPION_EQUIPMENT"] = ""
 --	L["CATEGORY_CONSUMABLE_POWER_SYSTEM_OLD"] = ""
+--	L["CATEGORY_CONSUMABLE_ABILITIES_AND_ACTIONS"] = ""
 	
 	
 --	bag names - used to name the empty slots in the status frame
@@ -114,7 +117,7 @@ if not L then return end
 	L["STATUS_SHORTNAME_MAILBOX"] = "Почта"
 	L["STATUS_SHORTNAME_MINING"] = "Руда"
 --	L["STATUS_SHORTNAME_MOUNT"] = ""
---	L["STATUS_SHORTNAME_REAGENTBANK"] = ""
+--	L["STATUS_SHORTNAME_REAGENT"] = ""
 --	L["STATUS_SHORTNAME_FISHING"] = ""
 --	L["STATUS_SHORTNAME_TOKEN"] = ""
 --	L["STATUS_SHORTNAME_TOY"] = ""
@@ -185,8 +188,7 @@ if not L then return end
 --	L["MENU_BAR"] = ""
 	L["MENU_BAR_TITLE"] = "Настройки набора %1$s"
 	L["MENU_BAR_CATEGORY_DESC"] = "Закрепить категорию %1$s за этим набором"
-	L["MENU_BAR_CATEGORY_CURRENT"] = "текущее назначение"
-	L["MENU_BAR_CATEGORY_ASSIGN"] = "Возможные Категории"
+--	L["MENU_BAR_CATEGORY_LABEL"] = ""
 	L["MENU_BAR_CATEGORY_REMOVE_DESC"] = "клик для удаления %1$s из набора %2$s и возврата в набор по умолчанию" -- 1 is the category name, 2 is the bar number
 	L["MENU_BAR_CATEGORY_HIDDEN_DESC"] = "клик для назначения данной категории статуса скрытой.\n\nпредметы в скрытых категориях не будут видны в обычном режиме."
 --	L["MENU_BAR_CATEGORY_MOVE_START_DESC"] = ""
@@ -241,6 +243,7 @@ if not L then return end
 	L["CONFIG"] = "Опции"
 	L["CONFIG_DESC"] = "Меню опций"
 --	L["CONFIG_IS_PER_CHARACTER"] = ""
+--	L["CONFIG_IS_CVAR"] = ""
 	
 --	configuration options > system
 	L["CONFIG_GENERAL_DESC"] = "Системные опции"
@@ -253,7 +256,6 @@ if not L then return end
 --	L["CONFIG_GENERAL_REPOSITION_ONSHOW"] = ""
 --	L["CONFIG_GENERAL_REPOSITION_ONSHOW_DESC"] = ""
 	
---	L["CONFIG_SORTING_WHEN"] = ""
 --	L["CONFIG_SORTING_WHEN_DESC"] = ""
 --	L["CONFIG_SORTING_WHEN_INSTANT"] = ""
 --	L["CONFIG_SORTING_WHEN_INSTANT_DESC"] = ""
@@ -341,6 +343,9 @@ if not L then return end
 --	L["CONFIG_GENERAL_MESSAGES_RULES_REGISTRATION_DESC"] = ""
 --	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED"] = ""
 --	L["CONFIG_GENERAL_MESSAGES_CROSSREALM_LOADED_DESC"] = ""
+--	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE"] = ""
+--	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE_NOTFOUND"] = ""
+--	L["CONFIG_GENERAL_MESSAGES_OBJECTCACHE_NOTFOUND_DESC"] = ""
 	
 --	L["CONFIG_GENERAL_BUCKET"] = ""
 --	L["CONFIG_GENERAL_BUCKET_DESC"] = ""
@@ -382,15 +387,7 @@ if not L then return end
 	
 --	configuration options > auto
 	L["CONFIG_AUTO"] = "Автоматически открывать/закрывать"
-	L["CONFIG_AUTO_BANK"] = "открываете банк"
-	L["CONFIG_AUTO_VAULT"] = "открываете банк гильдии"
-	L["CONFIG_AUTO_MAILBOX"] = "открываете почту"
-	L["CONFIG_AUTO_MERCHANT"] = "открываете окно продавца"
-	L["CONFIG_AUTO_TRADE"] = "открываете окно обмена"
-	L["CONFIG_AUTO_AUCTION"] = "открываете аукцион"
---	L["CONFIG_AUTO_VOID"] = ""
 --	L["CONFIG_AUTO_SCRAP"] = ""
---	L["CONFIG_AUTO_TRANSMOG"] = ""
 	L["CONFIG_AUTO_COMBAT"] = "вступаете в бой"
 	
 --	L["CONFIG_AUTO_OPEN"] = ""
@@ -406,7 +403,6 @@ if not L then return end
 	L["CONFIG_CONTROL_MONITOR_DESC"] = "отслеживать ли изменения в данных %1$s?"
 	L["CONFIG_CONTROL_SAVE_DESC"] = "сохранять ли данные %1$s, чтобы они были доступны когда вы играете за другого персонажа?"
 --	L["CONFIG_CONTROL_NOTIFY_ERASE_DESC"] = ""
---	L["CONFIG_CONTROL_OVERRIDE"] = ""
 	L["CONFIG_CONTROL_OVERRIDE_DESC"] = "скрыть стандартный интерфейс %2$s чтобы окно %1$s могло обрабатывать его действия.\n\nОтключение этой опции вернёт функционал стандартного %2$s.\n\nВы всё ещё сможете открыть %1$s %2$s когда эта опция выключена, но только используя специально назначенную клавишу"
 --	L["CONFIG_CONTROL_SPECIAL_DESC"] = ""
 	L["CONFIG_CONTROL_ANCHOR_LOCK_DESC"] = "фиксирует положение окна %1$s"
@@ -420,6 +416,7 @@ if not L then return end
 --	L["CONFIG_DESIGN_PLURAL"] = ""
 	
 --	L["CONFIG_BLUEPRINT"] = ""
+--	L["CONFIG_BLUEPRINT_VALIDATE"] = ""
 	
 --	L["CONFIG_STYLE"] = ""
 --	L["CONFIG_STYLE_PLURAL"] = ""
@@ -435,6 +432,9 @@ if not L then return end
 	L["CONFIG_DESIGN_WINDOW_WIDTH_DESC"] = "устанавливает количество столбцов для отображения"
 --	L["CONFIG_DESIGN_WINDOW_HEIGHT_DESC"] = ""
 	L["CONFIG_DESIGN_WINDOW_BACKGROUND_COLOUR_DESC"] = "Устанавливает фоновый цвет главного окна"
+--	L["CONFIG_DESIGN_WINDOW_SCROLLBAR"] = ""
+--	L["CONFIG_DESIGN_WINDOW_SCROLLBAR_STYLE_DESC"] = ""
+--	L["CONFIG_DESIGN_WINDOW_SCROLLBAR_COLOUR_DESC"] = ""
 	L["CONFIG_DESIGN_WINDOW_BORDER_SHOW_DESC"] = "показать или скрыть кромку главного окна"
 	L["CONFIG_DESIGN_WINDOW_BORDER_STYLE_DESC"] = "стиль кромки главного окна"
 	L["CONFIG_DESIGN_WINDOW_BORDER_COLOUR_DESC"] = "устанавливает цвет кромки главного окна"
@@ -508,25 +508,28 @@ if not L then return end
 --	L["CONFIG_DESIGN_ITEM_ITEMCOUNT"] = ""
 --	L["CONFIG_DESIGN_ITEM_ITEMCOUNT_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_STATUSICON"] = ""
+--	L["CONFIG_DESIGN_ITEM_STATUSICON_TEXT"] = ""
+--	L["CONFIG_DESIGN_ITEM_STATUSICON_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE"] = ""
---	L["CONFIG_DESIGN_ITEM_STATUSICON_UPGRADE_SHOW_DESC"] = ""
---	L["CONFIG_DESIGN_ITEM_STATUSICON_JUNK"] = ""
---	L["CONFIG_DESIGN_ITEM_STATUSICON_JUNK_SHOW_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_STATUSICON_QUEST_BANG_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_STATUSICON_QUEST_BORDER_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_SIZE"] = ""
 --	L["CONFIG_DESIGN_ITEM_SIZE_DESC"] = ""
 	
 --	L["CONFIG_DESIGN_ITEM_OVERLAY"] = ""
---	L["CONFIG_DESIGN_ITEM_OVERLAY_AZERITE"] = ""
+--	L["CONFIG_DESIGN_ITEM_OVERLAY_TEXT"] = ""
 --	L["CONFIG_DESIGN_ITEM_OVERLAY_NZOTH"] = ""
---	L["CONFIG_DESIGN_ITEM_OVERLAY_DESC"] = ""
+--	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK"] = ""
+--	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_NUMBER_DESC"] = ""
+--	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_CUSTOM_DESC"] = ""
+--	L["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK_COLOUR_DESC"] = ""
 	
 --	L["CONFIG_DESIGN_ITEM_COOLDOWN_SHOW_DESC"] = ""
---	L["CONFIG_DESIGN_ITEM_COOLDOWN_GLOBAL"] = ""
---	L["CONFIG_DESIGN_ITEM_COOLDOWN_GLOBAL_DESC"] = ""
+--	L["CONFIG_DESIGN_ITEM_COOLDOWN_NUMBER"] = ""
+--	L["CONFIG_DESIGN_ITEM_COOLDOWN_NUMBER_DESC"] = ""
 --	L["CONFIG_DESIGN_ITEM_COOLDOWN_COMBAT"] = ""
 --	L["CONFIG_DESIGN_ITEM_COOLDOWN_COMBAT_DESC"] = ""
+--	L["CONFIG_DESIGN_ITEM_COOLDOWN_ONOPEN_DESC"] = ""
 	
 	L["CONFIG_DESIGN_ITEM_BORDER_SHOW_DESC"] = "отображать ли кромку вокруг каждой ячейки"
 --	L["CONFIG_DESIGN_ITEM_BORDER_STYLE_DESC"] = ""
@@ -563,28 +566,52 @@ if not L then return end
 --	L["CONFIG_DESIGN_ITEM_EMPTY_POSITION_DESC"] = ""
 	
 	
--- junk
---	L["CONFIG_JUNK_SELL_AUTO"] = ""
---	L["CONFIG_JUNK_SELL_AUTO_DESC"] = ""
---	L["CONFIG_JUNK_NOTIFY_SOLD"] = ""
---	L["CONFIG_JUNK_NOTIFY_DESTROYED"] = ""
---	L["CONFIG_JUNK_NOTIFY_LIMIT"] = ""
---	L["CONFIG_JUNK_LIMIT"] = ""
---	L["CONFIG_JUNK_LIMIT_DESC"] = ""
---	L["CONFIG_JUNK_DELETE_DESC"] = ""
---	L["CONFIG_JUNK_NOTIFY_DESC"] = ""
---	L["CONFIG_JUNK_QUALITY_CUTOFF_DESC"] = ""
---	L["CONFIG_JUNK_CATEGORY_DESC"] = ""
---	L["CONFIG_JUNK_LIST_DESC"] = ""
---	L["CONFIG_JUNK_LIST_SELL_DESC"] = ""
---	L["CONFIG_JUNK_LIST_DESTROY_DESC"] = ""
---	L["CONFIG_JUNK_TESTMODE"] = ""
---	L["CONFIG_JUNK_TESTMODE_DESC"] = ""
---	L["CONFIG_JUNK_TESTMODE_ALERT"] = ""
---	L["CONFIG_JUNK_TIMER_DESC"] = ""
---	L["CONFIG_JUNK_PROCESSING_DISABLED_DESC"] = ""
---	L["CONFIG_JUNK_SOULBOUND_ALREADY_KNOWN_DESC"] = ""
---	L["CONFIG_JUNK_SOULBOUND_EQUIPMENT_DESC"] = ""
+-- actions
+--	L["CONFIG_ACTION"] = ""
+--	L["CONFIG_ACTION_TYPE"] = ""
+--	L["CONFIG_ACTION_TYPE_DESC"] = ""
+--	L["CONFIG_ACTION_WHEN_DESC"] = ""
+--	L["CONFIG_ACTION_ENABLE_DESC"] = ""
+	
+--	L["CONFIG_ACTION_MANUAL_RUN"] = ""
+--	L["CONFIG_ACTION_TESTMODE"] = ""
+	
+--	L["CONFIG_ACTION_VENDOR_SELL"] = ""
+--	L["CONFIG_ACTION_VENDOR_AUTOMATIC_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_MANUAL_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_LIMIT"] = ""
+--	L["CONFIG_ACTION_VENDOR_LIMIT_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_LIMIT_ABORT"] = ""
+--	L["CONFIG_ACTION_VENDOR_SOLD"] = ""
+--	L["CONFIG_ACTION_VENDOR_SOLD_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_QUALITY_CUTOFF_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_LIST_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_LIST_SELL_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_TIMER_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_COMBAT_DESC"] = ""
+	
+--	L["CONFIG_ACTION_VENDOR_DESTROY"] = ""
+--	L["CONFIG_ACTION_VENDOR_DESTROY_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_DESTROY_LIST"] = ""
+--	L["CONFIG_ACTION_VENDOR_DESTROY_MORE"] = ""
+--	L["CONFIG_ACTION_VENDOR_DESTROY_TEST"] = ""
+	
+--	L["CONFIG_ACTION_VENDOR_TESTMODE"] = ""
+--	L["CONFIG_ACTION_VENDOR_TESTMODE_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_PROCESSING_DISABLED_DESC"] = ""
+	
+--	L["CONFIG_ACTION_VENDOR_SOULBOUND_ALREADY_KNOWN_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_SOULBOUND_EQUIPMENT_DESC"] = ""
+--	L["CONFIG_ACTION_VENDOR_SOULBOUND_ITEMLEVEL_DESC"] = ""
+	
+--	L["CONFIG_ACTION_MAIL_SEND"] = ""
+--	L["CONFIG_ACTION_MAIL_AUTOMATIC_DESC"] = ""
+--	L["CONFIG_ACTION_MAIL_MANUAL_DESC"] = ""
+--	L["CONFIG_ACTION_MAIL_TESTMODE"] = ""
+--	L["CONFIG_ACTION_MAIL_TESTMODE_DESC"] = ""
+--	L["CONFIG_ACTION_MAIL_QUALITY_CUTOFF_DESC"] = ""
+--	L["CONFIG_ACTION_MAIL_LIST_DESC"] = ""
+--	L["CONFIG_ACTION_MAIL_TIMER_DESC"] = ""
 	
 	
 -- sorting
@@ -616,6 +643,8 @@ if not L then return end
 	L["CONFIG_SORTING_INCLUDE_ITEMTYPE_DESC"] = "использовать ли тип и подтип предмета при сортировке"
 	L["CONFIG_SORTING_INCLUDE_CATEGORY"] = "категория предмета"
 	L["CONFIG_SORTING_INCLUDE_CATEGORY_DESC"] = "использовать ли категорию предмета при сортировке"
+--	L["CONFIG_SORTING_INCLUDE_CATNAME"] = ""
+--	L["CONFIG_SORTING_INCLUDE_CATNAME_DESC"] = ""
 	L["CONFIG_SORTING_INCLUDE_ITEMUSELEVEL"] = "уровень (исп) предмета"
 	L["CONFIG_SORTING_INCLUDE_ITEMUSELEVEL_DESC"] = "использовать ли уровень (использования) предмета при сортировке"
 	L["CONFIG_SORTING_INCLUDE_ITEMSTATLEVEL"] = "уровень (парам) предмета"
@@ -636,6 +665,8 @@ if not L then return end
 --	L["CONFIG_SORTING_INCLUDE_SLOTID_DESC"] = ""
 --	L["CONFIG_SORTING_INCLUDE_COUNT"] = ""
 --	L["CONFIG_SORTING_INCLUDE_COUNT_DESC"] = ""
+--	L["CONFIG_SORTING_INCLUDE_RANK"] = ""
+--	L["CONFIG_SORTING_INCLUDE_RANK_DESC"] = ""
 	
 	L["CONFIG_SORTING_DIRECTION_DESC"] = "производить сортировку в порядке увеличения или убывания?"
 	L["CONFIG_SORTING_ORDER"] = "Порядок сортировки"
@@ -660,9 +691,8 @@ if not L then return end
 	
 	L["CONFIG_RULE_SHOWDISABLED"] = "Показывать отключенные правила"
 	L["CONFIG_RULE_SHOWDISABLED_DESC"] = "отображать ли отключенные правила?"
---	L["CONFIG_RULE_WIDTH_DESC"] = ""
---	L["CONFIG_RULE_ROWS"] = ""
---	L["CONFIG_RULE_ROWS_DESC"] = ""
+--	L["CONFIG_LIST_WIDTH_DESC"] = ""
+--	L["CONFIG_LIST_ROWS_DESC"] = ""
 	
 --	L["CONFIG_CATEGORY_CUSTOM"] = ""
 	L["CONFIG_CATEGORY_CUSTOM_PLURAL"] = "Пользовательские категории"
@@ -800,6 +830,7 @@ if not L then return end
 	L["ANCHOR"] = "Якорь"
 	L["ANCHOR_TEXT1"] = "задает якорь (точку закрепления)"
 	L["ANCHOR_TEXT2"] = "прикрепляет %1$s к %2$s"
+--	L["ANCHOR_TEXT3"] = ""
 	L["BORDER_DESC"] = "настройки кромки"
 	L["FILE"] = "Файл"
 	L["HEIGHT"] = "Высота"
@@ -817,6 +848,7 @@ if not L then return end
 --	L["ASCENDING"] = ""
 --	L["DESCENDING"] = ""
 --	L["LOCATION"] = ""
+--	L["LOCATIONS"] = ""
 --	L["DHMS"] = ""
 --	L["RANDOM"] = ""
 	L["RELOAD"] = "Перезагрузить"
@@ -875,7 +907,20 @@ if not L then return end
 --	L["COVENANT"] = ""
 --	L["ALPHA"] = ""
 --	L["BAGS"] = ""
---	L["BINDING_JUNK_SELL_MANUAL"] = ""
+--	L["OPTION_NOT_AVILABLE_EXPANSION"] = ""
+--	L["SIZE"] = ""
+--	L["AZERITE"] = ""
+--	L["COSMETIC"] = ""
+--	L["WHEN"] = ""
+--	L["RECIPIENT"] = ""
+--	L["ACTIONS"] = ""
+--	L["ROWS"] = ""
+--	L["DESTINATION"] = ""
+--	L["ASSIGNED"] = ""
+--	L["ASSIGNABLE"] = ""
+--	L["OVERRIDE"] = ""
+--	L["SELECTED"] = ""
+--	L["UNSELECTED"] = ""
 	
 	
 -- libdatabroker
@@ -884,10 +929,13 @@ if not L then return end
 --	L["LDB_OBJECT_TEXT_SET_DESC"] = ""
 --	L["LDB_OBJECT_TEXT_INCLUDE"] = ""
 --	L["LDB_OBJECT_TEXT_INCLUDE_DESC"] = ""
---	L["LDB_OBJECT_TEXT_FORMAT DESC"] = ""
+--	L["LDB_OBJECT_TEXT_FORMAT_DESC"] = ""
 --	L["LDB_OBJECT_TOOLTIP_INCLUDE"] = ""
 --	L["LDB_OBJECT_TOOLTIP_INCLUDE_DESC"] = ""
 --	L["LDB_OBJECT_TOOLTIP_FORMAT_DESC"] = ""
+	
+--	L["LDB_ITEMS_SHOWZERO"] = ""
+--	L["LDB_ITEMS_SHOWZERO_DESC"] = ""
 	
 --	L["LDB_TRACKED_NONE"] = ""
 --	L["LDB_LOCATION_NOT_READY"] = ""
@@ -908,6 +956,7 @@ if not L then return end
 --	L["LDB_MOUNTS_USEFORLAND_DESC"] = ""
 --	L["LDB_MOUNTS_FLYING_DISMOUNT_DESC"] = ""
 --	L["LDB_MOUNTS_FLYING_DISMOUNT_WARNING"] = ""
+--	L["LDB_MOUNTS_FLYING_DRAGONRIDING_DESC"] = ""
 --	L["LDB_MOUNTS_SUMMON"] = ""
 --	L["LDB_MOUNTS_NODATA"] = ""
 --	L["LDB_MOUNTS_TRAVEL_FORM"] = ""

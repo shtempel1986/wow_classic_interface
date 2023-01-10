@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ http://wowprogramming.com/FrameXML/UI.xsd">
+
     <!-- Ensure we always have access to Backdrops on both classic and retail -->
     <Frame name="Clique_BackdropTemplate" virtual="true">
         <Scripts>
@@ -206,7 +207,7 @@
     <Frame name="CliqueDialog" toplevel="true" enableMouse="true" movable="true" inherits="BasicFrameTemplate" parent="UIParent" frameStrata="DIALOG" hidden="true">
         <Size x="350" y="160"/>
         <Layers>
-            <Layer level="OVERLAY"> 
+            <Layer level="OVERLAY">
                 <FontString name="$parentDesc" parentKey="desc" inherits="GameFontHighlightSmallLeftTop">
                     <Size x="340" y="60"/>
                     <Anchors>
@@ -230,7 +231,7 @@
                 </Anchors>
                 <Scripts>
                     <OnLoad>
-                        self:RegisterForClicks("LeftButton") 
+                        self:RegisterForClicks("LeftButtonDown")
                     </OnLoad>
                     <OnMouseDown>
                         CliqueDialog:SetUserPlaced(false)
@@ -501,7 +502,7 @@
                                 CliqueScrollFrameEditBox:SetFocus()
                             </OnClick>
                         </Scripts>
-                        <Frames> 
+                        <Frames>
                             <ScrollFrame name="CliqueScrollFrame" parentKey="scrollFrame" inherits="UIPanelScrollFrameTemplate">
                                 <Size>
                                     <AbsDimension x="288" y="150"/>
@@ -529,7 +530,7 @@
                                             <OnEscapePressed function="EditBox_ClearFocus"/>
                                         </Scripts>
                                         <FontString inherits="GameFontHighlightSmall"/>
-                                    </EditBox> 
+                                    </EditBox>
                                 </ScrollChild>
                             </ScrollFrame>
                         </Frames>

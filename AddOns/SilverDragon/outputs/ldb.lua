@@ -8,7 +8,7 @@ local HBD = LibStub("HereBeDragons-2.0")
 local core = LibStub("AceAddon-3.0"):GetAddon("SilverDragon")
 local module = core:NewModule("LDB", "AceEvent-3.0")
 
-local dataobject, tooltip, db
+local dataobject, tooltip
 local rares_seen = {}
 
 local default_help = {
@@ -23,13 +23,19 @@ function module:OnInitialize()
 		profile = {
 			minimap = {},
 			worldmap = true,
+			mounts = true,
 			tooltip = "always",
 		},
 	})
-	db = self.db
 
 	self:SetupDataObject()
 	self:SetupWorldMap()
+
+	if IsAddOnLoaded("Blizzard_Collections") then
+		self:SetupMounts()
+	else
+		self:RegisterEvent("ADDON_LOADED")
+	end
 
 	local config = core:GetModule("Config", true)
 	if config then
@@ -43,9 +49,9 @@ function module:OnInitialize()
 						type = "toggle",
 						name = "Show last seen rare",
 						desc = "Toggle showing or hiding the last seen rare as the dataobject's text",
-						get = function() return db.profile.show_lastseen end,
+						get = function() return self.db.profile.show_lastseen end,
 						set = function(info, v)
-							db.profile.show_lastseen = v
+							self.db.profile.show_lastseen = v
 							if v and module.last_seen then
 								dataobject.text = core:GetMobLabel(module.last_seen)
 							else
@@ -60,10 +66,10 @@ function module:OnInitialize()
 						type = "toggle",
 						name = "Show minimap icon",
 						desc = "Toggle showing or hiding the minimap icon.",
-						get = function() return not db.profile.minimap.hide end,
+						get = function() return not self.db.profile.minimap.hide end,
 						set = function(info, v)
 							local hide = not v
-							db.profile.minimap.hide = hide
+							self.db.profile.minimap.hide = hide
 							if hide then
 								icon:Hide("SilverDragon")
 							else
@@ -83,9 +89,9 @@ function module:OnInitialize()
 							outofcombat = "Out of Combat",
 							never = "Never",
 						},
-						get = function() return db.profile.tooltip end,
+						get = function() return self.db.profile.tooltip end,
 						set = function(info, v)
-							db.profile.tooltip = v
+							self.db.profile.tooltip = v
 						end,
 						order = 35,
 					},
@@ -93,20 +99,42 @@ function module:OnInitialize()
 						type = "toggle",
 						name = "Show on the world map",
 						desc = "Toggle showing the icon in the world map's header",
-						get = function() return db.profile.worldmap end,
+						get = function() return self.db.profile.worldmap end,
 						set = function(info, v)
-							db.profile.worldmap = v
+							self.db.profile.worldmap = v
 							module.worldmap[v and "Show" or "Hide"](module.worldmap)
 						end,
 						order = 40,
 						width = "full",
 						descStyle = "inline",
-						hidden = function() return not dataobject end,
+					},
+					mounts = {
+						type = "toggle",
+						name = "Show on the mount list",
+						desc = "Toggle showing the icon in the map list",
+						get = function() return self.db.profile.mounts end,
+						set = function(info, v)
+							self.db.profile.mounts = v
+							if module.mounts then
+								module.mounts[v and "Show" or "Hide"](module.mounts)
+							end
+						end,
+						order = 40,
+						width = "full",
+						descStyle = "inline",
 					},
 				},
 			},
 		}
 	end
+end
+
+function module:ADDON_LOADED(event, addon)
+	if addon ~= "Blizzard_Collections" then
+		return
+	end
+	self:SetupMounts()
+	self:UnregisterEvent("ADDON_LOADED")
 end
 
 function module:SetupDataObject()
@@ -154,7 +182,7 @@ function module:SetupDataObject()
 
 	core.RegisterCallback("LDB", "Seen", function(callback, id, zone, x, y, dead, source)
 		module.last_seen = id
-		if db.profile.show_lastseen then
+		if self.db.profile.show_lastseen then
 			dataobject.text = core:GetMobLabel(id)
 		end
 		table.insert(rares_seen, {
@@ -173,9 +201,25 @@ function module:SetupDataObject()
 end
 
 function module:SetupWorldMap()
-	local button = CreateFrame("Button", nil, WorldMapFrame)
+	local button
+	if WorldMapFrame.AddOverlayFrame then
+		-- This taints currently:
+		-- button = WorldMapFrame:AddOverlayFrame(nil, "Button", "RIGHT", WorldMapFrame.NavBar, "RIGHT", -4, 0)
+		-- so for now just do this:
+		button = CreateFrame("Button", nil, WorldMapFrame.NavBar)
+		button:SetPoint("RIGHT", WorldMapFrame.NavBar, "RIGHT", -4, 0)
+		hooksecurefunc(WorldMapFrame, "OnMapChanged", function()
+			button:Refresh()
+		end)
+	else
+		-- classic!
+		button = CreateFrame("Button", nil, WorldMapFrame)
+		button:SetPoint("TOPRIGHT", -45, -2)
+		hooksecurefunc(WorldMapFrame, "OnMapChanged", function()
+			button:Refresh()
+		end)
+	end
 	button:SetSize(20, 20)
-	button:SetPoint("TOPRIGHT", -28, -2)
 	button:RegisterForClicks("AnyUp")
 	button.texture = button:CreateTexture(nil, "ARTWORK")
 	button.texture:SetTexture("Interface\\Icons\\INV_Misc_Head_Dragon_01")
@@ -183,8 +227,27 @@ function module:SetupWorldMap()
 	button.options = {
 		help = true,
 	}
-	button:SetScript("OnEnter", function()
+	function button:Refresh()
+		local overlay = core:GetModule("Overlay", true)
+		if overlay then
+			self.texture:SetDesaturated((not overlay.db.profile.worldmap.enabled) or overlay.db.profile.worldmap.zone_disabled[WorldMapFrame.mapID])
+			if not button.options.config_path then
+				button.options.config_path = {'overlay'}
+				button.options.help = {
+					"Click to toggle map icons",
+					"Shift-click to toggle map icons for this zone only",
+				}
+				tAppendAll(button.options.help, default_help)
+			end
+		else
+			button.options.help = {
+				RED_FONT_COLOR:WrapTextInColorCode("No map icons as SilverDragon: Overlay is disabled")
+			}
+			tAppendAll(button.options.help, default_help)
+		end
 		button.options.nearby = WorldMapFrame.mapID
+	end
+	button:SetScript("OnEnter", function()
 		module:ShowTooltip(button, button.options)
 		-- now redo the anchoring!
 		if tooltip then
@@ -195,58 +258,264 @@ function module:SetupWorldMap()
 	end)
 	-- onleave is handled by the tooltip's autohide
 	button:SetScript("OnClick", function(self, mButton)
-		local overlay = core:GetModule("HandyNotes", true)
-		if overlay and mButton == "LeftButton" and not IsModifierKeyDown() then
-			overlay.db.profile.worldmap = not overlay.db.profile.worldmap
-			self.texture:SetDesaturated(not overlay.db.profile.worldmap)
+		local overlay = core:GetModule("Overlay", true)
+		if overlay and mButton == "LeftButton" then
+			local odb = overlay.db.profile.worldmap
+			local state = not odb.zone_disabled[WorldMapFrame.mapID] and odb.enabled
+			-- if it's enabled, respect the zone/global request
+			-- if it's disabled, they want it back so toggle everything on
+			-- (there's no way to turn it on for *only* one zone)
+			if state then
+				if IsShiftKeyDown() then
+					odb.zone_disabled[WorldMapFrame.mapID] = true
+				else
+					odb.enabled = false
+				end
+			else
+				odb.zone_disabled[WorldMapFrame.mapID] = nil
+				odb.enabled = true
+			end
 			overlay:UpdateWorldMapIcons()
+			self:Refresh()
 			return
 		end
 		dataobject.OnClick(self, mButton)
 	end)
-	button:SetScript("OnShow", function(self)
-		local overlay = core:GetModule("HandyNotes", true)
-		if overlay then
-			if not button.options.config_path then
-				button.options.config_path = {'overlay'}
-				button.options.help = {
-					"Click to toggle map icons",
-					-- "Shift-click to toggle map icons for this zone only",
-				}
-				tAppendAll(button.options.help, default_help)
-			end
-			button.texture:SetDesaturated(not overlay.db.profile.worldmap)
-		end
-	end)
 	module.worldmap = button
-	if not db.profile.worldmap then
+	if not self.db.profile.worldmap then
+		button:Hide()
+	end
+end
+
+function module:SetupMounts()
+	local list = {}
+	for source, data in pairs(core.datasources) do
+		if core.db.global.datasources[source] then
+			for id, mobdata in pairs(data) do
+				if ns.Loot.HasMounts(id) and not core:ShouldIgnoreMob(id) then
+					table.insert(list, id)
+				end
+			end
+		end
+	end
+	local button_options = {
+		custom = list,
+		help = true,
+	}
+	local button = CreateFrame("Button", nil, MountJournal.MountCount)
+	button:SetSize(20, 20)
+	button:SetPoint("LEFT", MountJournal.MountCount, "RIGHT", 4, 0)
+	button:RegisterForClicks("AnyUp")
+	button.texture = button:CreateTexture(nil, "ARTWORK")
+	button.texture:SetTexture("Interface\\Icons\\INV_Misc_Head_Dragon_01")
+	button.texture:SetAllPoints()
+	button:SetScript("OnEnter", function()
+		module:ShowTooltip(button, button_options)
+	end)
+	-- onleave is handled by the tooltip's autohide
+	button:SetScript("OnClick", dataobject.OnClick)
+	module.mounts = button
+	if not self.db.profile.mounts then
 		button:Hide()
 	end
 end
 
 do
-	local ShieldCellProvider, ShieldCellPrototype = LibQTip:CreateCellProvider()
-	function ShieldCellPrototype:InitializeCell()
-		self.texture = self:CreateTexture(nil, 'ARTWORK')
-		self.texture:SetSize(16, 16)
-		self.texture:SetPoint("CENTER", self)
-		self.texture:Show()
+	local TextureCellProvider, TextureCellPrototype = LibQTip:CreateCellProvider()
+	function TextureCellPrototype:InitializeCell()
+		if not self.texture then
+			self.texture = self:CreateTexture(nil, 'ARTWORK')
+			self.texture:SetSize(20, 18)
+			self.texture:SetPoint("CENTER", self)
+			self.texture:Show()
+		end
 	end
-	function ShieldCellPrototype:ReleaseCell()
-	end
-	function ShieldCellPrototype:SetupCell(parent, value)
-		self.texture:SetTexture("Interface\\AchievementFrame\\UI-Achievement-TinyShield")
-		self.texture:SetTexCoord(0, 0.625, 0, 0.625)
+	function TextureCellPrototype:SetupCell(parent, value, ...)
+		self:SetupTexture(value)
 		return self.texture:GetSize()
 	end
-	function ShieldCellPrototype:getContentHeight()
-		return 16
+	function TextureCellPrototype:SetupTexture()
+		if self.atlas then
+			self.texture:SetAtlas(self.atlas)
+		end
+	end
+	function TextureCellPrototype:ReleaseCell()
+	end
+	function TextureCellPrototype:getContentHeight()
+		return self.texture:GetHeight()
+	end
+	local CompletableCellProvider, CompletableCellPrototype = LibQTip:CreateCellProvider(TextureCellProvider)
+	function CompletableCellPrototype:InitializeCell()
+		TextureCellPrototype.InitializeCell(self)
+		if not self.completionTexture then
+			self.completionTexture = self:CreateTexture(nil, "OVERLAY")
+			self.completionTexture:SetAtlas("Tracker-Check", true)
+			self.completionTexture:SetPoint("CENTER", self)
+			self.completionTexture:Hide()
+		end
+	end
+	function CompletableCellPrototype:SetupCell(parent, value, ...)
+		self:SetupCompletion(value)
+		return TextureCellPrototype.SetupCell(self, parent, value, ...)
+	end
+	function CompletableCellPrototype:SetupCompletion(value)
+		if self.completion_function then
+			value = self.completion_function(value)
+		end
+		if value then
+			self.completionTexture:Show()
+		else
+			self.completionTexture:Hide()
+		end
 	end
 
-	local QuestCellProvider, QuestCellPrototype = LibQTip:CreateCellProvider(ShieldCellProvider)
-	function QuestCellPrototype:SetupCell(parent, value)
-		self.texture:SetAtlas("QuestNormal")
-		return self.texture:GetSize()
+	local ItemsCellProvider, ItemsCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	ItemsCellPrototype.atlas = "banker"
+	ItemsCellPrototype.completion_function = function(id) return ns.Loot.Status.Quest(id) ~= false and ns.Loot.Status.Transmog(id) ~= false end
+	local TameableCellProvider, TameableCellPrototype = LibQTip:CreateCellProvider(TextureCellProvider)
+	function TameableCellPrototype:SetupTexture(id)
+		-- ClassHall-Circle-Hunter? classicon-hunter? groupfinder-icon-class-hunter? GarrMission_ClassIcon-Hunter? GarrMission_ClassIcon-Hunter-BeastMastery? ClassTrial-Hunter-Ring?
+		-- Interface\\RaidFrame\\UI-RaidFrame-Pets
+		local mob = id and ns.mobdb[id]
+		if mob and mob.tameable and type(mob.tameable) == "number" then
+			self.texture:SetTexture(mob.tameable)
+		else
+			self.texture:SetTexture("Interface\\TargetingFrame\\UI-Classes-Circles")
+			self.texture:SetTexCoord(unpack(CLASS_ICON_TCOORDS["HUNTER"]))
+		end
+
+	end
+	local AchievementCellProvider, AchievementCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	AchievementCellPrototype.atlas = "storyheader-cheevoicon"
+	local QuestCellProvider, QuestCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	QuestCellPrototype.atlas = "QuestNormal"
+	local MountCellProvider, MountCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	MountCellPrototype.atlas = "StableMaster"
+	MountCellPrototype.completion_function = ns.Loot.Status.Mount
+	local ToyCellProvider, ToyCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	ToyCellPrototype.atlas = "mechagon-projects"
+	ToyCellPrototype.completion_function = ns.Loot.Status.Toy
+	local PetCellProvider, PetCellPrototype = LibQTip:CreateCellProvider(CompletableCellProvider)
+	PetCellPrototype.atlas = "WildBattlePetCapturable"
+	PetCellPrototype.completion_function = ns.Loot.Status.Pet
+
+	local function hide_subtooltip()
+		tooltip:SetFrameStrata("TOOLTIP")
+		GameTooltip:Hide()
+	end
+
+	local function mob_click(cell, mobid, button)
+		if button ~= "LeftButton" then return end
+		local zone, x, y = core:GetClosestLocationForMob(mobid)
+		if IsControlKeyDown() then
+			if zone and x and y then
+				core:GetModule("TomTom"):PointTo(mobid, zone, x, y, 0, true)
+			end
+			return
+		end
+		if IsShiftKeyDown() then
+			if zone and x and y then
+				core:GetModule("ClickTarget"):SendLinkToMob(mobid, zone, x, y)
+			end
+			return
+		end
+		core.events:Fire("BrokerMobClick", mobid)
+		if WorldMapFrame.HandleUserActionOpenSelf then
+			OpenWorldMap(zone)
+		else
+			-- Classic
+			if not WorldMapFrame:IsVisible() then
+				ToggleWorldMap()
+			end
+			WorldMapFrame:SetMapID(zone)
+		end
+	end
+
+	local function show_loot_tooltip(cell, mobid, only)
+		tooltip:SetFrameStrata("DIALOG")
+		-- GameTooltip_SetDefaultAnchor(GameTooltip, cell)
+		GameTooltip:SetOwner(cell, cell:GetCenter() > UIParent:GetCenter() and "ANCHOR_LEFT" or "ANCHOR_RIGHT")
+		ns.Loot.Details.UpdateTooltip(GameTooltip, mobid, only)
+		GameTooltip:Show()
+	end
+	local function show_mount_tooltip(cell, mobid) return show_loot_tooltip(cell, mobid, "mount") end
+	local function show_toy_tooltip(cell, mobid) return show_loot_tooltip(cell, mobid, "toy") end
+	local function show_pet_tooltip(cell, mobid) return show_loot_tooltip(cell, mobid, "pet") end
+	local show_items_tooltip, hide_items_tooltip, click_items_tooltip
+	do
+		local lootwindow
+		local function cleanup_lootwindow(window)
+			lootwindow = nil
+		end
+		function show_items_tooltip(cell, mobid)
+			if lootwindow then
+				ns.Loot.Window.Release(lootwindow)
+			end
+			lootwindow = ns.Loot.Window.ShowForMob(mobid)
+			-- lootwindow:SetParent(cell)
+			lootwindow:SetFrameStrata(cell:GetFrameStrata())
+			lootwindow:SetFrameLevel(cell:GetFrameLevel() + 1)
+			if cell:GetCenter() > UIParent:GetCenter() then
+				lootwindow:SetPoint("TOPRIGHT", cell, "BOTTOMLEFT")
+			else
+				lootwindow:SetPoint("TOPLEFT", cell, "BOTTOMRIGHT")
+			end
+			lootwindow:SetAutoHideDelay(0.25, cell, cleanup_lootwindow)
+		end
+		function click_items_tooltip(cell, mobid)
+			if lootwindow then
+				ns.Loot.Window.Release(lootwindow)
+				lootwindow = nil
+			end
+			ns.Loot.Window.ShowForMob(mobid, true)
+		end
+	end
+	local function show_achievement_tooltip(cell, mobid)
+		local achievementid = ns:AchievementMobStatus(mobid)
+
+		tooltip:SetFrameStrata("DIALOG")
+		GameTooltip:SetOwner(cell, cell:GetCenter() > UIParent:GetCenter() and "ANCHOR_LEFT" or "ANCHOR_RIGHT")
+		GameTooltip:SetHyperlink(GetAchievementLink(achievementid))
+		GameTooltip:Show()
+	end
+	local locations = {}
+	local function show_mob_tooltip(cell, mobid)
+		tooltip:SetFrameStrata("DIALOG")
+		GameTooltip:SetOwner(cell, "ANCHOR_NONE")
+		GameTooltip:SetPoint("TOPLEFT", cell, "BOTTOMLEFT")
+		GameTooltip:SetHyperlink(("unit:Creature-0-0-0-0-%d"):format(mobid))
+		if ns.mobdb[mobid] then
+			if ns.mobdb[mobid].notes then
+				GameTooltip:AddLine((core:RenderString(ns.mobdb[mobid].notes)), 1, 1, 1, true)
+			end
+			for zone, coords in pairs(ns.mobdb[mobid].locations or {}) do
+				if #coords == 1 then
+					local x, y = core:GetXY(coords[1])
+					GameTooltip:AddDoubleLine(core.zone_names[zone], ("%.1f, %.1f"):format(x * 100, y * 100))
+				else
+					wipe(locations)
+					for i, coord in ipairs(coords) do
+						local x, y = core:GetXY(coord)
+						table.insert(locations, ("[%.1f, %.1f]"):format(x * 100, y * 100))
+					end
+					GameTooltip:AddLine((SUBTITLE_FORMAT):format(core.zone_names[zone], (", "):join(unpack(locations))), nil, nil, nil, true)
+				end
+			end
+		end
+		if not _G.TooltipDataProcessor then
+			-- if that exists it'll already have magically handled the gametooltip
+			core:GetModule("Tooltip"):UpdateTooltip(mobid, true, true)
+		end
+		GameTooltip:AddLine("Left-click to focus on the map", 0, 1, 1)
+		GameTooltip:AddLine("Control-click to set a waypoint", 0, 1, 1)
+		GameTooltip:AddLine("Shift-click to link location in chat", 0, 1, 1)
+		GameTooltip:Show()
+
+		core.events:Fire("BrokerMobEnter", mobid)
+	end
+	local function mob_leave(cell, mobid)
+		hide_subtooltip()
+		core.events:Fire("BrokerMobLeave", mobid)
 	end
 
 	local function mob_sorter(aid, bid)
@@ -266,9 +535,10 @@ do
 		end
 
 		if not tooltip then
-			tooltip = LibQTip:Acquire("SilverDragonTooltip", 8, "LEFT", "CENTER", "RIGHT", "CENTER", "RIGHT", "RIGHT", "RIGHT", "RIGHT", "RIGHT")
+			tooltip = LibQTip:Acquire("SilverDragonTooltip", 10, "LEFT", "CENTER", "RIGHT", "CENTER", "RIGHT", "RIGHT", "RIGHT", "RIGHT", "RIGHT", "RIGHT")
 			tooltip:SetAutoHideDelay(0.25, parent)
 			tooltip:SmartAnchorTo(parent)
+			tooltip:SetScrollStep(50)
 			tooltip.OnRelease = function() tooltip = nil end
 		end
 
@@ -296,22 +566,76 @@ do
 		end
 
 		if #sorted_mobs > 0 then
-			tooltip:AddHeader("Name", "Count", "Last Seen")
+			local headerLine, headerIndex = tooltip:AddHeader("Name", "Count", "Last Seen")
+			local tameableHeader = false
 
 			table.sort(sorted_mobs, mob_sorter)
 
+			local notes = CreateAtlasMarkup("poi-workorders")
+
 			for _, id in ipairs(sorted_mobs) do
-				local name, questid, vignette, tameable, last_seen, times_seen = core:GetMobInfo(id)
+				ns.Loot.Cache(id)
+				local name, vignette, tameable, last_seen, times_seen = core:GetMobInfo(id)
+				local label = core:GetMobLabel(id)
 				local index, col = tooltip:AddLine(
-					core:GetMobLabel(id),
+					(ns.mobdb[id] and ns.mobdb[id].notes) and (label .. " " .. notes) or label,
 					times_seen,
-					core:FormatLastSeen(last_seen),
-					(tameable and 'Tameable' or '')
+					core:FormatLastSeen(last_seen)
 				)
+				tooltip:SetCellScript(index, 1, "OnMouseUp", mob_click, id)
+				tooltip:SetCellScript(index, 1, "OnEnter", show_mob_tooltip, id)
+				tooltip:SetCellScript(index, 1, "OnLeave", mob_leave, id)
+				if tameable then
+					if not tameableHeader then
+						-- self.texture:SetTexture("Interface\\TargetingFrame\\UI-Classes-Circles")
+						-- self.texture:SetTexCoord(unpack(CLASS_ICON_TCOORDS["HUNTER"]))
+						local hunter = CreateTextureMarkup(
+							"Interface\\TargetingFrame\\UI-Classes-Circles",
+							256, 256, -- filewidth, fileheight
+							20, 20, -- width, height
+							unpack(CLASS_ICON_TCOORDS["HUNTER"]) -- left, right, top, bottom
+						)
+						tooltip:SetCell(headerLine, headerIndex, hunter)
+					end
+					index, col = tooltip:SetCell(index, col, id, TameableCellProvider)
+				else
+					index, col = tooltip:SetCell(index, col, '')
+				end
+				if ns.Loot.HasMounts(id) then
+					index, col = tooltip:SetCell(index, col, id, MountCellProvider)
+					tooltip:SetCellScript(index, col - 1, "OnEnter", show_mount_tooltip, id)
+					tooltip:SetCellScript(index, col - 1, "OnLeave", hide_subtooltip)
+				else
+					index, col = tooltip:SetCell(index, col, '')
+				end
+				if ns.Loot.HasToys(id) then
+					index, col = tooltip:SetCell(index, col, id, ToyCellProvider)
+					tooltip:SetCellScript(index, col -1, "OnEnter", show_toy_tooltip, id)
+					tooltip:SetCellScript(index, col -1, "OnLeave", hide_subtooltip)
+				else
+					index, col = tooltip:SetCell(index, col, '')
+				end
+				if ns.Loot.HasPets(id) then
+					index, col = tooltip:SetCell(index, col, id, PetCellProvider)
+					tooltip:SetCellScript(index, col - 1, "OnEnter", show_pet_tooltip, id)
+					tooltip:SetCellScript(index, col - 1, "OnLeave", hide_subtooltip)
+				else
+					index, col = tooltip:SetCell(index, col, '')
+				end
+				if ns.Loot.HasRegularLoot(id) then
+					index, col = tooltip:SetCell(index, col, id, ItemsCellProvider)
+					tooltip:SetCellScript(index, col - 1, "OnMouseUp", click_items_tooltip, id)
+					tooltip:SetCellScript(index, col - 1, "OnEnter", show_items_tooltip, id)
+					-- tooltip:SetCellScript(index, col - 1, "OnLeave", hide_items_tooltip)
+				else
+					index, col = tooltip:SetCell(index, col, '')
+				end
 				local quest, achievement = ns:CompletionStatus(id)
 				if quest ~= nil or achievement ~= nil then
 					if achievement ~= nil then
-						index, col = tooltip:SetCell(index, col, achievement, ShieldCellProvider)
+						index, col = tooltip:SetCell(index, col, achievement, AchievementCellProvider)
+						tooltip:SetCellScript(index, col - 1, "OnEnter", show_achievement_tooltip, id)
+						tooltip:SetCellScript(index, col - 1, "OnLeave", hide_subtooltip)
 					else
 						index, col = tooltip:SetCell(index, col, '')
 					end

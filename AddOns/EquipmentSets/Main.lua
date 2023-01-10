@@ -32,6 +32,48 @@ function dump(o)
    end
 end
 
+function unequipWeaponsRingsAndTrinkets()
+		C_Timer.After(0.1, function()
+			PickupInventoryItem(11) PutItemInBackpack();
+			PickupInventoryItem(12) PutItemInBackpack();
+			PickupInventoryItem(13) PutItemInBackpack();
+			PickupInventoryItem(14) PutItemInBackpack();
+			PickupInventoryItem(16) PutItemInBackpack();
+			PickupInventoryItem(17) PutItemInBackpack();
+			C_Timer.After(0.1, function()
+				PickupInventoryItem(11) PutItemInBag(20);
+				PickupInventoryItem(12) PutItemInBag(20);
+				PickupInventoryItem(13) PutItemInBag(20);
+				PickupInventoryItem(14) PutItemInBag(20);
+				PickupInventoryItem(16) PutItemInBag(20);
+				PickupInventoryItem(17) PutItemInBag(20);
+				C_Timer.After(0.1, function()
+					PickupInventoryItem(11) PutItemInBag(21);
+					PickupInventoryItem(12) PutItemInBag(21);
+					PickupInventoryItem(13) PutItemInBag(21);
+					PickupInventoryItem(14) PutItemInBag(21);
+					PickupInventoryItem(16) PutItemInBag(21);
+					PickupInventoryItem(17) PutItemInBag(21);
+					C_Timer.After(0.1, function()
+						PickupInventoryItem(11) PutItemInBag(22);
+						PickupInventoryItem(12) PutItemInBag(22);
+						PickupInventoryItem(13) PutItemInBag(22);
+						PickupInventoryItem(14) PutItemInBag(22);
+						PickupInventoryItem(16) PutItemInBag(22);
+						PickupInventoryItem(17) PutItemInBag(22);
+						C_Timer.After(0.1, function()
+							PickupInventoryItem(11) PutItemInBag(23);
+							PickupInventoryItem(12) PutItemInBag(23);
+							PickupInventoryItem(13) PutItemInBag(23);
+							PickupInventoryItem(14) PutItemInBag(23);
+							PickupInventoryItem(16) PutItemInBag(23);
+							PickupInventoryItem(17) PutItemInBag(23);
+						end)
+					end)
+				end)
+			end)
+		end)
+end
 
 function saveTheCurrentSet(currentSetNumber)
 	if currentSetNumber == "1" then
@@ -160,86 +202,117 @@ end
 
 function loadTheSet(currentSetNumber)
 	--DEFAULT_CHAT_FRAME.editBox:SetText("/unequipall") ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-	--C_Timer.After(2, function()
+	--unequipWeaponsAndTrinkets()
+	--C_Timer.After(1.5, function()
 		if currentSetNumber == "1" then
 			if next(savedSet1) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet1[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet1[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "2" then
 			if next(savedSet2) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet2[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet2[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "3" then
 			if next(savedSet3) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet3[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet3[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "4" then
 			if next(savedSet4) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet4[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet4[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "5" then
 			if next(savedSet5) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet5[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet5[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "6" then
 			if next(savedSet6) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet6[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet6[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "7" then
 			if next(savedSet7) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet7[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet7[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "8" then
 			if next(savedSet8) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet8[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet8[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "9" then
 			if next(savedSet9) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet9[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet9[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		elseif currentSetNumber == "10" then
 			if next(savedSet10) == nil then
 				print("You must save a set to this slot first.")
 			else
-				for x = 1, 20 do
-					DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet10[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
-				end
+				unequipWeaponsRingsAndTrinkets()
+				C_Timer.After(1.5, function()
+					for x = 1, 20 do
+						DEFAULT_CHAT_FRAME.editBox:SetText("/equip " .. savedSet10[x]) ChatEdit_SendText(DEFAULT_CHAT_FRAME.editBox, 0)
+					end
+				end)
 			end
 		end
 	--end)
@@ -273,61 +346,61 @@ SLASH_LOADSET101 = "/loadset10"
 
 -- Save
 SlashCmdList["SAVESET1"] = function(msg)
-   print("Saved set 1.")
+   --print("Saved set 1.")
    currentSetNumber = "1"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET2"] = function(msg)
-   print("Saved set 2.")
+   --print("Saved set 2.")
    currentSetNumber = "2"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET3"] = function(msg)
-   print("Saved set 3.")
+   --print("Saved set 3.")
    currentSetNumber = "3"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET4"] = function(msg)
-   print("Saved set 4.")
+   --print("Saved set 4.")
    currentSetNumber = "4"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET5"] = function(msg)
-   print("Saved set 5.")
+   --print("Saved set 5.")
    currentSetNumber = "5"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET6"] = function(msg)
-   print("Saved set 6.")
+   --print("Saved set 6.")
    currentSetNumber = "6"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET7"] = function(msg)
-   print("Saved set 7.")
+   --print("Saved set 7.")
    currentSetNumber = "7"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET8"] = function(msg)
-   print("Saved set 8.")
+   --print("Saved set 8.")
    currentSetNumber = "8"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET9"] = function(msg)
-   print("Saved set 9.")
+   --print("Saved set 9.")
    currentSetNumber = "9"
    saveTheCurrentSet(currentSetNumber)
 end
 
 SlashCmdList["SAVESET10"] = function(msg)
-   print("Saved set 10.")
+   --print("Saved set 10.")
    currentSetNumber = "10"
    saveTheCurrentSet(currentSetNumber)
 end
@@ -335,7 +408,7 @@ end
 
 -- Load
 SlashCmdList["LOADSET1"] = function(msg)
-   print("Loaded set 1.")
+   --print("Loaded set 1.")
    currentSetNumber = "1"
    for zz=0,20 do
 		if tostring(savedSet1[zz]) == "EMPTY SLOT" then
@@ -361,7 +434,7 @@ SlashCmdList["LOADSET1"] = function(msg)
 end 
 
 SlashCmdList["LOADSET2"] = function(msg)
-   print("Loaded set 2.")
+   --print("Loaded set 2.")
    currentSetNumber = "2"
    for zz=0,20 do
 		if tostring(savedSet2[zz]) == "EMPTY SLOT" then
@@ -387,7 +460,7 @@ SlashCmdList["LOADSET2"] = function(msg)
 end 
 
 SlashCmdList["LOADSET3"] = function(msg)
-   print("Loaded set 3.")
+   --print("Loaded set 3.")
    currentSetNumber = "3"
    for zz=0,20 do
 		if tostring(savedSet3[zz]) == "EMPTY SLOT" then
@@ -413,7 +486,7 @@ SlashCmdList["LOADSET3"] = function(msg)
 end 
 
 SlashCmdList["LOADSET4"] = function(msg)
-   print("Loaded set 4.")
+   --print("Loaded set 4.")
    currentSetNumber = "4"
    for zz=0,20 do
 		if tostring(savedSet4[zz]) == "EMPTY SLOT" then
@@ -439,7 +512,7 @@ SlashCmdList["LOADSET4"] = function(msg)
 end 
 
 SlashCmdList["LOADSET5"] = function(msg)
-   print("Loaded set 5.")
+   --print("Loaded set 5.")
    currentSetNumber = "5"
    for zz=0,20 do
 		if tostring(savedSet5[zz]) == "EMPTY SLOT" then
@@ -465,7 +538,7 @@ SlashCmdList["LOADSET5"] = function(msg)
 end 
 
 SlashCmdList["LOADSET6"] = function(msg)
-   print("Loaded set 6.")
+   --print("Loaded set 6.")
    currentSetNumber = "6"
    for zz=0,20 do
 		if tostring(savedSet6[zz]) == "EMPTY SLOT" then
@@ -491,7 +564,7 @@ SlashCmdList["LOADSET6"] = function(msg)
 end 
 
 SlashCmdList["LOADSET7"] = function(msg)
-   print("Loaded set 7.")
+   --print("Loaded set 7.")
    currentSetNumber = "7"
    for zz=0,20 do
 		if tostring(savedSet7[zz]) == "EMPTY SLOT" then
@@ -517,7 +590,7 @@ SlashCmdList["LOADSET7"] = function(msg)
 end 
 
 SlashCmdList["LOADSET8"] = function(msg)
-   print("Loaded set 8.")
+   --print("Loaded set 8.")
    currentSetNumber = "8"
    for zz=0,20 do
 		if tostring(savedSet8[zz]) == "EMPTY SLOT" then
@@ -543,7 +616,7 @@ SlashCmdList["LOADSET8"] = function(msg)
 end 
 
 SlashCmdList["LOADSET9"] = function(msg)
-   print("Loaded set 9.")
+   --print("Loaded set 9.")
    currentSetNumber = "9"
    for zz=0,20 do
 		if tostring(savedSet9[zz]) == "EMPTY SLOT" then
@@ -569,7 +642,7 @@ SlashCmdList["LOADSET9"] = function(msg)
 end 
 
 SlashCmdList["LOADSET10"] = function(msg)
-   print("Loaded set 10.")
+   --print("Loaded set 10.")
    currentSetNumber = "10"
    for zz=0,20 do
 		if tostring(savedSet10[zz]) == "EMPTY SLOT" then

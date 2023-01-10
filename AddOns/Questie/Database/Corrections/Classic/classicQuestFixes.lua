@@ -7,19 +7,33 @@ local QuestieQuestFixes = QuestieLoader:CreateModule("QuestieQuestFixes")
 local QuestieDB = QuestieLoader:ImportModule("QuestieDB")
 ---@type ZoneDB
 local ZoneDB = QuestieLoader:ImportModule("ZoneDB")
+---@type l10n
+local l10n = QuestieLoader:ImportModule("l10n")
 
 -- Further information on how to use this can be found at the wiki
 -- https://github.com/Questie/Questie/wiki/Corrections
 
 function QuestieQuestFixes:Load()
+    QuestieDB.questData[5640] = {} -- Desperate Prayer
+    QuestieDB.questData[5678] = {} -- Arcane Feedback
+
     QuestieDB.questData[7668] = {} -- Add missing quest index
     QuestieDB.questData[7669] = {} -- Add missing quest index
     QuestieDB.questData[7670] = {} -- Add missing quest index #1432
+
+    QuestieDB.questData[65593] = {} -- Hearts of the Lovers
+    QuestieDB.questData[65597] = {} -- The Binding
+    QuestieDB.questData[65601] = {} -- Love Hurts
+    QuestieDB.questData[65602] = {} -- What Is Love?
+    QuestieDB.questData[65603] = {} -- The Binding
+    QuestieDB.questData[65604] = {} -- The Binding
+    QuestieDB.questData[65610] = {} -- Wish You Were Here
 
     local questKeys = QuestieDB.questKeys
     local zoneIDs = ZoneDB.zoneIDs
     local raceIDs = QuestieDB.raceKeys
     local classIDs = QuestieDB.classKeys
+    local sortKeys = QuestieDB.sortKeys
 
     return {
         [2] = {
@@ -63,7 +77,7 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestSingle] = {39},
         },
         [90] = {
-            [questKeys.requiredSkill] = {185, 50}
+            [questKeys.requiredSkill] = {185, 50},
         },
         [100] = {
             [questKeys.childQuests] = {1103}, -- #1658
@@ -71,8 +85,8 @@ function QuestieQuestFixes:Load()
         [109] = {
             [questKeys.startedBy] = {{233,237,240,261,294,963},nil,nil}, --#2158
         },
-        [123] = {
-            [questKeys.startedBy] = {{100},nil,{1307}},
+        [117] = {
+            [questKeys.name] = "Thunderbrew",
         },
         [148] = {
             [questKeys.preQuestSingle] = {}, -- #1173
@@ -85,6 +99,15 @@ function QuestieQuestFixes:Load()
         },
         [165] = {
             [questKeys.exclusiveTo] = {148}, --#1173
+        },
+        [171] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
+        [172] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
+        [201] = {
+            [questKeys.triggerEnd] = {"Locate the hunters' camp", {[zoneIDs.STRANGLETHORN_VALE]={{35.65,10.59}}}},
         },
         [219] = {
             [questKeys.triggerEnd] = {"Escort Corporal Keeshan back to Redridge", {[zoneIDs.REDRIDGE_MOUNTAINS]={{33.36,48.7}}}},
@@ -110,12 +133,14 @@ function QuestieQuestFixes:Load()
         [308] = {
             [questKeys.exclusiveTo] = {311}, -- distracting jarven can't be completed once you get the followup
             [questKeys.specialFlags] = 1,
+            [questKeys.preQuestSingle] = {},
+            [questKeys.parentQuest] = 310
         },
         [309] = {
             [questKeys.triggerEnd] = {"Escort Miran to the excavation site", {[zoneIDs.LOCH_MODAN]={{65.12,65.77}}}},
         },
         [310] = {
-            [questKeys.childQuests] = {403},
+            [questKeys.childQuests] = {308,403},
         },
         [353] = {
             [questKeys.preQuestSingle] = {}, -- #2364
@@ -209,6 +234,9 @@ function QuestieQuestFixes:Load()
         [484] = {
             [questKeys.requiredMinRep] = {72,0}, -- #1501
         },
+        [489] = {
+            [questKeys.startedBy] = {{2081,2083,2151,2155},nil,nil},
+        },
         [495] = {
             [questKeys.exclusiveTo] = {518},
         },
@@ -245,6 +273,7 @@ function QuestieQuestFixes:Load()
         [558] = {
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
             [questKeys.preQuestGroup] = {1687,1479,1558},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [566] = {
             [questKeys.preQuestSingle] = {549}, -- #1484
@@ -263,7 +292,7 @@ function QuestieQuestFixes:Load()
         },
         [598] = {
             [questKeys.preQuestSingle] = {},
-            [questKeys.preQuestGroup] = {596,629}
+            [questKeys.preQuestGroup] = {596,629},
         },
         [619] = {
             [questKeys.parentQuest] = 8554, -- #1691
@@ -282,6 +311,9 @@ function QuestieQuestFixes:Load()
         },
         [639] = {
             [questKeys.preQuestSingle] = {}, -- #1205
+        },
+        [640] = {
+            [questKeys.objectivesText] = {"Retrieve the 11 Sigil Fragments from the defenders in Stromgarde, and bring them to Tor'gan in Hammerfall.",},
         },
         [648] = {
             [questKeys.triggerEnd] = {"Escort OOX-17/TN to Steamwheedle Port", {[zoneIDs.TANARIS]={{67.06,23.16}}}},
@@ -314,7 +346,7 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {738}, --#2069
         },
         [715] = {
-            [QuestieDB.questKeys.requiredSkill] = {},
+            [questKeys.requiredSkill] = {},
         },
         [717] = {
             [questKeys.requiredSourceItems] = {4843,4844,4845},
@@ -345,6 +377,7 @@ function QuestieQuestFixes:Load()
             [questKeys.triggerEnd] = {"Cleanse the Wildmane Well", {[zoneIDs.MULGORE]={{42.75, 14.16}}}},
         },
         [769] = {
+            [questKeys.preQuestSingle] = {},
             [questKeys.requiredSkill] = {165,10},
         },
         [770] = {
@@ -369,10 +402,10 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{3204},nil,{4903}},
         },
         [834] = {
-            [questKeys.requiredRaces] = raceIDs.ALL, -- #1665
+            [questKeys.requiredRaces] = raceIDs.NONE, -- #1665
         },
         [835] = {
-            [questKeys.requiredRaces] = raceIDs.ALL, -- #1665
+            [questKeys.requiredRaces] = raceIDs.NONE, -- #1665
         },
         [836] = {
             [questKeys.triggerEnd] = {"Escort OOX-09/HL to the shoreline beyond Overlook Cliff", {[zoneIDs.THE_HINTERLANDS]={{79.14,61.36}}}},
@@ -417,9 +450,14 @@ function QuestieQuestFixes:Load()
         },
         [910] = {
             [questKeys.triggerEnd] = {"Go to the docks of Ratchet in the Barrens.", {[zoneIDs.THE_BARRENS]={{62.96,38.04}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [911] = {
             [questKeys.triggerEnd] = {"Go to the Mor'shan Rampart in the Barrens.", {[zoneIDs.THE_BARRENS]={{47.9,5.36}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
+        [915] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [918] = {
             [questKeys.preQuestSingle] = {},
@@ -429,6 +467,7 @@ function QuestieQuestFixes:Load()
         },
         [925] = {
             [questKeys.preQuestGroup] = {1800,910,911},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [926] = {
             [questKeys.parentQuest] = 924, -- #806
@@ -509,6 +548,14 @@ function QuestieQuestFixes:Load()
         [1061] = {
             [questKeys.exclusiveTo] = {1062}, -- #1803
         },
+        [1079] = {
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {1077,1074},
+        },
+        [1080] = {
+            [questKeys.preQuestSingle] = {},
+            [questKeys.preQuestGroup] = {1077,1074},
+        },
         [1085] = {
             [questKeys.preQuestSingle] = {1070},
         },
@@ -544,7 +591,7 @@ function QuestieQuestFixes:Load()
             [questKeys.childQuests] = {1127}, -- #1084
         },
         [1123] = {
-            [questKeys.preQuestSingle] = {1000, 1004, 1018}
+            [questKeys.preQuestSingle] = {1000, 1004, 1018},
         },
         [1127] = {
             [questKeys.specialFlags] = 1, -- #884
@@ -560,7 +607,7 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestSingle] = {}, -- #1738
         },
         [1136] = {
-            [questKeys.extraObjectives] = {{nil, ICON_TYPE_OBJECT, "Use a Fresh Carcass at the Flame of Uzel", 0, {{"object", 1770}}}},
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_OBJECT, l10n("Use a Fresh Carcass at the Flame of Uzel"), 0, {{"object", 1770}}}},
         },
         [1144] = {
             [questKeys.triggerEnd] = {"Help Willix the Importer escape from Razorfen Kraul", {[zoneIDs.THE_BARRENS]={{42.27,89.88}}}},
@@ -575,8 +622,14 @@ function QuestieQuestFixes:Load()
         [1193] = {
             [questKeys.specialFlags] = 1, -- #1348
         },
+        [1198] = {
+            [questKeys.requiredRaces] = raceIDs.NONE,
+        },
         [1204] = {
             [questKeys.preQuestSingle] = {}, -- #938
+        },
+        [1206] = {
+            [questKeys.objectivesText] = {"Bring 40 Unpopped Darkmist Eyes to \"Swamp Eye\" Jarl at the Swamplight Manor.",},
         },
         [1222] = {
             [questKeys.triggerEnd] = {"Help Stinky find Bogbean Leaves", {[zoneIDs.DUSTWALLOW_MARSH]={{48.87,24.58}}}},
@@ -595,6 +648,9 @@ function QuestieQuestFixes:Load()
         },
         [1265] = {
             [questKeys.triggerEnd] = {"Sentry Point explored",{[zoneIDs.DUSTWALLOW_MARSH]={{59.92,40.9}}}},
+        },
+        [1267] = {
+            [questKeys.startedBy] = {{4968},nil,nil},
         },
         [1268] = {
             [questKeys.startedBy] = {nil,{21015,21016},nil}, -- #1574
@@ -635,6 +691,12 @@ function QuestieQuestFixes:Load()
         },
         [1364] = {
             [questKeys.preQuestSingle] = {1363}, -- #1674
+        },
+        [1367] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_SLAY, l10n("Slay Gelkis centaur to increase your reputation with the Magram Clan"), 0, {{"monster", 4653},{"monster", 4647},{"monster", 4646},{"monster", 4661},{"monster", 5602},{"monster", 4648},{"monster", 4649},{"monster", 4651},{"monster", 4652}}}},
+        },
+        [1368] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_SLAY, l10n("Slay Magram centaur to increase your reputation with the Gelkis Clan"), 0, {{"monster", 4643},{"monster", 4645},{"monster", 4662},{"monster", 5601},{"monster", 4638},{"monster", 4641},{"monster", 6068},{"monster", 4640},{"monster", 4639},{"monster", 4642},{"monster", 4644}}}},
         },
         [1388] = {
             [questKeys.preQuestSingle] = {1383},
@@ -679,14 +741,23 @@ function QuestieQuestFixes:Load()
         [1447] = {
             [questKeys.triggerEnd] = {"Defeat Dashel Stonefist", {[zoneIDs.STORMWIND_CITY]={{70.1,44.85}}}},
         },
+        [1468] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
         [1470] = {
             [questKeys.exclusiveTo] = {1485}, -- #999
         },
         [1471] = {
             [questKeys.exclusiveTo] = {1504}, -- #1542
         },
+        [1472] = {
+            [questKeys.exclusiveTo] = {},
+        },
         [1473] = {
             [questKeys.exclusiveTo] = {1501},
+        },
+        [1474] = {
+            [questKeys.exclusiveTo] = {1513},
         },
         [1477] = {
             [questKeys.exclusiveTo] = {1395}, -- #1727
@@ -696,6 +767,7 @@ function QuestieQuestFixes:Load()
         },
         [1479] = {
             [questKeys.triggerEnd] = {"Go to the bank in Darnassus, otherwise known as the Bough of the Eternals.", {[zoneIDs.DARNASSUS]={{41.31,43.54}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [1483] = {
             [questKeys.exclusiveTo] = {1093},
@@ -712,8 +784,33 @@ function QuestieQuestFixes:Load()
         [1506] = {
             [questKeys.exclusiveTo] = {1478}, -- #1427
         },
+        [1507] = {
+            [questKeys.exclusiveTo] = {},
+        },
+        [1513] = {
+            [questKeys.exclusiveTo] = {1474},
+        },
+        [1516] = {
+            [questKeys.exclusiveTo] = {1519},
+        },
+        [1517] = {
+            [questKeys.exclusiveTo] = {1520},
+        },
+        [1518] = {
+            [questKeys.exclusiveTo] = {1521},
+        },
+        [1519] = {
+            [questKeys.exclusiveTo] = {1516},
+        },
+        [1520] = {
+            [questKeys.exclusiveTo] = {1517},
+        },
+        [1521] = {
+            [questKeys.exclusiveTo] = {1518},
+        },
         [1558] = {
             [questKeys.triggerEnd] = {"Go to the top of the Stonewrought Dam in Loch Modan.", {[zoneIDs.LOCH_MODAN]={{47.63,14.33}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [1559] = {
             [questKeys.preQuestSingle] = {705},
@@ -732,7 +829,6 @@ function QuestieQuestFixes:Load()
         },
         [1599] = {
             [questKeys.exclusiveTo] = {1598}, -- #999
-            [questKeys.preQuestSingle] = {705}, -- #1164
         },
         [1638] = {
             [questKeys.exclusiveTo] = {1666,1678,1680,1683,1686},
@@ -781,6 +877,7 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {1681}, -- #1724
         },
         [1684] = {
+            [questKeys.startedBy] = {{2151,3598,3657},nil,nil},
             [questKeys.exclusiveTo] = {1639,1666,1678,1686,1680},
         },
         [1686] = {
@@ -788,6 +885,7 @@ function QuestieQuestFixes:Load()
         },
         [1687] = {
             [questKeys.triggerEnd] = {"Go to the Westfall Lighthouse.", {[zoneIDs.WESTFALL]={{30.41,85.61}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [1700] = {
             [questKeys.requiredRaces] = raceIDs.HUMAN,
@@ -817,8 +915,15 @@ function QuestieQuestFixes:Load()
         [1794] = {
             [questKeys.exclusiveTo] = {1649},
         },
+        [1799] = {
+            [questKeys.preQuestSingle] = {4965,4967,4968,4969},
+        },
         [1800] = {
             [questKeys.triggerEnd] = {"Go to the old Lordaeron Throne Room that lies just before descending into the Undercity.", {[zoneIDs.UNDERCITY]={{65.97,36.12}}}},
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
+        [1823] = {
+            [questKeys.startedBy] = {{3041,3354,4595},nil,nil},
         },
         [1860] = {
             [questKeys.exclusiveTo] = {1861, 1880},
@@ -840,7 +945,7 @@ function QuestieQuestFixes:Load()
         },
         [1920] = {
             [questKeys.preQuestSingle] = {}, -- #1328
-            [questKeys.extraObjectives] = {{nil, ICON_TYPE_EVENT, "Use Cantation of Manifestation to reveal Rift Spawn. Use Chest of Containment Coffers on stunned Rift Spawn", 0, {{"monster", 6492}}}}
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_EVENT, l10n("Use Cantation of Manifestation to reveal Rift Spawn. Use Chest of Containment Coffers on stunned Rift Spawn"), 0, {{"monster", 6492}}}},
         },
         [1939] = {
             [questKeys.startedBy] = {{5144,5497},nil,nil},
@@ -854,15 +959,18 @@ function QuestieQuestFixes:Load()
         [1950] = {
             [questKeys.triggerEnd] = {"Secret phrase found", {[zoneIDs.THOUSAND_NEEDLES]={{79.56,75.65}}}},
         },
+        [1954] = {
+            [questKeys.preQuestSingle] = {},
+        },
         [1955] = {
-            [questKeys.triggerEnd] = {"Kill the Demon of the Orb", {[zoneIDs.DUSTWALLOW_MARSH]={{45.6,57,2}}}},
+            [questKeys.triggerEnd] = {"Kill the Demon of the Orb", {[zoneIDs.DUSTWALLOW_MARSH]={{45.6,57.2}}}},
         },
         [1959] = {
             [questKeys.startedBy] = {{2128,3049,5880,7311},nil,nil},
         },
         [1960] = {
             [questKeys.preQuestSingle] = {},
-            [questKeys.extraObjectives] = {{nil, ICON_TYPE_EVENT, "Use Cantation of Manifestation to reveal Rift Spawn. Use Chest of Containment Coffers on stunned Rift Spawn", 0, {{"monster", 6492}}}}
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_EVENT, l10n("Use Cantation of Manifestation to reveal Rift Spawn. Use Chest of Containment Coffers on stunned Rift Spawn"), 0, {{"monster", 6492}}}},
         },
         [2039] = {
             [questKeys.exclusiveTo] = {2038},
@@ -1101,6 +1209,9 @@ function QuestieQuestFixes:Load()
         [3513] = {
             [questKeys.startedBy] = {{5797},nil,{10621}},
         },
+        [3520] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_SLAY, l10n("Slay Rogue Vale Screecher and use Veh'kinya's Bramble on their corpse."), 0, {{"monster", 5308}}}},
+        },
         [3525] = {
             [questKeys.triggerEnd] = {"Protect Belnistrasz while he performs the ritual to shut down the idol", {[zoneIDs.THE_BARRENS]={{50.86,92.87}}}},
         },
@@ -1234,6 +1345,9 @@ function QuestieQuestFixes:Load()
         [4134] = {
             [questKeys.preQuestSingle] = {}, -- #1859
         },
+        [4136] = {
+            [questKeys.preQuestSingle] = {}, -- #4459
+        },
         [4143] = {
             [questKeys.zoneOrSort] = 1477,
         },
@@ -1278,10 +1392,14 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestSingle] = {4341},
         },
         [4485] = {
+            [questKeys.startedBy] = {{6179},nil,nil},
             [questKeys.exclusiveTo] = {1661,4486},
         },
         [4486] = {
             [questKeys.exclusiveTo] = {1661,4485},
+        },
+        [4490] = {
+            [questKeys.preQuestSingle] = {3631,4487,4488,4489},
         },
         [4491] = {
             [questKeys.triggerEnd] = {"Escort Ringo to Spraggle Frock at Marshal's Refuge", {[zoneIDs.UN_GORO_CRATER]={{43.71,8.29}}}},
@@ -1336,6 +1454,9 @@ function QuestieQuestFixes:Load()
         [4737] = {
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
         },
+        [4743] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_OBJECT, l10n("Beat Emberstrife till his will is broken, then place the Unforged Seal of Ascension before him and use the Orb of Draconic Energy."), 0, {{"monster", 10321}}}},
+        },
         [4763] = {
             [questKeys.requiredSourceItems] = {12347,12341,12342,12343}, -- #798
         },
@@ -1373,6 +1494,9 @@ function QuestieQuestFixes:Load()
         },
         [4841] = {
             [questKeys.preQuestSingle] = {},
+        },
+        [4822] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
         },
         [4866] = {
             [questKeys.triggerEnd] = {"Milked", {[zoneIDs.BURNING_STEPPES]={{65.11,23.68}}}},
@@ -1457,8 +1581,9 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredSkill] = {164,275},
         },
         [5126] = {
-            [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.SHAMAN,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.SHAMAN,
             [questKeys.triggerEnd] = {"Listen to Lorax's Tale", {[zoneIDs.WINTERSPRING]={{63.82,73.79}}}},
+            [questKeys.zoneOrSort] = sortKeys.BLACKSMITHING,
         },
         [5149] = {
             [questKeys.preQuestSingle] = {},
@@ -1466,17 +1591,15 @@ function QuestieQuestFixes:Load()
         [5156] = {
             [questKeys.triggerEnd] = {"Explore the craters in Shatter Scar Vale", {[zoneIDs.FELWOOD]={{41.03,41.96}}}},
         },
-        [5166] = {
-            [questKeys.specialFlags] = 1, -- #1335
-        },
-        [5167] = {
-            [questKeys.specialFlags] = 1, -- #1335
-        },
         [5203] = {
             [questKeys.triggerEnd] = {"Protect Arko'narin out of Shadow Hold", {[zoneIDs.FELWOOD]={{35.45,59.06}}}},
         },
         [5211] = {
             [questKeys.preQuestSingle] = {}, -- #983
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_SLAY, l10n("Slay ghouls to free Darrowshire spirits"), 0, {{"monster", 8530}, {"monster", 8531}, {"monster", 8532}}}},
+        },
+        [5214] = {
+            [questKeys.name] = "The Great Ezra Grimm",
         },
         [5218] = {
             [questKeys.preQuestSingle] = {5217,5230},
@@ -1521,37 +1644,40 @@ function QuestieQuestFixes:Load()
         },
         [5402] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5403] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5404] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5405] = {
             [questKeys.startedBy] = {{11039},nil,nil},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5406] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5407] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5408] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [5421] = {
             [questKeys.questLevel] = 25,
         },
+        [5502] = {
+            [questKeys.zoneOrSort] = sortKeys.SEASONAL,
+        },
         [5503] = {
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
             [questKeys.startedBy] = {{10839},nil,nil},
         },
         [5508] = {
@@ -1563,6 +1689,9 @@ function QuestieQuestFixes:Load()
         [5510] = {
             [questKeys.preQuestSingle] = {5401,5503,5405},
         },
+        [5526] = {
+            [questKeys.zoneOrSort] = zoneIDs.DIRE_MAUL,
+        },
         [5582] = {
             [questKeys.startedBy] = {{10678},nil,{13920}},
         },
@@ -1570,10 +1699,59 @@ function QuestieQuestFixes:Load()
             [questKeys.questLevel] = 5, -- #2306
         },
         [5634] = {
+            [questKeys.startedBy] = {{376},nil,nil},
+            [questKeys.objectivesText] = {},
+            [questKeys.exclusiveTo] = {5635,5636,5637,5638,5639,5640},
+        },
+        [5635] = {
+            [questKeys.startedBy] = {{377},nil,nil},
+            [questKeys.exclusiveTo] = {5634,5636,5637,5638,5639,5640},
+        },
+        [5636] = {
+            [questKeys.exclusiveTo] = {5634,5635,5637,5638,5639,5640},
+        },
+        [5637] = {
+            [questKeys.startedBy] = {{1226},nil,nil},
+            [questKeys.exclusiveTo] = {5634,5635,5636,5638,5639,5640},
+        },
+        [5638] = {
+            [questKeys.exclusiveTo] = {5634,5635,5636,5637,5639,5640},
+        },
+        [5639] = {
+            [questKeys.exclusiveTo] = {5634,5635,5636,5637,5638,5640},
+        },
+        [5640] = {
+            [questKeys.name] = "Desperate Prayer",
             [questKeys.startedBy] = {{11401},nil,nil},
+            [questKeys.finishedBy] = {{376},nil},
+            [questKeys.requiredLevel] = 10,
+            [questKeys.questLevel] = 10,
+            [questKeys.requiredRaces] = raceIDs.HUMAN + raceIDs.DWARF,
+            [questKeys.requiredClasses] = classIDs.PRIEST,
+            [questKeys.objectivesText] = {"Speak to High Priestess Laurena in Stormwind."},
+            [questKeys.exclusiveTo] = {5634,5635,5636,5637,5638,5639},
+            [questKeys.zoneOrSort] = sortKeys.PRIEST,
         },
         [5647] = {
             [questKeys.startedBy] = {{11401},nil,nil}, -- #2424
+        },
+        [5676] = {
+            [questKeys.exclusiveTo] = {5677,5678},
+        },
+        [5677] = {
+            [questKeys.exclusiveTo] = {5676,5678},
+        },
+        [5678] = {
+            [questKeys.name] = "Arcane Feedback",
+            [questKeys.startedBy] = {{376,5489,11406},nil,nil},
+            [questKeys.finishedBy] = {{376},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = 20,
+            [questKeys.requiredRaces] = raceIDs.HUMAN,
+            [questKeys.requiredClasses] = classIDs.PRIEST,
+            [questKeys.objectivesText] = {"Speak to High Priestess Laurena in Stormwind."},
+            [questKeys.exclusiveTo] = {5676,5677},
+            [questKeys.zoneOrSort] = sortKeys.PRIEST,
         },
         [5713] = {
             [questKeys.triggerEnd] = {"Protect Aynasha", {[zoneIDs.DARKSHORE]={{45.87,90.42}}}},
@@ -1662,12 +1840,36 @@ function QuestieQuestFixes:Load()
         [5893] = {
             [questKeys.questLevel] = 55,
         },
+        [5923] = {
+            [questKeys.startedBy] = {{4218},nil,nil},
+        },
+        [5924] = {
+            [questKeys.startedBy] = {{5505},nil,nil},
+        },
+        [5925] = {
+            [questKeys.startedBy] = {{3602},nil,nil},
+        },
+        [5926] = {
+            [questKeys.startedBy] = {{6746},nil,nil},
+        },
+        [5927] = {
+            [questKeys.startedBy] = {{6929},nil,nil},
+        },
+        [5928] = {
+            [questKeys.startedBy] = {{3064},nil,nil},
+        },
         -----------------------
         [5929] = {
             [questKeys.triggerEnd] = {"Seek out the Great Bear Spirit and learn what it has to share with you about the nature of the bear.", {[zoneIDs.MOONGLADE]={{39.25,27.73}}}},
         },
         [5930] = {
             [questKeys.triggerEnd] = {"Seek out the Great Bear Spirit and learn what it has to share with you about the nature of the bear.", {[zoneIDs.MOONGLADE]={{39.25,27.73}}}},
+        },
+        [5931] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_TALK, l10n("Talk to Silva Fil'naveth to fly back to Darnassus"), 0, {{"monster", 11800}}}},
+        },
+        [5932] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_TALK, l10n("Talk to Bunthen Plainswind to fly back to Thunder Bluff"), 0, {{"monster", 11798}}}},
         },
         [5943] = {
             [questKeys.triggerEnd] = {"Escort Gizelton Caravan past Mannoroc Coven", {[zoneIDs.DESOLACE]={{55.69,67.79}}}},
@@ -1776,6 +1978,7 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestGroup] = {6022,6042,6133,6135,6136}, -- #1950
         },
         [6163] = {
+            [questKeys.preQuestSingle] = {},
             [questKeys.preQuestGroup] = {6022,6042,6133,6135,6136}, -- #1950
         },
         [6382] = {
@@ -1916,10 +2119,10 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {6961,7024},
         },
         [7022] = {
-            [QuestieDB.questKeys.startedBy] = {{13433},nil,nil},
+            [questKeys.startedBy] = {{13433},nil,nil},
         },
         [7023] = {
-            [QuestieDB.questKeys.startedBy] = {{13435},nil,nil},
+            [questKeys.startedBy] = {{13435},nil,nil},
         },
         [7024] = {
             [questKeys.finishedBy] = {{13445},nil},
@@ -2015,6 +2218,9 @@ function QuestieQuestFixes:Load()
         [7428] = { -- bad race data
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
         },
+        [7463] = {
+            [questKeys.zoneOrSort] = sortKeys.MAGE,
+        },
         [7481] = {
             [questKeys.triggerEnd] = {"Master Kariel Winthalus Found", {[zoneIDs.FERALAS]={{62.86,24.88},{60.34,30.71}}}},
         },
@@ -2044,13 +2250,13 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{2198,10877,10878},nil,nil}, -- #2489
         },
         [7507] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [7508] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [7509] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [7541] = {
             [questKeys.questLevel] = 40, -- #1320
@@ -2068,7 +2274,7 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredLevel] = 58,
             [questKeys.questLevel] = 60,
             [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
-            [questKeys.requiredClasses] = 64,
+            [questKeys.requiredClasses] = classIDs.SHAMAN,
             [questKeys.objectivesText] = {"Bring Darkreaver's Head to Sagorne Creststrider in the Valley of Wisdom, Orgrimmar."},
             [questKeys.objectives] = {nil,nil,{{18880,nil}},nil},
             [questKeys.sourceItemId] = 18746,
@@ -2078,13 +2284,13 @@ function QuestieQuestFixes:Load()
         },
         [7669] = { --#1449
             [questKeys.name] = "Again Into the Great Ossuary",
-            [questKeys.startedBy] = {{13417},nil,nil},            -- Quest is started by Lord Grayson Shadowbreaker
-            [questKeys.finishedBy] = {{13417},nil},                --       & ended*
+            [questKeys.startedBy] = {{13417},nil,nil},
+            [questKeys.finishedBy] = {{13417},nil},
             [questKeys.requiredLevel] = 58,
             [questKeys.questLevel] = 60,
-            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,                      -- Any race can take on quest
-            [questKeys.requiredClasses] = 64,                     -- This quest is for the Shaman class
-            [questKeys.zoneOrSort] = -141,                        -- <0: QuestSort.dbc ID
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.SHAMAN,
+            [questKeys.zoneOrSort] = -141,
             [questKeys.specialFlags] = 1,
             [questKeys.parentQuest] = 8258,
         },
@@ -2095,7 +2301,7 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredLevel] = 60,
             [questKeys.questLevel] = 60,
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
-            [questKeys.requiredClasses] = 2,
+            [questKeys.requiredClasses] = classIDs.PALADIN,
             [questKeys.objectivesText] = {"Speak with Lord Grayson Shadowbreaker in Stormwind's Cathedral District."},
             [questKeys.nextQuestInChain] = 7637,
             [questKeys.exclusiveTo] = {7638},
@@ -2111,13 +2317,13 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{9046},nil,{18987}},
         },
         [7785] = {
-            [questKeys.requiredClasses] = 15,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
         },
         [7786] = {
-            [questKeys.requiredClasses] = 15,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
         },
         [7787] = {
-            [questKeys.requiredClasses] = 15,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN and classIDs.HUNTER and classIDs.ROGUE,
         },
         [7816] = {
             [questKeys.preQuestSingle] = {}, -- #2247
@@ -2228,31 +2434,31 @@ function QuestieQuestFixes:Load()
             [questKeys.specialFlags] = 0,
         },
         [8184] = {
-            [questKeys.requiredClasses] = 1,
+            [questKeys.requiredClasses] = classIDs.WARRIOR,
         },
         [8185] = {
-            [questKeys.requiredClasses] = 2,
+            [questKeys.requiredClasses] = classIDs.PALADIN,
         },
         [8186] = {
-            [questKeys.requiredClasses] = 8,
+            [questKeys.requiredClasses] = classIDs.ROGUE,
         },
         [8187] = {
-            [questKeys.requiredClasses] = 4,
+            [questKeys.requiredClasses] = classIDs.HUNTER,
         },
         [8188] = {
-            [questKeys.requiredClasses] = 64,
+            [questKeys.requiredClasses] = classIDs.SHAMAN,
         },
         [8189] = {
-            [questKeys.requiredClasses] = 128,
+            [questKeys.requiredClasses] = classIDs.MAGE,
         },
         [8190] = {
-            [questKeys.requiredClasses] = 256,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
         },
         [8191] = {
-            [questKeys.requiredClasses] = 16,
+            [questKeys.requiredClasses] = classIDs.PRIEST,
         },
         [8192] = {
-            [questKeys.requiredClasses] = 1024,
+            [questKeys.requiredClasses] = classIDs.DRUID,
         },
         [8251] = {
             [questKeys.preQuestSingle] = {},
@@ -2662,8 +2868,14 @@ function QuestieQuestFixes:Load()
         [8620] = {
             [questKeys.requiredSourceItems] = {21103,21104,21105,21106,21107,21108,21109,21110},
         },
+        [8729] = {
+            [questKeys.extraObjectives] = {{nil, ICON_TYPE_EVENT, l10n("Use Arcanite Buoy"),0,{{"object", 180669}}}},
+        },
         [8733] = {
             [questKeys.preQuestSingle] = {8555}, -- #2365
+        },
+        [8736] = {
+            [questKeys.triggerEnd] = {"The Redemption of Eranikus", {[zoneIDs.MOONGLADE]={{51.8,36.4}}}},
         },
         [8747] = {
             [questKeys.exclusiveTo] = {8752,8753,8754,8755,8756,8757,8758,8759,8760,8761}, --protector neutral
@@ -2711,13 +2923,13 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {8747,8748,8749,8750,8751,8752,8753,8754,8755,8756}, --invoker exalted
         },
         [8767] = {
-            [questKeys.requiredRaces] = raceIDs.ALL,
-            [questKeys.requiredClasses] = 0,
+            [questKeys.requiredRaces] = raceIDs.NONE,
+            [questKeys.requiredClasses] = classIDs.NONE,
             [questKeys.exclusiveTo] = {8788},
         },
         [8788] = {
-            [questKeys.requiredRaces] = raceIDs.ALL,
-            [questKeys.requiredClasses] = 0,
+            [questKeys.requiredRaces] = raceIDs.NONE,
+            [questKeys.requiredClasses] = classIDs.NONE,
             [questKeys.exclusiveTo] = {8767},
         },
         [8792] = {
@@ -2951,6 +3163,9 @@ function QuestieQuestFixes:Load()
         [9050] = {
             [questKeys.specialFlags] = 1,
         },
+        [9052] = {
+            [questKeys.preQuestSingle] = {},
+        },
         [9054] = {
             [questKeys.specialFlags] = 1,
         },
@@ -2976,6 +3191,7 @@ function QuestieQuestFixes:Load()
             [questKeys.specialFlags] = 1,
         },
         [9063] = {
+            [questKeys.exclusiveTo] = {9052},
             [questKeys.zoneOrSort] = 493,
         },
         [9069] = {
@@ -3123,22 +3339,22 @@ function QuestieQuestFixes:Load()
             [questKeys.specialFlags] = 1,
         },
         [9124] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9126] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9128] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9131] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9136] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9141] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9154] = {
             [questKeys.questLevel] = 60,
@@ -3147,10 +3363,10 @@ function QuestieQuestFixes:Load()
             [questKeys.specialFlags] = 1,
         },
         [9211] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9213] = {
-            [questKeys.requiredMinRep] = {529,3000}
+            [questKeys.requiredMinRep] = {529,3000},
         },
         [9223] = {
             [questKeys.specialFlags] = 1,
@@ -3162,40 +3378,40 @@ function QuestieQuestFixes:Load()
             [questKeys.preQuestSingle] = {9033},
         },
         [9234] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [9235] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [9236] = {
-            [questKeys.requiredClasses] = 3,
+            [questKeys.requiredClasses] = classIDs.WARRIOR and classIDs.PALADIN,
         },
         [9238] = {
-            [questKeys.requiredClasses] = 400,
+            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
         },
         [9239] = {
-            [questKeys.requiredClasses] = 400,
+            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
         },
         [9240] = {
-            [questKeys.requiredClasses] = 400,
+            [questKeys.requiredClasses] = classIDs.PRIEST and classIDs.MAGE and classIDs.WARLOCK,
         },
         [9241] = {
-            [questKeys.requiredClasses] = 1032,
+            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
         },
         [9242] = {
-            [questKeys.requiredClasses] = 1032,
+            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
         },
         [9243] = {
-            [questKeys.requiredClasses] = 1032,
+            [questKeys.requiredClasses] = classIDs.ROGUE and classIDs.DRUID,
         },
         [9244] = {
-            [questKeys.requiredClasses] = 68,
+            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
         },
         [9245] = {
-            [questKeys.requiredClasses] = 68,
+            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
         },
         [9246] = {
-            [questKeys.requiredClasses] = 68,
+            [questKeys.requiredClasses] = classIDs.HUNTER and classIDs.SHAMAN,
         },
         [9260] = {
             [questKeys.triggerEnd] = {"Investigate a circle", {[zoneIDs.ELWYNN_FOREST] = {{34.72,50.95},{34.18,48.47},{32.24,53.77},{35.05,55.22}}}},
@@ -3218,7 +3434,7 @@ function QuestieQuestFixes:Load()
             [questKeys.triggerEnd] = {"Investigate a circle", {[zoneIDs.TIRISFAL_GLADES] = {{60.4,61.7}}}},
         },
         [9319] = {
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [9322] = {
             [questKeys.requiredLevel] = 1,
@@ -3228,7 +3444,7 @@ function QuestieQuestFixes:Load()
         },
         [9386] = {
             [questKeys.preQuestSingle] = {9319},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
             [questKeys.specialFlags] = 1,
         },
         [9415] = {
@@ -3242,6 +3458,108 @@ function QuestieQuestFixes:Load()
         },
         [9422] = {
             [questKeys.preQuestSingle] = {},
+        },
+        ----- Warlock Incubus quest chain -----
+        [65593] = {
+            [questKeys.name] = "Hearts of the Lovers",
+            [questKeys.startedBy] = {{5693},nil,nil},
+            [questKeys.finishedBy] = {{5675},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Bring the hearts of Avelina Lilly and Isaac Pearson to Carendin Halgar in the Temple of the Damned."},
+            [questKeys.objectives] = {nil,nil,{{190179},{190180}},nil,nil},
+            [questKeys.preQuestSingle] = {1472},
+            [questKeys.exclusiveTo] = {65610},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+        },
+        [65597] = {
+            [questKeys.name] = "The Binding",
+            [questKeys.startedBy] = {{5675},nil,nil},
+            [questKeys.finishedBy] = {{5675},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Using the Lovers' Hearts, summon and subdue an incubus, then return the Lovers' Hearts to Carendin Halgar in the Magic Quarter of the Undercity."},
+            [questKeys.objectives] = {{{185335}},nil,nil,nil,nil},
+            [questKeys.preQuestSingle] = {65593},
+            [questKeys.requiredSourceItems] = {190181},
+            [questKeys.exclusiveTo] = {65604},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+            [questKeys.extraObjectives] = {{{[zoneIDs.UNDERCITY]={{86.4,26.4}}}, ICON_TYPE_EVENT, l10n("Use the Lovers' Hearts to summon an Incubus and slay it."),}},
+        },
+        [65601] = {
+            [questKeys.name] = "Love Hurts",
+            [questKeys.startedBy] = {{5909},nil,nil},
+            [questKeys.finishedBy] = {{3363},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Speak with Magar in Orgrimmar."},
+            [questKeys.preQuestSingle] = {1507},
+            [questKeys.exclusiveTo] = {65593,65610},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+        },
+        [65602] = {
+            [questKeys.name] = "What Is Love?",
+            [questKeys.startedBy] = {{6244},nil,nil},
+            [questKeys.finishedBy] = {{6122},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Retrieve the Wooden Figurine and bring it to Gakin the Darkbinder in the Mage Quarter of Stormwind."},
+            [questKeys.objectives] = {nil,nil,{{190309}},nil,nil},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+            [questKeys.extraObjectives] = {{{[zoneIDs.ASHENVALE]={{26.7,22.5}}}, ICON_TYPE_EVENT, l10n("Light the Unlit Torch near a fire and use the Burning Torch to set the Archaeoligst's Cart on fire."),}},
+        },
+        [65603] = {
+            [questKeys.name] = "The Binding",
+            [questKeys.startedBy] = {{6122},nil,nil},
+            [questKeys.finishedBy] = {{6122},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Using the Wooden Figurine, summon and subdue an incubus, then return the Wooden Figurine to Gakin the Darkbinder in the Slaughtered Lamb."},
+            [questKeys.objectives] = {{{185335}},nil,nil,nil,nil},
+            [questKeys.preQuestSingle] = {65602},
+            [questKeys.requiredSourceItems] = {190186},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+            [questKeys.extraObjectives] = {{{[zoneIDs.STORMWIND_CITY]={{25.2,77.4}}}, ICON_TYPE_EVENT, l10n("Use the Withered Scarf to summon an Incubus and slay it."),}},
+        },
+        [65604] = {
+            [questKeys.name] = "The Binding",
+            [questKeys.startedBy] = {{5875},nil,nil},
+            [questKeys.finishedBy] = {{5875},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Using the Withered Scarf, summon and subdue an incubus, then return the Withered Scarf to Gan'rul Bloodeye in Orgrimmar."},
+            [questKeys.objectives] = {{{185335}},nil,nil,nil,nil},
+            [questKeys.preQuestSingle] = {65610},
+            [questKeys.requiredSourceItems] = {190187},
+            [questKeys.exclusiveTo] = {65597},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
+            [questKeys.extraObjectives] = {{{[zoneIDs.ORGRIMMAR]={{49.4,50}}}, ICON_TYPE_EVENT, l10n("Use the Withered Scarf to summon an Incubus and slay it."),}},
+        },
+        [65610] = {
+            [questKeys.name] = "Wish You Were Here",
+            [questKeys.startedBy] = {{3363},nil,nil},
+            [questKeys.finishedBy] = {{5875},nil},
+            [questKeys.requiredLevel] = 20,
+            [questKeys.questLevel] = -1,
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+            [questKeys.requiredClasses] = classIDs.WARLOCK,
+            [questKeys.objectivesText] = {"Investigate Fallen Sky Lake in Ashenvale and report your findings to Gan'rul Bloodeye in Orgrimmar."},
+            [questKeys.preQuestSingle] = {65601},
+            [questKeys.objectives] = {nil,nil,{{190232}},nil,nil},
+            [questKeys.exclusiveTo] = {65593},
+            [questKeys.zoneOrSort] = sortKeys.WARLOCK,
         },
     }
 end
@@ -3277,7 +3595,7 @@ function QuestieQuestFixes:LoadFactionFixes()
         },
         [7562] = {
             [questKeys.startedBy] = {{5753,5815},nil,nil},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [8151] = {
             [questKeys.startedBy] = {{3039,3352},nil,nil},
@@ -3347,7 +3665,7 @@ function QuestieQuestFixes:LoadFactionFixes()
         },
         [7562] = {
             [questKeys.startedBy] = {{5520,6382},nil,nil},
-            [questKeys.requiredRaces] = raceIDs.ALL,
+            [questKeys.requiredRaces] = raceIDs.NONE,
         },
         [8151] = {
             [questKeys.startedBy] = {{4205,5116,5516},nil,nil},

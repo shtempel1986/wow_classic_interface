@@ -12,37 +12,19 @@ function module:RegisterConfig()
 	local config = core:GetModule("Config", true)
 	if not config then return end
 
-	local db = self.db.profile
-	local recreating
-	local function _newPopup()
-		local oldpopup = self.popup
-		self.popup = self:CreatePopup()
-		if oldpopup and oldpopup:IsVisible() then
-			self:ShowFrame(oldpopup.data)
-			oldpopup:Hide()
-		end
-		recreating = nil
-	end
-	local function refreshPopup(info)
-		if recreating then return end
-		if info.arg then
-			recreating = true
-			C_Timer.After(0.2, _newPopup)
-		end
-	end
 	config.options.plugins.clicktarget = {
 		clicktarget = {
 			type = "group",
 			name = "ClickTarget",
-			get = function(info) return db[info[#info]] end,
+			get = function(info) return self.db.profile[info[#info]] end,
 			set = function(info, v)
-				db[info[#info]] = v
-				refreshPopup(info)
+				self.db.profile[info[#info]] = v
 			end,
 			order = 25,
 			args = {
 				about = config.desc("Once you've found a rare, it can be nice to actually target it. So this pops up a frame that targets the rare when you click on it.", 0),
 				show = config.toggle("Show for mobs", "Show the click-target frame for mobs", 10),
+				loot = config.toggle("Show for treasure", "Show the click-target frame for treasures", 11),
 				appearanceHeader = {
 					type = "header",
 					name = "Appearance",
@@ -61,7 +43,10 @@ function module:RegisterConfig()
 						info.option.values = values
 						return values
 					end,
-					arg = true,
+					set = function(info, v)
+						self.db.profile[info[#info]] = v
+						module:Redraw()
+					end,
 					order = 21,
 				},
 				anchor = {
@@ -75,21 +60,31 @@ function module:RegisterConfig()
 					end,
 					order = 22,
 				},
+				stacksize = {
+					type = "range",
+					name = "Stack size",
+					desc = "How many popups to show at once",
+					min = 1,
+					max = 6,
+					step = 1,
+					order = 23,
+				},
 				scale = {
 					type = "range",
 					name = UI_SCALE,
 					width = "full",
 					min = 0.5,
 					max = 2,
-					get = function(info) return db.anchor.scale end,
+					get = function(info) return self.db.profile.anchor.scale end,
 					set = function(info, value)
-						db.anchor.scale = value
+						self.db.profile.anchor.scale = value
 						LibWindow.SetScale(self.anchor, value)
-						if self.popup then
-							self.popup:SetScale(db.anchor.scale)
+						for _, popup in ipairs(self.stack) do
+							popup:SetScale(self.db.profile.anchor.scale)
+							self:SetModel(popup)
 						end
 					end,
-					order = 23,
+					order = 24,
 				},
 				closeAfter = {
 					type = "range",
@@ -139,16 +134,16 @@ function module:RegisterConfig()
 						sources = {
 							type="multiselect",
 							name = "Sources",
-							get = function(info, key) return db.sources[key] end,
-							set = function(info, key, v) db.sources[key] = v end,
+							get = function(info, key) return self.db.profile.sources[key] end,
+							set = function(info, key, v) self.db.profile.sources[key] = v end,
 							values = {
 								target = "Targets",
 								grouptarget = "Group targets",
 								mouseover = "Mouseover",
 								nameplate = "Nameplates",
-								--vignette = "Vignettes",
-								--['point-of-interest'] = "Map Points of Interest",
-								--chat = "Chat yells",
+								vignette = "Vignettes",
+								['point-of-interest'] = "Map Points of Interest",
+								chat = "Chat yells",
 								groupsync = "Group Sync",
 								guildsync = "Guild Sync",
 							},
@@ -160,7 +155,7 @@ function module:RegisterConfig()
 					type = "group",
 					name = "Style options",
 					get = function(info)
-						local value = db.style_options[info[#info - 1]][info[#info]]
+						local value = self.db.profile.style_options[info[#info - 1]][info[#info]]
 						if info.type == "color" then
 							return unpack(value)
 						end
@@ -171,9 +166,11 @@ function module:RegisterConfig()
 						if info.type == "color" then
 							value = {...}
 						end
-						db.style_options[info[#info - 1]][info[#info]] = value
-						if self.popup then
-							self:ResetLook(self.popup)
+						self.db.profile.style_options[info[#info - 1]][info[#info]] = value
+						for popup, look in self:EnumerateActive() do
+							if look == info[#info - 1] then
+								self:ResetLook(popup)
+							end
 						end
 					end,
 					args = module.LookConfig,

@@ -168,13 +168,14 @@ loader:RegisterEvent("ADDON_LOADED")
 loader:RegisterEvent("PLAYER_CHOICE_UPDATE")
 loader:SetScript("OnEvent",function(self,event,arg)
 	if event == "ADDON_LOADED" then
-		if arg == "Blizzard_PlayerChoiceUI" then
+		if arg == "Blizzard_PlayerChoice" then
 			helpButton = CreateFrame("Button",nil,PlayerChoiceFrame,"UIPanelButtonTemplate")
 			helpButton:SetPoint("BOTTOM",PlayerChoiceFrame,"TOP",0,4)
 			helpButton:SetText("MRT: "..L.OtherCovHelper)
 			helpButton:SetSize(200,30)
 			helpButton:SetScale(1.3)
 			helpButton:SetScript("OnClick",helpButtonClick)
+			helpButton:Hide()
 		end
 	elseif event == "PLAYER_CHOICE_UPDATE" then
 		if not helpButton then

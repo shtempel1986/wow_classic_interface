@@ -1,10 +1,11 @@
-## Interface: 20502
-## Version: 1.4.1
+## Interface: 30400
+## Version: 1.6.2
 ## Title: Vendor Price
 ## Notes: Displays the price of an item when not at a vendor
 ## Author: Ketho, Icesythe7
 ## X-Curse-Project-ID: 322091
 ## X-WoWI-ID: 24922
+## X-Wago-ID: RqGY4EKg
 
 VendorPrice.lua
 Compat.lua

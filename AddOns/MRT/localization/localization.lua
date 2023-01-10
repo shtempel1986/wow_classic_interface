@@ -54,6 +54,7 @@ local classLocalizate = {
 	["MONK"] = GetClassInfo(10),
 	["DRUID"] = GetClassInfo(11),
 	["DEMONHUNTER"] = GetClassInfo(12),
+	["EVOKER"] = GetClassInfo(13),
 	["PET"] = PETS,
 	["NO"] = SPECIAL,
 	["ALL"] = ALL_CLASSES,
@@ -100,6 +101,8 @@ local specCodeToID = {
 	["MONKHEAL"] = 270,
 	["DEMONHUNTERDPS"] = 577,
 	["DEMONHUNTERTANK"] = 581,
+	["EVOKERDPS"] = 1467,
+	["EVOKERHEAL"] = 1468,
 }
 
 local specLocalizate = {
@@ -211,12 +214,35 @@ local zoneEJids = {
 	S_ZoneT25Nyalotha = 1180,
 	S_ZoneT26CastleNathria = 1190,
 	S_ZoneT27SoD = 1193,
+	S_ZoneT28SFO = 1195,
+	S_ZoneT29VotI = 1200,
 }
 for prefix,eID in pairs(zoneEJids) do
 	L[prefix] = EJ_GetInstanceInfo(eID)
 end
 
 local encounterIDtoEJidData = {
+	[2587] = 2480,	--Eranog
+	[2639] = 2500,	--Terros
+	[2590] = 2486,	--The Primalist Council
+	[2592] = 2482,	--Sennarth, The Cold Breath
+	[2635] = 2502,	--Dathea, Ascended
+	[2605] = 2491,	--Kurog Grimtotem
+	[2614] = 2493,	--Broodkeeper Diurna
+	[2607] = 2499,	--Raszageth the Storm-Eater
+
+	[2512] = 2458,	--Solitary Guardian
+	[2540] = 2459,	--Dausegne, the Fallen Oracle
+	[2553] = 2470,	--Artificer Xy'mox
+	[2544] = 2460,	--Prototype Pantheon
+	[2539] = 2461,	--Lihuvim, Principal Architect
+	[2542] = 2465,	--Skolex, the Insatiable Ravener
+	[2529] = 2463,	--Halondrus the Reclaimer
+	[2546] = 2469,	--Anduin Wrynn
+	[2543] = 2457,	--Lords of Dread
+	[2549] = 2467,	--Rygelon
+	[2537] = 2464,	--The Jailer
+
 	[2423] = 2435,	--The Tarragrue
 	[2433] = 2442,	--The Eye of the Jailer
 	[2429] = 2439,	--The Nine
@@ -424,9 +450,20 @@ end
 local encounterIDtoEJidChache = {
 }
 
+local encounterIDtoNamePredef = {
+	[2587] = "Eranog",
+	[2639] = "Terros",
+	[2590] = "The Primalist Council",
+	[2592] = "Sennarth, The Cold Breath",
+	[2635] = "Dathea, Ascended",
+	[2605] = "Kurog Grimtotem",
+	[2614] = "Broodkeeper Diurna",
+	[2607] = "Raszageth the Storm-Eater",
+}
+
 L.bossName = setmetatable({}, {__index=function (t, k)
 	if not encounterIDtoEJidChache[k] then
-		encounterIDtoEJidChache[k] = EJ_GetEncounterInfo(encounterIDtoEJidData[k] or 0) or ""
+		encounterIDtoEJidChache[k] = EJ_GetEncounterInfo(encounterIDtoEJidData[k] or 0) or encounterIDtoNamePredef[k] or ""
 	end
 	return encounterIDtoEJidChache[k]
 end})
@@ -462,6 +499,7 @@ L.BossWatcherEnergyType15 = POWER_TYPE_DEMONIC_FURY
 L.BossWatcherEnergyType16 = POWER_TYPE_ARCANE_CHARGES
 L.BossWatcherEnergyType17 = POWER_TYPE_FURY_DEMONHUNTER
 L.BossWatcherEnergyType18 = POWER_TYPE_PAIN
+L.BossWatcherEnergyType19 = POWER_TYPE_ESSENCE
 
 --- Schools names
 L.BossWatcherSchoolPhysical = STRING_SCHOOL_PHYSICAL

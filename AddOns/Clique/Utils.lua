@@ -12,6 +12,10 @@
 local addonName, addon = ...
 local L = addon.L
 
+local strconcat = strconcat
+---@diagnostic disable-next-line: undefined-field
+local strsplit = string.split
+
 -- Returns the prefix string for the current keyboard state.
 --
 -- Arguments:
@@ -23,7 +27,7 @@ function addon:GetPrefixString(extended)
     local alt, lalt, ralt = IsAltKeyDown(), IsLeftAltKeyDown() IsRightAltKeyDown()
     local meta, lmeta, rmeta = false, false, false
 
-    if addon.versionIsRelease then
+    if addon:ProjectIsRetail() then
         meta, lmeta, rmeta = IsMetaKeyDown(), IsLeftMetaKeyDown(), IsRightMetaKeyDown()
     end
 
@@ -200,7 +204,7 @@ local binMap = {
     RALT = 3,
     CTRL = 4,
     LCTRL = 5,
-    LCTRL = 6,
+    RCTRL = 6,
     SHIFT = 7,
     LSHIFT = 8,
     RSHIFT = 9,

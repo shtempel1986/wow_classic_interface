@@ -19,7 +19,7 @@ function module:OnInitialize()
 
 	local config = core:GetModule("Config", true)
 	if config then
-		config.options.args.outputs.plugins.marker = {
+		config.options.args.general.plugins.marker = {
 			marker = {
 				type = "group",
 				name = "Marker",
@@ -62,10 +62,20 @@ function module:Seen_Raw(callback, id, zone, x, y, dead, source, unit)
 	if not self.db.profile.enabled then
 		return
 	end
-	if IsInGroup() and self.db.profile.safely then
-		return
+	if IsInGroup() then
+		if self.db.profile.safely then
+			-- Just don't do anything in groups
+			return
+		end
+		if IsInRaid() and not UnitIsGroupLeader("player") then
+			-- In raids, only the leader can set icons
+			-- TODO: also assistants, apparently
+			return
+		end
+		-- But in parties, anyone can set icons
 	end
 	if GetRaidTargetIndex(unit) then
+		-- Don't overwrite an existing icon
 		return
 	end
 	if id and core:ShouldIgnoreMob(id, HBD:GetPlayerZone()) then

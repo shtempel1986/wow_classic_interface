@@ -1,6 +1,72 @@
 local GlobalAddonName, ExRT = ...
 
 ExRT.Options.Changelog = [=[
+v.4710
+* 10.0.2 Update
+* Fixes
+
+v.4700
+* Raid cooldowns: updated all classes for DF
+* Marks Bar: fixed world markers buttons
+* Fixes
+
+v.4690
+* Raid Check: added vers & movement buffs
+* Raid cooldowns: updated paladin and priest spells for DF
+* Major fixes
+
+v.4680
+* Updated for 10.0 Dragonflight
+
+v.4660
+* Updated for 10.0 Dragonflight beta
+* Updated 9.2.7 toc
+* Raid cooldowns: added option to growth from left to right
+* Raid Check: added option to disable chat report outside raids
+* Invite Tools: Fixed invite opposite faction via bnet
+* WeakAuras checks: fixed disconnect on requesting for people with huge number of weakauras [outdated MRT versions not supported]
+* WeakAuras checks: click on name will request info only for single line
+* Saving log: added all mop+wod+legion 5ppl for <5ppl mythic> logging
+
+v.4660-LK
+* Inspect/Raid cooldowns: Added support for talents
+* Raid cooldowns: added option to growth from left to right
+* Raid Check: added chat report options
+
+v.4650-LK
+* Updated to WotLK version
+* Marks Bar: second click on consumables button will hide consumables window
+
+v.4630
+* Raid Check: consumables on ready check: added support for Eternal Augment Rune
+* Minor fixes
+
+v.4620
+* 9.2 Update
+
+v.4610
+* Updated Chinese translation (by martinkerth)
+
+v.4610-BC
+* Raid cooldowns: Fixed and added feign death cd
+* Raid cooldowns: added power infusion, ice block, evasion cds
+* Marks Bar: Removed world marks from marks bar [Not available in tbc]
+* Invite Tools: Fixed auto loot method
+
+v.4610-Classic
+* Fixed maximum raid groups for ready checks
+* Removed world marks from marks bar [Not available in classic]
+* Invite Tools: Fixed auto loot method
+
+v.4600
+* 9.1.5 update
+
+v.4600-BC
+* Minor fixes
+
+v.4600-Classic
+* Minor fixes
+
 v.4580
 * Note: added option "Hide lines with timers but without my name". You can bypass this option with "all" or "glowall" keywords, ex.: {time:1:20,all}
 * Raid Check: added font settings for raid overview window

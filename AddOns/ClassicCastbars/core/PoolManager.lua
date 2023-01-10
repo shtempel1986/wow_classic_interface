@@ -7,6 +7,10 @@ local function ResetterFunc(pool, frame)
     frame:SetParent(nil)
     frame:ClearAllPoints()
 
+    if frame.animationGroup and frame.animationGroup:IsPlaying() then
+        frame.animationGroup:Stop()
+    end
+
     if frame._data then
         frame._data = nil
     end
@@ -46,6 +50,14 @@ function PoolManager:InitializeNewFrame(frame)
     frame.Icon:ClearAllPoints()
     frame.Text:ClearAllPoints()
     frame.Icon:SetPoint("LEFT", frame, -15, 0)
+
+    -- Dragonflight / retail
+    if WOW_PROJECT_ID == 1 then
+        frame.TextBorder:SetAlpha(0)
+        frame.BorderShield:SetTexture("Interface\\CastingBar\\UI-CastingBar-Small-Shield")
+        frame.Border:SetTexture("Interface\\CastingBar\\UI-CastingBar-Border-Small")
+        frame.Flash:SetTexture("Interface\\CastingBar\\UI-CastingBar-Flash-Small")
+    end
 
     -- Clear any scripts inherited from frame template
     frame:UnregisterAllEvents()

@@ -15,7 +15,6 @@ L:SetOptionLocalization({
 	ArachnophobiaTimer	= "거미의 공포 타이머 바 보기 (업적)"
 })
 
-
 L:SetMiscLocalization({
 	ArachnophobiaTimer	= "거미의 공포",
 	Pull1				= "그래, 도망쳐! 더 신선한 피가 솟구칠 테니!",
@@ -42,7 +41,7 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	Pull					= "내 앞에 무릎을 꿇어라, 벌레들아!"
+	Pull					= "내 앞에 무릎을 꿇어라, 벌레들아!"--Not actually pull trigger, but often said on pull
 })
 
 ---------------
@@ -100,10 +99,9 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	Pull				= "죽어라, 침입자들아!",
-	AddsYell			= "일어나라, 병사들이여! 다시 일어나 싸워라!",
---	Adds				= "summons forth Skeletal Warriors!",
---	AddsTwo				= "raises more skeletons!"
+	Pull				= "죽어라, 침입자들아!"
+	--Adds				= "summons forth Skeletal Warriors!",
+	--AddsTwo				= "raises more skeletons!"
 })
 
 --------------------------
@@ -144,13 +142,13 @@ L:SetGeneralLocalization({
 })
 
 L:SetWarningLocalization({
-	WarningHealSoon		= "3초 후 치유 가능",
-	WarningHealNow		= "힐 하세요"
+	WarningHealSoon		= "3초 후 힐 가능",
+	WarningHealNow		= "힐 시작"
 })
 
 L:SetOptionLocalization({
-	WarningHealSoon		= "3초 치유 가능 시간 사전 경고 보기",
-	WarningHealNow		= "3초 치유 가능 시간 경고 보기"
+	WarningHealSoon		= "3초 힐 구간 사전 경고 보기",
+	WarningHealNow		= "3초 힐 구간 경고 보기"
 })
 
 -----------------
@@ -166,8 +164,8 @@ L:SetOptionLocalization({
 })
 
 L:SetMiscLocalization({
-	yell1			= "패치워크랑 놀아줘!",
-	yell2			= "켈투자드님이 패치워크 싸움꾼으로 만들었다."
+	yell1 =			"패치워크랑 놀아줘!",
+	yell2 =			"켈투자드님이 패치워크 싸움꾼으로 만들었다."
 })
 
 -----------------
@@ -242,7 +240,7 @@ L:SetOptionLocalization({
 })
 
 L:SetWarningLocalization({
-	WarningShieldWallSoon	= "뼈 보호막 종료 5초 전"
+	WarningShieldWallSoon	= "5초 후 뼈 보호막 종료"
 })
 
 ------------------------
@@ -282,7 +280,6 @@ L:SetMiscLocalization({
 	WarningWave3	= "%d %s, %d %s, %d %s",
 	Trainee			= "수련생",
 	Knight			= "기사",
-	Horse			= "말 망령",
 	Rider			= "기병"
 })
 
@@ -297,16 +294,18 @@ L:SetGeneralLocalization({
 
 L:SetOptionLocalization({
 	WarningMarkSoon				= "징표 사전 경고 보기",
+	WarningMarkNow				= "징표 경고 보기",
 	SpecialWarningMarkOnPlayer	= "징표가 4개 이상 걸리면 특수 알림 보기",
 	timerMark					= "다음 기사의 징표 타이머 바 보기 (횟수 포함)",
 })
 
-L:SetWarningLocalization({
-	timerMark	= "%d번 징표",
+L:SetTimerLocalization({
+	timerMark	= "%d번 징표"
 })
 
 L:SetWarningLocalization({
-	WarningMarkSoon				= "3초 후 %d번 징표",
+	WarningMarkSoon				= "3초 후 징표 #%d",
+	WarningMarkNow				= "징표 #%d",
 })
 
 L:SetMiscLocalization({
@@ -326,13 +325,11 @@ L:SetGeneralLocalization({
 })
 
 L:SetOptionLocalization({
-	WarningAirPhaseSoon		= "비행 단계 사전 경고 보기",
-	WarningAirPhaseNow		= "비행 단계 알림 보기",
-	WarningLanded			= "지상 단계 알림 보기",
-	TimerAir				= "비행 단계 타이머 바 보기",
-	TimerLanding			= "착지 중 타이머 바 보기",
-	TimerIceBlast			= "냉기 숨결 타이머 바 보기",
-	WarningDeepBreath		= "냉기 숨결 특수 알림 보기"
+	WarningAirPhaseSoon		= "공중 단계 사전 경고 보기",
+	WarningAirPhaseNow		= "공중 단계 알림",
+	WarningLanded			= "지상 단계 알림",
+	TimerAir				= "공중 단계 타이머 바 보기",
+	TimerLanding			= "착륙 타이머 바 보기"
 })
 
 L:SetMiscLocalization({
@@ -340,16 +337,15 @@ L:SetMiscLocalization({
 })
 
 L:SetWarningLocalization({
-	WarningAirPhaseSoon		= "비행 단계 10초 전",
-	WarningAirPhaseNow		= "비행 단계",
-	WarningLanded			= "사피론 내려옴",
-	WarningDeepBreath		= "냉기 숨결"
+	WarningAirPhaseSoon		= "10초 후 공중 단계",
+	WarningAirPhaseNow		= "공중 단계",
+	WarningLanded			= "사피론 착륙"
+
 })
 
 L:SetTimerLocalization({
-	TimerAir				= "비행 단계",
-	TimerLanding			= "착지 중",
-	TimerIceBlast			= "냉기 숨결"
+	TimerAir				= "공중 단계",
+	TimerLanding			= "착륙"
 })
 
 ------------------

@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("Kazzak", "DBM-Outlands")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20210611232013")
+mod:SetRevision("20221129003558")
 mod:SetCreatureID(18728)
 mod:SetModelID(17887)
 mod:SetUsedIcons(8)
@@ -19,11 +19,11 @@ local warningMark		= mod:NewTargetNoFilterAnnounce(32960, 4)
 local warningTwisted	= mod:NewTargetAnnounce(21063, 4)
 
 local specWarnMark		= mod:NewSpecialWarningYou(32960, nil, nil, nil, 1, 2)
-local specWarnTwisted	= mod:NewSpecialWarningDispel(21063, "Healer", nil, nil, 1, 2)
+local specWarnTwisted	= mod:NewSpecialWarningDispel(21063, "RemoveMagic", nil, 2, 1, 2)
 
 local timerFrenzy		= mod:NewBuffActiveTimer(10, 32964)
 local timerFrenzyCD		= mod:NewCDTimer(60, 32964, nil, nil, nil, 3)
---local timerTwistedCD	= mod:NewCDTimer(30, 21063, nil, nil, nil, 5, nil, DBM_CORE_L.HEALER_ICON..DBM_CORE_L.MAGIC_ICON)--Unknown, but would be nice to have
+--local timerTwistedCD	= mod:NewCDTimer(30, 21063, nil, nil, nil, 5, nil, DBM_COMMON_L.HEALER_ICON..DBM_COMMON_L.MAGIC_ICON)--Unknown, but would be nice to have
 local timerMark			= mod:NewTargetTimer(10, 32960, nil, nil, nil, 3)
 
 mod:AddSetIconOption("SetIconOnMark", 32960, true, false, {8})

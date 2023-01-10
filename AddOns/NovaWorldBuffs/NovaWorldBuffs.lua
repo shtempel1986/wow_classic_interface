@@ -7,8 +7,17 @@
 local addonName, addon = ...;
 addon.a = LibStub("AceAddon-3.0"):NewAddon("NovaWorldBuffs", "AceComm-3.0");
 local NWB = addon.a;
+local _, _, _, tocVersion = GetBuildInfo();
 if (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC) then
 	NWB.isClassic = true;
+--elseif (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC) then
+--1664229600 Mon Sep 26 2022 22:00:00 GMT Wrath Launch.
+elseif (tocVersion > 30000 and tocVersion < 40000) then
+	NWB.isWrath = true;
+	if (GetRealmName() ~= "Classic Beta PvE" and GetServerTime() < 1664200800) then --Mon Sep 26 2022 14:00:00 GMT+0000;
+		NWB.isPrepatch = true;
+		NWB.isWrathPrepatch = true;
+	end
 elseif (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC) then
 	NWB.isTBC = true;
 elseif (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
@@ -44,6 +53,8 @@ NWB.LDBIcon = LibStub("LibDBIcon-1.0");
 local version = GetAddOnMetadata("NovaWorldBuffs", "Version") or 9999;
 NWB.latestRemoteVersion = version;
 NWB.prefixColor = "|cFFFF6900";
+local terokOffset = 2.7507;
+local GetGossipOptions = GetGossipOptions or C_GossipInfo.GetOptions;
 
 --Some notes on the change Blizzard just implemented to make layers share buffs.
 --The buff drop only works on both layers if each layer NPC is reset.
@@ -72,7 +83,6 @@ function NWB:OnInitialize()
 	self:setRegionFont();
 	self:fixAllLayers();
 	self:checkLayers();
-	self:timerCleanup();
 	self:cleanupSettingsData();
 	self:setSongFlowers();
 	self:createSongflowerMarkers();
@@ -101,9 +111,9 @@ function NWB:OnInitialize()
 	self:logonCheckGuildMasterSetting();
 	self:createNaxxMarkers();
 	self:timerCleanup();
-	if (NWB.isTBC) then
+	if (NWB.isTBC or NWB.isWrath) then
 		self:createTerokkarMarkers();
-		self:populateTbcDailyData();
+		self:populateDailyData();
 	end
 end
 
@@ -126,7 +136,7 @@ NWB:setRegionFont();
 --Print current buff timers to chat window.
 local npcRespawnTime = 360;
 function NWB:printBuffTimers(isLogon)
-	if (isLogon and NWB.isTBC and (NWB.db.global.disableLogonAllLevels
+	if (isLogon and not NWB.isClassic and (NWB.db.global.disableLogonAllLevels
 		or (UnitLevel("player") > NWB.maxBuffLevel and NWB.db.global.disableLogonAboveMaxBuffLevel))) then
 		return;
 	end
@@ -212,14 +222,14 @@ function NWB:printBuffTimers(isLogon)
 	local timestamp, timeLeft, type = NWB:getDmfData();
 	if ((isLogon and NWB.db.global.logonDmfSpawn and (timeLeft > 0 and timeLeft < 21600)) or
 		(not isLogon and NWB.db.global.showDmfWb)) then	
-		local zone;
-		if (NWB.dmfZone == "Mulgore") then
-			zone = L["mulgore"];
+		local zone = NWB:getDmfZoneString();
+		local timeString = NWB:getDmfTimeString();
+		if (timeString == "Error getting Darkmoon Faire timer.") then
+			msg = timeString;
 		else
-			zone = L["elwynnForest"];
+			msg = timeString .. " (" .. zone .. ")";
 		end
-		msg = NWB:getDmfTimeString() .. " (" .. zone .. ")";
-		if (not NWB.isTBC) then
+		if (NWB.isClassic) then
 			NWB:print("|HNWBCustomLink:timers|h" .. msg .. "|h", nil, "[DMF]");
 		end
 	end
@@ -450,10 +460,10 @@ function ItemRefTooltip:SetHyperlink(link, ...)
 	return OriginalSetHyperlink(self, link, ...);
 end
 
---Add prefix and colors from db then print.
-local printPrefix;
 function NWB:print(msg, channel, prefix, tbcCheck)
-	if (tbcCheck and NWB.isTBC and (NWB.db.global.disableChatAllLevels
+	--Add prefix and colors from db then print.
+	local printPrefix;
+	if (tbcCheck and not NWB.isClassic and (NWB.db.global.disableChatAllLevels
 		or (UnitLevel("player") > NWB.maxBuffLevel and NWB.db.global.disableChatAboveMaxBuffLevel))) then
 		return;
 	end
@@ -562,6 +572,7 @@ NWB.types = {
 --1 second looping function for timer warning msgs.
 NWB.played = 0;
 local lastDmfTick = 0;
+local lastSecondsLeft = 0;
 function NWB:ticker()
 	for k, v in pairs(NWB.types) do
 		local offset = 0;
@@ -599,26 +610,44 @@ function NWB:ticker()
 					NWB.data.layers[layer][v .. "30"] = nil;
 					NWB:doWarning(v, 30, secondsLeft, layer);
 				end
-				if (NWB.data.layers[layer]["terokTowers10"] and NWB.data.layers[layer]["terokTowers"]
-						and tonumber(NWB.data.layers[layer]["terokTowers"])) then
-					--This timer drifts 3 seconds forward per minute.
-					local endTime = NWB.data.layers[layer]["terokTowers"] + NWB:round((((NWB.data.layers[layer]["terokTowers"]  - GetServerTime()) / 60) * 3));
-					local secondsLeft = endTime - GetServerTime()
-					if (secondsLeft <= 600 and secondsLeft >= 599) then
-						NWB.data.layers[layer]["terokTowers10"] = nil;
-						local layer = NWB:GetLayerNum(layer);
-						local layerMsg = " (Layer " .. layer .. ")";
-						if (NWB.db.global.terokkarChat10) then
-							NWB:print(string.format(L["terokkarWarning"], "10 minutes") .. layerMsg .. ".");
+				if (k == 1) then
+					--Stuff to run once per tick only, not sure why I put it in this loop back when it was added but whatever..
+					if (NWB.isTBC) then
+						if (NWB.data.layers[layer]["terokTowers10"] and NWB.data.layers[layer]["terokTowers"]
+								and tonumber(NWB.data.layers[layer]["terokTowers"])) then
+							--This timer drifts 3 seconds forward per minute.
+							local endTime = NWB:getTerokEndTime(NWB.data.layers[layer]["terokTowers"], NWB.data.layers[layer]["terokTowersTime"]);
+							--local endTime = NWB.data.layers[layer]["terokTowers"];
+							local secondsLeft = endTime - GetServerTime();
+							--if (secondsLeft ~= lastSecondsLeft - 1) then
+								--NWB:debug("Time irregularity New:", secondsLeft, "Old:", lastSecondsLeft, "Diff:", lastSecondsLeft - secondsLeft);
+							--end
+							lastSecondsLeft = secondsLeft;
+							--Seems to not fire on 10mins sometimes, maybe getting a timer update that skips the 600 seconds remaining mark.
+							--Trying a 30 second window instead.
+							if (secondsLeft <= 600 and secondsLeft >= 570) then
+								NWB.data.layers[layer]["terokTowers10"] = nil;
+								local layer = NWB:GetLayerNum(layer);
+								local layerMsg = " (Layer " .. layer .. ")";
+								local msg = string.format(L["terokkarWarning"], "10 minutes") .. layerMsg .. ".";
+								if (NWB.db.global.terokkarChat10) then
+									NWB:print(msg);
+								end
+								if (NWB.db.global.terokkarMiddle10) then
+									NWB:middleScreenMsgTBC("middle30", msg, nil, 5);
+								end
+								if (NWB.db.global.guildTerok10) then
+									NWB:sendGuildMsg(msg, "guildTerok10", nil, "[NWB]");
+								end
+								--NWB:debug("terok10", secondsLeft);
+							end
+							if (secondsLeft < 0) then
+								NWB.data.layers[layer]["terokTowers"] = nil;
+								NWB.data.layers[layer]["terokTowersTime"] = nil;
+								NWB.data.layers[layer]["terokFaction"] = nil;
+								--NWB:debug("terrok timer ended on layer", layer);
+							end
 						end
-						if (NWB.db.global.terokkarMiddle10) then
-							NWB:middleScreenMsgTBC("middle30", string.format(L["terokkarWarning"], "10 minutes") .. layerMsg .. ".", nil, 5);
-						end
-					end
-					if (secondsLeft < 0) then
-						NWB.data.layers[layer]["terokTowers"] = nil;
-						NWB.data.layers[layer]["terokFaction"] = nil;
-						NWB:debug("terrok timer ended on layer", layer);
 					end
 				end
 				if (NWB.data.layers[layer][v .. "NpcDied"] and ((GetServerTime() - NWB.data.layers[layer][v .. "NpcDied"]) == npcRespawnTime
@@ -650,17 +679,30 @@ function NWB:ticker()
 				NWB.data[v .. "30"] = nil;
 				NWB:doWarning(v, 30, secondsLeft);
 			end
-			if (NWB.data["terokTowers10"] and NWB.data["terokTowers"]) then
-				--This timer drifts 3 seconds forward per minute.
-				local endTime = NWB.data["terokTowers"] + NWB:round((((NWB.data["terokTowers"]  - GetServerTime()) / 60) * 3));
-				local secondsLeft = endTime - GetServerTime()
-				if (secondsLeft <= 600 and secondsLeft >= 599) then
-					NWB.data["terokTowers10"] = nil;
-					if (NWB.db.global.terokkarChat10) then
-						NWB:print(string.format(L["terokkarWarning"], "10 minutes") .. ".");
-					end
-					if (NWB.db.global.terokkarMiddle10) then
-						NWB:middleScreenMsgTBC("middle30", string.format(L["terokkarWarning"], "10 minutes") .. ".", nil, 5);
+			if (k == 1) then
+				if (NWB.isTBC) then
+					if (NWB.data["terokTowers10"] and NWB.data["terokTowers"]) then
+						--This timer drifts 3 seconds forward per minute.
+						local endTime = NWB:getTerokEndTime(NWB.data["terokTowers"], NWB.data["terokTowersTime"]);
+						local secondsLeft = endTime - GetServerTime();
+						if (secondsLeft <= 630 and secondsLeft >= 570) then
+							NWB.data["terokTowers10"] = nil;
+							local msg = string.format(L["terokkarWarning"], "10 minutes") .. ".";
+							if (NWB.db.global.terokkarChat10) then
+								NWB:print(msg);
+							end
+							if (NWB.db.global.terokkarMiddle10) then
+								NWB:middleScreenMsgTBC("middle30", msg, nil, 5);
+							end
+							if (NWB.db.global.guildTerok10) then
+								NWB:sendGuildMsg(msg, "guildTerok10", nil, "[NWB]");
+							end
+						end
+						if (secondsLeft < 0) then
+							NWB.data.terokTowers = nil;
+							NWB.data.terokTowersTime = nil;
+							NWB.data.terokFaction = nil;
+						end
 					end
 				end
 			end
@@ -703,6 +745,40 @@ function NWB:ticker()
 			lastDmfTick = -99999;
 		else
 			lastDmfTick = NWB.data.myChars[UnitName("player")].dmfCooldown;
+		end
+	end
+	if (NWB.isWrath) then
+		if (NWB.data.wintergrasp10 and NWB.data.wintergrasp
+				and tonumber(NWB.data.wintergrasp)) then
+			local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+			local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+			local secondsLeft = endTime - GetServerTime();
+			lastSecondsLeft = secondsLeft;
+			--Seems to not fire on 10mins sometimes, maybe getting a timer update that skips the 600 seconds remaining mark.
+			--Trying a 30 second window instead.
+			if (secondsLeft <= 600 and secondsLeft >= 590) then
+				NWB.data.wintergrasp10 = nil;
+				--local layer = NWB:GetLayerNum(layer);
+				--local layerMsg = " (Layer " .. layer .. ")";
+				--local msg = string.format(L["wintergraspWarning"], "10 minutes") .. layerMsg .. ".";
+				local msg = string.format(L["wintergraspWarning"], "10 minutes") .. ".";
+				if (NWB.db.global.wintergraspChat10) then
+					NWB:print(msg);
+				end
+				if (NWB.db.global.wintergraspMiddle10) then
+					NWB:middleScreenMsgTBC("middle30", msg, nil, 5);
+				end
+				--Terok guild setting is shared.
+				if (NWB.db.global.guildTerok10) then
+					NWB:sendGuildMsg(msg, "guildTerok10", nil, "[NWB]", 2.37);
+				end
+			end
+			if (secondsLeft < 0) then
+				--Don't wipe timer data for WG, we use it to calc forward from for missing new timer.
+				--NWB.data.wintergrasp = nil;
+				--NWB.data.wintergraspTime = nil;
+				NWB.data.winterGraspFaction = nil;
+			end
 		end
 	end
 	--_G["\78\87\66"] = {};
@@ -874,8 +950,8 @@ end
 --Can also specify zone so only 1 person from that zone will send the msg (like orgrimmar when npc yell goes out).
 --BUG: sometimes a user doesn't register as having addon, checked table they don't exist when this happens.
 --Must be some reason they don't send a guild addon msg at logon.
-function NWB:sendGuildMsg(msg, type, zoneName)
-	if (NWB.isTBC) then
+function NWB:sendGuildMsg(msg, type, zoneName, prefix, minVersion)
+	if (not NWB.isClassic and type ~= "guildTerok10" and type ~= "guildWintergrasp10") then
 		return;
 	end
 	if (NWB.db.global.disableAllGuildMsgs == 1) then
@@ -906,6 +982,7 @@ function NWB:sendGuildMsg(msg, type, zoneName)
 		["guild1"] = "l",
 		["guild0"] = "m",
 		["guildNpcWalking"] = "K",
+		["guildTerok10"] = "V",
 	};
 	local numTotalMembers = GetNumGuildMembers();
 	local onlineMembers = {};
@@ -921,21 +998,30 @@ function NWB:sendGuildMsg(msg, type, zoneName)
 		elseif (type) then
 			--If type then check our db for other peoples settings to ignore them in online list if they have this type disabled.
 			if (name and online and NWB.hasAddon[name] and not isMobile) then
-				if (NWB.data[name]) then
-					--If this is another guild member then check their settings.	
-					--A few different checks for backwards compatability.
-					if ((NWB.data[name][type] == true or NWB.data[name][type] == 1
-							or NWB.data[name][shortSettingsKeys[type]] == true or NWB.data[name][shortSettingsKeys[type]] == 1)
-							and NWB.data[name].disableAllGuildMsgs ~= true and NWB.data[name].disableAllGuildMsgs ~= 1
-							and NWB.data[name].a ~= true and NWB.data[name].a ~= 1) then
-						--Has addon and has this type of msg type option enabled.
-						onlineMembers[name] = true;
+				local skip;
+				if (minVersion) then
+					skip = true;
+					if (tonumber(NWB.hasAddon[name]) and tonumber(NWB.hasAddon[name]) >= minVersion) then
+						skip = nil;
 					end
-				elseif (name == me) then
-					--If myself check my settings.
-					if ((NWB.db.global[type] == true or NWB.db.global[type] == 1)
-							and NWB.db.global.disableAllGuildMsgs ~= true and NWB.db.global.disableAllGuildMsgs ~= 1) then
-						onlineMembers[name] = true;
+				end
+				if (not skip) then
+					if (NWB.data[name]) then
+						--If this is another guild member then check their settings.	
+						--A few different checks for backwards compatability.
+						if ((NWB.data[name][type] == true or NWB.data[name][type] == 1
+								or NWB.data[name][shortSettingsKeys[type]] == true or NWB.data[name][shortSettingsKeys[type]] == 1)
+								and NWB.data[name].disableAllGuildMsgs ~= true and NWB.data[name].disableAllGuildMsgs ~= 1
+								and NWB.data[name].a ~= true and NWB.data[name].a ~= 1) then
+							--Has addon and has this type of msg type option enabled.
+							onlineMembers[name] = true;
+						end
+					elseif (name == me) then
+						--If myself check my settings.
+						if ((NWB.db.global[type] == true or NWB.db.global[type] == 1)
+								and NWB.db.global.disableAllGuildMsgs ~= true and NWB.db.global.disableAllGuildMsgs ~= 1) then
+							onlineMembers[name] = true;
+						end
 					end
 				end
 			end
@@ -949,7 +1035,11 @@ function NWB:sendGuildMsg(msg, type, zoneName)
 	--Check temp table to see if we're first in alphabetical order.
 	for k, v in NWB:pairsByKeys(onlineMembers) do
 		if (k == me) then
-			SendChatMessage("[WorldBuffs] " .. NWB:stripColors(msg), "guild");
+			if (prefix) then
+				SendChatMessage(prefix .. " " .. NWB:stripColors(msg), "guild");
+			else
+				SendChatMessage("[WorldBuffs] " .. NWB:stripColors(msg), "guild");
+			end
 		end
 		return;
 	end
@@ -999,7 +1089,8 @@ function NWB:checkGuildMasterSetting(type)
 				found = true;
 			elseif (v == 2) then
 				if (type == "guild30" or type == "guild15" or type == "guild10"
-					 or type == "guild5" or type == "guild1" or type == "guild0") then
+					 or type == "guild5" or type == "guild1" or type == "guild0"
+					 or type == "guildTerok10") then
 					found = true;
 				end
 			elseif (v == 3) then
@@ -1726,7 +1817,7 @@ function NWB:combatLogEventUnfiltered(...)
 				or spellName == L["Sayge's Dark Fortune of Resistance"] or spellName == L["Sayge's Dark Fortune of Damage"]
 				 or spellName == L["Sayge's Dark Fortune of Intelligence"])) then
 			local expirationTime = NWB:getBuffDuration(spellName, 0);
-			if ((NWB.realmsTBC or NWB.isTBC) and spellName == L["Sayge's Dark Fortune of Damage"]) then
+			if (not NWB.isClassic and spellName == L["Sayge's Dark Fortune of Damage"]) then
 				unitDamageFrame:RegisterEvent("UNIT_DAMAGE");
 			end
 			if (expirationTime >= 7199) then
@@ -1897,11 +1988,15 @@ function NWB:combatLogEventUnfiltered(...)
 				and not NWB.db.global.dispelsAll and not NWB.db.global.dispelsAllWBOnly) then
 			return;
 		end
+		local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+		if (zone == 125 or zone == 126) then
+			--No dispel spam from duelers in dalaran.
+			return;
+		end
 		local timestamp, subEvent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, 
 			destName, destFlags, destRaidFlags, _, spellName, _, _, extraSpellName, _, auraType = CombatLogGetCurrentEventInfo();
 		local unitType, _, _, _, zoneID, npcID = strsplit("-", destGUID);
 		if (tonumber(npcID) == 14392 or tonumber(npcID) == 14720 or tonumber(npcID) == 14394 or tonumber(npcID) == 14721) then
-			local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
 			if ((zone == 1454 or zone == 1453) and (extraSpellName == L["Mind Control"] or extraSpellName == L["Gnomish Mind Control Cap"])) then
 				local _, sourceClass = GetPlayerInfoByGUID(sourceGUID);
 				local _, _, _, sourceHex = GetClassColor(sourceClass);
@@ -1970,7 +2065,7 @@ function NWB:placeSilithystMarker()
 	if (not _G["NWBSilithystMarkerMini"]) then
 		--Minimap marker.
 		local obj = CreateFrame("FRAME", "NWBSilithystMarkerMini");
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture("Interface\\Icons\\spell_nature_timestop");
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -2483,7 +2578,7 @@ function NWB:questTurnedIn(...)
 end
 
 local function insertDmfDamageTooltip()
-	if (NWB.realmsTBC or NWB.isTBC) then
+	if (not NWB.isClassic) then
 		local title = GameTooltipTextLeft1:GetText();
 		if (title and string.find(title, L["Sayge's Dark Fortune of Damage"])) then
 			local percent;
@@ -2659,7 +2754,7 @@ local spellTypes = {
 	[28520] = "flaskRelent",
 	[28521] = "flaskBlinding",
 	[28519] = "flaskMighty",
-	[0] = "flaskChromatic", --This is not recorded by wowhead yet.
+	[42735] = "flaskChromatic",
 	--Shat flasks have 2 or 3 spells the same, have to test after launch which is correct for each.
 	[41607] = "shattrathFlaskFort",
 	[41609] = "shattrathFlaskFort",
@@ -3192,6 +3287,13 @@ end
 
 function NWB:recordChronoData(trade)
 	local found;
+	local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots;
+	local GetContainerItemCooldown = GetContainerItemCooldown or C_Container.GetContainerItemCooldown;
+	local GetItemCooldown = GetItemCooldown or C_Container.GetItemCooldown;
+	--GetItemCooldown is missing PTR.
+	if (not GetItemCooldown) then
+		return;
+	end
 	for bag = 0, NUM_BAG_SLOTS do
 		for slot = 1, GetContainerNumSlots(bag) do
 			local item = Item:CreateFromBagAndSlot(bag, slot);
@@ -3248,6 +3350,14 @@ end
 function NWB:setLayered()
 	if (NWB.usRealms[NWB.realm] or NWB.euRealms[NWB.realm] or NWB.krRealms[NWB.realm] or NWB.twRealms[NWB.realm]
 			or NWB.cnRealms[NWB.realm]) then
+		NWB.isLayered = true;
+	end
+	--Layer all wrath realms for now.
+	if (NWB.isWrath) then
+		NWB.isLayered = true;
+	end
+	--Blanket enable season of mastery realms for now.
+	if (C_Seasons and C_Seasons.HasActiveSeason()) then
 		NWB.isLayered = true;
 	end
 end
@@ -3394,6 +3504,14 @@ function NWB:timerCleanup()
 			end
 		end
 	end
+	if (NWB.isWrath) then
+		local wintergrasp = NWB:getWintergraspData();
+		if (wintergrasp > 0 and wintergrasp - GetServerTime() > 900) then
+		--if (NWB.data["wintergrasp"] and tonumber(NWB.data["wintergrasp"])
+				--and NWB.data["wintergrasp"] - GetServerTime() > 900) then
+			NWB.data["wintergrasp10"] = true;
+		end
+	end
 end
 
 --Reset and enable all warning msgs for specified timer.
@@ -3429,6 +3547,112 @@ function NWB:throddleEventByFunc(event, time, func, ...)
 	elseif (not throddle) then
 		self[func](...);
 	end
+end
+
+function NWB:getTerokEndTime(terokTowers, terokTowersTime)
+	--Can potentially just adjust the time when it's recorded instead and remove the timeSet sharing..
+	--But this way makes it easier to adjust the offset with version updates if needed without wiping peoples timers and ignoring old versions.
+	--Will see how this works out for a while before trying the above method.
+	--local endTime = NWB.data.layers[layer]["terokTowers"] + NWB:round((((NWB.data.layers[layer]["terokTowers"]  - GetServerTime()) / 60) * terokOffset));
+	--local endTime = timestamp + NWB:round((((timestamp  - GetServerTime()) / 60) * terokOffset));
+	--return endTime;
+	if (terokTowersTime) then
+		--This worked fine when you're have a fresh timestamp by being in the zone or was just shared with.
+		--But it doesn't work when you have a timestamp set a while ago because Blizzard creeps the timestamp forward.
+		--local offset = math.floor((((terokTowers  - GetServerTime()) / 60) * terokOffset));
+		--This should work no matter when you got the timestamp.
+		local offset = math.floor(((terokTowers - terokTowersTime) / 60) * terokOffset)
+		local endTime = terokTowers + offset;
+		return endTime;
+	else
+		return terokTowers;
+	end
+end
+
+function NWB:getWintergraspEndTime(wintergrasp, wintergraspTime)
+	--We'll see if wintergrasp needs adjustment like terokkar towers.
+	return wintergrasp;
+end
+
+function NWB:getWintergraspData(layer) --local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+	local wintergrasp, wintergraspTime, wintergraspFaction = 0, 0, 0;
+	if (NWB.data.wintergrasp) then
+		wintergrasp = NWB.data.wintergrasp;
+	end
+	if (NWB.data.wintergraspTime) then
+		wintergraspTime = NWB.data.wintergraspTime;
+	end
+	if (NWB.data.wintergraspFaction) then
+		wintergraspFaction = NWB.data.wintergraspFaction;
+	end
+	local isCached;
+	--It's not always a 3 hour cycle, sometime it skips, sometimes it's been even 12 hours.
+	--So we can't have a reliable time from the clock, but if there's no timer then fallback to clock.
+	--if (wintergrasp == 0) then
+		--No timer, calc from clock.
+		--Will maybe add later but really not needed if the rest is working properly.
+	--end
+	if (wintergrasp > 0) then
+		if (wintergrasp < GetServerTime()) then
+			--Old timer, calc forward in 3 hour increments.
+			--Divide seconds elapsed since our static timestamp in the past by the cycle time (3 hours).
+			--Get the floor of secondsSinceWintergrasp / cycle time
+			--Get the floor of that result (which would be last reset if multipled by cycle time) then add 1 for next reset, then multiply by cycle time.
+			--This can be off by 1 hour twice a year during the small window of DST changeover.
+			wintergrasp = wintergrasp + ((math.floor((GetServerTime() - wintergrasp) / 10800) + 1) * 10800);
+			--If it's in the first 15mins just expired then show it as expired, give last spawn instead of next.
+			if (wintergrasp - GetServerTime() > 9900) then
+				wintergrasp = wintergrasp - 10800;
+			end
+			isCached = true;
+		end
+	end
+	if (wintergrasp > 0 and wintergrasp - GetServerTime() > 660) then
+		NWB.data["wintergrasp10"] = true;
+	end
+	--Round to the hour.
+	local diff = wintergrasp % 3600;
+	if (diff < 61 and diff > 0) then
+		wintergrasp = wintergrasp - diff;
+	end
+	return wintergrasp, wintergraspTime, wintergraspFaction, isCached;
+end
+
+--Get how far away our zoneid is from the capital city on this layer.
+function NWB:getLayerOffset(layerID, mapID, zoneID)
+	--Using this for checking if a zone is mapped right, close to it's capital city ID.
+	--If it's far away then it's likely been mapped to the wrong layer or there's been a zone crash.
+	local offset;
+	if (not NWB.data.layers or not next(NWB.data.layers)) then
+		return;
+	end
+	local data = NWB.data.layers[layerID];
+	if (not data) then
+		return;
+	end
+	--Look via mapID if we already have a zoneID mapped.
+	if (mapID and layerID) then
+		for k, v in pairs(data.layerMap) do
+			if (v == mapID) then
+				if (k > layerID) then
+					offset = k - layerID;
+				else
+					offset = layerID - k;
+				end
+				return offset;
+			end
+		end
+	end
+	--Look via zoneID if this is an attempt to map.
+	if (zoneID and layerID) then
+		if (zoneID > layerID) then
+			offset = zoneID - layerID;
+		else
+			offset = layerID - zoneID;
+		end
+		return offset;
+	end
+	--If the zone isn't mapped yet we must be trying to map it.
 end
 
 local f = CreateFrame("Frame");
@@ -3499,7 +3723,7 @@ f:SetScript("OnEvent", function(self, event, ...)
 				if (GetTime() - logonYell > 30) then
 					--Ghost check, no need to spam addon comms when a 40 man raid wipes.
 					if (not UnitIsGhost("player") and GetTime() - logonYell > 30) then
-						if (doLogon or not NWB.isTBC) then
+						if (doLogon or NWB.isClassic) then
 							NWB:sendData("YELL");
 						end
 					end
@@ -3623,7 +3847,7 @@ f:SetScript("OnEvent", function(self, event, ...)
 			end)
 		end
 		if (unit == "player" and spellID == 349863) then
-			if (NWB.realmsTBC or NWB.isTBC) then
+			if (not NWB.isClassic) then
 				if (NWB.data.myChars[UnitName("player")].storedBuffs) then
 					for k, v in pairs(NWB.data.myChars[UnitName("player")].storedBuffs) do
 						if (k == L["Sayge's Dark Fortune of Damage"]) then
@@ -4116,7 +4340,7 @@ end
 
 local lastFlash = 0;
 function NWB:startFlash(type)
-	if (NWB.isTBC and (NWB.db.global.disableFlashAllLevels
+	if (not NWB.isClassic and (NWB.db.global.disableFlashAllLevels
 		or (UnitLevel("player") > NWB.maxBuffLevel and NWB.db.global.disableFlashAboveMaxBuffLevel))) then
 		return;
 	end
@@ -4129,7 +4353,7 @@ function NWB:startFlash(type)
 end
 
 function NWB:playSound(sound, type)
-	if (NWB.isTBC and (NWB.db.global.disableSoundsAllLevels
+	if (not NWB.isClassic and (NWB.db.global.disableSoundsAllLevels
 		or (UnitLevel("player") > NWB.maxBuffLevel and NWB.db.global.disableSoundsAboveMaxBuffLevel))
 		and sound ~= "soundsDispelsMine" and sound ~= "soundsDispelsAll") then
 		return;
@@ -4180,7 +4404,7 @@ function NWB:playSound(sound, type)
 end
 
 function NWB:middleScreenMsg(type, msg, colorTable, time)
-	if (NWB.isTBC and (NWB.db.global.disableMiddleAllLevels
+	if (not NWB.isClassic and (NWB.db.global.disableMiddleAllLevels
 		or (UnitLevel("player") > NWB.maxBuffLevel and NWB.db.global.disableMiddleAboveMaxBuffLevel))) then
 		return;
 	end
@@ -4398,6 +4622,27 @@ function NWB:GetLayerNum(zoneID)
 	end
 end
 
+function NWB:getCurrentLayerZoneID()
+	if (NWB.currentZoneID and NWB.currentZoneID > 0) then
+		return NWB.currentZoneID;
+	end
+end
+
+function NWB:getCurrentLayerNum()
+	return NWB.currentLayer;
+end
+
+function NWB:getLayerZoneID(layerNum)
+	local count = 0;
+	layerNum = tonumber(layerNum);
+	for k, v in NWB:pairsByKeys(NWB.data.layers) do
+		count = count + 1;
+		if (count == layerNum) then
+			return k;
+		end
+	end
+end
+
 function NWB:isInArena()
 	--Check if the func exists for classic.
 	if (IsActiveBattlefieldArena and IsActiveBattlefieldArena()) then
@@ -4443,6 +4688,53 @@ function SlashCmdList.NOVALUAOFFCMD(msg, editBox)
 	else
 		SetCVar("ScriptErrors","0")
 		print("Lua errors disabled.")
+	end
+end
+
+if (NWB.isTBC) then
+	SLASH_NOVAPVPDAILYCMD1, SLASH_NOVAPVPDAILYCMD2 = '/pvpdailies', '/pvpdaily';
+	function SlashCmdList.NOVAPVPDAILYCMD(msg, editBox)
+		NWB:print("PvP Daily Status:", nil, "[NWB]")
+		local completedString;
+		if (NWB.faction == "Horde") then
+			if (C_QuestLog.IsQuestFlaggedCompleted(10110)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DEHellfire Towers: " .. completedString .. ".");
+			if (C_QuestLog.IsQuestFlaggedCompleted(11506)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DETerokkar Towers: " .. completedString .. ".");
+			if (C_QuestLog.IsQuestFlaggedCompleted(11503)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DENagrand Halaa: " .. completedString .. ".");
+		else
+			if (C_QuestLog.IsQuestFlaggedCompleted(10106)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DEHellfire Towers: " .. completedString .. ".");
+			if (C_QuestLog.IsQuestFlaggedCompleted(11505)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DETerokkar Towers: " .. completedString .. ".");
+			if (C_QuestLog.IsQuestFlaggedCompleted(11502)) then
+				completedString = "|cFF00C800Completed|r";
+			else
+				completedString = "|cFFFF2222Not Completed|r";
+			end
+			print("|cFF9CD6DENagrand Halaa: " .. completedString .. ".");
+		end
 	end
 end
 
@@ -4578,6 +4870,10 @@ function NWB:resetTimerData(silent)
 	NWB.data.nefNpcDied = 0;
 	NWB.data.terokTowers = nil;
 	NWB.data.terokFaction = nil;
+	NWB.data.terokTime = nil;
+	NWB.data.wintergrasp = 0;
+	NWB.data.wintergraspTime = 0;
+	NWB.data.wintergraspFaction = nil;
 	NWB.data.hellfireRep = nil;
 	NWB.data.tbcHD = nil;
 	NWB.data.tbcHDT = nil;
@@ -4624,36 +4920,89 @@ function NWB:createBroker()
 				NWB:openBuffListFrame();
 			end
 		end,
-		OnLeave = function(self, button)
-			doUpdateMinimapButton = nil;
-		end,
-		OnTooltipShow = function(tooltip)
-			doUpdateMinimapButton = true;
-			NWB:updateMinimapButton(tooltip);
-		end,
 		OnEnter = function(self, button)
 			GameTooltip:SetOwner(self, "ANCHOR_NONE")
 			GameTooltip:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
 			doUpdateMinimapButton = true;
-			NWB:updateMinimapButton(GameTooltip, true);
+			NWB:updateMinimapButton(GameTooltip, self);
 			GameTooltip:Show()
+		end,
+		OnLeave = function(self, button)
+			GameTooltip:Hide()
+			if (GameTooltip.NWBSeparator) then
+				GameTooltip.NWBSeparator:Hide();
+			end
+			if (GameTooltip.NWBSeparator2) then
+				GameTooltip.NWBSeparator2:Hide();
+			end
+			if (GameTooltip.NWBSeparator3) then
+				GameTooltip.NWBSeparator3:Hide();
+			end
+			if (GameTooltip.NWBSeparator4) then
+				GameTooltip.NWBSeparator4:Hide();
+			end
 		end,
 	};
 	NWBLDB = LDB:NewDataObject("NWB", data);
 	NWB.LDBIcon:Register("NovaWorldBuffs", NWBLDB, NWB.db.global.minimapIcon);
+	--Raise the frame level so users can see if it clashes with an existing icon and they can drag it.
+	local frame = NWB.LDBIcon:GetMinimapButton("NovaWorldBuffs");
+	if (frame) then
+		frame:SetFrameLevel(9);
+	end
 end
     
-function NWB:updateMinimapButton(tooltip, usingPanel)
-	local _, relativeTo = tooltip:GetPoint();
-	if (doUpdateMinimapButton and (usingPanel or relativeTo and relativeTo:GetName() == "LibDBIcon10_NovaWorldBuffs")) then
-		tooltip:ClearLines();
-		tooltip:AddLine("NovaWorldBuffs");
-		if (NWB.isLayered) then
-			local msg = "";
-			local count = 0;
-			for k, v in NWB:pairsByKeys(NWB.data.layers) do
-				count = count + 1;
-				tooltip:AddLine("|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r");
+function NWB:updateMinimapButton(tooltip, frame)
+	tooltip = tooltip or GameTooltip;
+	if (not tooltip:IsOwned(frame)) then
+		if (tooltip.NWBSeparator) then
+			tooltip.NWBSeparator:Hide();
+		end
+		if (tooltip.NWBSeparator2) then
+			tooltip.NWBSeparator2:Hide();
+		end
+		if (tooltip.NWBSeparator3) then
+			tooltip.NWBSeparator3:Hide();
+		end
+		if (tooltip.NWBSeparator4) then
+			tooltip.NWBSeparator4:Hide();
+		end
+		return;
+	end
+	tooltip:ClearLines();
+	tooltip:AddLine("NovaWorldBuffs");
+	local layerBuffSpells = NWB.layerBuffSpells;
+	if (NWB.isLayered) then
+		local msg = "";
+		local count = 0;
+		for k, v in NWB:pairsByKeys(NWB.data.layers) do
+			count = count + 1;
+			local wintergraspTexture, buffTextures = "", "";
+			if (NWB.data.layerBuffs[k]) then
+				for spellID, timestamp in pairs(NWB.data.layerBuffs[k]) do
+					if (layerBuffSpells[spellID] and GetServerTime() - timestamp < 600) then
+						local icon = layerBuffSpells[spellID];
+						buffTextures = buffTextures .. " " .. "|T" .. icon .. ":12:12|t";
+					end
+				end
+			end
+			if (NWB:isWintergraspBuffLayer(zoneID, "minimap")) then
+				wintergraspTexture = " " .. "|T237021:12:12|t";
+			end
+			if (NWB.data.layerBuffs[zoneID]) then
+				for spellID, timestamp in pairs(NWB.data.layerBuffs[zoneID]) do
+					--Wintergrasp buff is calced seperately.
+					if (spellID ~= 57940) then
+						if (layerBuffSpells[spellID] and GetServerTime() - timestamp < 600) then
+							local icon = layerBuffSpells[spellID];
+							buffTextures = buffTextures .. " " .. "|T" .. icon .. ":12:12|t";
+						end
+					end
+				end
+			end
+			tooltip:AddLine("|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ") " .. wintergraspTexture .. buffTextures .. "|r");
+			if (NWB.isClassic or (not NWB.db.global.hideMinimapBuffTimers
+					and not (NWB.db.global.disableBuffTimersMaxBuffLevel and UnitLevel("player") > 64))) then
 				if (NWB.faction == "Horde" or NWB.db.global.allianceEnableRend) then
 					if (v.rendTimer > (GetServerTime() - NWB.db.global.rendRespawnTime)) then
 						msg = msg .. L["rend"] .. ": " .. NWB:getTimeString(NWB.db.global.rendRespawnTime - (GetServerTime() - v.rendTimer), true) .. ".";
@@ -4724,53 +5073,207 @@ function NWB:updateMinimapButton(tooltip, usingPanel)
 					msg = msg .. L["nefarian"] .. ": " .. L["noCurrentTimer"] .. ".";
 				end
 				tooltip:AddLine(NWB.chatColor .. msg);
-				msg = "";
-				local texture = "";
-				if (NWB.isTBC) then
-					if (v.terokTowers) then
-						if (v.terokTowers > GetServerTime()) then
-							local texture = "";
-							if (v.terokFaction == 2) then
-								--5242
-								texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
-							elseif (v.terokFaction == 3) then
-								--5243
-								texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-							elseif (v.terokFaction == 1) then
-								--5387
-								texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-							end
-							--Offset was 3 seconds per minute because of drift, trying 0 offset now as it may be fixed on Blizzards end.
-							local endTime = v.terokTowers + NWB:round((((v.terokTowers  - GetServerTime()) / 60) * 0));
-							msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
-							if (NWB.db.global.showTimeStamp) then
-								local timeStamp = NWB:getTimeFormat(endTime);
-								msg = msg .. " (" .. timeStamp .. ")";
-							end
-							tooltip:AddLine(NWB.chatColor .. msg);
+			end
+			msg = "";
+			local texture = "";
+			if (NWB.isTBC or NWB.isWrathPrepatch) then
+				if (v.terokTowers) then
+					local endTime = NWB:getTerokEndTime(v.terokTowers, v.terokTowersTime);
+					local secondsLeft = endTime - GetServerTime();
+					--if (NWB.db.global.showExpiredTimers and secondsLeft < 1 and secondsLeft > (0 - (60 * NWB.db.global.expiredTimersDuration))) then
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -3599) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (v.terokFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (v.terokFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 						else
+							--5387
 							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-							msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
-							tooltip:AddLine(NWB.chatColor .. msg);
 						end
+						msg = msg .. texture .. L["terokkarTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+						tooltip:AddLine(NWB.chatColor .. msg);
+					elseif (v.terokTowers > GetServerTime()) then
+						local texture = "";
+						if (v.terokFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (v.terokFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(secondsLeft, true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+						tooltip:AddLine(NWB.chatColor .. msg);
 					else
 						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
 						tooltip:AddLine(NWB.chatColor .. msg);
 					end
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					tooltip:AddLine(NWB.chatColor .. msg);
 				end
+			end
+			--[[if (NWB.isWrath) then
 				msg = "";
-				if ((v.rendTimer + 3600) > (GetServerTime() - NWB.db.global.rendRespawnTime)
-						or (v.onyTimer + 3600) > (GetServerTime() - NWB.db.global.onyRespawnTime)
-						or (v.nefTimer + 3600) > (GetServerTime() - NWB.db.global.nefRespawnTime)) then
-					NWB:removeOldLayers();
+				local texture = "";
+				if (NWB.data.wintergrasp) then
+					local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+					local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+					local secondsLeft = endTime - GetServerTime();
+					--Will it be a strait 3h cycle and no need for expired timers?
+					--Maybe we'll just show 5 mins expired anyway so it stands out more it just started.
+					--This can just use the same setting as terok towers.
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+						tooltip:AddLine(NWB.chatColor .. msg);
+					elseif (wintergrasp > GetServerTime()) then
+						if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+						tooltip:AddLine(NWB.chatColor .. msg);
+					elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+						--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+						local endTime = GetServerTime() + secondsLeft;
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+						tooltip:AddLine(NWB.chatColor .. msg);
+					else
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+						tooltip:AddLine(NWB.chatColor .. msg);
+					end
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					tooltip:AddLine(NWB.chatColor .. msg);
 				end
+			end]]
+			msg = "";
+			if ((v.rendTimer + 3600) > (GetServerTime() - NWB.db.global.rendRespawnTime)
+					or (v.onyTimer + 3600) > (GetServerTime() - NWB.db.global.onyRespawnTime)
+					or (v.nefTimer + 3600) > (GetServerTime() - NWB.db.global.nefRespawnTime)) then
+				NWB:removeOldLayers();
 			end
-			if (count == 0) then
-				tooltip:AddLine(NWB.chatColor .. "No layers found yet.");
-			end
-		else
-			local msg = "";
+		end
+		if (count == 0) then
+			tooltip:AddLine(NWB.chatColor .. "No layers found yet.");
+			--If no layers then display wintergrasp timer in wrath anyway, timer is same for all layers.
+			--[[if (NWB.isWrath) then
+				msg = "";
+				local texture = "";
+				if (NWB.data.wintergrasp) then
+					local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+					local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+					local secondsLeft = endTime - GetServerTime();
+					--Will it be a strait 3h cycle and no need for expired timers?
+					--Maybe we'll just show 5 mins expired anyway so it stands out more it just started.
+					--This can just use the same setting as terok towers.
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+						tooltip:AddLine(NWB.chatColor .. msg);
+					elseif (wintergrasp > GetServerTime()) then
+						if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+						tooltip:AddLine(NWB.chatColor .. msg);
+					elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+						--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+						local endTime = GetServerTime() + secondsLeft;
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+						tooltip:AddLine(NWB.chatColor .. msg);
+					else
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+						tooltip:AddLine(NWB.chatColor .. msg);
+					end
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					tooltip:AddLine(NWB.chatColor .. msg);
+				end
+			end]]
+		end
+	else
+		local msg = "";
+		if (NWB.isClassic or (not NWB.db.global.hideMinimapBuffTimers
+				and not (NWB.db.global.disableBuffTimersMaxBuffLevel and UnitLevel("player") > 64))) then
 			if (NWB.faction == "Horde" or NWB.db.global.allianceEnableRend) then
 				if (NWB.data.rendTimer > (GetServerTime() - NWB.db.global.rendRespawnTime)) then
 					msg = L["rend"] .. ": " .. NWB:getTimeString(NWB.db.global.rendRespawnTime - (GetServerTime() - NWB.data.rendTimer), true) .. ".";
@@ -4839,103 +5342,313 @@ function NWB:updateMinimapButton(tooltip, usingPanel)
 				msg = L["nefarian"] .. ": " .. L["noCurrentTimer"] .. ".";
 			end
 			tooltip:AddLine(NWB.chatColor .. msg);
-			if (NWB.isTBC) then
-				msg = "";
-				local texture = "";
-				if (NWB.data.terokTowers) then
-					if (NWB.data.terokTowers > GetServerTime()) then
-						if (NWB.data.terokFaction == 2) then
-							--5242
-							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
-						elseif (NWB.data.terokFaction == 3) then
-							--5243
-							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-						elseif (NWB.data.terokFaction == 1) then
-							--5387
-							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-						end
-						--Offset was 3 seconds per minute because of drift, trying 0 offset now as it may be fixed on Blizzards end.
-						local endTime = NWB.data.terokTowers + NWB:round((((NWB.data.terokTowers  - GetServerTime()) / 60) * 0));
-						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
-						if (NWB.db.global.showTimeStamp) then
-							local timeStamp = NWB:getTimeFormat(endTime);
-							msg = msg .. " (" .. timeStamp .. ")";
-						end
-						tooltip:AddLine(NWB.chatColor .. msg);
+		end
+		if (NWB.isTBC or NWB.isWrathPrepatch) then
+			msg = "";
+			local texture = "";
+			if (NWB.data.terokTowers) then
+				local endTime = NWB:getTerokEndTime(NWB.data.terokTowers, NWB.data.terokTowersTime);
+				local secondsLeft = endTime - GetServerTime();
+				if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -3599) then
+					--Convert seconds left to positive.
+					secondsLeft = secondsLeft * -1;
+			    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+			    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+			    	if (NWB.data.terokFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (NWB.data.terokFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 					else
+						--5387
 						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
-						tooltip:AddLine(NWB.chatColor .. msg);
 					end
+					msg = msg .. texture .. L["terokkarTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					tooltip:AddLine(NWB.chatColor .. msg);
+				elseif (NWB.data.terokTowers > GetServerTime()) then
+					if (NWB.data.terokFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (NWB.data.terokFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+					tooltip:AddLine(NWB.chatColor .. msg);
 				else
 					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 					msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
 					tooltip:AddLine(NWB.chatColor .. msg);
 				end
+			else
+				texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+				msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				tooltip:AddLine(NWB.chatColor .. msg);
 			end
+		end
+		--[[if (NWB.isWrath) then
 			msg = "";
-		end
-		if (NWB.isTBC) then
+			local texture = "";
+			if (NWB.data.wintergrasp) then
+				local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+				local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+				local secondsLeft = endTime - GetServerTime();
+				--Will it be a strait 3h cycle and no need for expired timers?
+				--Maybe we'll just show 5 mins expired anyway so it stands out more it just started.
+				--This can just use the same setting as terok towers.
+				if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+					--Convert seconds left to positive.
+					secondsLeft = secondsLeft * -1;
+			    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+			    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+			    	if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					tooltip:AddLine(NWB.chatColor .. msg);
+				elseif (wintergrasp > GetServerTime()) then
+					if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+					tooltip:AddLine(NWB.chatColor .. msg);
+				elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+					--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+					local endTime = GetServerTime() + secondsLeft;
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+					tooltip:AddLine(NWB.chatColor .. msg);
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					tooltip:AddLine(NWB.chatColor .. msg);
+				end
+			else
+				texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+				msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				tooltip:AddLine(NWB.chatColor .. msg);
+			end
+		end]]
+		msg = "";
+	end
+	if (NWB.isTBC or NWB.isWrath) then
+		if (NWB.isWrath) then
 			tooltip:AddLine(" ");
-			if (not tooltip.NWBSeparator) then
-			    tooltip.NWBSeparator = tooltip:CreateTexture(nil, "BORDER");
-			    tooltip.NWBSeparator:SetColorTexture(0.6, 0.6, 0.6, 0.85);
-			    tooltip.NWBSeparator:SetHeight(0.9);
-			    tooltip.NWBSeparator:SetPoint("LEFT", 10, 0);
-			    tooltip.NWBSeparator:SetPoint("RIGHT", -10, 0);
+			if (not tooltip.NWBSeparator4) then
+			    tooltip.NWBSeparator4 = tooltip:CreateTexture(nil, "BORDER");
+			    tooltip.NWBSeparator4:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+			    tooltip.NWBSeparator4:SetHeight(1);
+			    tooltip.NWBSeparator4:SetPoint("LEFT", 10, 0);
+			    tooltip.NWBSeparator4:SetPoint("RIGHT", -10, 0);
 			end
-			tooltip.NWBSeparator:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
-			tooltip.NWBSeparator:Show();
-			if (NWB.data.tbcDD and NWB.data.tbcDDT and GetServerTime() - NWB.data.tbcDDT < 86400) then
-				local questData = NWB:getTbcDungeonDailyData(NWB.data.tbcDD);
-				if (questData) then
-					local name = questData.nameLocale or questData.name;
-					tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r "
-							.. name .. " (" .. questData.abbrev .. ")");
+			tooltip.NWBSeparator4:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+			tooltip.NWBSeparator4:Show();
+			local msg = "";
+			local texture = "";
+			if (NWB.data.wintergrasp) then
+				local wintergrasp, wintergraspTime, wintergraspFaction, isCache = NWB:getWintergraspData();
+				--if (isCache) then
+				--	NWB:debug("Using WG Cache");
+				--end
+				local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+				local secondsLeft = endTime - GetServerTime();
+				--Will it be a strait 3h cycle and no need for expired timers?
+				--Maybe we'll just show 5 mins expired anyway so it stands out more it just started.
+				--This can just use the same setting as terok towers.
+				if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+					--Convert seconds left to positive.
+					secondsLeft = secondsLeft * -1;
+			    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+			    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+			    	if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					tooltip:AddLine(NWB.chatColor .. msg);
+				elseif (wintergrasp > GetServerTime()) then
+					if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+					tooltip:AddLine(NWB.chatColor .. msg);
+				--[[elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+					--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+					local endTime = GetServerTime() + secondsLeft;
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+					tooltip:AddLine(NWB.chatColor .. msg);]]
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					tooltip:AddLine(NWB.chatColor .. msg);
 				end
 			else
-				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r Unknown.");
-			end
-			if (NWB.data.tbcHD and NWB.data.tbcHDT and GetServerTime() - NWB.data.tbcHDT < 86400) then
-				local questData = NWB:getTbcHeroicDailyData(NWB.data.tbcHD);
-				if (questData) then
-					local name = questData.nameLocale or questData.name;
-					tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cFFFF2222H|r|cFF9CD6DE)|r "
-							.. name .. " (" .. questData.abbrev .. ")");
-				end
-			else
-				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cFFFF2222H|r|cFF9CD6DE)|r Unknown.");
-			end
-			local texture = "|TInterface\\TargetingFrame\\UI-PVP-Horde:12:12:-1:0:64:64:7:36:1:36|t";
-			if (NWB.faction == "Alliance") then
-				texture = "|TInterface\\TargetingFrame\\UI-PVP-Alliance:12:12:0:0:64:64:7:36:1:36|t";
-			end
-			if (NWB.data.tbcPD and NWB.data.tbcPDT and GetServerTime() - NWB.data.tbcPDT < 86400) then
-				local questData = NWB:getTbcPvpDailyData(NWB.data.tbcPD);
-				if (questData) then
-					local name = questData.nameLocale or questData.name;
-					tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r "
-							.. name);
-				end
-			else
-				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r Unknown.");
+				texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+				msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				tooltip:AddLine(NWB.chatColor .. msg);
 			end
 		end
-		tooltip:AddLine("|cFF9CD6DELeft-Click|r Timers");
-		tooltip:AddLine("|cFF9CD6DERight-Click|r Buffs");
-		tooltip:AddLine("|cFF9CD6DEShift Left-Click|r Felwood Map");
-		tooltip:AddLine("|cFF9CD6DEShift Right-Click|r Config");
-		if (NWB.isLayered) then
-			tooltip:AddLine("|cFF9CD6DEControl Left-Click|r Guild Layers");
+		tooltip:AddLine(" ");
+		if (not tooltip.NWBSeparator) then
+		    tooltip.NWBSeparator = tooltip:CreateTexture(nil, "BORDER");
+		    tooltip.NWBSeparator:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+		    tooltip.NWBSeparator:SetHeight(1);
+		    tooltip.NWBSeparator:SetPoint("LEFT", 10, 0);
+		    tooltip.NWBSeparator:SetPoint("RIGHT", -10, 0);
 		end
-		C_Timer.After(0.1, function()
-			NWB:updateMinimapButton(tooltip, usingPanel);
-		end)
-	else
-		if (tooltip.NWBSeparator) then
-			tooltip.NWBSeparator:Hide();
+		tooltip.NWBSeparator:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+		tooltip.NWBSeparator:Show();
+		if (NWB.data.tbcDD and NWB.data.tbcDDT and GetServerTime() - NWB.data.tbcDDT < 86400) then
+			local questData = NWB:getDungeonDailyData(NWB.data.tbcDD);
+			if (questData) then
+				local name = questData.nameLocale or questData.name;
+				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r "
+						.. name .. " (" .. questData.abbrev .. ")");
+			end
+		else
+			tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r Unknown.");
+		end
+		if (NWB.data.tbcHD and NWB.data.tbcHDT and GetServerTime() - NWB.data.tbcHDT < 86400) then
+			local questData = NWB:getHeroicDailyData(NWB.data.tbcHD);
+			if (questData) then
+				local name = questData.nameLocale or questData.name;
+				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cFFFF2222H|r|cFF9CD6DE)|r "
+						.. name .. " (" .. questData.abbrev .. ")");
+			end
+		else
+			tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cFFFF2222H|r|cFF9CD6DE)|r Unknown.");
+		end
+		local texture = "|TInterface\\TargetingFrame\\UI-PVP-Horde:12:12:-1:0:64:64:7:36:1:36|t";
+		if (NWB.faction == "Alliance") then
+			texture = "|TInterface\\TargetingFrame\\UI-PVP-Alliance:12:12:0:0:64:64:7:36:1:36|t";
+		end
+		if (NWB.data.tbcPD and NWB.data.tbcPDT and GetServerTime() - NWB.data.tbcPDT < 86400) then
+			local questData = NWB:getPvpDailyData(NWB.data.tbcPD);
+			if (questData) then
+				local name = questData.nameLocale or questData.name;
+				tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r "
+						.. name);
+			end
+		else
+			tooltip:AddLine(NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r Unknown.");
+		end
+		local completedQuests = {};
+		if (NWB.faction == "Horde") then
+			if (C_QuestLog.IsQuestFlaggedCompleted(10110)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Hellfire Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11506)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Terokkar Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11503)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Nagrand Halaa"] .. ":  |cFF00C800Completed|r" .. ".");
+			end
+			--Wintergrasp.
+			--if (C_QuestLog.IsQuestFlaggedCompleted(13183)) then
+			--	table.insert(completedQuests, "|cFF9CD6DE" .. L["Victory in Wintergrasp"] .. ":  |cFF00C800Completed|r" .. ".");
+			--end
+		else
+			if (C_QuestLog.IsQuestFlaggedCompleted(10106)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Hellfire Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11505)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Terokkar Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11502)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Nagrand Halaa"] .. ":  |cFF00C800Completed|r" .. ".");
+			end
+		end
+		if (next(completedQuests)) then
+			tooltip:AddLine(" ");
+			if (not tooltip.NWBSeparator2) then
+			    tooltip.NWBSeparator2 = tooltip:CreateTexture(nil, "BORDER");
+			    tooltip.NWBSeparator2:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+			    tooltip.NWBSeparator2:SetHeight(1);
+			    tooltip.NWBSeparator2:SetPoint("LEFT", 10, 0);
+			    tooltip.NWBSeparator2:SetPoint("RIGHT", -10, 0);
+			end
+			tooltip.NWBSeparator2:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+			tooltip.NWBSeparator2:Show();
+			tooltip:AddLine("Completed PvP dailies:");
+			for k, v in ipairs(completedQuests) do
+				tooltip:AddLine(v);
+			end
+			tooltip:AddLine(" ");
+			if (not tooltip.NWBSeparator3) then
+			    tooltip.NWBSeparator3 = tooltip:CreateTexture(nil, "BORDER");
+			    tooltip.NWBSeparator3:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+			    tooltip.NWBSeparator3:SetHeight(1);
+			    tooltip.NWBSeparator3:SetPoint("LEFT", 10, 0);
+			    tooltip.NWBSeparator3:SetPoint("RIGHT", -10, 0);
+			end
+			tooltip.NWBSeparator3:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+			tooltip.NWBSeparator3:Show();
 		end
 	end
+	tooltip:AddLine("|cFF9CD6DELeft-Click|r Timers");
+	tooltip:AddLine("|cFF9CD6DERight-Click|r Buffs");
+	tooltip:AddLine("|cFF9CD6DEShift Left-Click|r Felwood Map");
+	tooltip:AddLine("|cFF9CD6DEShift Right-Click|r Config");
+	if (NWB.isLayered) then
+		tooltip:AddLine("|cFF9CD6DEControl Left-Click|r Guild Layers");
+	end
+	C_Timer.After(0.1, function()
+		NWB:updateMinimapButton(tooltip, frame);
+	end)
 end
 
 ---===== Most of these are now disabled, only DBM is left =====---
@@ -5064,7 +5777,7 @@ end
 end]]
 
 function NWB:sendBigWigs(time, msg)
-	if (NWB.db.global.bigWigsSupport and not NWB.isTBC) then
+	if (NWB.db.global.bigWigsSupport and NWB.isClassic) then
 		if SlashCmdList.BIGWIGSLOCALBAR then --BigWigs exists and is fully loaded.
 			SlashCmdList.BIGWIGSLOCALBAR(time .. " " .. msg);
 		elseif (SlashCmdList["/LOCALBAR"]) then --BigWigs exists but is not yet fully loaded.
@@ -5700,6 +6413,7 @@ function NWB:updateFelwoodWorldmapMarker(type)
 			_G[type .. "NWB"].tooltip.fs:SetText("|CffDEDE42" .. _G[type .. "NWB"].name .. "|r\n" .. _G[type .. "NWB"].subZone .. "\n" .. tooltipText);
 		else
 			_G[type .. "NWB"].tooltip.fs:SetText("|CffDEDE42" .. _G[type .. "NWB"].name .. "|r\n" .. _G[type .. "NWB"].subZone);
+			_G[type .. "NWB"].timerFrame:Hide(); --Bug fix for when no layers are recorded yet.
 			_G[type .. "NWBMini"].timerFrame:Hide();
 		end
 		_G[type .. "NWB"].tooltip:SetWidth(_G[type .. "NWB"].tooltip.fs:GetStringWidth() + 9);
@@ -5897,7 +6611,7 @@ function NWB:createSongflowerMarkers()
 		obj.type = k;
 		obj.name = L["Songflower"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -5981,7 +6695,7 @@ function NWB:createSongflowerMarkers()
 		obj.type = k;
 		obj.name = L["Songflower"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6066,7 +6780,7 @@ function NWB:createTuberMarkers()
 		obj.type = k;
 		obj.name = L["Whipper Root Tuber"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6121,7 +6835,7 @@ function NWB:createTuberMarkers()
 		obj.type = k;
 		obj.name = L["Whipper Root Tuber"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6176,7 +6890,7 @@ function NWB:createDragonMarkers()
 		obj.type = k;
 		obj.name = L["Night Dragon's Breath"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6231,7 +6945,7 @@ function NWB:createDragonMarkers()
 		obj.type = k;
 		obj.name = L["Night Dragon's Breath"];
 		obj.subZone = v.subZone;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(iconLocation);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6503,7 +7217,7 @@ function NWB:createWorldbuffMarker(type, data, layer, count)
 			--Worldmap marker.
 			local obj = CreateFrame("Frame", type .. layer .. "NWBWorldMap", WorldMapFrame);
 			obj.name = data.name;
-			local bg = obj:CreateTexture(nil, "MEDIUM");
+			local bg = obj:CreateTexture(nil, "ARTWORK");
 			bg:SetTexture(data.icon);
 			bg:SetAllPoints(obj);
 			obj.texture = bg;
@@ -6599,7 +7313,7 @@ function NWB:createWorldbuffMarker(type, data, layer, count)
 		--Worldmap marker.
 		local obj = CreateFrame("Frame", type .. "NWBWorldMap", WorldMapFrame);
 		obj.name = data.name;
-		local bg = obj:CreateTexture(nil, "MEDIUM");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetTexture(data.icon);
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
@@ -6804,7 +7518,9 @@ function SlashCmdList.NWBDMFCMD(msg, editBox)
 	end
 	if (msg == "map") then
 		WorldMapFrame:Show();
-		if (NWB.dmfZone == "Mulgore") then
+		if (NWB.dmfZone == "Outlands") then
+			WorldMapFrame:SetMapID(1952);
+		elseif (NWB.dmfZone == "Mulgore") then
 			WorldMapFrame:SetMapID(1412); 
 		else
 			WorldMapFrame:SetMapID(1429);
@@ -6815,13 +7531,14 @@ function SlashCmdList.NWBDMFCMD(msg, editBox)
 		NWB:openConfig();
 		return;
 	end
-	local output, zone, dmfFound;
-	if (NWB.dmfZone == "Mulgore") then
-		zone = L["mulgore"];
+	local output, dmfFound;
+	local zone = NWB:getDmfZoneString();
+	local timeString = NWB:getDmfTimeString();
+	if (timeString == "Error getting Darkmoon Faire timer.") then
+		output = timeString;
 	else
-		zone = L["elwynnForest"];
+		output = timeString .. " (" .. zone .. ")";
 	end
-	output = NWB:getDmfTimeString() .. " (" .. zone .. ")";
 	if (output) then
 		if (msg ~= nil and msg ~= "") then
 			NWB:print(output, msg);
@@ -6853,6 +7570,9 @@ end
 
 function NWB:getDmfTimeString()
 	local timestamp, timeLeft, type = NWB:getDmfData();
+	if (timestamp == 0) then
+		return "Error getting Darkmoon Faire timer.";
+	end
 	local msg, dateString;
 	if (timestamp) then
  		if (NWB.db.global.timeStampFormat == 12) then
@@ -6879,31 +7599,19 @@ end
 --It seems like Blizzard just start entering random dates instead of following the above rule now.
 --Or there's a new formula I can't work out yet.
 --These are friday dates when construction starts, taken from the retail calendar.
-local staticDmfDates = {};
+NWB.staticDmfDates = {};
 function NWB:setDmfDates()
 	if (NWB.isTBC or NWB.realmsTBC) then
-		staticDmfDates = {
-			--[[[1] = { --Manually started DMF by Blizzard for prepatch.
-				day = 21,
-				month = 5,
-				year = 2021,
-				zone = "Mulgore",
-			},
-			[2] = { --July 30th setup, August 1st start 2021.
-				day = 30,
-				month = 7,
-				year = 2021,
-				zone = "Mulgore",
-			},
-			[3] = { --October 29th setup, October 31st start 2021.
+		NWB.staticDmfDates = {
+			[1] = {
 				day = 29,
-				month = 10,
-				year = 2021,
-				zone = "Elwynn Forest",
-			},]]
+				month = 4,
+				year = 2022,
+				zone = "Outlands",
+			},
 		}
 	else
-		staticDmfDates = {
+		NWB.staticDmfDates = {
 			--[[[1] = { --July 30th setup, August 1st start 2021.
 				day = 30,
 				month = 7,
@@ -6926,7 +7634,7 @@ function NWB:getNextStaticDate(useNext)
 	local foundCount, lastStaticDmf = 0, 0;
 	local utcdate = date("!*t", GetServerTime());
 	local currentUTC = time(utcdate);
-	for k, v in ipairs(staticDmfDates) do
+	for k, v in ipairs(NWB.staticDmfDates) do
 		local timeTable = {year = v.year, month = v.month, day = v.day, hour = 0, min = 0, sec = 0};
 		local time = time(timeTable);
 		--If this date is within the last 8 days and the next 31 days.
@@ -6948,6 +7656,97 @@ function NWB:getNextStaticDate(useNext)
 		lastStaticDmf = time;
 	end
 	return nil, lastStaticDmf;
+end
+
+local dmfTextures = {
+	--Calander textures for each dmf display type.
+	[235451] = "Start Mulgore",
+	--[235450] = "Days inbetween Mulgore",
+	[235449] = "End Mulgore",
+	[235455] = "Start Shat",
+	--[235454] = "Days inbetween Shat",
+	[235453] = "End Shat",
+	[235448] = "Start Elwynn",
+	--[235447] = "Days inbetween Elwynn",
+	[235446] = "End Elwynn",
+};
+--Timestamp, seconds left, type (start/end), zone.
+--local dmfTimestampCache, dmfTimeLeftCache, dmfTypeCache, dmfZoneCache;
+local dmfCalenderCache = {
+	dmfTimestampCache = 0;
+	dmfTimeLeftCache = 0;
+	dmfTypeCache = "",
+	dmfZoneCache = "",
+};
+
+local function getNextDmfCalender()
+	--if (not IsAddOnLoaded("Blizzard_Calendar")) then
+	--
+	--end
+	if (CalendarFrame and CalendarFrame:IsShown()) then
+		--Use cache if it's open so we don't change page while player is looking at it.
+		--Maybe there's a way to calc from current month without SetAbsMonth() updating the UI?
+		return dmfCalenderCache.dmfTimestampCache, dmfCalenderCache.dmfTimeLeftCache, dmfCalenderCache.dmfTypeCache, dmfCalenderCache.dmfZoneCache;
+	end
+	local eventStart, eventEnd;
+	local nextStart, nextEnd = 0, 0;
+	--[[local now = date("*t", GetServerTime());
+	--Set's month offset calc from current month we're in.
+	C_Calendar.SetAbsMonth(now.month, now.year);
+	for month = 0, 2 do
+		for day = 1, 31 do
+			for eventIndex = 1, 3 do
+				local event = C_Calendar.GetDayEvent(month, day, eventIndex);]]
+	local now = C_DateAndTime.GetCurrentCalendarTime();
+	--Set's month offset calc from current month we're in.
+	C_Calendar.SetAbsMonth(now.month, now.year);
+	for dayOffset = 0, 60 do
+		local offsetTime = C_DateAndTime.AdjustTimeByDays(now, dayOffset);
+		for eventIndex = 1, C_Calendar.GetNumDayEvents(offsetTime.month, offsetTime.monthDay) do
+			local event = C_Calendar.GetDayEvent(offsetTime.month, offsetTime.monthDay, eventIndex);
+			--Get next dmf start or end time, whichever is next after current time.
+			if (event and dmfTextures[event.iconTexture]) then
+			--if (event and event.title == "Darkmoon Faire") then
+				if (event.sequenceType == "START") then
+					--Fix date table structure so it works with time().
+					event.startTime.day = event.startTime.monthDay;
+					local timestamp = time(event.startTime);
+					--Only record the first in the future.
+					if (timestamp > GetServerTime()) then
+						local zone;
+						if (event.iconTexture == 235448) then
+							zone = "Elwynn Forest";
+						elseif (event.iconTexture == 235455) then
+							zone = "Outlands";
+						else
+							zone = "Mulgore";
+						end
+						local timeLeft = timestamp - GetServerTime();
+						local type = "start";
+						dmfCalenderCache.dmfTimestampCache, dmfCalenderCache.dmfTimeLeftCache, dmfCalenderCache.dmfTypeCache, dmfCalenderCache.dmfZoneCache = timestamp, timeLeft, type, zone;
+						return timestamp, timeLeft, type, zone;
+					end
+				elseif (event.sequenceType == "END") then
+					event.endTime.day = event.endTime.monthDay;
+					local timestamp = time(event.endTime);
+					if (timestamp > GetServerTime()) then
+						local zone;
+						if (event.iconTexture == 235446) then
+							zone = "Elwynn Forest";
+						elseif (event.iconTexture == 235453) then
+							zone = "Outlands";
+						else
+							zone = "Mulgore";
+						end
+						local timeLeft = timestamp - GetServerTime();
+						local type = "end";
+						dmfCalenderCache.dmfTimestampCache, dmfCalenderCache.dmfTimeLeftCache, dmfCalenderCache.dmfTypeCache, dmfCalenderCache.dmfZoneCache = timestamp, timeLeft, type, zone;
+						return timestamp, timeLeft, type, zone;
+					end
+				end
+			end
+		end
+	end
 end
 
 --DMF spawns the following monday after first friday of the month at daily reset time.
@@ -7114,63 +7913,94 @@ function NWB:getDmfStartEnd(month, nextYear, recalc)
 end
 
 function NWB:getDmfData()
-	local dmfStart, dmfEnd = NWB:getDmfStartEnd();
-	local timestamp, timeLeft, type;
-	if (dmfStart and dmfEnd) then
-		if (GetServerTime() < dmfStart) then
-			--It's before the start of dmf.
-			timestamp = dmfStart;
-			type = "start";
-			timeLeft = dmfStart - GetServerTime();
-			NWB.isDmfUp = nil;
-		elseif (GetServerTime() < dmfEnd) then
-			--It's after dmf started and before the end.
-			timestamp = dmfEnd;
-			type = "end";
-			timeLeft = dmfEnd - GetServerTime();
-			NWB.isDmfUp = true;
-		elseif (GetServerTime() > dmfEnd) then
-			--It's after dmf ended so calc next months dmf instead.
-			local data = date("!*t", GetServerTime());
-			if (data.month == 12) then
-				dmfStart, dmfEnd = NWB:getDmfStartEnd(1, true);
-			else
-				dmfStart, dmfEnd = NWB:getDmfStartEnd(data.month + 1);
+	--Once Blizzard fixes calender timezones we'll get dmf spawn time from there.
+	if (NWB.isClassic or NWB.isTBC) then
+		local dmfStart, dmfEnd = NWB:getDmfStartEnd();
+		local timestamp, timeLeft, type;
+		if (dmfStart and dmfEnd) then
+			if (GetServerTime() < dmfStart) then
+				--It's before the start of dmf.
+				timestamp = dmfStart;
+				type = "start";
+				timeLeft = dmfStart - GetServerTime();
+				NWB.isDmfUp = nil;
+			elseif (GetServerTime() < dmfEnd) then
+				--It's after dmf started and before the end.
+				timestamp = dmfEnd;
+				type = "end";
+				timeLeft = dmfEnd - GetServerTime();
+				NWB.isDmfUp = true;
+			elseif (GetServerTime() > dmfEnd) then
+				--It's after dmf ended so calc next months dmf instead.
+				local data = date("!*t", GetServerTime());
+				if (data.month == 12) then
+					dmfStart, dmfEnd = NWB:getDmfStartEnd(1, true);
+				else
+					dmfStart, dmfEnd = NWB:getDmfStartEnd(data.month + 1);
+				end
+				timestamp = dmfStart;
+				type = "start";
+				timeLeft = dmfStart - GetServerTime();
+				NWB.isDmfUp = nil;
 			end
-			timestamp = dmfStart;
-			type = "start";
-			timeLeft = dmfStart - GetServerTime();
-			NWB.isDmfUp = nil;
+			local zone;
+			local startMonth = tonumber(date("%m", dmfStart));
+			local startDay = tonumber(date("%d", dmfStart));
+			--If it starts at the end of the month then change which zone it starts in.
+			if (startDay > 20) then
+				startMonth = startMonth + 1;
+			end
+			if (NWB.isTBC) then
+				if (startMonth == 2 or startMonth == 5 or startMonth == 8 or startMonth == 11) then
+					zone = "Outlands";
+				elseif (startMonth == 1 or startMonth == 4 or startMonth == 7 or startMonth == 10) then
+					zone = "Mulgore";
+				else
+					zone = "Elwynn Forest";
+				end
+			else
+				if (startMonth % 2 == 0) then
+					--These were swapped around manually by Blizzard but now it seems to be swapped back to be in sync with era realms.
+					--if (NWB.isTBC or NWB.realmsTBC) then
+					--	zone = "Elwynn Forest";
+					--else
+						zone = "Mulgore";
+					--end
+				else
+					--if (NWB.isTBC or NWB.realmsTBC) then
+					--	zone = "Mulgore";
+					--else
+						zone = "Elwynn Forest";
+					--end
+		 
+				end
+			end
+			--Zone override for static dates.
+			if (dmfZoneStatic ~= "") then
+				zone = dmfZoneStatic;
+			end
+			NWB.dmfZone = zone;
+			--Timestamp of next start or end event, seconds left untill that event, and type of event.
+			return timestamp, timeLeft, type;
 		end
-		local zone;
-		local startMonth = date("%m", dmfStart);
-		local startDay = date("%d", dmfStart);
-		--If it starts at the end of the month then change which zone it starts in.
-		if (tonumber(startDay) > 20) then
-			startMonth = startMonth + 1;
-		end
-		if (startMonth % 2 == 0) then
-			--These were swapped around manually by Blizzard but now it seems to be swapped back to be in sync with era realms.
-			--if (NWB.isTBC or NWB.realmsTBC) then
-			--	zone = "Elwynn Forest";
-			--else
-    			zone = "Mulgore";
-    		--end
-		else
-			--if (NWB.isTBC or NWB.realmsTBC) then
-			--	zone = "Mulgore";
-			--else
-    			zone = "Elwynn Forest";
-    		--end
- 
-		end
-		--Zone override for static dates.
-		if (dmfZoneStatic ~= "") then
-			zone = dmfZoneStatic;
+	else
+		local timestamp, timeLeft, type, zone = getNextDmfCalender();
+		if (not timestamp) then
+			--Calander lookup has failed, could be becaus Blizzard hasn't added next month data like has happen now at 2022 end.
+			return 0, 0, "";
 		end
 		NWB.dmfZone = zone;
-		--Timestamp of next start or end event, seconds left untill that event, and type of event.
 		return timestamp, timeLeft, type;
+	end
+end
+
+function NWB:getDmfZoneString()
+	if (NWB.dmfZone == "Outlands") then
+		return L["Outlands"];
+	elseif (NWB.dmfZone == "Mulgore") then
+		return L["mulgore"];
+	else
+		return L["elwynnForest"];
 	end
 end
 
@@ -7186,7 +8016,7 @@ function NWB:updateDmfMarkers(type)
 			text = text .. string.format(L["endsIn"], NWB:getTimeString(timeLeft, true, "short"));
 		end
 	end
-	if (timeLeft > 0) then
+	if (timeLeft and timeLeft > 0) then
 		local tooltipText = "|Cff00ff00" .. L["Darkmoon Faire"] .. "|CffDEDE42\n";
 		if (type == "start") then
 			tooltipText = tooltipText .. string.format(L["startsIn"], NWB:getTimeString(timeLeft, true)) .. "\n";
@@ -7222,6 +8052,11 @@ function NWB:updateDmfMarkers(type)
 		_G["NWBDMFContinent"].tooltip.fs:SetText(tooltipText);
     	_G["NWBDMFContinent"].tooltip:SetWidth(_G["NWBDMFContinent"].tooltip.fs:GetStringWidth() + 12);
 		_G["NWBDMFContinent"].tooltip:SetHeight(_G["NWBDMFContinent"].tooltip.fs:GetStringHeight() + 12);
+		--_G["NWBDMF"]:Show();
+  		--_G["NWBDMFContinent"]:Show();
+  	else
+  		--_G["NWBDMF"]:Hide();
+  		--_G["NWBDMFContinent"]:Hide();
   	end
 	return text;
 end
@@ -7230,7 +8065,7 @@ function NWB:createDmfMarkers()
 	--Darkmoon Faire zone map marker.
 	local icon = "Interface\\AddOns\\NovaWorldBuffs\\Media\\dmf";
 	local obj = CreateFrame("Frame", "NWBDMF", WorldMapFrame);
-	local bg = obj:CreateTexture(nil, "MEDIUM");
+	local bg = obj:CreateTexture(nil, "ARTWORK");
 	bg:SetTexture(icon);
 	bg:SetAllPoints(obj);
 	obj.texture = bg;
@@ -7282,7 +8117,7 @@ function NWB:createDmfMarkers()
 	
 	--Darkmoon Faire continent marker.
 	local obj = CreateFrame("Frame", "NWBDMFContinent", WorldMapFrame);
-	local bg = obj:CreateTexture(nil, "MEDIUM");
+	local bg = obj:CreateTexture(nil, "ARTWORK");
 	bg:SetTexture(icon);
 	bg:SetAllPoints(obj);
 	obj.texture = bg;
@@ -7294,7 +8129,7 @@ function NWB:createDmfMarkers()
 	obj.tooltip:SetPoint("CENTER", obj, "CENTER", 0, 46);
 	obj.tooltip:SetFrameStrata("TOOLTIP");
 	obj.tooltip:SetFrameLevel(9);
-	obj.tooltip.fs = obj.tooltip:CreateFontString("NWBDMFContinentTooltipFS", "HIGH");
+	obj.tooltip.fs = obj.tooltip:CreateFontString("NWBDMFContinentTooltipFS", "ARTWORK");
 	obj.tooltip.fs:SetPoint("CENTER", 0, 0);
 	obj.tooltip.fs:SetFont(NWB.regionFont, 14);
 	obj.tooltip.fs:SetText("|Cff00ff00Darkmoon Faire");
@@ -7319,8 +8154,14 @@ end
 
 local d = NWB.realm;
 function NWB:refreshDmfMarkers()
+	if (not NWB.dmfZone) then
+		return;
+	end
 	local x, y, mapID, worldX, worldY, worldMapID;
-	if (NWB.dmfZone == "Mulgore") then
+	if (NWB.dmfZone == "Outlands") then
+		x, y, mapID = 34.8, 34.6, 1952;
+		worldX, worldY, worldMapID = 44.6, 69.5, 1945;
+	elseif (NWB.dmfZone == "Mulgore") then
 		x, y, mapID = 36.8, 37.6, 1412;
 		worldX, worldY, worldMapID = 46, 63, 1414;
 	else
@@ -7351,7 +8192,7 @@ end
 ---Buff tracking frame---
 ---===================---
 
-local NWBbuffListFrame = CreateFrame("ScrollFrame", "NWBbuffListFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+local NWBbuffListFrame = CreateFrame("ScrollFrame", "NWBbuffListFrame", UIParent, NWB:addBackdrop("NWB_InputScrollFrameTemplate"));
 NWBbuffListFrame:Hide();
 NWBbuffListFrame:SetToplevel(true);
 NWBbuffListFrame:SetMovable(true);
@@ -7379,15 +8220,15 @@ NWBbuffListFrame:HookScript("OnUpdate", function(self, arg)
 		buffUpdateTime = GetServerTime();
 	end
 end)
-NWBbuffListFrame.fs = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS", "HIGH");
+NWBbuffListFrame.fs = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS", "ARTWORK");
 NWBbuffListFrame.fs:SetPoint("TOP", 0, 0);
 NWBbuffListFrame.fs:SetFont(NWB.regionFont, 14);
 NWBbuffListFrame.fs:SetText("|cffffff00" .. L["Your Current World Buffs"]);
-NWBbuffListFrame.fs2 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS2", "HIGH");
+NWBbuffListFrame.fs2 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS2", "ARTWORK");
 NWBbuffListFrame.fs2:SetPoint("TOP", 0, -16);
 NWBbuffListFrame.fs2:SetFont(NWB.regionFont, 13);
 NWBbuffListFrame.fs2:SetText("|cffffff00Mouseover char names for extra info");
-NWBbuffListFrame.fs3 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS3", "HIGH");
+NWBbuffListFrame.fs3 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS3", "ARTWORK");
 NWBbuffListFrame.fs3:SetPoint("TOPLEFT", 1, -32);
 NWBbuffListFrame.fs3:SetFont(NWB.regionFont, 13);
 --NWBbuffListFrame.fs3:SetText("");
@@ -7404,7 +8245,7 @@ NWBbuffListDragFrame.tooltip:SetPoint("CENTER", NWBbuffListDragFrame, "TOP", 0, 
 NWBbuffListDragFrame.tooltip:SetFrameStrata("TOOLTIP");
 NWBbuffListDragFrame.tooltip:SetFrameLevel(9);
 NWBbuffListDragFrame.tooltip:SetAlpha(.8);
-NWBbuffListDragFrame.tooltip.fs = NWBbuffListDragFrame.tooltip:CreateFontString("NWBbuffListDragTooltipFS", "HIGH");
+NWBbuffListDragFrame.tooltip.fs = NWBbuffListDragFrame.tooltip:CreateFontString("NWBbuffListDragTooltipFS", "ARTWORK");
 NWBbuffListDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBbuffListDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
 NWBbuffListDragFrame.tooltip.fs:SetText("Hold to drag");
@@ -7540,7 +8381,7 @@ end)
 
 NWBbuffListFrameWipeButton.tooltip = CreateFrame("Frame", "NWBbuffListResetButtonTooltip", NWBbuffListFrame, "TooltipBorderedFrameTemplate");
 NWBbuffListFrameWipeButton.tooltip:SetPoint("CENTER", NWBbuffListFrameWipeButton, "TOP", 0, 14);
-NWBbuffListFrameWipeButton.tooltip.fs = NWBbuffListFrameWipeButton.tooltip:CreateFontString("NWBbuffListDragTooltipFS", "HIGH");
+NWBbuffListFrameWipeButton.tooltip.fs = NWBbuffListFrameWipeButton.tooltip:CreateFontString("NWBbuffListDragTooltipFS", "ARTWORK");
 NWBbuffListFrameWipeButton.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBbuffListFrameWipeButton.tooltip.fs:SetFont(NWB.regionFont, 12);
 NWBbuffListFrameWipeButton.tooltip:SetFrameLevel(132);
@@ -7605,7 +8446,7 @@ function NWB:createBuffsLineFrame(type, data)
 	if (not _G[type .. "NWBBuffsLine"]) then
 		local obj = CreateFrame("Frame", type .. "NWBBuffsLine", NWBbuffListFrame.EditBox);
 		obj.id = type;
-		local bg = obj:CreateTexture(nil, "HIGH");
+		local bg = obj:CreateTexture(nil, "ARTWORK");
 		bg:SetAllPoints(obj);
 		obj.texture = bg;
 		obj.fs = obj:CreateFontString(type .. "NWBBuffsLineFS", "ARTWORK");
@@ -7701,7 +8542,7 @@ function NWB:openBuffListFrame()
 		NWBbuffListFrame:SetHeight(NWB.db.global.buffWindowHeight);
 		NWBbuffListFrame:SetWidth(NWB.db.global.buffWindowWidth);
 		local fontSize = false;
-		NWBbuffListFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBbuffListFrame.EditBox:SetFont(NWB.regionFont, 14, "");
 		NWBbuffListFrame.EditBox:SetWidth(NWBbuffListFrame:GetWidth() - 30);
 		NWBbuffListFrame:Show();
 		--Changing scroll position requires a slight delay.
@@ -8461,7 +9302,7 @@ local gameVersions = {
 ---====================---
 
 --This is actually the timers frame, it was orginally only used on layered servers hence the name.
-local NWBlayerFrame = CreateFrame("ScrollFrame", "NWBlayerFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+local NWBlayerFrame = CreateFrame("ScrollFrame", "NWBlayerFrame", UIParent, NWB:addBackdrop("NWB_InputScrollFrameTemplate"));
 NWBlayerFrame:Hide();
 NWBlayerFrame:SetToplevel(true);
 NWBlayerFrame:SetMovable(true);
@@ -8495,16 +9336,16 @@ NWBlayerFrame:HookScript("OnUpdate", function(self, arg)
 	end
 end)
 
-NWBlayerFrame.fs = NWBlayerFrame.EditBox:CreateFontString("NWBlayerFrameFS", "HIGH");
+NWBlayerFrame.fs = NWBlayerFrame.EditBox:CreateFontString("NWBlayerFrameFS", "ARTWORK");
 NWBlayerFrame.fs:SetPoint("TOP", 0, -0);
 NWBlayerFrame.fs:SetFont(NWB.regionFont, 14);
 NWBlayerFrame.fs:SetText(NWB.prefixColor .. "NovaWorldBuffs v" .. version .. "|r");
-NWBlayerFrame.fs2 = NWBlayerFrame.EditBox:CreateFontString("NWBlayerFrameFS", "HIGH");
+NWBlayerFrame.fs2 = NWBlayerFrame.EditBox:CreateFontString("NWBlayerFrameFS", "ARTWORK");
 NWBlayerFrame.fs2:SetPoint("TOPLEFT", 0, -14);
 NWBlayerFrame.fs2:SetFont(NWB.regionFont, 14);
 NWBlayerFrame.fs2:SetText("|cFF9CD6DETarget any NPC to see your current layer.|r");
-NWBlayerFrame.fs3 = NWBlayerFrame:CreateFontString("NWBbuffListFrameFS", "HIGH");
---NWBlayerFrame.fs3 = NWBlayerFrame.EditBox:CreateFontString("NWBbuffListFrameFS", "HIGH");
+NWBlayerFrame.fs3 = NWBlayerFrame:CreateFontString("NWBbuffListFrameFS", "ARTWORK");
+--NWBlayerFrame.fs3 = NWBlayerFrame.EditBox:CreateFontString("NWBbuffListFrameFS", "ARTWORK");
 NWBlayerFrame.fs3:SetPoint("BOTTOM", 0, 20);
 NWBlayerFrame.fs3:SetFont(NWB.regionFont, 14);
 NWBlayerFrame.fs3:SetText("|cFFDEDE42" .. L["layerFrameMsgOne"] .. "\n" .. L["layerFrameMsgTwo"]);
@@ -8525,7 +9366,7 @@ NWBlayerDragFrame.tooltip:SetPoint("CENTER", NWBlayerDragFrame, "TOP", 0, 12);
 NWBlayerDragFrame.tooltip:SetFrameStrata("TOOLTIP");
 NWBlayerDragFrame.tooltip:SetFrameLevel(9);
 NWBlayerDragFrame.tooltip:SetAlpha(.8);
-NWBlayerDragFrame.tooltip.fs = NWBlayerDragFrame.tooltip:CreateFontString("NWBlayerDragTooltipFS", "HIGH");
+NWBlayerDragFrame.tooltip.fs = NWBlayerDragFrame.tooltip:CreateFontString("NWBlayerDragTooltipFS", "ARTWORK");
 NWBlayerDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBlayerDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
 NWBlayerDragFrame.tooltip.fs:SetText("Hold to drag");
@@ -8699,7 +9540,7 @@ NWBGuildLayersButton:SetScript("OnHide", function(self)
 end)
 
 --Copy Paste.
-local NWBCopyFrame = CreateFrame("ScrollFrame", "NWBCopyFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+local NWBCopyFrame = CreateFrame("ScrollFrame", "NWBCopyFrame", UIParent, NWB:addBackdrop("NWB_InputScrollFrameTemplate"));
 NWBCopyFrame:Hide();
 NWBCopyFrame:SetToplevel(true);
 NWBCopyFrame:SetMovable(true);
@@ -8743,7 +9584,7 @@ NWBCopyDragFrame:SetBackdrop({
 });
 NWBCopyDragFrame:SetBackdropColor(0,0,0,0.9);
 NWBCopyDragFrame:SetBackdropBorderColor(0.235, 0.235, 0.235);
-NWBCopyDragFrame.fs = NWBCopyDragFrame:CreateFontString("NWBCopyDragFrameFS", "HIGH");
+NWBCopyDragFrame.fs = NWBCopyDragFrame:CreateFontString("NWBCopyDragFrameFS", "ARTWORK");
 NWBCopyDragFrame.fs:SetPoint("CENTER", 0, 0);
 NWBCopyDragFrame.fs:SetFont(NWB.regionFont, 14);
 NWBCopyDragFrame.fs:SetText(NWB.prefixColor .. "NovaWorldBuffs Copy Frame|r");
@@ -8834,7 +9675,7 @@ function NWB:openCopyFrame()
 	else
 		NWBCopyFrame:SetHeight(300);
 		NWBCopyFrame:SetWidth(450);
-		NWBCopyFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBCopyFrame.EditBox:SetFont(NWB.regionFont, 14, "");
 		NWBCopyFrame.EditBox:SetWidth(NWBCopyFrame:GetWidth() - 30);
 		NWBCopyFrame:Show();
 		NWB:recalcCopyFrame();
@@ -8885,7 +9726,7 @@ function NWB:openLayerFrame()
 		if (NWBlayerFrameTimerLogButton) then
 			NWBlayerFrameTimerLogButton:SetPoint("CENTER", -58, -28);
 		end
-	elseif (NWB.isTBC) then
+	elseif (not NWB.isClassic) then
 		--If layered and is TBC.
 		--Disable rend log button and move guild layers to it's spot on TBC realms.
 		NWBlayerFrameTimerLogButton:Hide();
@@ -8903,7 +9744,7 @@ function NWB:openLayerFrame()
 		NWBlayerFrame:SetWidth(NWB.db.global.timerWindowWidth);
 		NWB:syncBuffsWithCurrentDuration();
 		local fontSize = false
-		NWBlayerFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBlayerFrame.EditBox:SetFont(NWB.regionFont, 14, "");
 		NWB:recalclayerFrame();
 		NWBlayerFrame.EditBox:SetWidth(NWBlayerFrame:GetWidth() - 30);
 		NWBlayerFrame:Show();
@@ -8995,21 +9836,26 @@ function NWB:createNewLayer(zoneID, GUID, isFromNpc)
 			flower9 = 0,
 			flower10 = 0,
 		};
-		if (NWB.data.layerMapBackups and NWB.data.layerMapBackups[zoneID]
-				and (GetServerTime() - NWB.data.layerMapBackups[zoneID].created) < 518400) then
-			--Restore layermap backup if less than 6 days old.
-			if (not NWB.data.layers[zoneID].layerMap) then
-				NWB.data.layers[zoneID].layerMap = {};
-			end
-			--NWB.data.layers[zoneID].layerMap = NWB.data.layerMapBackups[zoneID];
-			--Create a copy instead of refrence and ignore timestamp.
-			for k, v in pairs(NWB.data.layerMapBackups[zoneID]) do
-				--Ignore created timestamp, it's not needed in the layermap, only in the backup.
-				if (k ~= "created") then
-					NWB.data.layers[zoneID].layerMap[k] = v;
+		--if (NWB.isTBC) then
+		--	NWB.data.layers[zoneID].terokTowersTime = 0;
+		--end
+		--if (NWB.isClassic) then
+			if (NWB.data.layerMapBackups and NWB.data.layerMapBackups[zoneID]
+					and (GetServerTime() - NWB.data.layerMapBackups[zoneID].created) < 518400) then
+				--Restore layermap backup if less than 6 days old.
+				if (not NWB.data.layers[zoneID].layerMap) then
+					NWB.data.layers[zoneID].layerMap = {};
+				end
+				--NWB.data.layers[zoneID].layerMap = NWB.data.layerMapBackups[zoneID];
+				--Create a copy instead of refrence and ignore timestamp.
+				for k, v in pairs(NWB.data.layerMapBackups[zoneID]) do
+					--Ignore created timestamp, it's not needed in the layermap, only in the backup.
+					if (k ~= "created" and v ~= 1952) then
+						NWB.data.layers[zoneID].layerMap[k] = v;
+					end
 				end
 			end
-		end
+		--end
 		--if (NWB.data.layerMapBackups[zoneID]) then
 			--Delete layermap on the off chance we get the same city id 2 weeks in a row.
 			--NWB.data.layerMapBackups[zoneID] = nil;
@@ -9054,6 +9900,9 @@ function NWB:removeOldLayers()
 			if (v.terokTowers and v.terokTowers + 3600 > GetServerTime()) then
 				validTimer = true;
 			end
+			if (v.lastSeenNPC and v.lastSeenNPC + expireTime > GetServerTime()) then
+				validTimer = true;
+			end
 			if (not v.created) then
 				--For older layers created before this version update and missing this field.
 				v.created = 0;
@@ -9068,7 +9917,7 @@ function NWB:removeOldLayers()
 				end
 				NWB.data.layers[k] = nil;
 				removed = true;
-				NWB:debug("Removed old layer", k);
+				NWB:debug("Removed old layer", k, v.lastSeenNPC, validTimer, v.created, v.created < GetServerTime() - expireTime);
 			end
 		end
 	end
@@ -9205,7 +10054,7 @@ end
 function NWB:checkLayers()
 	for k, v in pairs(NWB.data) do
 		if (NWB.validKeys[k] and tonumber(v)) then
-			if (v > GetServerTime()) then
+			if (v > GetServerTime() + 43200) then
 				NWB.data[k] = 0;
 			end
 		end
@@ -9288,12 +10137,25 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 	NWBlayerFrame.EditBox:SetText("");
 	local text = "\n\n";
 	table.sort(NWB.data.layers);
+	local layerBuffSpells = NWB.layerBuffSpells;
 	if (NWB.isLayered) then
 		for k, v in NWB:pairsByKeys(NWB.data.layers) do
 			foundTimers = true;
 			count = count + 1;
 			--NWBlayerFrame.EditBox:Insert("\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r\n");
-			text = text .. "\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r\n";
+			local wintergraspTextures, buffTextures = "", "";
+			if (NWB:isWintergraspBuffLayer(k, "layerFrame")) then
+				wintergraspTexture = " " .. "|T237021:12:12|t";
+			end
+			if (NWB.data.layerBuffs[k]) then
+				for spellID, timestamp in pairs(NWB.data.layerBuffs[k]) do
+					if (layerBuffSpells[spellID] and GetServerTime() - timestamp < 600) then
+						local icon = layerBuffSpells[spellID];
+						buffTextures = buffTextures .. " " .. "|T" .. icon .. ":12:12|t";
+					end
+				end
+			end
+			text = text .. "\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r " .. wintergraspTextures .. buffTextures .. "\n";
 			text = text .. NWB.chatColor;
 			if (not _G["NWBDisableLayerButton" .. count]) then
 				NWB:createDisableLayerButton(count);
@@ -9384,22 +10246,40 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 			end
 			--NWBlayerFrame.EditBox:Insert(NWB.chatColor .. msg .. "\n");
 			text = text .. msg .. "\n";
-			if (NWB.isTBC) then
+			if (NWB.isTBC or NWB.isWrathPrepatch) then
 				local texture = "";
 				msg = "";
 				if (v.terokTowers) then
-					if (v.terokTowers > GetServerTime()) then
+					local endTime = NWB:getTerokEndTime(v.terokTowers, v.terokTowersTime);
+					local secondsLeft = endTime - GetServerTime()
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -3599) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (v.terokFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (v.terokFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["terokkarTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					elseif (v.terokTowers > GetServerTime()) then
 						if (v.terokFaction == 2) then
 							--5242
 							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
 						elseif (v.terokFaction == 3) then
 							--5243
 							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-						elseif (v.terokFaction == 1) then
+						else
 							--5387
 							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 						end
-						local endTime = v.terokTowers + NWB:round((((v.terokTowers  - GetServerTime()) / 60) * 3));
+						local endTime = NWB:getTerokEndTime(v.terokTowers, v.terokTowersTime);
 						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
 						if (NWB.db.global.showTimeStamp) then
 							local timeStamp = NWB:getTimeFormat(endTime);
@@ -9412,6 +10292,66 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 				else
 					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 					msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				end
+				text = text .. msg .. "\n";
+			end
+			if (NWB.isWrath) then
+				local texture = "";
+				msg = "";
+				if (NWB.data.wintergrasp) then
+					local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+					local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+					local secondsLeft = endTime - GetServerTime()
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					elseif (wintergrasp > GetServerTime()) then
+						if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+					--[[elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+						--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+						local endTime = GetServerTime() + secondsLeft;
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end]]
+					else
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					end
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
 				end
 				text = text .. msg .. "\n";
 			end
@@ -9517,22 +10457,40 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 				end
 				--NWBlayerFrame.EditBox:Insert(msg .. "\n");
 				text = text .. msg .. "\n";
-				if (NWB.isTBC) then
+				if (NWB.isTBC or NWB.isWrathPrepatch) then
 					local texture = "";
 					msg = "";
 					if (v.terokTowers) then
-						if (v.terokTowers > GetServerTime()) then
+						local endTime = NWB:getTerokEndTime(v.terokTowers, v.terokTowersTime);
+						local secondsLeft = endTime - GetServerTime()
+						if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -3599) then
+							--Convert seconds left to positive.
+							secondsLeft = secondsLeft * -1;
+					    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+					    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+					    	if (v.terokFaction == 2) then
+								--5242
+								texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+							elseif (v.terokFaction == 3) then
+								--5243
+								texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							else
+								--5387
+								texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							end
+							msg = msg .. texture .. L["terokkarTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+						elseif (v.terokTowers > GetServerTime()) then
 							if (v.terokFaction == 2) then
 								--5242
 								texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
 							elseif (v.terokFaction == 3) then
 								--5243
 								texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-							elseif (v.terokFaction == 1) then
+							else
 								--5387
 								texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 							end
-							local endTime = v.terokTowers + NWB:round((((v.terokTowers  - GetServerTime()) / 60) * 3));
+							local endTime = NWB:getTerokEndTime(v.terokTowers, v.terokTowersTime);
 							msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
 							if (NWB.db.global.showTimeStamp) then
 								local timeStamp = NWB:getTimeFormat(endTime);
@@ -9545,6 +10503,66 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 					else
 						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 						msg = msg .. texture .. L["terokkarTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					end
+					text = text .. msg .. "\n";
+				end
+				if (NWB.isWrath) then
+					local texture = "";
+					msg = "";
+					if (NWB.data.wintergrasp) then
+						local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+						local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+						local secondsLeft = endTime - GetServerTime()
+						if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+							--Convert seconds left to positive.
+							secondsLeft = secondsLeft * -1;
+					    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+					    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+					    	if (wintergraspFaction == 2) then
+								--5242
+								texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+							elseif (wintergraspFaction == 3) then
+								--5243
+								texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							else
+								--5387
+								texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							end
+							msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+						elseif (wintergrasp > GetServerTime()) then
+							if (wintergraspFaction == 2) then
+								--5242
+								texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+							elseif (wintergraspFaction == 3) then
+								--5243
+								texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							else
+								--5387
+								texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							end
+							local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+							msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+							if (NWB.db.global.showTimeStamp) then
+								local timeStamp = NWB:getTimeFormat(endTime);
+								msg = msg .. " (" .. timeStamp .. ")";
+							end
+						--[[elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+							--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+							local endTime = GetServerTime() + secondsLeft;
+							msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+							if (NWB.db.global.showTimeStamp) then
+								local timeStamp = NWB:getTimeFormat(endTime);
+								msg = msg .. " (" .. timeStamp .. ")";
+							end]]
+						else
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+							msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+						end
+					else
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
 					end
 					text = text .. msg .. "\n";
 				end
@@ -9637,22 +10655,39 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 			--NWBlayerFrame.EditBox:Insert(NWB.chatColor .. msg .. "\n");
 			text = text .. msg .. "\n";
 		end
-		if (NWB.isTBC) then
+		if (NWB.isTBC or NWB.isWrathPrepatch) then
 			local texture = "";
 			msg = "";
 			if (NWB.data.terokTowers) then
-				if (NWB.data.terokTowers > GetServerTime()) then
+				local endTime = NWB:getTerokEndTime(NWB.data.terokTowers, NWB.data.terokTowersTime);
+				local secondsLeft = endTime - GetServerTime()
+				if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -3599) then
+					--Convert seconds left to positive.
+					secondsLeft = secondsLeft * -1;
+			    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+			    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+			    	if (NWB.data.terokFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (NWB.data.terokFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["terokkarTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+				elseif (NWB.data.terokTowers > GetServerTime()) then
 					if (NWB.data.terokFaction == 2) then
 						--5242
 						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
 					elseif (NWB.data.terokFaction == 3) then
 						--5243
 						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
-					elseif (NWB.data.terokFaction == 1) then
+					else
 						--5387
 						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
 					end
-					local endTime = NWB.data.terokTowers + NWB:round((((NWB.data.terokTowers  - GetServerTime()) / 60) * 3));
 					msg = msg .. texture .. L["terokkarTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
 					if (NWB.db.global.showTimeStamp) then
 						local timeStamp = NWB:getTimeFormat(endTime);
@@ -9671,10 +10706,70 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 				text = text .. msg .. "\n";
 			end
 		end
+		if (NWB.isWrath) then
+			local texture = "";
+			msg = "";
+			if (NWB.data.wintergrasp) then
+				local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+				local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+				local secondsLeft = endTime - GetServerTime()
+				if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+					--Convert seconds left to positive.
+					secondsLeft = secondsLeft * -1;
+			    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+			    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+			    	if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+				elseif (wintergrasp > GetServerTime()) then
+					if (wintergraspFaction == 2) then
+						--5242
+						texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+					elseif (wintergraspFaction == 3) then
+						--5243
+						texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					else
+						--5387
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					end
+					local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end
+				--[[elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+					--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+					local endTime = GetServerTime() + secondsLeft;
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+					if (NWB.db.global.showTimeStamp) then
+						local timeStamp = NWB:getTimeFormat(endTime);
+						msg = msg .. " (" .. timeStamp .. ")";
+					end]]
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				end
+			else
+				texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+				msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+			end
+			text = text .. msg .. "\n";
+		end
 	end
-	if (NWB.isTBC) then
+	if (NWB.isTBC or NWB.isWrath) then
 		if (NWB.data.tbcDD and NWB.data.tbcDDT and GetServerTime() - NWB.data.tbcDDT < 86400) then
-			local questData = NWB:getTbcDungeonDailyData(NWB.data.tbcDD);
+			local questData = NWB:getDungeonDailyData(NWB.data.tbcDD);
 			if (questData) then
 				local name = questData.nameLocale or questData.name;
 				text = text .. "\n" .. NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r "
@@ -9684,7 +10779,7 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 			text = text .. "\n" .. NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cff00ff00N|r|cFF9CD6DE)|r Unknown.";
 		end
 		if (NWB.data.tbcHD and NWB.data.tbcHDT and GetServerTime() - NWB.data.tbcHDT < 86400) then
-			local questData = NWB:getTbcHeroicDailyData(NWB.data.tbcHD);
+			local questData = NWB:getHeroicDailyData(NWB.data.tbcHD);
 			if (questData) then
 				local name = questData.nameLocale or questData.name;
 				text = text .. "\n" .. NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r|cFFFF2222H|r|cFF9CD6DE)|r "
@@ -9698,7 +10793,7 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 			texture = "|TInterface\\TargetingFrame\\UI-PVP-Alliance:12:12:-0.6:-1:64:64:7:36:1:36|t";
 		end
 		if (NWB.data.tbcPD and NWB.data.tbcPDT and GetServerTime() - NWB.data.tbcPDT < 86400) then
-			local questData = NWB:getTbcPvpDailyData(NWB.data.tbcPD);
+			local questData = NWB:getPvpDailyData(NWB.data.tbcPD);
 			if (questData) then
 				local name = questData.nameLocale or questData.name;
 				text = text .. "\n" .. NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r "
@@ -9706,6 +10801,36 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 			end
 		else
 			text = text .. "\n" .. NWB.chatColor .."|cFFFF6900Daily|r |cFF9CD6DE(|r" .. texture .. "|cFF9CD6DE)|r Unknown.";
+		end
+		local completedQuests = {};
+		if (NWB.faction == "Horde") then
+			if (C_QuestLog.IsQuestFlaggedCompleted(10110)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Hellfire Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11506)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Terokkar Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11503)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Nagrand Halaa"] .. ":  |cFF00C800Completed|r" .. ".");
+			end
+		else
+			if (C_QuestLog.IsQuestFlaggedCompleted(10106)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Hellfire Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11505)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Terokkar Towers"] .. ": |cFF00C800Completed|r" .. ".");
+			end
+			if (C_QuestLog.IsQuestFlaggedCompleted(11502)) then
+				table.insert(completedQuests, "|cFF9CD6DE" .. L["Nagrand Halaa"] .. ":  |cFF00C800Completed|r" .. ".");
+			end
+		end
+		text = text .. "\n\n" .. NWB.chatColor .. L["Completed PvP dailies"] .. ":|r";
+		if (next(completedQuests)) then
+			for k, v in ipairs(completedQuests) do
+				text = text .. "\n" .. v;
+			end
+		else
+			text = text .. "\n|cFF9CD6DENone.|r";
 		end
 	end
 	if (copyPaste) then
@@ -9718,7 +10843,70 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 		end
 	else
 		if (not foundTimers) then
-			NWBlayerFrame.EditBox:Insert(NWB.chatColor .. "\n\n\nNo current timers found.");
+			if (NWB.isWrath) then
+				--If no layer timers still show wintergrasp.
+				local texture = "";
+				local msg = "\n\n\n\n";
+				if (NWB.data.wintergrasp) then
+					local wintergrasp, wintergraspTime, wintergraspFaction = NWB:getWintergraspData();
+					local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+					local secondsLeft = endTime - GetServerTime()
+					if (NWB.db.global.showExpiredTimersTerok and secondsLeft < 1 and secondsLeft > -900) then
+						--Convert seconds left to positive.
+						secondsLeft = secondsLeft * -1;
+				    	local minutes = string.format("%02.f", math.floor(secondsLeft / 60));
+				    	local seconds = string.format("%02.f", math.floor(secondsLeft - minutes * 60));
+				    	if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": |Cffff2500-" .. minutes .. ":" .. seconds .. " (expired)|r";
+					elseif (wintergrasp > GetServerTime()) then
+						if (wintergraspFaction == 2) then
+							--5242
+							texture = "|TInterface\\worldstateframe\\alliancetower.blp:12:12:-2:1:32:32:1:18:1:18|t";
+						elseif (wintergraspFaction == 3) then
+							--5243
+							texture = "|TInterface\\worldstateframe\\hordetower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						else
+							--5387
+							texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						end
+						local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end
+					--[[elseif (secondsLeft < 1 and secondsLeft > -43200 and NWB.isDebug) then
+						--Treat it as a repeating timer if expired within the last 12h, it seems to be exactly 3h repeating no matter how long the match goes.
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						local secondsLeft = 10800 - math.abs(math.fmod(secondsLeft, 10800));
+						local endTime = GetServerTime() + secondsLeft;
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. NWB:getTimeString(endTime - GetServerTime(), true) .. ".";
+						if (NWB.db.global.showTimeStamp) then
+							local timeStamp = NWB:getTimeFormat(endTime);
+							msg = msg .. " (" .. timeStamp .. ")";
+						end]]
+					else
+						texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+						msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+					end
+				else
+					texture = "|TInterface\\worldstateframe\\neutraltower.blp:12:12:-2:0:32:32:1:18:1:18|t";
+					msg = msg .. texture .. L["wintergraspTimer"] .. ": " .. L["noCurrentTimer"] .. ".";
+				end
+				text = msg .. text;
+				NWBlayerFrame.EditBox:Insert(NWB.chatColor .. text);
+			else
+				NWBlayerFrame.EditBox:Insert(NWB.chatColor .. "\n\n\nNo current timers found.");
+			end
 		else
 			NWBlayerFrame.EditBox:Insert(NWB.chatColor .. text);
 		end
@@ -9789,38 +10977,12 @@ f:SetScript('OnEvent', function(self, event, ...)
 		NWB:setCurrentLayerText("mouseover");
 		NWB:mapCurrentLayer("mouseover");
 	elseif (event == "GROUP_JOINED") then
-		NWB.lastKnownLayerMapID = 0;
-		NWB.currentZoneID = 0;
-		--Block a new zoneid from being set for longer than the team join block is if it's the same zoneid they got earlier.
-		--IE not changed layer yet after joining group because of layer swap cooldown.
-		--This time should be a longer duration than lastJoinedGrop lockout below.
-		--if (NWB.validZoneIDTimer) then
-		--	NWB.validZoneIDTimer:Cancel();
-		--end
-		--NWB.validZoneIDTimer = C_Timer.NewTimer(600, function()
-		--	NWB.lastCurrentZoneID = nil;
-		--end)
-		NWB.lastJoinedGroup = GetServerTime();
-		if ((GetServerTime() - logonEnteringWorld) > 5) then
-			--NWB.lastKnownLayerMapIDBackup is used for songflowers only.
-			--It's a way to attach SF timers to a layer even if you logon in a group or join a group right after logon.
-			--NWB.lastKnownLayerMapID is wiped on joining group for layer changing reasons so that's why this backup exists only for songflowers.
-			--Here we allow NWB.lastKnownLayerMapIDBackup to be valid for 3 minutes after logging in if already in a group.
-			--Or valid for up to 1 minute after logon if you join a group after logon.
-			local sinceLogon = GetServerTime() - logonEnteringWorld;
-			local buffer = 60 - sinceLogon;
-			if (buffer > 0) then
-				C_Timer.After(buffer, function()
-					NWB.lastKnownLayerMapIDBackup = nil;
-				end)
-			else
-				NWB.lastKnownLayerMapIDBackup = nil;
-			end
-		end
+		NWB:joinedGroupLayer();
 	elseif (event == "PLAYER_LOGIN") then
 		logonEnteringWorld = GetServerTime();
 		if (IsInGroup()) then
 			NWB.lastKnownLayerMapID = 0;
+			NWB.lastKnownLayerMapID_Mapping = 0;
 			NWB.currentZoneID = 0;
 			--NWB.lastJoinedGroup = GetServerTime();
 		end
@@ -9836,6 +10998,7 @@ f:SetScript('OnEvent', function(self, event, ...)
 		end
 		NWB.currentZoneID = 0;
 		NWB.lastCurrentZoneID = 0;
+		NWB.phaseCheck = 0;
 	elseif (event == "PLAYER_ENTERING_WORLD") then
 		local isLogon, isReload = ...;
 		NWB:recalcMinimapLayerFrame();
@@ -9865,6 +11028,40 @@ f:SetScript('OnEvent', function(self, event, ...)
 	end
 end)
 
+function NWB:joinedGroupLayer()
+	NWB.lastKnownLayerMapID = 0;
+	NWB.lastKnownLayerMapID_Mapping = 0;
+	NWB.currentZoneID = 0;
+	NWB.lastCurrentZoneID = 0;
+	NWB.phaseCheck = nil;
+	--Block a new zoneid from being set for longer than the team join block is if it's the same zoneid they got earlier.
+	--IE not changed layer yet after joining group because of layer swap cooldown.
+	--This time should be a longer duration than lastJoinedGrop lockout below.
+	--if (NWB.validZoneIDTimer) then
+	--	NWB.validZoneIDTimer:Cancel();
+	--end
+	--NWB.validZoneIDTimer = C_Timer.NewTimer(600, function()
+	--	NWB.lastCurrentZoneID = nil;
+	--end)
+	NWB.lastJoinedGroup = GetServerTime();
+	if ((GetServerTime() - logonEnteringWorld) > 5) then
+		--NWB.lastKnownLayerMapIDBackup is used for songflowers only.
+		--It's a way to attach SF timers to a layer even if you logon in a group or join a group right after logon.
+		--NWB.lastKnownLayerMapID is wiped on joining group for layer changing reasons so that's why this backup exists only for songflowers.
+		--Here we allow NWB.lastKnownLayerMapIDBackup to be valid for 3 minutes after logging in if already in a group.
+		--Or valid for up to 1 minute after logon if you join a group after logon.
+		local sinceLogon = GetServerTime() - logonEnteringWorld;
+		local buffer = 60 - sinceLogon;
+		if (buffer > 0) then
+			C_Timer.After(buffer, function()
+				NWB.lastKnownLayerMapIDBackup = nil;
+			end)
+		else
+			NWB.lastKnownLayerMapIDBackup = nil;
+		end
+	end
+end
+
 function NWB:guidFromClosestNameplate()
 	if (GetCVar("nameplateShowFriends") ~= "1") then
 		SetCVar("nameplateShowFriends", 1);
@@ -9882,10 +11079,12 @@ end
 NWB.lastKnownLayer = 0;
 NWB.lastKnownLayerID = 0;
 NWB.lastKnownLayerMapID = 0;
+NWB.lastKnownLayerMapID_Mapping = 0; --More strict layerMapID, can only be set in capitals and zones with timers can only be mapped by this.
 NWB.lastKnownLayerMapIDBackup = 0; --Only used for songflowers if logging on in a group.
 NWB.lastKnownLayerMapIDBackupValidFor = 120; --How long after logon this can be valid for.
 NWB.currentZoneID = 0;
 NWB.lastCurrentZoneID = 0;
+NWB.phaseCheck = 0;
 NWB.validZoneIDTimer = nil;
 NWB.AllowCurrentZoneID = true;
 --Enable some globals that other addons/weakauras can use.
@@ -9906,19 +11105,24 @@ function NWB:setCurrentLayerText(unit)
 		return;
 	end
 	--NWB:debug("Layer:", GUID);
+	if (zone == 1952) then
+		--This is for strict layer checks while recording terokkar tower timers.
+		NWB.lastTerokNPCID = npcID;
+	end
+	--This only works in capital cities past this point.
 	if (NWB.faction == "Horde" and (zone ~= 1454 or not npcID)) then
-		NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg4"], "Orgrimmar") .. "|r");
+		NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Orgrimmar") .. "|r");
 		return;
 	end
 	if (NWB.faction == "Alliance" and (zone ~= 1453 or not npcID)) then
-		NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg4"], "Stormwind") .. "|r");
+		NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Stormwind") .. "|r");
 		return;
 	end
 	if (unitType ~= "Creature" or NWB.companionCreatures[tonumber(npcID)]) then
 		if (NWB.faction == "Horde") then
-			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg4"], "Orgrimmar") .. "|r");
+			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Orgrimmar") .. "|r");
 		else
-			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg4"], "Stormwind") .. "|r");
+			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Stormwind") .. "|r");
 		end
 		return;
 	end
@@ -9933,6 +11137,8 @@ function NWB:setCurrentLayerText(unit)
 			end
 			NWB.currentLayer = count;
 			NWB_CurrentLayer = count;
+			local me = UnitName("player");
+			NWB.hasL[me .. "-" .. GetRealmName()] = tostring(count);
 			NWB.lastKnownLayer = count;
 			NWB.lastKnownLayerID = k;
 			if ((GetServerTime() - NWB.lastJoinedGroup) > NWB.lastJoinedGroupCooldown) then
@@ -9942,7 +11148,7 @@ function NWB:setCurrentLayerText(unit)
 			NWB:recalcMinimapLayerFrame();
 			--Update layer created time any time we target a NPC on this layer in capital city.
 			--To help layers persist better overnight but not after server restarts.
-			--But only if the layer has had a valid timer previously.
+			--But only if the player has had a valid timer previously.
 			--This may create problems with false layers being shared around if a layer is created by some not valid city NPC.
 			--Will see how this goes, I need layers to be shared without timers, hotfixes lately have broken world buff NPCs.
 			--if (v.rendTimer > 0 or v.onyTimer > 0 or v.nefTimer > 0) then
@@ -9950,9 +11156,8 @@ function NWB:setCurrentLayerText(unit)
 			--end
 			if (((NWB.faction == "Alliance" and zone == 1453 and NWB.stormwindCreatures[tonumber(npcID)])
 					or (NWB.faction == "Horde" and zone == 1454 and NWB.orgrimmarCreatures[tonumber(npcID)]))
-					and (GetServerTime() - NWB.lastJoinedGroup) > 300
-					and (GetServerTime() - NWB.lastZoneChange) > 30
-					) then
+					and (GetServerTime() - NWB.lastJoinedGroup) > 600
+					and (GetServerTime() - NWB.lastZoneChange) > 30) then
 					--and NWB.lastCurrentZoneID ~= tonumber(zoneID)) then
 				NWB.currentZoneID = tonumber(zoneID);
 				--NWB:debug("NWB.currentZoneID update", NWB.currentZoneID);
@@ -9960,14 +11165,24 @@ function NWB:setCurrentLayerText(unit)
 				--So when you join a group you can't get another valid zoneID from the same layer and then phase over after it bringing the wrong zoneID with you.
 				NWB.lastCurrentZoneID = tonumber(zoneID);
 				NWB.data.layers[k].lastSeenNPC = GetServerTime();
+				NWB.lastKnownLayerMapID_Mapping = tonumber(zoneID);
 			end
 			return;
 		end
 	end
-	if (((NWB.faction == "Alliance" and zone == 1453 and NWB.stormwindCreatures[tonumber(npcID)])
+	--[[if (((NWB.faction == "Alliance" and zone == 1453 and NWB.stormwindCreatures[tonumber(npcID)])
 			or (NWB.faction == "Horde" and zone == 1454 and NWB.orgrimmarCreatures[tonumber(npcID)]))
 			and tonumber(zoneID) and not NWB.data.layers[tonumber(zoneID)]) then
 		NWB:createNewLayer(tonumber(zoneID), GUID, true);
+	end]]
+	if (((NWB.faction == "Alliance" and zone == 1453 and NWB.stormwindCreatures[tonumber(npcID)])
+			or (NWB.faction == "Horde" and zone == 1454 and NWB.orgrimmarCreatures[tonumber(npcID)]))
+			and tonumber(zoneID)) then
+		if (not NWB.data.layers[tonumber(zoneID)]) then
+			NWB:createNewLayer(tonumber(zoneID), GUID, true);
+		end
+		--This can only be set while in a capital and is used for mapping zones with timers like terokkar.
+		NWB.lastKnownLayerMapID_Mapping = tonumber(zoneID);
 	end
 	--I was going to let it create layers from layermap backups out in the world when timers aren't dropped for a while.
 	--Needs more thought though how to handle old layermap data after server restarts.
@@ -10055,6 +11270,21 @@ NWB.layerMapWhitelist = {
 	[1954] = "Silvermoon City",
 	[1955] = "Shattrath City",
 	[1957] = "Isle of Quel'Danas",
+	
+	--Wrath.
+	--[113] = "Northrend",
+	[114] = "Borean Tundra",
+	[115] = "Dragonblight",
+	[116] = "Grizzly Hills",
+	[117] = "Howling Fjord",
+	[118] = "Icecrown",
+	[119] = "Sholazar Basin",
+	[120] = "The Storm Peaks",
+	[121] = "Zul'Drak",
+	--[123] = "Wintergrasp",
+	[125] = "Dalaran",
+	--[126] = "The Underbelly", --Dalaran sewers.
+	[127] = "Crystalsong Forest",
 };
 
 function NWB.k()
@@ -10070,7 +11300,7 @@ end
 	On rare occasions it could map the wrong id if previous zone we came from is completly unknown,
 	but with the data being shared around the server, most of the time after server restarts it will just
 	get mapped one time by a few early players and shared around, so the chances of this bug happening is pretty low.]]
-	
+
 function NWB:mapCurrentLayer(unit)
 	if (not NWB.isLayered or not unit or UnitOnTaxi("player") or IsInInstance() or UnitInBattleground("player") or NWB:isInArena()) then
 		return;
@@ -10124,8 +11354,8 @@ function NWB:mapCurrentLayer(unit)
 	end
 	--Only start mapping if we have come from org/stormwind and know our layer already.
 	--And only start mapping if we haven't joined a group since leaving org.
+	local foundOldID;
 	if (NWB.lastKnownLayerMapID < 1) then
-		local foundOldID;
 		--if ((GetServerTime() - NWB.lastJoinedGroup) > 180) then
 			for k, v in pairs(NWB.data.layers) do
 				if (v.layerMap and next(v.layerMap)) then
@@ -10147,6 +11377,9 @@ function NWB:mapCurrentLayer(unit)
 			return;
 		end
 	end
+	--if (foundOldID) then
+	--	NWB.phaseCheck = zoneID;
+	--end
 	--Don't map a new zone if it's a guard outside capital city with the city zoneid.
 	if (zoneID == NWB.lastKnownLayerMapID) then
 		NWB:debug("trying to map zone to already known layer");
@@ -10157,6 +11390,21 @@ function NWB:mapCurrentLayer(unit)
 		--Guards outside opposite factions city can record the wrong mapid if targeting before you enter.
 		return;
 	end
+	--Seeing if this fixes a bug with incorrect layer mapping.
+	if (NWB.lastJoinedGroup > 0) then
+		--Never map new zones if group has been joined.
+		return;
+	end
+	if (NWB.phaseCheck ~= 0 and NWB.phaseCheck ~= zoneID) then
+		--NWB.phaseCheck is 0 when entering new zone and nil when joining a group.
+		--If we join a group then we must cross a zone border before we can record layer data.
+		--If we have a zoneID recorded for this zone and it suddenly changes then assume we got pushed off the later without a group join.
+		--Simulate a group join.
+		NWB:debug("Phase changed detected?");
+		NWB:joinedGroupLayer();
+		return;
+	end
+	NWB.phaseCheck = zoneID;
 	if (NWB.data.layers[NWB.lastKnownLayerMapID]) then
 		if (not NWB.data.layers[NWB.lastKnownLayerMapID].layerMap) then
 			--Create layer map if doesn't exist.
@@ -10187,11 +11435,38 @@ function NWB:mapCurrentLayer(unit)
 					return;
 				end
 			end
-			if (NWB.layerMapWhitelist[zone] and NWB:validateZoneID(zoneID, NWB.lastKnownLayerMapID, zone)) then
+			local halt;
+			if (not NWB.isClassic) then
+				local offsetLimit;
+				if (NWB.isClassic) then
+					offsetLimit = 999;
+				else
+					offsetLimit = 200;
+				end
+				--if (NWB.realm == "Faerlina" or NWB.realm == "Firemaw" or NWB.realm == "Benediction" or NWB.realm == "Gehennas") then
+					local layerOffset = NWB:getLayerOffset(NWB.lastKnownLayerMapID, nil, zoneID);
+					if (layerOffset and (layerOffset > offsetLimit and NWB.lastKnownLayerMapID_Mapping == 0)) then
+						halt = true;
+					end
+				--end
+			end
+			if (not halt and NWB.layerMapWhitelist[zone] and NWB:validateZoneID(zoneID, NWB.lastKnownLayerMapID, zone)) then
 				--If zone is not mapped yet since server restart then add it.
-				NWB:debug("mapped new zone to layer id", NWB.lastKnownLayerMapID, "zoneid:", zoneID, "zone:", zone);
-				NWB.data.layers[NWB.lastKnownLayerMapID].layerMap[zoneID] = zone;
-				NWB:sendData("GUILD");
+				if (zone == 1952) then
+					--1952 Terokkar.
+					if (NWB.lastKnownLayerMapID_Mapping > 0) then
+						--Only map zones with timers if we have gotten our current layer from a capital city.
+						NWB:debug("mapped new timer zone to layer id", NWB.lastKnownLayerMapID_Mapping, "zoneid:", zoneID, "zone:", zone);
+						NWB.data.layers[NWB.lastKnownLayerMapID_Mapping].layerMap[zoneID] = zone;
+						NWB:sendData("GUILD", nil, nil, nil, true, nil, true);
+						NWB:sendData("YELL", nil, nil, nil, true, nil, true);
+					end
+				else
+					NWB:debug("mapped new zone to layer id", NWB.lastKnownLayerMapID, "zoneid:", zoneID, "zone:", zone);
+					NWB.data.layers[NWB.lastKnownLayerMapID].layerMap[zoneID] = zone;
+					NWB:sendData("GUILD", nil, nil, nil, true, nil, true);
+					NWB:sendData("YELL", nil, nil, nil, true, nil, true);
+				end
 			end
 		else
 			--NWB:debug("zoneid already known");
@@ -10278,7 +11553,7 @@ function NWB:resetLayerMaps()
 end
 
 --Layer map display.
-local NWBLayerMapFrame = CreateFrame("ScrollFrame", "NWBLayerMapFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+local NWBLayerMapFrame = CreateFrame("ScrollFrame", "NWBLayerMapFrame", UIParent, NWB:addBackdrop("NWB_InputScrollFrameTemplate"));
 NWBLayerMapFrame:Hide();
 NWBLayerMapFrame:SetToplevel(true);
 NWBLayerMapFrame:SetMovable(true);
@@ -10308,7 +11583,7 @@ NWBLayerMapFrame:HookScript("OnUpdate", function(self, arg)
 		layerMapUpdateTime = GetServerTime();
 	end
 end)
-NWBLayerMapFrame.fs = NWBLayerMapFrame:CreateFontString("NWBLayerMapFrameFS", "HIGH");
+NWBLayerMapFrame.fs = NWBLayerMapFrame:CreateFontString("NWBLayerMapFrameFS", "ARTWORK");
 NWBLayerMapFrame.fs:SetPoint("TOP", 0, -0);
 NWBLayerMapFrame.fs:SetFont(NWB.regionFont, 14);
 NWBLayerMapFrame.fs:SetText("|cFFFFFF00Layer Mapping for " .. GetRealmName() .. "|r");
@@ -10325,7 +11600,7 @@ NWBLayerMapDragFrame.tooltip:SetPoint("CENTER", NWBLayerMapDragFrame, "TOP", 0, 
 NWBLayerMapDragFrame.tooltip:SetFrameStrata("TOOLTIP");
 NWBLayerMapDragFrame.tooltip:SetFrameLevel(9);
 NWBLayerMapDragFrame.tooltip:SetAlpha(.8);
-NWBLayerMapDragFrame.tooltip.fs = NWBLayerMapDragFrame.tooltip:CreateFontString("NWBLayerMapDragTooltipFS", "HIGH");
+NWBLayerMapDragFrame.tooltip.fs = NWBLayerMapDragFrame.tooltip:CreateFontString("NWBLayerMapDragTooltipFS", "ARTWORK");
 NWBLayerMapDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBLayerMapDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
 NWBLayerMapDragFrame.tooltip.fs:SetText("Hold to drag");
@@ -10389,7 +11664,7 @@ function NWB:openLayerMapFrame()
 		NWBLayerMapFrame:SetHeight(300);
 		NWBLayerMapFrame:SetWidth(450);
 		local fontSize = false
-		NWBLayerMapFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBLayerMapFrame.EditBox:SetFont(NWB.regionFont, 14, "");
 		NWBLayerMapFrame.EditBox:SetWidth(NWBLayerMapFrame:GetWidth() - 30);
 		NWBLayerMapFrame:Show();
 		NWB:recalcLayerMapFrame()
@@ -10451,13 +11726,24 @@ function NWB:recalcLayerMapFrame()
 	end
 end
 
---Reset layers one time, needed when upgrading from old version.
+--Reset layers, needed sometimes when upgrading from old version.
 --Old version copys over the whole table from new version users and prevents a proper new layer being created with that id.
 function NWB:resetLayerData()
-	if (NWB.db.global.resetLayers5) then
+	if (NWB.db.global.resetDailyData) then
+		--Only run during v2.16 after a daily bug fix, will be removed after.
+		NWB.data.tbcDD = nil;
+		NWB.data.tbcDDT = nil;
+		NWB.data.tbcHD = nil;
+		NWB.data.tbcHDT = nil;
+		NWB.data.tbcPD = nil;
+		NWB.data.tbcPDT = nil;
+		NWB.db.global.resetDailyData = false;
+	end
+	if (NWB.db.global.resetLayers13) then
 		NWB:debug("resetting layer data");
 		NWB.data.layers = {};
-		NWB.db.global.resetLayers5 = false;
+		NWB.data.layerMapBackups = {};
+		NWB.db.global.resetLayers13 = false;
 	end
 end
 
@@ -10654,7 +11940,7 @@ MinimapLayerFrame.tooltip:SetPoint("CENTER", MinimapLayerFrame, "TOP", 0, 12);
 MinimapLayerFrame.tooltip:SetFrameStrata("TOOLTIP");
 MinimapLayerFrame.tooltip:SetFrameLevel(9);
 --MinimapLayerFrame.tooltip:SetAlpha(.9);
-MinimapLayerFrame.tooltip.fs = MinimapLayerFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "HIGH");
+MinimapLayerFrame.tooltip.fs = MinimapLayerFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "ARTWORK");
 MinimapLayerFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 MinimapLayerFrame.tooltip.fs:SetFont(NWB.regionFont, 10);
 MinimapLayerFrame.tooltip.fs:SetText("Target a NPC to\nupdate your layer");
@@ -10725,6 +12011,8 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 				end
 				NWB.currentLayer = count;
 				NWB_CurrentLayer = count;
+				local me = UnitName("player");
+				NWB.hasL[me .. "-" .. GetRealmName()] = tostring(count);
 				NWB.lastKnownLayer = count;
 				NWB.lastKnownLayerID = k;
 				NWB.lastKnownLayerTime = GetServerTime();
@@ -10769,6 +12057,8 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 							MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 12);
 							foundBackup = true;
 							NWB_CurrentLayer = backupCount;
+							local me = UnitName("player");
+							NWB.hasL[me .. "-" .. GetRealmName()] = tostring(backupCount);
 							if (NWB.currentLayerShared ~= backupCount) then
 								NWB:sendL(backupCount, "recalc minimap backup");
 								NWB.currentLayerShared = backupCount;
@@ -10832,7 +12122,7 @@ function SlashCmdList.NWBLAYERSCMD(msg, editBox)
 end
 
 --Version guild display.
-local NWBVersionFrame = CreateFrame("ScrollFrame", "NWBVersionFrame", UIParent, NWB:addBackdrop("InputScrollFrameTemplate"));
+local NWBVersionFrame = CreateFrame("ScrollFrame", "NWBVersionFrame", UIParent, NWB:addBackdrop("NWB_InputScrollFrameTemplate"));
 NWBVersionFrame:Hide();
 NWBVersionFrame:SetToplevel(true);
 NWBVersionFrame:SetMovable(true);
@@ -10862,7 +12152,7 @@ NWBVersionFrame:HookScript("OnUpdate", function(self, arg)
 		versionUpdateTime = GetServerTime();
 	end
 end)
-NWBVersionFrame.fs = NWBVersionFrame:CreateFontString("NWBVersionFrameFS", "HIGH");
+NWBVersionFrame.fs = NWBVersionFrame:CreateFontString("NWBVersionFrameFS", "ARTWORK");
 NWBVersionFrame.fs:SetPoint("TOP", 0, -0);
 NWBVersionFrame.fs:SetFont(NWB.regionFont, 14);
 NWBVersionFrame.fs:SetText("|cFFFFFF00Guild versions seen since logon|r");
@@ -10879,7 +12169,7 @@ NWBVersionDragFrame.tooltip:SetPoint("CENTER", NWBVersionDragFrame, "TOP", 0, 12
 NWBVersionDragFrame.tooltip:SetFrameStrata("TOOLTIP");
 NWBVersionDragFrame.tooltip:SetFrameLevel(9);
 NWBVersionDragFrame.tooltip:SetAlpha(.8);
-NWBVersionDragFrame.tooltip.fs = NWBVersionDragFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "HIGH");
+NWBVersionDragFrame.tooltip.fs = NWBVersionDragFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "ARTWORK");
 NWBVersionDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBVersionDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
 NWBVersionDragFrame.tooltip.fs:SetText("Hold to drag");
@@ -10940,7 +12230,7 @@ function NWB:openVersionFrame()
 		NWBVersionFrame:SetHeight(300);
 		NWBVersionFrame:SetWidth(450);
 		local fontSize = false
-		NWBVersionFrame.EditBox:SetFont(NWB.regionFont, 14);
+		NWBVersionFrame.EditBox:SetFont(NWB.regionFont, 14, "");
 		NWBVersionFrame.EditBox:SetWidth(NWBVersionFrame:GetWidth() - 30);
 		NWBVersionFrame:Show();
 		NWB:recalcVersionFrame();
@@ -11944,7 +13234,7 @@ function NWB:createNaxxMarkers()
 	local iconLocation = "Interface\\AddOns\\NovaWorldBuffs\\Media\\Naxx.tga";
 	--Worldmap marker.
 	local obj = CreateFrame("Frame", "NWBNaxxMarker", WorldMapFrame);
-	local bg = obj:CreateTexture(nil, "MEDIUM");
+	local bg = obj:CreateTexture(nil, "ARTWORK");
 	bg:SetTexture(iconLocation);
 	bg:SetAllPoints(obj);
 	obj.texture = bg;
@@ -11970,7 +13260,7 @@ function NWB:createNaxxMarkers()
 	
 	--Minimap marker.
 	local obj = CreateFrame("FRAME", "NWBNaxxMarkerMini");
-	local bg = obj:CreateTexture(nil, "MEDIUM");
+	local bg = obj:CreateTexture(nil, "ARTWORK");
 	bg:SetTexture(iconLocation);
 	bg:SetAllPoints(obj);
 	obj.texture = bg;
@@ -12082,7 +13372,7 @@ scanFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 function NWB:enableScan()
-	if (not NWB.isTBC and not doScan and NWB.db.global.earlyRendScan) then
+	if (NWB.isClassic and not doScan and NWB.db.global.earlyRendScan) then
 		NWB:debug("Starting NPC scan.");
 		--Disable swatter from intercepting our error check, it breaks the NPC warning.
 		if (Swatter and Swatter.Frame) then
@@ -12155,7 +13445,7 @@ function NWB:heraldFound(sender, layer)
 			senderMsg = " (" .. sender .. ")";
 		end
 		NWB:print(msg .. senderMsg);
-		if (_G["DBM"] and _G["DBM"].CreatePizzaTimer and not NWB.isTBC) then
+		if (_G["DBM"] and _G["DBM"].CreatePizzaTimer and NWB.isClassic) then
 			_G["DBM"]:CreatePizzaTimer(time, timerMsg);
 		end
 		--[[if (IsAddOnLoaded("BigWigs") and NWB.db.global.bigWigsSupport) then
@@ -12188,7 +13478,7 @@ function NWB:heraldYell()
 		local timerMsg = "Crossroads Rend";
 		local time = 6;
 		local layerMsg = "";
-		if (_G["DBM"] and _G["DBM"].CreatePizzaTimer and not NWB.isTBC) then
+		if (_G["DBM"] and _G["DBM"].CreatePizzaTimer and NWB.isClassic) then
 			_G["DBM"]:CreatePizzaTimer(time, timerMsg);
 		end
 		--[[if (IsAddOnLoaded("BigWigs") and NWB.db.global.bigWigsSupport) then
@@ -12220,615 +13510,620 @@ function NWB:recordPvpState()
 	end
 end
 
---DMF Helper Frame.
---This helps using the stuck method for DMF buff people are already using on pvp realms for when factions are griefing each other.
---If Blizzard is against using stuck in this way I'll be happy to remove this.
-local dmfTimerBar;
-local NWBDmfFrame = CreateFrame("Frame", "NWBDmfFrame", UIParent, NWB:addBackdrop());
-NWBDmfFrame:Hide();
-NWBDmfFrame:SetToplevel(true);
-NWBDmfFrame:SetMovable(true);
-NWBDmfFrame:EnableMouse(true);
---tinsert(UISpecialFrames, "NWBDmfFrame");
-NWBDmfFrame:SetPoint("CENTER", UIParent, -325, 125);
-NWBDmfFrame:SetWidth(250);
-NWBDmfFrame:SetHeight(270);
-NWBDmfFrame:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8",insets = {top = 0, left = 0, bottom = 0, right = 0}});
-NWBDmfFrame:SetBackdropColor(0,0,0,.6);
-NWBDmfFrame:SetFrameLevel(128);
-NWBDmfFrame:SetFrameStrata("MEDIUM");
-NWBDmfFrame.fs = NWBDmfFrame:CreateFontString("NWBDmfFrameFS", "HIGH");
-NWBDmfFrame.fs:SetPoint("TOP", 0, -3);
-NWBDmfFrame.fs:SetFont(NWB.regionFont, 14);
-NWBDmfFrame.fs:SetText(NWB.prefixColor .. "NWB Stuck Helper");
-NWBDmfFrame.fs2 = NWBDmfFrame:CreateFontString("NWBDmfFrameFS2", "HIGH");
-NWBDmfFrame.fs2:SetPoint("TOP", 0, -65);
-NWBDmfFrame.fs2:SetFont(NWB.regionFont, 14);
-local iwtKeybind = "";
-NWBDmfFrame.fs2:SetText("Current Interact With Target keybind: |cffffa500" .. iwtKeybind);
-NWBDmfFrame.fs3 = NWBDmfFrame:CreateFontString("NWBDmfFrameFS", "HIGH");
-NWBDmfFrame.fs3:SetPoint("TOP", 0, -19);
-NWBDmfFrame.fs3:SetFont(NWB.regionFont, 14);
-NWBDmfFrame.fs3:SetText("|cffffff00Target Sayge and be in interact range\nbefore starting.");
-
-function NWB:updateInteractBindText()
-	iwtKeybind = GetBindingKey("INTERACTTARGET");
-	if (not iwtKeybind) then
-		iwtKeybind = "None";
-	end
-	NWBDmfFrame.fs2:SetText("Current Interact With Target keybind:\n|cffffa500" .. iwtKeybind);
-end
-
-local NWBDmfDragFrame = CreateFrame("Frame", "NWBbuffListDragFrame", NWBDmfFrame);
---NWBDmfDragFrame:SetToplevel(true);
-NWBDmfDragFrame:EnableMouse(true);
-NWBDmfDragFrame:SetWidth(205);
-NWBDmfDragFrame:SetHeight(38);
-NWBDmfDragFrame:SetPoint("TOP", 0, 4);
-NWBDmfDragFrame:SetFrameLevel(131);
-NWBDmfDragFrame.tooltip = CreateFrame("Frame", "NWBDmfDragTooltip", NWBDmfDragFrame, "TooltipBorderedFrameTemplate");
-NWBDmfDragFrame.tooltip:SetPoint("CENTER", NWBDmfDragFrame, "TOP", 0, 12);
-NWBDmfDragFrame.tooltip:SetFrameStrata("TOOLTIP");
-NWBDmfDragFrame.tooltip:SetFrameLevel(9);
-NWBDmfDragFrame.tooltip:SetAlpha(.8);
-NWBDmfDragFrame.tooltip.fs = NWBDmfDragFrame.tooltip:CreateFontString("NWBDmfDragTooltipFS", "HIGH");
-NWBDmfDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
-NWBDmfDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBDmfDragFrame.tooltip.fs:SetText("Hold to drag");
-NWBDmfDragFrame.tooltip:SetWidth(NWBDmfDragFrame.tooltip.fs:GetStringWidth() + 16);
-NWBDmfDragFrame.tooltip:SetHeight(NWBDmfDragFrame.tooltip.fs:GetStringHeight() + 10);
-NWBDmfDragFrame:SetScript("OnEnter", function(self)
-	NWBDmfDragFrame.tooltip:Show();
-end)
-NWBDmfDragFrame:SetScript("OnLeave", function(self)
-	NWBDmfDragFrame.tooltip:Hide();
-end)
-NWBDmfDragFrame.tooltip:Hide();
-NWBDmfDragFrame:SetScript("OnMouseDown", function(self, button)
-	if (button == "LeftButton" and not self:GetParent().isMoving) then
-		self:GetParent():StartMoving();
-		self:GetParent().isMoving = true;
-		--self:GetParent():SetUserPlaced(false);
-	end
-end)
-NWBDmfDragFrame:SetScript("OnMouseUp", function(self, button)
-	if (button == "LeftButton" and self:GetParent().isMoving) then
-		self:GetParent():StopMovingOrSizing();
-		self:GetParent().isMoving = false;
-	end
-end)
-NWBDmfDragFrame:SetScript("OnHide", function(self)
-	if (self:GetParent().isMoving) then
-		self:GetParent():StopMovingOrSizing();
-		self:GetParent().isMoving = false;
-	end
-end)
-
---Top right X close button.
-local NWBDmfFrameClose = CreateFrame("Button", "NWBDmfFrameFrameClose", NWBDmfFrame, "UIPanelCloseButton");
-NWBDmfFrameClose:SetPoint("TOPRIGHT", 0, 0);
-NWBDmfFrameClose:SetWidth(20);
-NWBDmfFrameClose:SetHeight(20);
---NWBDmfFrameClose:SetFrameLevel(3);
-local clickedDmfFrameClose;
-NWBDmfFrameClose:SetScript("OnClick", function(self, arg)
-	clickedDmfFrameClose = true;
+if (NWB.isClassic) then
+	--DMF Helper Frame.
+	--This helps using the stuck method for DMF buff people are already using on pvp realms for when factions are griefing each other.
+	--If Blizzard is against using stuck in this way I'll be happy to remove this.
+	local dmfTimerBar;
+	local NWBDmfFrame = CreateFrame("Frame", "NWBDmfFrame", UIParent, NWB:addBackdrop());
 	NWBDmfFrame:Hide();
-	NWB:print("Closed DMF helper, to reopen it walk away from Sayge and back in again (This window can disabled in /nwb config).");
-end)
---Adjust the X texture so it fits the entire frame and remove the empty clickable space around the close button.
---Big thanks to Meorawr for this.
-NWBDmfFrameClose:GetNormalTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
-NWBDmfFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
-NWBDmfFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
-NWBDmfFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+	NWBDmfFrame:SetToplevel(true);
+	NWBDmfFrame:SetMovable(true);
+	NWBDmfFrame:EnableMouse(true);
+	--tinsert(UISpecialFrames, "NWBDmfFrame");
+	NWBDmfFrame:SetPoint("CENTER", UIParent, -325, 125);
+	NWBDmfFrame:SetWidth(250);
+	NWBDmfFrame:SetHeight(270);
+	NWBDmfFrame:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8",insets = {top = 0, left = 0, bottom = 0, right = 0}});
+	NWBDmfFrame:SetBackdropColor(0,0,0,.6);
+	NWBDmfFrame:SetFrameLevel(128);
+	NWBDmfFrame:SetFrameStrata("MEDIUM");
+	NWBDmfFrame.fs = NWBDmfFrame:CreateFontString("NWBDmfFrameFS", "ARTWORK");
+	NWBDmfFrame.fs:SetPoint("TOP", 0, -3);
+	NWBDmfFrame.fs:SetFont(NWB.regionFont, 14);
+	NWBDmfFrame.fs:SetText(NWB.prefixColor .. "NWB Stuck Helper");
+	NWBDmfFrame.fs2 = NWBDmfFrame:CreateFontString("NWBDmfFrameFS2", "ARTWORK");
+	NWBDmfFrame.fs2:SetPoint("TOP", 0, -65);
+	NWBDmfFrame.fs2:SetFont(NWB.regionFont, 14);
+	local iwtKeybind = "";
+	NWBDmfFrame.fs2:SetText("Current Interact With Target keybind: |cffffa500" .. iwtKeybind);
+	NWBDmfFrame.fs3 = NWBDmfFrame:CreateFontString("NWBDmfFrameFS", "ARTWORK");
+	NWBDmfFrame.fs3:SetPoint("TOP", 0, -19);
+	NWBDmfFrame.fs3:SetFont(NWB.regionFont, 14);
+	NWBDmfFrame.fs3:SetText("|cffffff00Target Sayge and be in interact range\nbefore starting.");
 
---Start stuck button.
-local NWBDmfFrameStartStuckButton = CreateFrame("Button", "NWBDmfFrameStartStuckButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
-NWBDmfFrameStartStuckButton:SetAttribute("type", "macro");
-NWBDmfFrameStartStuckButton:SetAttribute("macrotext", "/click HelpFrameCharacterStuckStuck");
---NWBDmfFrameStartStuckButton:SetPoint("Bottom", 0, 10);
-NWBDmfFrameStartStuckButton:SetPoint("BottomLeft", 3, 3);
-NWBDmfFrameStartStuckButton:SetWidth(120);
-NWBDmfFrameStartStuckButton:SetHeight(30);
-NWBDmfFrameStartStuckButton:SetText("Start Stuck");
-NWBDmfFrameStartStuckButton:SetNormalFontObject("GameFontNormal");
-local lastDmfStuckStartClick = 0;
-NWBDmfFrameStartStuckButton:SetScript("OnMouseDown", function(self, arg)
-	lastDmfStuckStartClick = GetTime();
-end)
-NWBDmfFrameStartStuckButton.tooltip = CreateFrame("Frame", "NWBDmfFrameStartStuckButtonTooltip", NWBDmfFrameStartStuckButton, "TooltipBorderedFrameTemplate");
-NWBDmfFrameStartStuckButton.tooltip:SetPoint("CENTER", NWBDmfFrameStartStuckButton, "CENTER", 0, -50);
-NWBDmfFrameStartStuckButton.tooltip:SetFrameStrata("TOOLTIP");
-NWBDmfFrameStartStuckButton.tooltip:SetFrameLevel(140);
-NWBDmfFrameStartStuckButton.tooltip.fs = NWBDmfFrameStartStuckButton.tooltip:CreateFontString("NWBDmfFrameStartStuckButtonTooltipFS", "ARTWORK");
-NWBDmfFrameStartStuckButton.tooltip.fs:SetPoint("CENTER", 0, 0);
-NWBDmfFrameStartStuckButton.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBDmfFrameStartStuckButton.tooltip.fs:SetText("|CffDEDE42Start a |CFFFFA50010|CffDEDE42 second stuck timer\nwith auto resurrection.\nTarget Sayge and spam interact keybind.\n(This is the ingame Blizzard\nstuck helper with no logout)");
-NWBDmfFrameStartStuckButton.tooltip:SetWidth(NWBDmfFrameStartStuckButton.tooltip.fs:GetStringWidth() + 18);
-NWBDmfFrameStartStuckButton.tooltip:SetHeight(NWBDmfFrameStartStuckButton.tooltip.fs:GetStringHeight() + 12);
-NWBDmfFrameStartStuckButton:SetScript("OnEnter", function(self)
-	NWBDmfFrameStartStuckButton.tooltip:Show();
-end)
-NWBDmfFrameStartStuckButton:SetScript("OnLeave", function(self)
+	function NWB:updateInteractBindText()
+		iwtKeybind = GetBindingKey("INTERACTTARGET");
+		if (not iwtKeybind) then
+			iwtKeybind = "None";
+		end
+		NWBDmfFrame.fs2:SetText("Current Interact With Target keybind:\n|cffffa500" .. iwtKeybind);
+	end
+
+	local NWBDmfDragFrame = CreateFrame("Frame", "NWBbuffListDragFrame", NWBDmfFrame);
+	--NWBDmfDragFrame:SetToplevel(true);
+	NWBDmfDragFrame:EnableMouse(true);
+	NWBDmfDragFrame:SetWidth(205);
+	NWBDmfDragFrame:SetHeight(38);
+	NWBDmfDragFrame:SetPoint("TOP", 0, 4);
+	NWBDmfDragFrame:SetFrameLevel(131);
+	NWBDmfDragFrame.tooltip = CreateFrame("Frame", "NWBDmfDragTooltip", NWBDmfDragFrame, "TooltipBorderedFrameTemplate");
+	NWBDmfDragFrame.tooltip:SetPoint("CENTER", NWBDmfDragFrame, "TOP", 0, 12);
+	NWBDmfDragFrame.tooltip:SetFrameStrata("TOOLTIP");
+	NWBDmfDragFrame.tooltip:SetFrameLevel(9);
+	NWBDmfDragFrame.tooltip:SetAlpha(.8);
+	NWBDmfDragFrame.tooltip.fs = NWBDmfDragFrame.tooltip:CreateFontString("NWBDmfDragTooltipFS", "ARTWORK");
+	NWBDmfDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
+	NWBDmfDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
+	NWBDmfDragFrame.tooltip.fs:SetText("Hold to drag");
+	NWBDmfDragFrame.tooltip:SetWidth(NWBDmfDragFrame.tooltip.fs:GetStringWidth() + 16);
+	NWBDmfDragFrame.tooltip:SetHeight(NWBDmfDragFrame.tooltip.fs:GetStringHeight() + 10);
+	NWBDmfDragFrame:SetScript("OnEnter", function(self)
+		NWBDmfDragFrame.tooltip:Show();
+	end)
+	NWBDmfDragFrame:SetScript("OnLeave", function(self)
+		NWBDmfDragFrame.tooltip:Hide();
+	end)
+	NWBDmfDragFrame.tooltip:Hide();
+	NWBDmfDragFrame:SetScript("OnMouseDown", function(self, button)
+		if (button == "LeftButton" and not self:GetParent().isMoving) then
+			self:GetParent():StartMoving();
+			self:GetParent().isMoving = true;
+			--self:GetParent():SetUserPlaced(false);
+		end
+	end)
+	NWBDmfDragFrame:SetScript("OnMouseUp", function(self, button)
+		if (button == "LeftButton" and self:GetParent().isMoving) then
+			self:GetParent():StopMovingOrSizing();
+			self:GetParent().isMoving = false;
+		end
+	end)
+	NWBDmfDragFrame:SetScript("OnHide", function(self)
+		if (self:GetParent().isMoving) then
+			self:GetParent():StopMovingOrSizing();
+			self:GetParent().isMoving = false;
+		end
+	end)
+
+	--Top right X close button.
+	local NWBDmfFrameClose = CreateFrame("Button", "NWBDmfFrameFrameClose", NWBDmfFrame, "UIPanelCloseButton");
+	NWBDmfFrameClose:SetPoint("TOPRIGHT", 0, 0);
+	NWBDmfFrameClose:SetWidth(20);
+	NWBDmfFrameClose:SetHeight(20);
+	--NWBDmfFrameClose:SetFrameLevel(3);
+	local clickedDmfFrameClose;
+	NWBDmfFrameClose:SetScript("OnClick", function(self, arg)
+		clickedDmfFrameClose = true;
+		NWBDmfFrame:Hide();
+		NWB:print("Closed DMF helper, to reopen it walk away from Sayge and back in again (This window can disabled in /nwb config).");
+	end)
+	--Adjust the X texture so it fits the entire frame and remove the empty clickable space around the close button.
+	--Big thanks to Meorawr for this.
+	NWBDmfFrameClose:GetNormalTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+	NWBDmfFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+	NWBDmfFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+	NWBDmfFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
+
+	--Start stuck button.
+	local NWBDmfFrameStartStuckButton = CreateFrame("Button", "NWBDmfFrameStartStuckButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
+	NWBDmfFrameStartStuckButton:SetAttribute("type", "macro");
+	NWBDmfFrameStartStuckButton:SetAttribute("macrotext", "/click HelpFrameCharacterStuckStuck");
+	--NWBDmfFrameStartStuckButton:SetPoint("Bottom", 0, 10);
+	NWBDmfFrameStartStuckButton:SetPoint("BottomLeft", 3, 3);
+	NWBDmfFrameStartStuckButton:SetWidth(120);
+	NWBDmfFrameStartStuckButton:SetHeight(30);
+	NWBDmfFrameStartStuckButton:SetText("Start Stuck");
+	NWBDmfFrameStartStuckButton:SetNormalFontObject("GameFontNormal");
+	local lastDmfStuckStartClick = 0;
+	NWBDmfFrameStartStuckButton:SetScript("OnMouseDown", function(self, arg)
+		lastDmfStuckStartClick = GetTime();
+	end)
+	NWBDmfFrameStartStuckButton.tooltip = CreateFrame("Frame", "NWBDmfFrameStartStuckButtonTooltip", NWBDmfFrameStartStuckButton, "TooltipBorderedFrameTemplate");
+	NWBDmfFrameStartStuckButton.tooltip:SetPoint("CENTER", NWBDmfFrameStartStuckButton, "CENTER", 0, -50);
+	NWBDmfFrameStartStuckButton.tooltip:SetFrameStrata("TOOLTIP");
+	NWBDmfFrameStartStuckButton.tooltip:SetFrameLevel(140);
+	NWBDmfFrameStartStuckButton.tooltip.fs = NWBDmfFrameStartStuckButton.tooltip:CreateFontString("NWBDmfFrameStartStuckButtonTooltipFS", "ARTWORK");
+	NWBDmfFrameStartStuckButton.tooltip.fs:SetPoint("CENTER", 0, 0);
+	NWBDmfFrameStartStuckButton.tooltip.fs:SetFont(NWB.regionFont, 12);
+	NWBDmfFrameStartStuckButton.tooltip.fs:SetText("|CffDEDE42Start a |CFFFFA50010|CffDEDE42 second stuck timer\nwith auto resurrection.\nTarget Sayge and spam interact keybind.\n(This is the ingame Blizzard\nstuck helper with no logout)");
+	NWBDmfFrameStartStuckButton.tooltip:SetWidth(NWBDmfFrameStartStuckButton.tooltip.fs:GetStringWidth() + 18);
+	NWBDmfFrameStartStuckButton.tooltip:SetHeight(NWBDmfFrameStartStuckButton.tooltip.fs:GetStringHeight() + 12);
+	NWBDmfFrameStartStuckButton:SetScript("OnEnter", function(self)
+		NWBDmfFrameStartStuckButton.tooltip:Show();
+	end)
+	NWBDmfFrameStartStuckButton:SetScript("OnLeave", function(self)
+		NWBDmfFrameStartStuckButton.tooltip:Hide();
+	end)
 	NWBDmfFrameStartStuckButton.tooltip:Hide();
-end)
-NWBDmfFrameStartStuckButton.tooltip:Hide();
 
---Stop stuck button.
-local NWBDmfFrameStopStuckButton = CreateFrame("Button", "NWBDmfFrameStopStuckButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
-NWBDmfFrameStopStuckButton:SetAttribute("type", "macro");
-NWBDmfFrameStopStuckButton:SetAttribute("macrotext", "/stopcasting");
-NWBDmfFrameStopStuckButton:SetPoint("BottomLeft", 3, 3);
-NWBDmfFrameStopStuckButton:SetWidth(120);
-NWBDmfFrameStopStuckButton:SetHeight(30);
-NWBDmfFrameStopStuckButton:SetText("Cancel");
-NWBDmfFrameStopStuckButton:SetNormalFontObject("GameFontNormal");
-local lastDmfStuckStopClick = 0;
-NWBDmfFrameStopStuckButton:SetScript("OnMouseDown", function(self, arg)
-	lastDmfStuckStopClick = GetTime();
-end)
-NWBDmfFrameStopStuckButton:Hide();
-
---Start logout button.
-local NWBDmfFrameStartLogoutButton = CreateFrame("Button", "NWBDmfFrameStartLogoutButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
-NWBDmfFrameStartLogoutButton:SetAttribute("type", "macro");
-NWBDmfFrameStartLogoutButton:SetAttribute("macrotext", "/camp");
-NWBDmfFrameStartLogoutButton:SetPoint("BottomRight", -3, 3);
-NWBDmfFrameStartLogoutButton:SetWidth(120);
-NWBDmfFrameStartLogoutButton:SetHeight(30);
---NWBDmfFrameStartLogoutButton:SetFrameLevel(130);
-NWBDmfFrameStartLogoutButton:SetText("Start Logout");
-NWBDmfFrameStartLogoutButton:SetNormalFontObject("GameFontNormal");
-local lastDmfLogoutStartClick = 0;
-NWBDmfFrameStartLogoutButton:SetScript("OnMouseDown", function(self, arg)
-	lastDmfLogoutStartClick = GetTime();
-end)
-NWBDmfFrameStartLogoutButton.tooltip = CreateFrame("Frame", "NWBDmfFrameStartLogoutButtonTooltip", NWBDmfFrameStartLogoutButton, "TooltipBorderedFrameTemplate");
-NWBDmfFrameStartLogoutButton.tooltip:SetPoint("CENTER", NWBDmfFrameStartLogoutButton, "CENTER", 0, -50);
-NWBDmfFrameStartLogoutButton.tooltip:SetFrameStrata("TOOLTIP");
-NWBDmfFrameStartLogoutButton.tooltip:SetFrameLevel(140);
-NWBDmfFrameStartLogoutButton.tooltip.fs = NWBDmfFrameStartLogoutButton.tooltip:CreateFontString("NWBDmfFrameStartLogoutButtonTooltipFS", "ARTWORK");
-NWBDmfFrameStartLogoutButton.tooltip.fs:SetPoint("CENTER", 0, 0);
-NWBDmfFrameStartLogoutButton.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBDmfFrameStartLogoutButton.tooltip.fs:SetText("|CffDEDE42Start a |CFFFFA50020|CffDEDE42 second logout timer\nwith auto resurrection.\nTarget Sayge and spam interact keybind.\n(This requires using the website\nstuck helper while offline)");
-NWBDmfFrameStartLogoutButton.tooltip:SetWidth(NWBDmfFrameStartLogoutButton.tooltip.fs:GetStringWidth() + 18);
-NWBDmfFrameStartLogoutButton.tooltip:SetHeight(NWBDmfFrameStartLogoutButton.tooltip.fs:GetStringHeight() + 12);
-NWBDmfFrameStartLogoutButton:SetScript("OnEnter", function(self)
-	NWBDmfFrameStartLogoutButton.tooltip:Show();
-end)
-NWBDmfFrameStartLogoutButton:SetScript("OnLeave", function(self)
-	NWBDmfFrameStartLogoutButton.tooltip:Hide();
-end)
-NWBDmfFrameStartLogoutButton.tooltip:Hide();
-
---Stop logout button.
-local NWBDmfFrameStopLogoutButton = CreateFrame("Button", "NWBDmfFrameStopLogoutButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
-local dmfStopLogoutMacro = [=[
-/run for i=1,STATICPOPUP_NUMDIALOGS do if _G["StaticPopup"..i].which=="CAMP" then _G["StaticPopup"..i.."Button1"]:Click() end end
-]=]
-NWBDmfFrameStopLogoutButton:SetAttribute("type", "macro");
-NWBDmfFrameStopLogoutButton:SetAttribute("macrotext", dmfStopLogoutMacro);
-NWBDmfFrameStopLogoutButton:SetPoint("BottomRight", -3, 3);
-NWBDmfFrameStopLogoutButton:SetWidth(120);
-NWBDmfFrameStopLogoutButton:SetHeight(30);
---NWBDmfFrameStopLogoutButton:SetFrameLevel(141);
-NWBDmfFrameStopLogoutButton:SetText("Cancel");
-NWBDmfFrameStopLogoutButton:SetNormalFontObject("GameFontNormal");
-local lastDmfLogoutStopClick = 0;
-NWBDmfFrameStopLogoutButton:SetScript("OnMouseDown", function(self, arg)
-	lastDmfLogoutStopClick = GetTime();
-end)
-NWBDmfFrameStopLogoutButton:Hide();
-
---Interact keybind button.
-local NWBChangeInteractKeybindButton = CreateFrame("Button", "NWBChangeInteractKeybindButton", NWBDmfFrame, "UIPanelButtonTemplate");
---NWBChangeInteractKeybindButton:SetPoint("TopLeft", 28, -85);
-NWBChangeInteractKeybindButton:SetPoint("TOP", 0, -95);
-NWBChangeInteractKeybindButton:SetWidth(120);
-NWBChangeInteractKeybindButton:SetHeight(20);
-NWBChangeInteractKeybindButton:SetText("Change Keybind");
-NWBChangeInteractKeybindButton:SetNormalFontObject("GameFontNormalSmall");
-NWBChangeInteractKeybindButton:SetScript("OnClick", function(self, arg)
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION);
-	KeyBindingFrame_LoadUI();
-	KeyBindingFrame.mode = 1;
-	ShowUIPanel(KeyBindingFrame);
-	--Go to the targeting category.
-	KeyBindingFrameCategoryListButton5:Click();
-	KeyBindingFrameScrollFrame.ScrollBar:SetValue(999);
-	for i = 1, 20 do
-		if (_G["KeyBindingFrameKeyBinding" .. i] and _G["KeyBindingFrameKeyBinding" .. i].description
-				and _G["KeyBindingFrameKeyBinding" .. i].description:GetText() == "Interact With Target") then
-			_G["KeyBindingFrameKeyBinding" .. i].description:SetText("Interact With Target  |CFFFFFFFF<- HERE");
-		end
-	end
-end)
-NWBChangeInteractKeybindButton.tooltip = CreateFrame("Frame", "NWBChangeInteractKeybindButtonTooltip", NWBChangeInteractKeybindButton, "TooltipBorderedFrameTemplate");
-NWBChangeInteractKeybindButton.tooltip:SetPoint("CENTER", NWBChangeInteractKeybindButton, "CENTER", 0, -40);
-NWBChangeInteractKeybindButton.tooltip:SetFrameStrata("TOOLTIP");
-NWBChangeInteractKeybindButton.tooltip:SetFrameLevel(140);
-NWBChangeInteractKeybindButton.tooltip.fs = NWBChangeInteractKeybindButton.tooltip:CreateFontString("NWBChangeInteractKeybindButtonTooltipFS", "ARTWORK");
-NWBChangeInteractKeybindButton.tooltip.fs:SetPoint("CENTER", 0, 0);
-NWBChangeInteractKeybindButton.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBChangeInteractKeybindButton.tooltip.fs:SetText("|CffDEDE42Opens the keybinds menu.\nKeybinds -> Targeting -> Interact With Target");
-NWBChangeInteractKeybindButton.tooltip:SetWidth(NWBChangeInteractKeybindButton.tooltip.fs:GetStringWidth() + 18);
-NWBChangeInteractKeybindButton.tooltip:SetHeight(NWBChangeInteractKeybindButton.tooltip.fs:GetStringHeight() + 12);
-NWBChangeInteractKeybindButton:SetScript("OnEnter", function(self)
-	NWBChangeInteractKeybindButton.tooltip:Show();
-end)
-NWBChangeInteractKeybindButton:SetScript("OnLeave", function(self)
-	NWBChangeInteractKeybindButton.tooltip:Hide();
-end)
-NWBChangeInteractKeybindButton.tooltip:Hide();
-
-function NWB:createDmfHelperButtons()
-	if (not NWB.dmfChatCountdown) then
-		NWB.dmfChatCountdown = CreateFrame("CheckButton", "NWBDMFChatCountdown", NWBDmfFrame, "ChatConfigCheckButtonTemplate");
-		NWB.dmfChatCountdown:SetPoint("BOTTOMLEFT", 30, 120);
-		NWBDMFChatCountdownText:SetText("Group Chat Countdown");
-		NWB.dmfChatCountdown.tooltip = "Countdown the seconds left until resurrection in party/raid chat? This is for friends helping you by ressing first to take some hits.";
-		--NWB.dmfChatCountdown:SetFrameStrata("HIGH");
-		NWB.dmfChatCountdown:SetFrameLevel(132);
-		NWB.dmfChatCountdown:SetWidth(24);
-		NWB.dmfChatCountdown:SetHeight(24);
-		NWB.dmfChatCountdown:SetChecked(NWB.db.global.dmfChatCountdown);
-		NWB.dmfChatCountdown:SetScript("OnClick", function()
-			local value = NWB.dmfChatCountdown:GetChecked();
-			NWB.db.global.dmfChatCountdown = value;
-		end)
-		NWB.dmfChatCountdown:SetHitRectInsets(0, 0, -10, 7);
-	end
-	if (not NWB.dmfAutoResButton) then
-		NWB.dmfAutoResButton = CreateFrame("CheckButton", "NWBDMFAutoResButton", NWBDmfFrame, "ChatConfigCheckButtonTemplate");
-		NWB.dmfAutoResButton:SetPoint("BOTTOMLEFT", 30, 88);
-		NWBDMFAutoResButtonText:SetText("Auto Resurrect");
-		NWB.dmfAutoResButton.tooltip = "Auto accept resurrect right before you logout/stuck?\nSet how many seconds before the timer ends to res below.";
-		--NWB.dmfAutoResButton:SetFrameStrata("HIGH");
-		--NWB.dmfAutoResButton:SetFrameLevel(3);
-		NWB.dmfAutoResButton:SetWidth(24);
-		NWB.dmfAutoResButton:SetHeight(24);
-		NWB.dmfAutoResButton:SetChecked(NWB.db.global.dmfAutoRes);
-		NWB.dmfAutoResButton:SetScript("OnClick", function()
-			local value = NWB.dmfAutoResButton:GetChecked();
-			NWB.db.global.dmfAutoRes = value;
-		end)
-		NWB.dmfAutoResButton:SetHitRectInsets(0, 0, -10, 7);
-	end
-	if (not NWB.dmfAutoResSlider) then
-		NWB.dmfAutoResSlider = CreateFrame("Slider", "NWBDMFAutoResSlider", NWBDmfFrame, "OptionsSliderTemplate");
-		NWB.dmfAutoResSlider:SetPoint("BOTTOM", 0, 50);
-		NWBDMFAutoResSliderText:SetText("Auto Resurrect Seconds Left");
-		NWB.dmfAutoResSlider.tooltipText = "How many seconds left on logout/stuck will we auto resurrect at?";
-		--NWB.dmfAutoResSlider:SetFrameStrata("HIGH");
-		--NWB.dmfAutoResSlider:SetFrameLevel(5);
-		NWB.dmfAutoResSlider:SetWidth(180);
-		NWB.dmfAutoResSlider:SetHeight(16);
-		NWB.dmfAutoResSlider:SetMinMaxValues(1, 5);
-	    NWB.dmfAutoResSlider:SetObeyStepOnDrag(true);
-	    NWB.dmfAutoResSlider:SetValueStep(0.5);
-	    NWB.dmfAutoResSlider:SetStepsPerPage(0.5);
-		NWB.dmfAutoResSlider:SetValue(NWB.db.global.dmfAutoResTime);
-	    NWBDMFAutoResSliderLow:SetText("1");
-	    NWBDMFAutoResSliderHigh:SetText("5");
-		NWBDMFAutoResSlider:HookScript("OnValueChanged", function(self, value)
-			NWB.db.global.dmfAutoResTime = value;
-			NWB.dmfAutoResSlider.editBox:SetText(value);
-		end)
-		--Some of this was taken from AceGUI.
-		local function EditBox_OnEscapePressed(frame)
-			frame:ClearFocus();
-		end
-		local function EditBox_OnEnterPressed(frame)
-			local value = frame:GetText();
-			value = tonumber(value);
-			if value then
-				PlaySound(856);
-				NWB.db.global.dmfAutoResTime = value;
-				NWB.dmfAutoResSlider:SetValue(value);
-				frame:ClearFocus();
-			else
-				--If not a valid number reset the box.
-				NWB.dmfAutoResSlider.editBox:SetText(NWB.db.global.dmfAutoResTime);
-				frame:ClearFocus();
-			end
-		end
-		local function EditBox_OnEnter(frame)
-			frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1);
-		end
-		local function EditBox_OnLeave(frame)
-			frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8);
-		end
-		local ManualBackdrop = {
-			bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-			edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
-			tile = true, edgeSize = 1, tileSize = 5,
-		};
-		NWB.dmfAutoResSlider.editBox = CreateFrame("EditBox", nil, NWB.dmfAutoResSlider, NWB:addBackdrop());
-		NWB.dmfAutoResSlider.editBox:SetAutoFocus(false);
-		NWB.dmfAutoResSlider.editBox:SetFontObject(GameFontHighlightSmall);
-		NWB.dmfAutoResSlider.editBox:SetPoint("TOP", NWB.dmfAutoResSlider, "BOTTOM");
-		NWB.dmfAutoResSlider.editBox:SetHeight(14);
-		NWB.dmfAutoResSlider.editBox:SetWidth(40);
-		NWB.dmfAutoResSlider.editBox:SetJustifyH("CENTER");
-		NWB.dmfAutoResSlider.editBox:EnableMouse(true);
-		NWB.dmfAutoResSlider.editBox:SetBackdrop(ManualBackdrop);
-		NWB.dmfAutoResSlider.editBox:SetBackdropColor(0, 0, 0, 0.5);
-		NWB.dmfAutoResSlider.editBox:SetBackdropBorderColor(0.3, 0.3, 0.30, 0.80);
-		NWB.dmfAutoResSlider.editBox:SetScript("OnEnter", EditBox_OnEnter);
-		NWB.dmfAutoResSlider.editBox:SetScript("OnLeave", EditBox_OnLeave);
-		NWB.dmfAutoResSlider.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
-		NWB.dmfAutoResSlider.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
-		NWB.dmfAutoResSlider.editBox:SetText(NWB.db.global.dmfAutoResTime);
-	end
-end
-
-NWBDmfFrame:SetScript("OnShow", function(self)
-	NWB:updateInteractBindText();
-	NWB:createDmfHelperButtons();
-	NWBDmfFrameStartLogoutButton:Show();
-	NWBDmfFrameStopLogoutButton:Hide();
-	NWBDmfFrameStartStuckButton:Show();
+	--Stop stuck button.
+	local NWBDmfFrameStopStuckButton = CreateFrame("Button", "NWBDmfFrameStopStuckButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
+	NWBDmfFrameStopStuckButton:SetAttribute("type", "macro");
+	NWBDmfFrameStopStuckButton:SetAttribute("macrotext", "/stopcasting");
+	NWBDmfFrameStopStuckButton:SetPoint("BottomLeft", 3, 3);
+	NWBDmfFrameStopStuckButton:SetWidth(120);
+	NWBDmfFrameStopStuckButton:SetHeight(30);
+	NWBDmfFrameStopStuckButton:SetText("Cancel");
+	NWBDmfFrameStopStuckButton:SetNormalFontObject("GameFontNormal");
+	local lastDmfStuckStopClick = 0;
+	NWBDmfFrameStopStuckButton:SetScript("OnMouseDown", function(self, arg)
+		lastDmfStuckStopClick = GetTime();
+	end)
 	NWBDmfFrameStopStuckButton:Hide();
-end)
 
-local doDmfScan = false;
-local f = CreateFrame("Frame");
-local lastDmfPoisChange = 0;
-local lastDmfPoisZone;
-local scanCheckEnabled;
-local dmfStuckResTimer, dmfLogoutResTimer, dmfChatTimer;
-local dmfChatTickerCount = 0;
-f:RegisterEvent("PLAYER_ENTERING_WORLD");
-f:RegisterEvent("AREA_POIS_UPDATED");
-f:RegisterEvent("UNIT_SPELLCAST_START");
-f:RegisterEvent("UNIT_SPELLCAST_STOP");
-f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED");
-f:RegisterEvent("PLAYER_CAMPING");
-f:RegisterEvent("UPDATE_BINDINGS");
-f:RegisterEvent("PLAYER_UNGHOST");
-f:SetScript("OnEvent", function(self, event, ...)
-	if (event == "PLAYER_ENTERING_WORLD" or event == "AREA_POIS_UPDATED") then
-		--Must use GetServerTime() and not GetTime() for logon or its unreliable.
-		lastDmfPoisChange = GetServerTime();
-		local subZone = GetSubZoneText();
-		local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
-		if (NWB.isDmfUp and NWB:verifyDmfZone() and not doDmfScan) then
-			NWB:debug("Starting DMF scan.");
-			doDmfScan = true;
-			NWB:dmfPosTicker();
-		elseif (doDmfScan and (not NWB.isDmfUp or not zone)) then
-			doDmfScan = false;
+	--Start logout button.
+	local NWBDmfFrameStartLogoutButton = CreateFrame("Button", "NWBDmfFrameStartLogoutButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
+	NWBDmfFrameStartLogoutButton:SetAttribute("type", "macro");
+	NWBDmfFrameStartLogoutButton:SetAttribute("macrotext", "/camp");
+	NWBDmfFrameStartLogoutButton:SetPoint("BottomRight", -3, 3);
+	NWBDmfFrameStartLogoutButton:SetWidth(120);
+	NWBDmfFrameStartLogoutButton:SetHeight(30);
+	--NWBDmfFrameStartLogoutButton:SetFrameLevel(130);
+	NWBDmfFrameStartLogoutButton:SetText("Start Logout");
+	NWBDmfFrameStartLogoutButton:SetNormalFontObject("GameFontNormal");
+	local lastDmfLogoutStartClick = 0;
+	NWBDmfFrameStartLogoutButton:SetScript("OnMouseDown", function(self, arg)
+		lastDmfLogoutStartClick = GetTime();
+	end)
+	NWBDmfFrameStartLogoutButton.tooltip = CreateFrame("Frame", "NWBDmfFrameStartLogoutButtonTooltip", NWBDmfFrameStartLogoutButton, "TooltipBorderedFrameTemplate");
+	NWBDmfFrameStartLogoutButton.tooltip:SetPoint("CENTER", NWBDmfFrameStartLogoutButton, "CENTER", 0, -50);
+	NWBDmfFrameStartLogoutButton.tooltip:SetFrameStrata("TOOLTIP");
+	NWBDmfFrameStartLogoutButton.tooltip:SetFrameLevel(140);
+	NWBDmfFrameStartLogoutButton.tooltip.fs = NWBDmfFrameStartLogoutButton.tooltip:CreateFontString("NWBDmfFrameStartLogoutButtonTooltipFS", "ARTWORK");
+	NWBDmfFrameStartLogoutButton.tooltip.fs:SetPoint("CENTER", 0, 0);
+	NWBDmfFrameStartLogoutButton.tooltip.fs:SetFont(NWB.regionFont, 12);
+	NWBDmfFrameStartLogoutButton.tooltip.fs:SetText("|CffDEDE42Start a |CFFFFA50020|CffDEDE42 second logout timer\nwith auto resurrection.\nTarget Sayge and spam interact keybind.\n(This requires using the website\nstuck helper while offline)");
+	NWBDmfFrameStartLogoutButton.tooltip:SetWidth(NWBDmfFrameStartLogoutButton.tooltip.fs:GetStringWidth() + 18);
+	NWBDmfFrameStartLogoutButton.tooltip:SetHeight(NWBDmfFrameStartLogoutButton.tooltip.fs:GetStringHeight() + 12);
+	NWBDmfFrameStartLogoutButton:SetScript("OnEnter", function(self)
+		NWBDmfFrameStartLogoutButton.tooltip:Show();
+	end)
+	NWBDmfFrameStartLogoutButton:SetScript("OnLeave", function(self)
+		NWBDmfFrameStartLogoutButton.tooltip:Hide();
+	end)
+	NWBDmfFrameStartLogoutButton.tooltip:Hide();
+
+	--Stop logout button.
+	local NWBDmfFrameStopLogoutButton = CreateFrame("Button", "NWBDmfFrameStopLogoutButton", NWBDmfFrame, "UIPanelButtonTemplate, SecureActionButtonTemplate");
+	local dmfStopLogoutMacro = [=[
+	/run for i=1,STATICPOPUP_NUMDIALOGS do if _G["StaticPopup"..i].which=="CAMP" then _G["StaticPopup"..i.."Button1"]:Click() end end
+	]=]
+	NWBDmfFrameStopLogoutButton:SetAttribute("type", "macro");
+	NWBDmfFrameStopLogoutButton:SetAttribute("macrotext", dmfStopLogoutMacro);
+	NWBDmfFrameStopLogoutButton:SetPoint("BottomRight", -3, 3);
+	NWBDmfFrameStopLogoutButton:SetWidth(120);
+	NWBDmfFrameStopLogoutButton:SetHeight(30);
+	--NWBDmfFrameStopLogoutButton:SetFrameLevel(141);
+	NWBDmfFrameStopLogoutButton:SetText("Cancel");
+	NWBDmfFrameStopLogoutButton:SetNormalFontObject("GameFontNormal");
+	local lastDmfLogoutStopClick = 0;
+	NWBDmfFrameStopLogoutButton:SetScript("OnMouseDown", function(self, arg)
+		lastDmfLogoutStopClick = GetTime();
+	end)
+	NWBDmfFrameStopLogoutButton:Hide();
+
+	--Interact keybind button.
+	local NWBChangeInteractKeybindButton = CreateFrame("Button", "NWBChangeInteractKeybindButton", NWBDmfFrame, "UIPanelButtonTemplate");
+	--NWBChangeInteractKeybindButton:SetPoint("TopLeft", 28, -85);
+	NWBChangeInteractKeybindButton:SetPoint("TOP", 0, -95);
+	NWBChangeInteractKeybindButton:SetWidth(120);
+	NWBChangeInteractKeybindButton:SetHeight(20);
+	NWBChangeInteractKeybindButton:SetText("Change Keybind");
+	NWBChangeInteractKeybindButton:SetNormalFontObject("GameFontNormalSmall");
+	NWBChangeInteractKeybindButton:SetScript("OnClick", function(self, arg)
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION);
+		KeyBindingFrame_LoadUI();
+		KeyBindingFrame.mode = 1;
+		ShowUIPanel(KeyBindingFrame);
+		--Go to the targeting category.
+		KeyBindingFrameCategoryListButton5:Click();
+		KeyBindingFrameScrollFrame.ScrollBar:SetValue(999);
+		for i = 1, 20 do
+			if (_G["KeyBindingFrameKeyBinding" .. i] and _G["KeyBindingFrameKeyBinding" .. i].description
+					and _G["KeyBindingFrameKeyBinding" .. i].description:GetText() == "Interact With Target") then
+				_G["KeyBindingFrameKeyBinding" .. i].description:SetText("Interact With Target  |CFFFFFFFF<- HERE");
+			end
 		end
-		lastDmfPoisZone = subZone;
-	elseif (event == "UNIT_SPELLCAST_START") then
-		local unit, _, spellID = ...;
-		if (unit == "player" and spellID == 7355 and (GetTime() - lastDmfStuckStartClick) < 10) then
-			if (UnitIsGhost("player")) then
-				local stuckTime = 10;
-				local duration = stuckTime - NWB.db.global.dmfAutoResTime;
-				if (NWB.db.global.dmfAutoRes) then
-					NWB:print("Target Sayge and spam press your Interact With Target keybind now, resurrection in " .. duration ..  " seconds.");
-					dmfStuckResTimer = C_Timer.NewTimer(duration, function()
-						RetrieveCorpse();
-					end)
-					dmfChatTickerCount = math.floor(duration);
-					dmfChatTimer = C_Timer.NewTicker(1, function()
-						NWB:dmfChatTicker();
-					end, math.floor(duration))
-					if (NWB.db.global.dmfChatCountdown) then
-						NWB:dmfSendGroup("Starting resurrection countdown.");
+	end)
+	NWBChangeInteractKeybindButton.tooltip = CreateFrame("Frame", "NWBChangeInteractKeybindButtonTooltip", NWBChangeInteractKeybindButton, "TooltipBorderedFrameTemplate");
+	NWBChangeInteractKeybindButton.tooltip:SetPoint("CENTER", NWBChangeInteractKeybindButton, "CENTER", 0, -40);
+	NWBChangeInteractKeybindButton.tooltip:SetFrameStrata("TOOLTIP");
+	NWBChangeInteractKeybindButton.tooltip:SetFrameLevel(140);
+	NWBChangeInteractKeybindButton.tooltip.fs = NWBChangeInteractKeybindButton.tooltip:CreateFontString("NWBChangeInteractKeybindButtonTooltipFS", "ARTWORK");
+	NWBChangeInteractKeybindButton.tooltip.fs:SetPoint("CENTER", 0, 0);
+	NWBChangeInteractKeybindButton.tooltip.fs:SetFont(NWB.regionFont, 12);
+	NWBChangeInteractKeybindButton.tooltip.fs:SetText("|CffDEDE42Opens the keybinds menu.\nKeybinds -> Targeting -> Interact With Target");
+	NWBChangeInteractKeybindButton.tooltip:SetWidth(NWBChangeInteractKeybindButton.tooltip.fs:GetStringWidth() + 18);
+	NWBChangeInteractKeybindButton.tooltip:SetHeight(NWBChangeInteractKeybindButton.tooltip.fs:GetStringHeight() + 12);
+	NWBChangeInteractKeybindButton:SetScript("OnEnter", function(self)
+		NWBChangeInteractKeybindButton.tooltip:Show();
+	end)
+	NWBChangeInteractKeybindButton:SetScript("OnLeave", function(self)
+		NWBChangeInteractKeybindButton.tooltip:Hide();
+	end)
+	NWBChangeInteractKeybindButton.tooltip:Hide();
+
+	function NWB:createDmfHelperButtons()
+		if (not NWB.dmfChatCountdown) then
+			NWB.dmfChatCountdown = CreateFrame("CheckButton", "NWBDMFChatCountdown", NWBDmfFrame, "ChatConfigCheckButtonTemplate");
+			NWB.dmfChatCountdown:SetPoint("BOTTOMLEFT", 30, 120);
+			NWBDMFChatCountdownText:SetText("Group Chat Countdown");
+			NWB.dmfChatCountdown.tooltip = "Countdown the seconds left until resurrection in party/raid chat? This is for friends helping you by ressing first to take some hits.";
+			--NWB.dmfChatCountdown:SetFrameStrata("HIGH");
+			NWB.dmfChatCountdown:SetFrameLevel(132);
+			NWB.dmfChatCountdown:SetWidth(24);
+			NWB.dmfChatCountdown:SetHeight(24);
+			NWB.dmfChatCountdown:SetChecked(NWB.db.global.dmfChatCountdown);
+			NWB.dmfChatCountdown:SetScript("OnClick", function()
+				local value = NWB.dmfChatCountdown:GetChecked();
+				NWB.db.global.dmfChatCountdown = value;
+			end)
+			NWB.dmfChatCountdown:SetHitRectInsets(0, 0, -10, 7);
+		end
+		if (not NWB.dmfAutoResButton) then
+			NWB.dmfAutoResButton = CreateFrame("CheckButton", "NWBDMFAutoResButton", NWBDmfFrame, "ChatConfigCheckButtonTemplate");
+			NWB.dmfAutoResButton:SetPoint("BOTTOMLEFT", 30, 88);
+			NWBDMFAutoResButtonText:SetText("Auto Resurrect");
+			NWB.dmfAutoResButton.tooltip = "Auto accept resurrect right before you logout/stuck?\nSet how many seconds before the timer ends to res below.";
+			--NWB.dmfAutoResButton:SetFrameStrata("HIGH");
+			--NWB.dmfAutoResButton:SetFrameLevel(3);
+			NWB.dmfAutoResButton:SetWidth(24);
+			NWB.dmfAutoResButton:SetHeight(24);
+			NWB.dmfAutoResButton:SetChecked(NWB.db.global.dmfAutoRes);
+			NWB.dmfAutoResButton:SetScript("OnClick", function()
+				local value = NWB.dmfAutoResButton:GetChecked();
+				NWB.db.global.dmfAutoRes = value;
+			end)
+			NWB.dmfAutoResButton:SetHitRectInsets(0, 0, -10, 7);
+		end
+		if (not NWB.dmfAutoResSlider) then
+			NWB.dmfAutoResSlider = CreateFrame("Slider", "NWBDMFAutoResSlider", NWBDmfFrame, "OptionsSliderTemplate");
+			NWB.dmfAutoResSlider:SetPoint("BOTTOM", 0, 50);
+			NWBDMFAutoResSliderText:SetText("Auto Resurrect Seconds Left");
+			NWB.dmfAutoResSlider.tooltipText = "How many seconds left on logout/stuck will we auto resurrect at?";
+			--NWB.dmfAutoResSlider:SetFrameStrata("HIGH");
+			--NWB.dmfAutoResSlider:SetFrameLevel(5);
+			NWB.dmfAutoResSlider:SetWidth(180);
+			NWB.dmfAutoResSlider:SetHeight(16);
+			NWB.dmfAutoResSlider:SetMinMaxValues(1, 5);
+			NWB.dmfAutoResSlider:SetObeyStepOnDrag(true);
+			NWB.dmfAutoResSlider:SetValueStep(0.5);
+			NWB.dmfAutoResSlider:SetStepsPerPage(0.5);
+			NWB.dmfAutoResSlider:SetValue(NWB.db.global.dmfAutoResTime);
+			NWBDMFAutoResSliderLow:SetText("1");
+			NWBDMFAutoResSliderHigh:SetText("5");
+			NWBDMFAutoResSlider:HookScript("OnValueChanged", function(self, value)
+				NWB.db.global.dmfAutoResTime = value;
+				NWB.dmfAutoResSlider.editBox:SetText(value);
+			end)
+			--Some of this was taken from AceGUI.
+			local function EditBox_OnEscapePressed(frame)
+				frame:ClearFocus();
+			end
+			local function EditBox_OnEnterPressed(frame)
+				local value = frame:GetText();
+				value = tonumber(value);
+				if value then
+					PlaySound(856);
+					NWB.db.global.dmfAutoResTime = value;
+					NWB.dmfAutoResSlider:SetValue(value);
+					frame:ClearFocus();
+				else
+					--If not a valid number reset the box.
+					NWB.dmfAutoResSlider.editBox:SetText(NWB.db.global.dmfAutoResTime);
+					frame:ClearFocus();
+				end
+			end
+			local function EditBox_OnEnter(frame)
+				frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1);
+			end
+			local function EditBox_OnLeave(frame)
+				frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8);
+			end
+			local ManualBackdrop = {
+				bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+				edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+				tile = true, edgeSize = 1, tileSize = 5,
+			};
+			NWB.dmfAutoResSlider.editBox = CreateFrame("EditBox", nil, NWB.dmfAutoResSlider, NWB:addBackdrop());
+			NWB.dmfAutoResSlider.editBox:SetAutoFocus(false);
+			NWB.dmfAutoResSlider.editBox:SetFontObject(GameFontHighlightSmall);
+			NWB.dmfAutoResSlider.editBox:SetPoint("TOP", NWB.dmfAutoResSlider, "BOTTOM");
+			NWB.dmfAutoResSlider.editBox:SetHeight(14);
+			NWB.dmfAutoResSlider.editBox:SetWidth(40);
+			NWB.dmfAutoResSlider.editBox:SetJustifyH("CENTER");
+			NWB.dmfAutoResSlider.editBox:EnableMouse(true);
+			NWB.dmfAutoResSlider.editBox:SetBackdrop(ManualBackdrop);
+			NWB.dmfAutoResSlider.editBox:SetBackdropColor(0, 0, 0, 0.5);
+			NWB.dmfAutoResSlider.editBox:SetBackdropBorderColor(0.3, 0.3, 0.30, 0.80);
+			NWB.dmfAutoResSlider.editBox:SetScript("OnEnter", EditBox_OnEnter);
+			NWB.dmfAutoResSlider.editBox:SetScript("OnLeave", EditBox_OnLeave);
+			NWB.dmfAutoResSlider.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
+			NWB.dmfAutoResSlider.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
+			NWB.dmfAutoResSlider.editBox:SetText(NWB.db.global.dmfAutoResTime);
+		end
+	end
+
+	NWBDmfFrame:SetScript("OnShow", function(self)
+		NWB:updateInteractBindText();
+		NWB:createDmfHelperButtons();
+		NWBDmfFrameStartLogoutButton:Show();
+		NWBDmfFrameStopLogoutButton:Hide();
+		NWBDmfFrameStartStuckButton:Show();
+		NWBDmfFrameStopStuckButton:Hide();
+	end)
+
+	local doDmfScan = false;
+	local f = CreateFrame("Frame");
+	local lastDmfPoisChange = 0;
+	local lastDmfPoisZone;
+	local scanCheckEnabled;
+	local dmfStuckResTimer, dmfLogoutResTimer, dmfChatTimer;
+	local dmfChatTickerCount = 0;
+	f:RegisterEvent("PLAYER_ENTERING_WORLD");
+	f:RegisterEvent("AREA_POIS_UPDATED");
+	f:RegisterEvent("UNIT_SPELLCAST_START");
+	f:RegisterEvent("UNIT_SPELLCAST_STOP");
+	f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED");
+	f:RegisterEvent("PLAYER_CAMPING");
+	f:RegisterEvent("UPDATE_BINDINGS");
+	f:RegisterEvent("PLAYER_UNGHOST");
+	f:SetScript("OnEvent", function(self, event, ...)
+		if (event == "PLAYER_ENTERING_WORLD" or event == "AREA_POIS_UPDATED") then
+			--Must use GetServerTime() and not GetTime() for logon or its unreliable.
+			lastDmfPoisChange = GetServerTime();
+			local subZone = GetSubZoneText();
+			local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+			if (NWB.isDmfUp and NWB:verifyDmfZone() and not doDmfScan) then
+				NWB:debug("Starting DMF scan.");
+				doDmfScan = true;
+				NWB:dmfPosTicker();
+			elseif (doDmfScan and (not NWB.isDmfUp or not zone)) then
+				doDmfScan = false;
+			end
+			lastDmfPoisZone = subZone;
+		elseif (event == "UNIT_SPELLCAST_START") then
+			local unit, _, spellID = ...;
+			if (unit == "player" and spellID == 7355 and (GetTime() - lastDmfStuckStartClick) < 10) then
+				if (UnitIsGhost("player")) then
+					local stuckTime = 10;
+					local duration = stuckTime - NWB.db.global.dmfAutoResTime;
+					if (NWB.db.global.dmfAutoRes) then
+						NWB:print("Target Sayge and spam press your Interact With Target keybind now, resurrection in " .. duration ..  " seconds.");
+						dmfStuckResTimer = C_Timer.NewTimer(duration, function()
+							RetrieveCorpse();
+						end)
+						dmfChatTickerCount = math.floor(duration);
+						dmfChatTimer = C_Timer.NewTicker(1, function()
+							NWB:dmfChatTicker();
+						end, math.floor(duration))
+						if (NWB.db.global.dmfChatCountdown) then
+							NWB:dmfSendGroup("Starting resurrection countdown.");
+						end
+						dmfTimerBar = NWB:createTimerBar(NWBDmfFrame:GetWidth(), 30, duration, "Resurrection");
+						dmfTimerBar:SetPoint("TOP", NWBDmfFrame, "BOTTOM", 0, 0);
+						dmfTimerBar:SetFill(true);
+						dmfTimerBar:SetColor(255, 165, 0);
+						dmfTimerBar:Start();
+						NWBDmfFrameStartStuckButton:Hide();
+						NWBDmfFrameStopStuckButton:Show();
+					else
+						NWB:print("Stuck started (Auto resurrection disabled).");
 					end
-					dmfTimerBar = NWB:createTimerBar(NWBDmfFrame:GetWidth(), 30, duration, "Resurrection");
-					dmfTimerBar:SetPoint("TOP", NWBDmfFrame, "BOTTOM", 0, 0);
-					dmfTimerBar:SetFill(true);
-					dmfTimerBar:SetColor(255, 165, 0);
-					dmfTimerBar:Start();
-					NWBDmfFrameStartStuckButton:Hide();
-					NWBDmfFrameStopStuckButton:Show();
 				else
-					NWB:print("Stuck started (Auto resurrection disabled).");
+					NWB:print("You must be a ghost to use this.");
 				end
-			else
-				NWB:print("You must be a ghost to use this.");
+			end
+		elseif (event == "UNIT_SPELLCAST_STOP") then
+			local unit, _, spellID = ...;
+			if (unit == "player" and spellID == 7355 and dmfStuckResTimer) then
+				NWB:debug("cancelled res timer")
+				if (dmfStuckResTimer._remainingIterations and dmfStuckResTimer._remainingIterations > 0) then
+					if (NWB.db.global.dmfChatCountdown) then
+						NWB:dmfSendGroup("Cancelled resurrection countdown.");
+					else
+						NWB:print("Cancelled resurrection countdown.");
+					end
+				end
+				dmfStuckResTimer:Cancel();
+				dmfChatTimer:Cancel();
+				dmfLogoutResTimer = nil;
+				dmfChatTimer = nil;
+				if (dmfTimerBar) then
+					dmfTimerBar:Stop();
+					dmfTimerBar = nil;
+				end
+				NWBDmfFrameStartStuckButton:Show();
+				NWBDmfFrameStopStuckButton:Hide();
+			end
+		elseif (event == "PLAYER_CAMPING") then
+			if (GetTime() - lastDmfLogoutStartClick < 10) then
+				if (UnitIsGhost("player")) then
+					local logoutTime = 20;
+					local duration = logoutTime - NWB.db.global.dmfAutoResTime;
+					if (NWB.db.global.dmfAutoRes) then
+						NWB:print("Target Sayge and spam press your Interact With Target keybind now, resurrection in " .. duration ..  " seconds.");
+						dmfLogoutResTimer = C_Timer.NewTimer(duration, function()
+							RetrieveCorpse();
+						end)
+						dmfChatTickerCount = math.floor(duration);
+						dmfChatTimer = C_Timer.NewTicker(1, function()
+							NWB:dmfChatTicker();
+						end, math.floor(duration))
+						if (NWB.db.global.dmfChatCountdown) then
+							NWB:dmfSendGroup("Starting resurrection countdown.");
+						end
+						dmfTimerBar = NWB:createTimerBar(NWBDmfFrame:GetWidth(), 30, duration, "Resurrection");
+						dmfTimerBar:SetPoint("TOP", NWBDmfFrame, "BOTTOM", 0, 0);
+						dmfTimerBar:SetFill(true);
+						dmfTimerBar:SetColor(255, 165, 0);
+						dmfTimerBar:Start();
+						NWBDmfFrameStartLogoutButton:Hide();
+						NWBDmfFrameStopLogoutButton:Show();
+						--NWBDmfFrameStartStuckButton:Hide();
+						--NWBDmfFrameStopStuckButton:Show();
+					else
+						NWB:print("Logout started (Auto resurrection disabled).");
+					end
+				else
+					NWB:print("You must be a ghost to use this.");
+				end
+			end
+		elseif (event == "UPDATE_BINDINGS") then
+			NWB:updateInteractBindText();
+		elseif (event == "PLAYER_UNGHOST") then
+			local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+			if (NWB:verifyDmfZone()) then
+				NWBDmfFrameStartLogoutButton:Show();
+				NWBDmfFrameStopLogoutButton:Hide();
+				--NWBDmfFrameStartStuckButton:Show();
+				--NWBDmfFrameStopStuckButton:Hide();
 			end
 		end
-	elseif (event == "UNIT_SPELLCAST_STOP") then
-		local unit, _, spellID = ...;
-		if (unit == "player" and spellID == 7355 and dmfStuckResTimer) then
-			NWB:debug("cancelled res timer")
-			if (dmfStuckResTimer._remainingIterations and dmfStuckResTimer._remainingIterations > 0) then
-				if (NWB.db.global.dmfChatCountdown) then
-					NWB:dmfSendGroup("Cancelled resurrection countdown.");
-				else
-					NWB:print("Cancelled resurrection countdown.");
-				end
-			end
-			dmfStuckResTimer:Cancel();
+	end)
+
+	function NWB:createTimerBar(width, height, duration, label)
+		local bar = NWB.candyBar:New("Interface\\RaidFrame\\Raid-Bar-Hp-Fill", width, height);
+		bar:SetLabel(label);
+		bar:SetDuration(duration);
+		return bar;
+	end
+
+	function NWB.cancelLogout()
+		if (dmfLogoutResTimer) then
+			dmfLogoutResTimer:Cancel();
 			dmfChatTimer:Cancel();
 			dmfLogoutResTimer = nil;
 			dmfChatTimer = nil;
+			NWBDmfFrameStartLogoutButton:Show();
+			NWBDmfFrameStopLogoutButton:Hide();
+			--NWBDmfFrameStartStuckButton:Show();
+			--NWBDmfFrameStopStuckButton:Hide();
+			if (NWB.db.global.dmfChatCountdown) then
+				NWB:dmfSendGroup("Cancelled resurrection countdown.");
+			else
+				NWB:print("Cancelled resurrection countdown.");
+			end
 			if (dmfTimerBar) then
 				dmfTimerBar:Stop();
 				dmfTimerBar = nil;
 			end
-			NWBDmfFrameStartStuckButton:Show();
-			NWBDmfFrameStopStuckButton:Hide();
+			NWBDmfFrameStopLogoutButton:Hide();
 		end
-	elseif (event == "PLAYER_CAMPING") then
-		if (GetTime() - lastDmfLogoutStartClick < 10) then
-			if (UnitIsGhost("player")) then
-				local logoutTime = 20;
-				local duration = logoutTime - NWB.db.global.dmfAutoResTime;
-				if (NWB.db.global.dmfAutoRes) then
-					NWB:print("Target Sayge and spam press your Interact With Target keybind now, resurrection in " .. duration ..  " seconds.");
-					dmfLogoutResTimer = C_Timer.NewTimer(duration, function()
-						RetrieveCorpse();
-					end)
-					dmfChatTickerCount = math.floor(duration);
-					dmfChatTimer = C_Timer.NewTicker(1, function()
-						NWB:dmfChatTicker();
-					end, math.floor(duration))
-					if (NWB.db.global.dmfChatCountdown) then
-						NWB:dmfSendGroup("Starting resurrection countdown.");
-					end
-					dmfTimerBar = NWB:createTimerBar(NWBDmfFrame:GetWidth(), 30, duration, "Resurrection");
-					dmfTimerBar:SetPoint("TOP", NWBDmfFrame, "BOTTOM", 0, 0);
-					dmfTimerBar:SetFill(true);
-					dmfTimerBar:SetColor(255, 165, 0);
-					dmfTimerBar:Start();
-					NWBDmfFrameStartLogoutButton:Hide();
-					NWBDmfFrameStopLogoutButton:Show();
-					--NWBDmfFrameStartStuckButton:Hide();
-					--NWBDmfFrameStopStuckButton:Show();
-				else
-					NWB:print("Logout started (Auto resurrection disabled).");
-				end
-			else
-				NWB:print("You must be a ghost to use this.");
+	end
+
+	hooksecurefunc("CancelLogout", NWB.cancelLogout);
+
+	function NWB:dmfChatTicker(first)
+		dmfChatTickerCount = dmfChatTickerCount - 1;
+		if (NWB.db.global.dmfChatCountdown and NWB.db.global.dmfAutoRes) then
+			if (dmfChatTickerCount == 10) then
+				NWB:dmfSendGroup("Resurrection in 10 seconds.");
+			elseif (dmfChatTickerCount == 5) then
+				NWB:dmfSendGroup("Resurrection in 5 seconds.");
+			elseif (dmfChatTickerCount == 4) then
+				NWB:dmfSendGroup("Resurrection in 4 seconds.");
+			elseif (dmfChatTickerCount == 3) then
+				NWB:dmfSendGroup("Resurrection in 3 seconds.");
+			elseif (dmfChatTickerCount == 2) then
+				NWB:dmfSendGroup("Resurrection in 2 seconds.");
+			elseif (dmfChatTickerCount == 1) then
+				NWB:dmfSendGroup("Resurrection in 1 second.");
+			elseif (dmfChatTickerCount == 0) then
+				NWB:dmfSendGroup("Resurrecting Now!");
 			end
 		end
-	elseif (event == "UPDATE_BINDINGS") then
-		NWB:updateInteractBindText();
-	elseif (event == "PLAYER_UNGHOST") then
-		NWBDmfFrameStartLogoutButton:Show();
-		NWBDmfFrameStopLogoutButton:Hide();
-		--NWBDmfFrameStartStuckButton:Show();
-		--NWBDmfFrameStopStuckButton:Hide();
 	end
-end)
 
-function NWB:createTimerBar(width, height, duration, label)
-	local bar = NWB.candyBar:New("Interface\\RaidFrame\\Raid-Bar-Hp-Fill", width, height);
-	bar:SetLabel(label);
-	bar:SetDuration(duration);
-	return bar;
-end
-
-function NWB.cancelLogout()
-	if (dmfLogoutResTimer) then
-		dmfLogoutResTimer:Cancel();
-		dmfChatTimer:Cancel();
-		dmfLogoutResTimer = nil;
-		dmfChatTimer = nil;
-		NWBDmfFrameStartLogoutButton:Show();
-		NWBDmfFrameStopLogoutButton:Hide();
-		--NWBDmfFrameStartStuckButton:Show();
-		--NWBDmfFrameStopStuckButton:Hide();
-		if (NWB.db.global.dmfChatCountdown) then
-			NWB:dmfSendGroup("Cancelled resurrection countdown.");
-		else
-			NWB:print("Cancelled resurrection countdown.");
-		end
-		if (dmfTimerBar) then
-			dmfTimerBar:Stop();
-			dmfTimerBar = nil;
-		end
-		NWBDmfFrameStopLogoutButton:Hide();
-	end
-end
-
-hooksecurefunc("CancelLogout", NWB.cancelLogout);
-
-function NWB:dmfChatTicker(first)
-	dmfChatTickerCount = dmfChatTickerCount - 1;
-	if (NWB.db.global.dmfChatCountdown and NWB.db.global.dmfAutoRes) then
-		if (dmfChatTickerCount == 10) then
-			NWB:dmfSendGroup("Resurrection in 10 seconds.");
-		elseif (dmfChatTickerCount == 5) then
-			NWB:dmfSendGroup("Resurrection in 5 seconds.");
-		elseif (dmfChatTickerCount == 4) then
-			NWB:dmfSendGroup("Resurrection in 4 seconds.");
-		elseif (dmfChatTickerCount == 3) then
-			NWB:dmfSendGroup("Resurrection in 3 seconds.");
-		elseif (dmfChatTickerCount == 2) then
-			NWB:dmfSendGroup("Resurrection in 2 seconds.");
-		elseif (dmfChatTickerCount == 1) then
-			NWB:dmfSendGroup("Resurrection in 1 second.");
-		elseif (dmfChatTickerCount == 0) then
-			NWB:dmfSendGroup("Resurrecting Now!");
+	function NWB:dmfSendGroup(msg)
+		if (IsInRaid()) then
+			SendChatMessage(msg, "RAID");
+		elseif (IsInGroup()) then
+			SendChatMessage(msg, "PARTY");
 		end
 	end
-end
 
-function NWB:dmfSendGroup(msg)
-	if (IsInRaid()) then
-		SendChatMessage(msg, "RAID");
-	elseif (IsInGroup()) then
-		SendChatMessage(msg, "PARTY");
+	function NWB:verifyDmfZone()
+		local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+		if ((zone == 1429 and NWB.faction == "Horde") or (zone == 1412 and NWB.faction == "Alliance")) then
+			return true;
+		end
 	end
-end
 
-function NWB:verifyDmfZone()
-	local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
-	if ((zone == 1429 and NWB.faction == "Horde") or (zone == 1412 and NWB.faction == "Alliance")) then
+	function NWB:verifyDmfPos()
+		--English only for starters while testing.
+		if (not LOCALE_enUS and not LOCALE_enGB) then
+			return;
+		end
+		if (not UnitIsGhost("player")) then
+			return;
+		end
+		if (NWB.faction == "Horde") then
+			local x, y, zone = NWB.dragonLib:GetPlayerZonePosition();
+			--Only works within a square around Goldshire DMF.
+			if (zone ~= 1429 or (y > 0.69853476638874 or y < 0.6824626793253
+					or x > 0.42938295086608 or x < 0.41670588083958)) then
+				return;
+			end
+		elseif (NWB.faction == "Alliance") then
+			--Only works within a square around Mulgore DMF.
+			local x, y, zone = NWB.dragonLib:GetPlayerZonePosition();
+			if (zone ~= 1412 or (y > 0.394447705692 or y < 0.37847691674407
+					or x > 0.37333657662182 or x < 0.36484996019735)) then
+				return;
+			end
+		end
 		return true;
 	end
-end
 
-function NWB:verifyDmfPos()
-	--English only for starters while testing.
-	if (not LOCALE_enUS and not LOCALE_enGB) then
-		return;
-	end
-	if (not UnitIsGhost("player")) then
-		return;
-	end
-	if (NWB.faction == "Horde") then
-		local x, y, zone = NWB.dragonLib:GetPlayerZonePosition();
-		--Only works within a square around Goldshire DMF.
-		if (zone ~= 1429 or (y > 0.69853476638874 or y < 0.6824626793253
-				or x > 0.42938295086608 or x < 0.41670588083958)) then
+	function NWB:dmfPosTicker()
+		if (not doDmfScan or not NWB:verifyDmfZone()) then
+			NWB:debug("Stopping DMF scan.");
+			NWB:disableDmfFrame();
+			clickedDmfFrameClose = nil;
 			return;
 		end
-	elseif (NWB.faction == "Alliance") then
-		--Only works within a square around Mulgore DMF.
-		local x, y, zone = NWB.dragonLib:GetPlayerZonePosition();
-		if (zone ~= 1412 or (y > 0.394447705692 or y < 0.37847691674407
-				or x > 0.37333657662182 or x < 0.36484996019735)) then
-			return;
+		if (NWB:verifyDmfPos()) then
+			NWB:enableDmfFrame();
+		else
+			NWB:disableDmfFrame();
 		end
+		C_Timer.After(1, function()
+			NWB:dmfPosTicker();
+		end)
 	end
-	return true;
-end
 
-function NWB:dmfPosTicker()
-	if (not doDmfScan or not NWB:verifyDmfZone()) then
-		NWB:debug("Stopping DMF scan.");
-		NWB:disableDmfFrame();
-		clickedDmfFrameClose = nil;
-		return;
-	end
-	if (NWB:verifyDmfPos()) then
-		NWB:enableDmfFrame();
-	else
-		NWB:disableDmfFrame();
-	end
-	C_Timer.After(1, function()
-		NWB:dmfPosTicker();
-	end)
-end
-
-SLASH_NWBDMFHELPERCMD1, SLASH_NWBDMFHELPERCMD2 = '/dmfhelper', '/stuckhelper';
-function SlashCmdList.NWBDMFHELPERCMD(msg, editBox)
-	NWBDmfFrame:Show();
-end
-
-function NWB:enableDmfFrame()
-	local pvpType = GetZonePVPInfo();
-	if (not UnitIsGhost("player") or not NWB.db.global.dmfFrame or pvpType ~= "hostile") then
-		return;
-	end
-	if (NWB.db.global.dmfFrame and not NWBDmfFrame:IsShown() and not clickedDmfFrameClose) then
+	SLASH_NWBDMFHELPERCMD1, SLASH_NWBDMFHELPERCMD2 = '/dmfhelper', '/stuckhelper';
+	function SlashCmdList.NWBDMFHELPERCMD(msg, editBox)
 		NWBDmfFrame:Show();
-		NWB:debug("Showing DMF frame.");
 	end
-end
 
-function NWB:disableDmfFrame()
-	clickedDmfFrameClose = nil;
-	if (NWBDmfFrame:IsShown()) then
-		NWBDmfFrame:Hide();
-		NWB:debug("Hiding DMF frame.");
+	function NWB:enableDmfFrame()
+		local pvpType = GetZonePVPInfo();
+		if (not UnitIsGhost("player") or not NWB.db.global.dmfFrame or pvpType ~= "hostile") then
+			return;
+		end
+		if (NWB.db.global.dmfFrame and not NWBDmfFrame:IsShown() and not clickedDmfFrameClose) then
+			NWBDmfFrame:Show();
+			NWB:debug("Showing DMF frame.");
+		end
+	end
+
+	function NWB:disableDmfFrame()
+		clickedDmfFrameClose = nil;
+		if (NWBDmfFrame:IsShown()) then
+			NWBDmfFrame:Hide();
+			NWB:debug("Hiding DMF frame.");
+		end
 	end
 end

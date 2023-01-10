@@ -1,7 +1,9 @@
+local AddonName, TemplatePrivate = ...
 local WeakAuras = WeakAuras
 if not WeakAuras.IsBCC() then return end
 local L = WeakAuras.L
-local GetSpellInfo, tinsert, GetItemInfo, GetSpellDescription, C_Timer, Spell = GetSpellInfo, tinsert, GetItemInfo, GetSpellDescription, C_Timer, Spell
+local GetSpellInfo, tinsert, GetItemInfo, GetSpellDescription, C_Timer, Spell
+    = GetSpellInfo, tinsert, GetItemInfo, GetSpellDescription, C_Timer, Spell
 
 -- The templates tables are created on demand
 local templates =
@@ -642,6 +644,7 @@ templates.class.WARLOCK = {
       title = L["Debuffs"],
       args = {
         { spell = 172, type = "debuff", unit = "target"}, -- Corruption
+        { spell = 348, type = "debuff", unit = "target"}, -- Immolate
         { spell = 603, type = "debuff", unit = "target"}, -- Curse of Doom
         { spell = 702, type = "debuff", unit = "target"}, -- Curse of Weakness
         { spell = 704, type = "debuff", unit = "target"}, -- Curse of Recklessness
@@ -656,7 +659,7 @@ templates.class.WARLOCK = {
         { spell = 17862, type = "debuff", unit = "target"}, -- Curse of Shadow
         { spell = 18223, type = "debuff", unit = "target", talent = 15}, -- Curse of Exhaustion
         { spell = 18265, type = "debuff", unit = "target", talent = 14}, -- Siphon Life
-        { spell = 30108, type = "debuff", unit = "target", talent = 21}, -- Unstable Afflication
+        { spell = 30108, type = "debuff", unit = "target", talent = 21}, -- Unstable Affliction
       },
       icon = 136139
     },
@@ -688,7 +691,7 @@ templates.class.WARLOCK = {
         { spell = 18288, type = "ability", buff = true, talent = 9}, -- Amplify Curse
         { spell = 18708, type = "ability", talent = 28}, -- Fel Domination
         { spell = 18877, type = "ability", requiresTarget = true, debuff = true, talent = 88}, -- Shadowburn
-        { spell = 30108, ability = "ability", debuff = true, requiresTarget = true, talent = 21}, -- Unstable Afflication
+        { spell = 30108, ability = "ability", debuff = true, requiresTarget = true, talent = 21}, -- Unstable Affliction
         { spell = 30283, type = "ability", debuff = true, talent = 101}, -- Fel Domination
       },
       icon = 135808
@@ -971,10 +974,10 @@ tinsert(templates.race.Troll, { spell = 26296, type = "ability", titleSuffix = L
 tinsert(templates.race.Troll, { spell = 20554, type = "ability", titleSuffix = L["Other cooldown"]});
 tinsert(templates.race.Troll, { spell = 26635, type = "buff", unit = "player", titleSuffix = L["buff"]});
 -- Arcane Torrent
-tinsert(templates.race.BloodElf, { spell = 69179, type = "ability", titleSuffix = L["cooldown"]}); -- TODO check this for BCC
+tinsert(templates.race.BloodElf, { spell = 69179, type = "ability", titleSuffix = L["cooldown"]});
 -- Gift of the Naaru
-tinsert(templates.race.Draenei, { spell = 28880, type = "ability", titleSuffix = L["cooldown"]}); -- TODO check this for BCC
-tinsert(templates.race.Draenei, { spell = 28880, type = "buff", unit = "player", titleSuffix = L["buff"]}); -- TODO check this for BCC
+tinsert(templates.race.Draenei, { spell = 28880, type = "ability", titleSuffix = L["cooldown"]});
+tinsert(templates.race.Draenei, { spell = 28880, type = "buff", unit = "player", titleSuffix = L["buff"]});
 
 ------------------------------
 -- Helper code for options
@@ -1079,7 +1082,7 @@ local function addLoadCondition(item, loadCondition)
 end
 
 local delayedEnrichDatabase = false;
-local itemInfoReceived = CreateFrame("frame")
+local itemInfoReceived = CreateFrame("Frame")
 
 local enrichTries = 0;
 local function enrichDatabase()
@@ -1148,18 +1151,4 @@ itemInfoReceived:SetScript("OnEvent", function()
 end);
 
 
--- Enrich Display templates with default values
-for regionType, regionData in pairs(WeakAuras.regionOptions) do
-  if (regionData.templates) then
-    for _, item in ipairs(regionData.templates) do
-      for k, v in pairs(WeakAuras.regionTypes[regionType].default) do
-        if (item.data[k] == nil) then
-          item.data[k] = v;
-        end
-      end
-    end
-  end
-end
-
-
-WeakAuras.triggerTemplates = templates;
+TemplatePrivate.triggerTemplates = templates

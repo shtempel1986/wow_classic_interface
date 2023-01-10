@@ -1,7 +1,7 @@
 local mod = DBM:NewMod(548, "DBM-Party-BC", 15, 254)
 local L = mod:GetLocalizedStrings()
 
-mod:SetRevision("20210613145646")
+mod:SetRevision("20221129003558")
 mod:SetCreatureID(20870)
 mod:SetEncounterID(1916)
 mod:SetModelID(19882)
@@ -15,12 +15,25 @@ mod:RegisterEventsInCombat(
 )
 
 local warnVoid      = mod:NewSpellAnnounce(36119, 3)
+local warnSoC      = mod:NewTargetNoFilterAnnounce(39367, 3, nil, "Healer")
 
 local specwarnNova	= mod:NewSpecialWarningSpell(39005, nil, nil, nil, 2, 2)
-local specwarnSoC	= mod:NewSpecialWarningDispel(39367, "Healer", nil, nil, 1, 2)
 local specWarnGTFO	= mod:NewSpecialWarningGTFO(36121, nil, nil, nil, 1, 8)
 
-local timerSoC      = mod:NewTargetTimer(18, 39367, nil, "Healer", 2, 3, nil, DBM_CORE_L.MAGIC_ICON)
+local timerSoC      = mod:NewTargetTimer(18, 39367, nil, "Healer", 2, 3)
+
+function mod:OnCombatStart(delay)
+	if not self:IsTrivial() then
+		self:RegisterShortTermEvents(
+			"SPELL_DAMAGE 36121 39004",
+			"SPELL_MISSED 36121 39004"
+		)
+	end
+end
+
+function mod:OnCombatEnd()
+	self:UnregisterShortTermEvents()
+end
 
 function mod:SPELL_CAST_START(args)
 	if args:IsSpellID(36127, 39005) then
@@ -49,10 +62,7 @@ end
 
 function mod:SPELL_AURA_APPLIED(args)
 	if args:IsSpellID(39367, 32863) then
-		if self:CheckDispelFilter() then
-			specwarnSoC:Show(args.destName)
-			specwarnSoC:Play("dispelnow")
-		end
+		warnSoC:Show(args.destName)
 		timerSoC:Start(args.destName)
 	end
 end

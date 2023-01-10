@@ -4,19 +4,11 @@ local pairs, next, type, ipairs, setmetatable, mfloor, mmax = pairs, next, type,
 local CreateFrame, GameFontNormalSmall = CreateFrame, GameFontNormalSmall
 local DBM = DBM
 
+local isModernAPI = DBM:GetTOC() > 30400
+
 local defaultFont, defaultFontSize = GameFontHighlightSmall:GetFont()
 
-local hack = OptionsList_OnLoad
-function OptionsList_OnLoad(self, ...)
-	if self:GetName() ~= "DBM_GUI_DropDown" then
-		hack(self, ...)
-	end
-end
-
-local tabFrame1 = CreateFrame("Frame", "DBM_GUI_DropDown", _G["DBM_GUI_OptionsFrame"], DBM:IsShadowlands() and "BackdropTemplate,OptionsFrameListTemplate" or "OptionsFrameListTemplate")
-tabFrame1:Hide()
-tabFrame1:SetFrameStrata("TOOLTIP")
-tabFrame1.offset = 0
+local tabFrame1 = CreateFrame("ScrollFrame", "DBM_GUI_DropDown", _G["DBM_GUI_OptionsFrame"], "DBM_GUI_DropDownTemplate")
 tabFrame1.backdropInfo = {
 	bgFile		= "Interface\\ChatFrame\\ChatFrameBackground", -- 130937
 	edgeFile	= "Interface\\Tooltips\\UI-Tooltip-Border", -- 137057
@@ -25,14 +17,17 @@ tabFrame1.backdropInfo = {
 	edgeSize	= 16,
 	insets		= { left = 3, right = 3, top = 5, bottom = 3 }
 }
-if not DBM:IsShadowlands() then
-	tabFrame1:SetBackdrop(tabFrame1.backdropInfo)
-else
-	tabFrame1:ApplyBackdrop()
+if not isModernAPI then
+	tabFrame1.backdropInfo.bgFile = nil
 end
+tabFrame1:Hide()
+tabFrame1:SetFrameStrata("TOOLTIP")
+tabFrame1.offset = 0
+tabFrame1:ApplyBackdrop()
 tabFrame1:SetBackdropColor(0.1, 0.1, 0.1, 0.6)
 tabFrame1:SetBackdropBorderColor(0.4, 0.4, 0.4)
 
+-- Temporary hack, till I get both versions running smoothly on the new system
 local tabFrame1List = _G[tabFrame1:GetName() .. "List"]
 tabFrame1List:SetScript("OnVerticalScroll", function(self, offset)
 	local scrollbar = _G[self:GetName() .. "ScrollBar"]
@@ -43,9 +38,7 @@ tabFrame1List:SetScript("OnVerticalScroll", function(self, offset)
 	tabFrame1.offset = mfloor(offset)
 	tabFrame1:Refresh()
 end)
-if DBM:IsShadowlands() then
-	Mixin(tabFrame1List, BackdropTemplateMixin)
-end
+Mixin(tabFrame1List, BackdropTemplateMixin)
 tabFrame1List:SetBackdropBorderColor(0.6, 0.6, 0.6, 0.6)
 
 local tabFrame1ScrollBar = _G[tabFrame1List:GetName() .. "ScrollBar"]
@@ -86,7 +79,7 @@ end)
 
 tabFrame1.buttons = {}
 for i = 1, 10 do
-	local button = CreateFrame("Button", tabFrame1:GetName() .. "Button" .. i, tabFrame1, DBM:IsShadowlands() and "BackdropTemplate,UIDropDownMenuButtonTemplate" or "UIDropDownMenuButtonTemplate")
+	local button = CreateFrame("Button", tabFrame1:GetName() .. "Button" .. i, tabFrame1, "BackdropTemplate,UIDropDownMenuButtonTemplate")
 	_G[button:GetName() .. "Check"]:Hide()
 	_G[button:GetName() .. "UnCheck"]:Hide()
 	button:SetFrameLevel(tabFrame1ScrollBar:GetFrameLevel() - 1)
@@ -120,11 +113,7 @@ for i = 1, 10 do
 		_G[self:GetName() .. "NormalText"]:SetFont(defaultFont, defaultFontSize)
 		self:SetHeight(0)
 		self:SetText("")
-		if DBM:IsShadowlands() then
-			self:ClearBackdrop()
-		else
-			self:SetBackdrop(nil)
-		end
+		self:ClearBackdrop()
 	end
 	tabFrame1.buttons[i] = button
 end
@@ -141,11 +130,7 @@ function tabFrame1:ShowMenu()
 				button.backdropInfo = {
 					bgFile	= entry.value
 				}
-				if DBM:IsShadowlands() then
-					button:ApplyBackdrop()
-				else
-					button:SetBackdrop(button.backdropInfo)
-				end
+				button:ApplyBackdrop()
 			end
 		end
 	end
@@ -165,6 +150,9 @@ function tabFrame1:ShowFontMenu()
 end
 
 function tabFrame1:Refresh()
+	if #self.dropdown.values == 0 then -- Quirky case where there may be no elements in the dropdown???
+		return
+	end
 	self:Show()
 	if self.offset < 0 then
 		self.offset = 0
@@ -223,6 +211,8 @@ function DBM_GUI:CreateDropdown(title, values, vartype, var, callfunc, width, he
 		end
 	end
 	local dropdown = CreateFrame("Frame", "DBM_GUI_DropDown" .. self:GetNewID(), parent or self.frame, "UIDropDownMenuTemplate")
+	dropdown.mytype = "dropdown"
+	dropdown.width = width
 	dropdown.values = values
 	dropdown.callfunc = callfunc
 	local dropdownText = _G[dropdown:GetName() .. "Text"]

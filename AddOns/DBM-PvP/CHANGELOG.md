@@ -1,6 +1,6 @@
 # <DBM> PvP
 
-## [r127](https://github.com/DeadlyBossMods/DBM-PvP/tree/r127) (2021-08-31)
-[Full Changelog](https://github.com/DeadlyBossMods/DBM-PvP/compare/r126...r127) [Previous Releases](https://github.com/DeadlyBossMods/DBM-PvP/releases)
+## [r139](https://github.com/DeadlyBossMods/DBM-PvP/tree/r139) (2022-11-15)
+[Full Changelog](https://github.com/DeadlyBossMods/DBM-PvP/compare/r138...r139) [Previous Releases](https://github.com/DeadlyBossMods/DBM-PvP/releases)
 
-- bump toc for BCC  
+- Bump TOC file  

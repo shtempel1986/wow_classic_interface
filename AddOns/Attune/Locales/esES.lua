@@ -145,6 +145,12 @@ Lang["HEROICS"] = "HEROICAS"
 --v244
 Lang["Ally of the Netherwing"] = "Aliado del Ala Abisal"
 Lang["Netherwing_Desc"] = "El Ala Abisal es una facción de dragones ubicada en Terrallende."
+--v247
+Lang["Tirisfal Glades"] = "Claros de Tirisfal"
+Lang["Scholomance"] = "Scholomance"
+--v248
+Lang["Target"] = "Objetivo"
+Lang["SendingSurveyTo"] = "Enviando encuesta a ##TO## "
 
 
 -- OPTIONS
@@ -182,7 +188,16 @@ Lang["DelUnder70_TEXT"] = "Eliminar PJs por debajo de nivel 70"
 Lang["DelUnder70_DESC"] = "Eliminar toda la información sobre Pjs por debajo de nivel 70."
 Lang["DelUnder70_CONF"] = "¿Quieres realmente eliminar TODOS los personajes por debajo de 70?"
 Lang["DelUnder70_DONE"] = "Todos los resultados por debajo de nivel 70 eliminados."
-
+--302
+Lang["AnnounceAchieve_TEXT"] = "Anunciar logros en el chat del gremio                                    Límite:"
+Lang["AnnounceAchieve_DESC"] = "Envía un mensaje de hermandad cuando obtengas un logro."
+Lang["AchieveCompleteGuild"] = "##LINK## completada! " 
+Lang["AchieveCompletePoints"] = "(##POINTS## puntos totales)" 
+Lang["AchieveSurvey"] = "¿Te gustaría |cFFFFD100Attune|r anunciar los logros de |cFFFFD100##WHO##|r en el chat del gremio?"
+--306
+Lang["showDeprecatedAttunes_TEXT"] = "Mostrar armonización en desuso"
+Lang["showDeprecatedAttunes_DESC"] = "Mantenga las armonización más antiguas (Onyxia 40, Naxxramas 40) visibles en la lista"
+					
 
 -- TREEVIEW
 Lang["World of Warcraft"] = "World of Warcraft"
@@ -218,6 +233,14 @@ Lang["Heroic_Desc"] = "Todos los miembro de la banda tiene que tener la reputaci
 Lang["NB_Desc"] = "Solo un miembro de la banda debe tener la Urna ennegrecida para poder invocar a Nocturno."
 Lang["BT_Desc"] = "Todos los miembros de la banda deben tener el Medallón de Karabor para entrar en la instancia de banda."
 Lang["BM_Desc"] = "Todos los miembros del grupo deben completar la cadena de misiones para poder acceder a la instancia." 
+--v250
+Lang["Aqual Quintessence"] = "Quintaesencia de agua"
+Lang["MC2_Desc"] = "Se utiliza para convocar a Mayordomo Executus. Todos los jefes de Molten Core, excepto Lucifron y Geddon, tienen runas en el suelo que deben rociarse para que aparezca Executus." 
+--v254
+Lang["Magisters' Terrace Heroic"] = "Bancal del Magister Heroica"
+Lang["Magisters' Terrace"] = "Bancal del Magister"
+Lang["MgT_Desc"] = "Todos los jugadores deben completar la mazmorra en modo normal para poder ejecutarla en modo heroico."
+Lang["Isle of Quel'Danas"] = "Isla de Quel'Danas"
 
 
 -- GENERIC
@@ -396,6 +419,12 @@ Lang["I_30623"] = "Llave de depósito"			-- https://es.tbc.wowhead.com/item=3062
 Lang["I_30633"] = "Llave Auchenai"			-- https://es.tbc.wowhead.com/item=30633
 Lang["I_30634"] = "Llave forjada de distorsión"			-- https://es.tbc.wowhead.com/item=30634
 Lang["I_30635"] = "Llave del tiempo"			-- https://es.tbc.wowhead.com/item=30635
+Lang["I_185686"] = "Llave de Forjallamas"			-- https://es.tbc.wowhead.com/item=30637
+Lang["I_185687"] = "Llave de Forjallamas"			-- https://es.tbc.wowhead.com/item=30622
+Lang["I_185690"] = "Llave de depósito"			-- https://es.tbc.wowhead.com/item=30623
+Lang["I_185691"] = "Llave Auchenai"			-- https://es.tbc.wowhead.com/item=30633
+Lang["I_185692"] = "Llave forjada de distorsión"			-- https://es.tbc.wowhead.com/item=30634
+Lang["I_185693"] = "Llave del tiempo"			-- https://es.tbc.wowhead.com/item=30635
 Lang["I_24514"] = "Primer trozo de la llave"			-- https://es.tbc.wowhead.com/item=24514
 Lang["I_24487"] = "Segundo trozo de la llave"			-- https://es.tbc.wowhead.com/item=24487
 Lang["I_24488"] = "Tercer trozo de la llave"			-- https://es.tbc.wowhead.com/item=24488
@@ -414,6 +443,15 @@ Lang["I_29905"] = "Restos del vial de Kael"			-- https://es.tbc.wowhead.com/item
 Lang["I_29906"] = "Restos del vial de Vashj"			-- https://es.tbc.wowhead.com/item=29906
 Lang["I_31307"] = "Corazón de furia"			-- https://es.tbc.wowhead.com/item=31307
 Lang["I_32649"] = "Medallón de Karabor"			-- https://es.tbc.wowhead.com/item=32649
+--v247
+Lang["Shrine of Thaurissan"] = "Santuario de Thaurissan"
+Lang["I_14610"] = "El escarabajo de Araj"
+--v250
+Lang["I_17332"] = "Mano de Shazzrah"
+Lang["I_17329"] = "Mano de Lucifron"
+Lang["I_17331"] = "Mano de Gehennas"
+Lang["I_17330"] = "Mano de Sulfuron"
+Lang["I_17333"] = "Quintaesencia de agua"
 
 
 -- QUESTS - Classic
@@ -636,8 +674,8 @@ Lang["Q1_9637"] = "La petición de Kalynna"			-- https://es.tbc.wowhead.com/ques
 Lang["Q2_9637"] = "Kalynna Lathrojo quiere recuperar el Escrito del Ocaso del brujo supremo Malbisal en Las Salas Arrasadas de la Ciudadela del Fuego Infernal y el Libro de los Nombres Olvidados de Tejeoscuro Syth en las Salas Sethekk de Auchindoun."
 Lang["Q1_9644"] = "Nocturno"			-- https://es.tbc.wowhead.com/quest=9644
 Lang["Q2_9644"] = "Ve a El Bancal del Maestro en Karazhan y usa la urna ennegrecida para invocar a Nocturno. Recupera la esencia arcana intangible del cadáver de Nocturno y llévasela al archimago Alturus."
-Lang["Q1_10901"] = "La cayada de Kar'desh"			-- https://es.tbc.wowhead.com/quest=10901
-Lang["Q2_10901"] = "Skar'this el Herético, en El Reciento de los Esclavos heroico, en la Reserva Colmillo Torcido, quiere que le lleves el sello terráneo y el sello llameante."
+Lang["Q1_10901|13431"] = "La cayada de Kar'desh"			-- https://es.tbc.wowhead.com/quest=10901|13431
+Lang["Q2_10901|13431"] = "Skar'this el Herético, en El Reciento de los Esclavos heroico, en la Reserva Colmillo Torcido, quiere que le lleves el sello terráneo y el sello llameante."
 Lang["Q1_10900"] = "La marca de Vashj"			-- https://es.tbc.wowhead.com/quest=10900
 Lang["Q2_10900"] = ""
 Lang["Q1_10681"] = "La Mano de Gul'dan"			-- https://es.tbc.wowhead.com/quest=10681
@@ -698,12 +736,12 @@ Lang["Q1_10885"] = "Prueba de los naaru: fuerza"			-- https://es.tbc.wowhead.com
 Lang["Q2_10885"] = "A'dal de la Ciudad de Shattrath quiere que recuperes el tridente de Kalithresh y la esencia de Murmullo.\n\nEsta misión debe completarse en dificultad de mazmorra heroica."
 Lang["Q1_10886"] = "Prueba de los naaru: tenacidad"			-- https://es.tbc.wowhead.com/quest=10886
 Lang["Q2_10886"] = "A'dal, de la Ciudad de Shattrath, quiere que rescates a Molino Tormenta de Maná del Arcatraz de El Castillo de la Tempestad."
-Lang["Q1_10888"] = "Prueba de los naaru: Magtheridon"			-- https://es.tbc.wowhead.com/quest=10888
-Lang["Q2_10888"] = "A'dal en la Ciudad de Shattrath quiere que mates a Magtheridon."
+Lang["Q1_10888|13430"] = "Prueba de los naaru: Magtheridon"			-- https://es.tbc.wowhead.com/quest=10888|13430
+Lang["Q2_10888|13430"] = "A'dal en la Ciudad de Shattrath quiere que mates a Magtheridon."
 Lang["Q1_10680"] = "La Mano de Gul'dan"			-- https://es.tbc.wowhead.com/quest=10680
 Lang["Q2_10680"] = "Habla con el ensalmador de la tierra Torlok en El Altar de Condenación del Valle Sombraluna."
-Lang["Q1_10445"] = "Los viales de la eternidad"			-- https://es.tbc.wowhead.com/quest=10445
-Lang["Q2_10445"] = "Soridormi de las Cavernas del Tiempo quiere que recuperes los restos del vial de Vashj de lady Vashj en la Reserva Colmillo Torcido, y los restos del vial de Kael de Kael'thas Caminante del Sol, en El Castillo de la Tempestad."
+Lang["Q1_10445|13432"] = "Los viales de la eternidad"			-- https://es.tbc.wowhead.com/quest=10445|13432
+Lang["Q2_10445|13432"] = "Soridormi de las Cavernas del Tiempo quiere que recuperes los restos del vial de Vashj de lady Vashj en la Reserva Colmillo Torcido, y los restos del vial de Kael de Kael'thas Caminante del Sol, en El Castillo de la Tempestad."
 Lang["Q1_10568"] = "Las tablillas de Baa'ri"			-- https://es.tbc.wowhead.com/quest=10568
 Lang["Q2_10568"] = "La anacoreta Ceyla del Altar de Sha'tar quiere que recojas 12 tablillas Baa'ri del suelo y de los trabajadores Lengua de Ceniza en las Ruinas de Baa'ri.\n\nCompletar misiones para los Aldor hará que disminuya tu nivel de reputación con los Arúspices."
 Lang["Q1_10683"] = "Las tablillas de Baa'ri"			-- https://es.tbc.wowhead.com/quest=10683
@@ -742,8 +780,8 @@ Lang["Q1_10948"] = "El alma rehén"			-- https://es.tbc.wowhead.com/quest=10948
 Lang["Q2_10948"] = "Viaja hasta la Ciudad de Shattrath y háblale a A'dal de lo que pide Akama."
 Lang["Q1_10949"] = "La entrada a El Templo Oscuro"			-- https://es.tbc.wowhead.com/quest=10949
 Lang["Q2_10949"] = "Viaja hasta la entrada del Templo Oscuro en el Valle Sombraluna y habla con Xi'ri."
-Lang["Q1_10985"] = "Una distracción para Akama"			-- https://es.tbc.wowhead.com/quest=10985
-Lang["Q2_10985"] = "Asegúrate de que Akama y Maiev entran en El Templo Oscuro, en el Valle Sombraluna, cuando las fuerzas de Xi'ri creen una distracción."
+Lang["Q1_10985|13429"] = "Una distracción para Akama"			-- https://es.tbc.wowhead.com/quest=10985|13429
+Lang["Q2_10985|13429"] = "Asegúrate de que Akama y Maiev entran en El Templo Oscuro, en el Valle Sombraluna, cuando las fuerzas de Xi'ri creen una distracción."
 --v243
 Lang["Q1_10984"] = "Habla con el ogro"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
 Lang["Q2_10984"] = "Habla con Grok, el ogro, en el Bajo Arrabal de la Ciudad de Shattrath."
@@ -782,6 +820,67 @@ Lang["Q1_10866"] = "Zuluhed el Demente"			-- https://www.thegeekcrusade-serveur.
 Lang["Q2_10866"] = "Mata a Zuluhed el Demente y consigue la llave de Zuluhed. Utiliza la llave de Zuluhed en las cadenas de Zuluhed para liberar a Karynaku."
 Lang["Q1_10870"] = "Aliado del Ala Abisal"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
 Lang["Q2_10870"] = "Que Karynaku te devuelva a Mordenai en los Campos del Ala Abisal."
+--v247
+Lang["Q1_3801"] = "El legado de los Hierro Negro"			-- https://www.thegeekcrusade-serveur.com/db/?quest=3801
+Lang["Q2_3801"] = "Habla con Franclorn Forjafina si te interesa obtener una llave de la ciudad."
+Lang["Q1_3802"] = "El legado de los Hierro Negro"			-- https://www.thegeekcrusade-serveur.com/db/?quest=3802
+Lang["Q2_3802"] = "Mata a Finoso Virunegro y recupera el gran martillo, Ferrovil. Lleva a Ferrovil al Santuario de Thaurissan y coloca el martillo en la estatua de Franclorn Forjafina."
+Lang["Q1_5096"] = "Desvío Escarlata"
+Lang["Q2_5096"] = "Adéntrate en el campamento base de la Cruzada Escarlata entre el Campo de Piedra Mácula y el Llanto de Dalson y destruye su tienda de mando."
+Lang["Q1_5098"] = "Todas las torres"
+Lang["Q2_5098"] = "Con la Antorcha de aviso, marca las torres de Andorhal. Tendrás que estar en la entrada de la torre para poder marcarla."
+Lang["Q1_838"] = "Scholomance"
+Lang["Q2_838"] = "Habla con el boticario Dithers en el Baluarte, en las Tierras de la Peste del Oeste."
+Lang["Q1_964"] = "Fragmentos esqueléticos"
+Lang["Q2_964"] = "Lleva 15 fragmentos esqueléticos al boticario Dithers en El Baluarte, en las Tierras de la Peste del Oeste."
+Lang["Q1_5514"] = "Molde rima con... ¿oro?"
+Lang["Q2_5514"] = "Lleva los Fragmentos esqueléticos imbuidos y 15 piezas de oro a Krinkle Buenacero en Gadgetzan."
+Lang["Q1_5802"] = "La forja del Penacho en Llamas"
+Lang["Q2_5802"] = "Lleva el molde para llave esqueleto y 2 barras de torio a la cima de la Cresta del Penacho en Llamas en el Cráter de Un'Goro. Utiliza el molde para llave esqueleto en el lago de lava para forjar la llave esqueleto incompleta."
+Lang["Q1_5804"] = "El escarabajo de Araj"
+Lang["Q2_5804"] = "Destruye a Araj el Invocador y lleva el Escarabeo de Araj al boticario Dithers en El Baluarte, en las Tierras de la Peste del Oeste."
+Lang["Q1_5511"] = "La llave de Scholomance"
+Lang["Q2_5511"] = "Bien, aquí estás, Y has completado la llave esqueleto. No tengo dudas de que esta llave te permitirá acceder a los confines de Scholomance."
+Lang["Q1_5092"] = "Despejando el camino"
+Lang["Q2_5092"] = "Mata 10 despellejadores esqueléticos y 10 necrófagos esclavizantes en la Colina de las Penas."
+Lang["Q1_5097"] = "Todas las torres"
+Lang["Q2_5097"] = "Con la Antorcha de aviso, marca las torres de Andorhal. Tendrás que estar en la entrada de la torre para poder marcarla."
+Lang["Q1_5533"] = "Scholomance"
+Lang["Q2_5533"] = "Habla con el alquimista Arbington en el Alto del Orvallo, en las Tierras de la Peste del Oeste."
+Lang["Q1_5537"] = "Fragmentos esqueléticos"
+Lang["Q2_5537"] = "Lleva 15 fragmentos esqueléticos al alquimista Arbington, en el Alto del Orvallo, en las Tierras de la Peste del Oeste."
+Lang["Q1_5538"] = "Molde rima con... ¿oro?"
+Lang["Q2_5538"] = "Lleva los Fragmentos esqueléticos imbuidos y 15 piezas de oro a Krinkle Buenacero en Gadgetzan."
+Lang["Q1_5801"] = "La forja del Penacho en Llamas"
+Lang["Q2_5801"] = "Lleva el molde para llave esqueleto y 2 barras de torio a la cima de la Cresta del Penacho en Llamas en el Cráter de Un'Goro. Utiliza el molde para llave esqueleto en el lago de lava para forjar la llave esqueleto incompleta."
+Lang["Q1_5803"] = "El escarabajo de Araj"
+Lang["Q2_5803"] = "Destruye a Araj el Invocador y lleva el Escarabeo de Araj al alquimista Arbington en el Alto del Orvallo, en las Tierras de la Peste del Oeste."
+Lang["Q1_5505"] = "La llave de Scholomance"
+Lang["Q2_5505"] = "Bien, aquí estás, Y has completado la llave esqueleto. No tengo dudas de que esta llave te permitirá acceder a los confines de Scholomance."
+--v250
+Lang["Q1_6804"] = "Agua envenenada"
+Lang["Q2_6804"] = "Aplica el aspecto de Neptulon a los elementales infectados de las Tierras de la Peste del Este. Lleva 12 de sus brazales de vínculo y el aspecto de Neptulon al duque Hydraxis a Azshara."
+Lang["Q1_6805"] = "Sirocosos y reptarenas"
+Lang["Q2_6805"] = "Mata a 15 sirocosos y 15 reptarenas y ve a hablar con el duque Hydraxis en Azshara."
+Lang["Q1_6821"] = "Ojo de brasadivino"
+Lang["Q2_6821"] = "Lleva el ojo del Piroguardián brasadivino al duque Hydraxis a Azshara."
+Lang["Q1_6822"] = "El Núcleo de Magma"
+Lang["Q2_6822"] = "Mata a 1 Señor del Fuego, 1 gigante fundido, 1 canino del Núcleo y 1 marea de lava y ve a ver al duque Hydraxis a Azshara."
+Lang["Q1_6823"] = "Agente de Hydraxis"
+Lang["Q2_6823"] = "Consigue una mención de honor de los Señores del Agua y habla con el duque Hydraxis en Azshara."
+Lang["Q1_6824"] = "Las manos de los enemigos"
+Lang["Q2_6824"] = "Lleva las manos de Lucifron, Sulfuron, Gehennas y Shazzrah al duque Hydraxis a Azshara."
+Lang["Q1_7486"] = "Una recompensa de héroe"
+Lang["Q2_7486"] = "Recoge tu recompensa en el arca de Hydraxis."
+--v254
+Lang["Q1_11481"] = "Crisis en La Fuente del Sol"
+Lang["Q2_11481"] = "Adyen el Celador de la Luz del Alto Aldor, en la Ciudad de Shattrath, te ha pedido que viajes hasta la Meseta de La Fuente del Sol para hablar con Larethor."
+Lang["Q1_11488"] = "El Bancal del Magister"
+Lang["Q2_11488"] = "El exarca Larethor de la Zona de escala de Sol Devastado quiere que registres el Bancal del Magister y encuentres a Tyrith, un espía elfo de sangre."
+Lang["Q1_11490"] = "El cristal del Arúspice"
+Lang["Q2_11490"] = "Tyrith quiere que uses el orbe en el balcón del Bancal del Magister."
+Lang["Q1_11492"] = "Duro de matar"
+Lang["Q2_11492"] = "Kalecgos te ha pedido que derrotes a Kael'thas en el Bancal del Magister. Coge la cabeza de Kael y preséntate ante Larethor en la Zona de escala de Sol Devastado."
 
 
 -- NPC
@@ -943,8 +1042,32 @@ Lang["N2_22497"] = "V'eru está en la misma habitación que A'dal, pero es azul.
 --v244
 Lang["N1_22113"] = "Mordenai"
 Lang["N2_22113"] = "Un elfo de sangre (alerta de spoiler, en realidad un dragón) que camina por los campos del Ala Abisal, al este del Sagrario de las Estrellas"
+--v247
+Lang["N1_8888"]  = "Franclorn Forjador"
+Lang["N2_8888"]  = "Un enano fantasma, de pie sobre su propia tumba FUERA de la mazmorra, en la estructura suspendida sobre la lava. Solo puedes interactuar con él si estás MUERTO."
+Lang["N1_9056"]  = "Finoso Virunegro"
+Lang["N2_9056"]  = "Está DENTRO de la mazmorra y patrulla el área de la cantera fuera de la cámara de Lord Incendius."
+Lang["N1_10837"] = "Sumo Ejecutor Derrington"
+Lang["N2_10837"] = "Se le puede encontrar en el Baluarte, cerca de la frontera de Tirisfal y las Tierras de la Peste del Oeste."
+Lang["N1_10838"] = "Comandante Ashlam Puñovalor"
+Lang["N2_10838"] = "Se le puede encontrar en el Campamento Viento Gélido, al sur de Andorhal en las Tierras de la Peste del Oeste."
+Lang["N1_1852"]  = "Araj el Invocador"
+Lang["N2_1852"]  = "El Lich, en medio de Andorhal"
+--v250
+Lang["N1_13278"]  = "Duque Hydraxis"
+Lang["N2_13278"]  = "Un elemental de agua grande en una pequeña isla lejana en Azshara (79.2,73.6)"
+Lang["N1_12264"]  = "Shazzrah"
+Lang["N2_12264"]  = "Shazzrah es el quinto jefe de Núcleo de Magma."
+Lang["N1_12118"]  = "Lucifron"
+Lang["N2_12118"]  = "Lucifron es el primer jefe de Núcleo de Magma."
+Lang["N1_12259"]  = "Gehennas"
+Lang["N2_12259"]  = "Gehennas es el tercer jefe de Núcleo de Magma."
+Lang["N1_12098"]  = "Sulfuron Presagista"
+Lang["N2_12098"]  = "Sulfuron Presagista, heraldo de Ragnaros, es el octavo jefe de Núcleo de Magma."
 
 
 Lang["O_1"] = "Clicka en La marca de Drakkisath para completar la misión.\nLa orbe brillante detras del General Drakkisath."
 Lang["O_2"] = "Es un pequeño punto rojo en el suelo\nen frente las puertas de Ahn'Qiraj (28.7,89.2)."
+--v247
+Lang["O_3"] = "El santuario está ubicado al final de un corredor\nque comienza en el nivel superior del Anillo de la Ley."
 

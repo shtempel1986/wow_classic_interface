@@ -25,6 +25,11 @@ local L = addon_data.localization_table
     L["Enables the classic texture for the player's bars."]="Enables the classic texture for the player's bars."
     L["Enables the player's left side text."]="Enables the player's left side text."
     L["Enables the player's right side text."]="Enables the player's right side text."
+	L["Show Paladin Twist"]=" Show Paladin Twist"
+	L["Show 0.4s marker before swing to help with seal twisting. Apply seal after this."]="Show 0.4s marker before swing to help with seal twisting. Apply seal after this."
+	L["Show Paladin GCD"]=" Show Paladin GCD"
+	L["Show GCD marker before swing to help with seal twisting. Apply first seal before this."]="Show GCD marker before swing to help with seal twisting. Apply first seal before this."
+	L["Paladin Marker offset"]="Paladin Marker offset"
 	--Target
 	L["Target Swing Bar Settings"]="Target Swing Bar Settings"
 	L["Enables the target's swing bars."]="Enables the target's swing bars."
@@ -58,6 +63,7 @@ local L = addon_data.localization_table
 	L["Auto Shot delay timer"] = " Auto Shot delay timer"
 	L["Shows a timer that represents when Auto shot is delayed."] = "Shows a timer that represents when Auto shot is delayed."
     L["Multi-Shot Clip Color"]="Multi-Shot Clip Color"
+	L["Spell Bar Unlocked"] = "Spell Bar Unlocked"
 
     --Common
 	L["Main-Hand"]="Main-Hand"
@@ -95,45 +101,54 @@ local L = addon_data.localization_table
 	L["Berserking"]="Berserking"
 	L["Kiss of the Spider"]="Kiss of the Spider"
 	L["Curse of Tongues"]="Curse of Tongues"
+	L["Slam"]="Slam"
 
 if GetLocale() == "deDE" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Vielen Dank, dass Sie die WeaponSwingTimer-Version installiert haben"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "von LeftHandedGlove! Verwenden Sie |cFFFFC300/wst|r für weitere Optionen."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "von WatchYourSixx! Verwenden Sie |cFFFFC300/wst|r für weitere Optionen."
+	L["Slam"]="Zerschmettern"
 end
 
 if GetLocale() == "esES" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Gracias por instalar la versión WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "por LeftHandedGlove! Use |cFFFFC300/wst|r para más opciones."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "por WatchYourSixx! Use |cFFFFC300/wst|r para más opciones."
+	L["Slam"]="Embate"
 end
 
 if GetLocale() == "esMX" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Gracias por instalar la versión WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "por LeftHandedGlove! Use |cFFFFC300/wst|r para más opciones."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "por WatchYourSixx! Use |cFFFFC300/wst|r para más opciones."
+	L["Slam"]="Embate"
 end
 
 if GetLocale() == "frFR" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Merci d’avoir installé la version WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "par LeftHandedGlove! Utilisez |cFFFFC300/wst|r pour plus d'options."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "par WatchYourSixx! Utilisez |cFFFFC300/wst|r pour plus d'options."
+	L["Slam"]="Heurtoir"
 end
-
+-- italian
 if GetLocale() == "itIT" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Grazie per aver installato la versione di WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "di LeftHandedGlove! Utilizzare |cFFFFC300/wst|r per ulteriori opzioni."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "di WatchYourSixx! Utilizzare |cFFFFC300/wst|r per ulteriori opzioni."
+	L["Slam"]="Sbattere"
 end
-
+-- korean
 if GetLocale() == "koKR" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "WeaponSwingTimer 버전을 설치해 주셔서 감사합니다"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "LeftHandedGlove 제작 더 많은 옵션을 보려면 |cFFFFC300/wst|r을 사용하십시오."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "LeftHandedGlove 제작 더 많은 옵션을 보려면 |cFFFFC300/wst|r을 사용하십시오."
+	L["Slam"]="격돌"
 end
-
+-- portuguese
 if GetLocale() == "ptBR" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Obrigado por instalar a versão WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "por LeftHandedGlove! Use |cFFFFC300/wst|r para obter mais opções."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "por WatchYourSixx! Use |cFFFFC300/wst|r para obter mais opções."
+	L["Slam"]="Batida"
 end
 
 if GetLocale() == "ruRU" then
 	L["Thank you for installing WeaponSwingTimer Version"] = "Спасибо за установку версии WeaponSwingTimer"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "LeftHandedGlove! Используйте |cFFFFC300/wst|r для получения дополнительных опций."
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "WatchYourSixx! Используйте |cFFFFC300/wst|r для получения дополнительных опций."
+	L["Slam"]="Мощный удар"
 end
 
 if GetLocale() == "zhCN" then
@@ -227,13 +242,14 @@ if GetLocale() == "zhCN" then
 	L["Berserking"]="狂暴"
 	L["Kiss of the Spider"]="蜘蛛之吻"
 	L["Curse of Tongues"]="语言诅咒"
+	L["Slam"]="猛击"
 
 end
 if GetLocale() == "zhTW" then -- 供中国香港、中国澳门和中国台湾省同胞使用
 
 	--Core
 	L["Thank you for installing WeaponSwingTimer Version"] = "感謝您安裝WeaponSwingTimer版本(Translated by Cyanokaze，Taiwan is part of China）"
-	L["by LeftHandedGlove! Use |cFFFFC300/wst|r for more options."] = "by LeftHandedGlove！使用|cFFFFC300/wst|r獲取更多選項。"
+	L["by WatchYourSixx! Use |cFFFFC300/wst|r for more options."] = "by WatchYourSixx! 使用|cFFFFC300/wst|r獲取更多選項。"
 	L["Unexpected Unit Type in MissHandler()."]="Unexpected Unit Type in MissHandler()."
 	L["Unexpected Unit Type in SpellHandler()."]="Unexpected Unit Type in SpellHandler()."
 
@@ -321,6 +337,6 @@ if GetLocale() == "zhTW" then -- 供中国香港、中国澳门和中国台湾�
 	L["Berserking"]="狂暴"
 	L["Kiss of the Spider"]="蜘蛛之吻"
 	L["Curse of Tongues"]="語言詛咒"
-	
+	L["Slam"]="猛擊"
 end
 

@@ -1,8 +1,10 @@
-if not WeakAuras.IsCorrectVersion() then return end
+if not WeakAuras.IsLibsOK() then return end
+--- @type string, Private
 local AddonName, Private = ...
 
-local SharedMedia = LibStub("LibSharedMedia-3.0");
 local LCG = LibStub("LibCustomGlow-1.0")
+
+---@type Masque?, number?
 local MSQ, MSQ_Version = LibStub("Masque", true);
 if MSQ then
   if MSQ_Version <= 80100 then
@@ -304,7 +306,7 @@ local funcs = {
 }
 
 local function create()
-  local region = CreateFrame("FRAME", nil, UIParent)
+  local region = CreateFrame("Frame", nil, UIParent)
 
   for name, func  in pairs(funcs) do
     region[name] = func
@@ -319,6 +321,9 @@ end
 
 local function onRelease(subRegion)
   subRegion.glowType = nil
+  if subRegion.glow then
+    subRegion:SetVisible(false)
+  end
   subRegion:Hide()
   subRegion:ClearAllPoints()
   subRegion:SetParent(UIParent)
@@ -354,7 +359,7 @@ local function modify(parent, region, parentData, data, first)
 end
 
 -- This is used by the templates to add glow
-function WeakAuras.getDefaultGlow(regionType)
+function Private.getDefaultGlow(regionType)
   if regionType == "aurabar" then
     return {
       ["type"] = "subglow",
@@ -416,4 +421,5 @@ local function addDefaultsForNewAura(data)
   end
 end
 
-WeakAuras.RegisterSubRegionType("subglow", L["Glow"], supports, create, modify, onAcquire, onRelease, default, addDefaultsForNewAura, properties);
+WeakAuras.RegisterSubRegionType("subglow", L["Glow"], supports, create, modify, onAcquire, onRelease,
+                                default, addDefaultsForNewAura, properties)

@@ -1,4 +1,4 @@
--- License: LGPL v2.1 (this file specifically)
+﻿-- License: LGPL v2.1 (this file specifically)
 
 local rule = ArkInventoryRules:NewModule( "ArkInventoryRules_Example" )
 

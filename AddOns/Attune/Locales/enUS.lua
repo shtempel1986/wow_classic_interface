@@ -145,6 +145,34 @@ Lang["HEROICS"] = "HEROICS"
 --v244
 Lang["Ally of the Netherwing"] = "Ally of the Netherwing"
 Lang["Netherwing_Desc"] = "The Netherwing is a faction of dragons located in Outland."
+--v247
+Lang["Tirisfal Glades"] = "Tirisfal Glades"
+Lang["Scholomance"] = "Scholomance"
+--v248
+Lang["Target"] = "Target"
+Lang["SendingSurveyTo"] = "Sending survey to ##TO##"
+--WOTLK
+Lang["QUEST HUBS"] = "QUEST HUBS"
+Lang["PHASES"] = "PHASES"
+Lang["Angrathar the Wrathgate"] = "Angrathar the Wrathgate"
+Lang["Unlock the Wrathgate events and the Battle for the Undercity"] = "Unlock the Wrathgate events and the Battle for the Undercity"
+Lang["Sons of Hodir"] = "Sons of Hodir"
+Lang["Unlock the Sons of Hodir quest hub"] = "Unlock the Sons of Hodir quest hub"
+Lang["Knights of the Ebon Blade"] = "Knights of the Ebon Blade"
+Lang["Unlock the Shadow Vault quest hub"] = "Unlock the Shadow Vault quest hub"
+Lang["Goblin"] = "Goblin"
+Lang["Death Knight"] = "Death Knight"
+Lang["Eye"] = "Eye"
+Lang["Abomination"] = "Abomination"
+Lang["Banshee"] = "Banshee"
+Lang["Geist"] = "Geist"
+Lang["Icecrown"] = "Icecrown"
+Lang["Dragonblight"] = "Dragonblight"
+Lang["Borean Tundra"] = "Borean Tundra"
+Lang["The Storm Peaks"] = "The Storm Peaks"
+Lang["The Eye of Eternity"] = "The Eye of Eternity"
+Lang["Sapphiron"] = "Sapphiron"
+Lang["One_Desc"] = "Only one person in the group needs to have this key."
 
 
 -- OPTIONS
@@ -182,7 +210,16 @@ Lang["DelUnder70_TEXT"] = "Delete characters under 70"
 Lang["DelUnder70_DESC"] = "Delete all the gathered information about players under level 70."
 Lang["DelUnder70_CONF"] = "Really delete all characters under level 70?"
 Lang["DelUnder70_DONE"] = "All results under 70 deleted."
-
+--302
+Lang["AnnounceAchieve_TEXT"] = "Announce Achievements in guild chat.                             Threshold:"
+Lang["AnnounceAchieve_DESC"] = "Send a guild message when an achievement is earned rewarding at least that amount of points."
+Lang["AchieveCompleteGuild"] = "##LINK## complete!" 
+Lang["AchieveCompletePoints"] = "(##POINTS## points total)" 
+Lang["AchieveSurvey"] = "Would you like |cFFFFD100Attune|r to announce |cFFFFD100##WHO##|r's achievements in guild chat?"
+--306
+Lang["showDeprecatedAttunes_TEXT"] = "Show deprecated attunements"
+Lang["showDeprecatedAttunes_DESC"] = "Keep the older attunements (Onyxia 40, Naxxramas 40) visible in the list"
+					
 
 -- TREEVIEW
 Lang["World of Warcraft"] = "World of Warcraft"
@@ -218,6 +255,15 @@ Lang["Heroic_Desc"] = "All members of the group need to have the rep and key in 
 Lang["NB_Desc"] = "Only one member of the raid group needs to have the Blackened Urn in order to summon Nightbane."
 Lang["BT_Desc"] = "All members of the raid group need to have the Medallion of Karabor in order to zone into the raid instance."
 Lang["BM_Desc"] = "All members of the group need to complete the quest chain in order to zone into the instance." 
+--v250
+Lang["Aqual Quintessence"] = "Aqual Quintessence"
+Lang["MC2_Desc"] = "Used to summon Majordomo Executus. Every boss in Molten Core except Lucifron and Geddon have runes on the ground that need to be doused for Majordomo to spawn." 
+--v254
+Lang["Magisters' Terrace Heroic"] = "Magisters' Terrace Heroic"
+Lang["Magisters' Terrace"] = "Magisters' Terrace"
+Lang["MgT_Desc"] = "All players need to complete the dungeon on normal mode to be able to run it in heroic mode."
+Lang["Isle of Quel'Danas"] = "Isle of Quel'Danas"
+Lang["Wrath of the Lich King"] = "Wrath of the Lich King"
 
 
 -- GENERIC
@@ -396,6 +442,12 @@ Lang["I_30623"] = "Reservoir Key"			-- https://www.thegeekcrusade-serveur.com/db
 Lang["I_30633"] = "Auchenai Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30633
 Lang["I_30634"] = "Warpforged Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30634
 Lang["I_30635"] = "Key of Time"			-- https://www.thegeekcrusade-serveur.com/db/?item=30635
+Lang["I_185686"] = "Flamewrought Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30637
+Lang["I_185687"] = "Flamewrought Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30622
+Lang["I_185690"] = "Reservoir Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30623
+Lang["I_185691"] = "Auchenai Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30633
+Lang["I_185692"] = "Warpforged Key"			-- https://www.thegeekcrusade-serveur.com/db/?item=30634
+Lang["I_185693"] = "Key of Time"			-- https://www.thegeekcrusade-serveur.com/db/?item=30635
 Lang["I_24514"] = "First Key Fragment"			-- https://www.thegeekcrusade-serveur.com/db/?item=24514
 Lang["I_24487"] = "Second Key Fragment"			-- https://www.thegeekcrusade-serveur.com/db/?item=24487
 Lang["I_24488"] = "Third Key Fragment"			-- https://www.thegeekcrusade-serveur.com/db/?item=24488
@@ -414,6 +466,23 @@ Lang["I_29905"] = "Kael's Vial Remnant"			-- https://www.thegeekcrusade-serveur.
 Lang["I_29906"] = "Vashj's Vial Remnant"			-- https://www.thegeekcrusade-serveur.com/db/?item=29906
 Lang["I_31307"] = "Heart of Fury"			-- https://www.thegeekcrusade-serveur.com/db/?item=31307
 Lang["I_32649"] = "Medaillon of Karabor"			-- https://www.thegeekcrusade-serveur.com/db/?item=32649
+--v247
+Lang["Shrine of Thaurissan"] = "Shrine of Thaurissan"
+Lang["I_14610"] = "Araj's Scarab"
+--v250
+Lang["I_17332"] = "Hand of Shazzrah"
+Lang["I_17329"] = "Hand of Lucifron"
+Lang["I_17331"] = "Hand of Gehennas"
+Lang["I_17330"] = "Hand of Sulfuron"
+Lang["I_17333"] = "Aqual Quintessence"
+--WOTLK
+Lang["I_41556"] = "Slag Covered Metal"
+Lang["I_44569"] = "Key to the Focusing Iris"
+Lang["I_44582"] = "Key to the Focusing Iris"
+Lang["I_44577"] = "Heroic Key to the Focusing Iris"
+Lang["I_44581"] = "Heroic Key to the Focusing Iris"
+
+Lang["I_"] = ""
 
 
 -- QUESTS - Classic
@@ -629,15 +698,15 @@ Lang["Q2_9640"] = "Obtain Medivh's Journal and return to Kamsis at the Guardian'
 Lang["Q1_9645"] = "The Master's Terrace"			-- https://www.thegeekcrusade-serveur.com/db/?quest=9645
 Lang["Q2_9645"] = "Go to the Master's Terrace in Karazhan and read Medivh's Journal. Return to Archmage Alturus with Medivh's Journal after completing this task."
 Lang["Q1_9680"] = "Digging Up the Past"			-- https://www.thegeekcrusade-serveur.com/db/?quest=9680
-Lang["Q2_9680"] = "Archmage Alturus wants you to go to the mountains south of Karazhan in Deadwind Pass and retrieve a Charred Bone Fragment."
+Lang["Q2_9680"] = "Archmage Alturus wants you to go to the mountains south of Karazhan in Deadwind Pass and retrieve a Charred Bone Fragment.\n\nDon't be like Bel, get out of raid first."
 Lang["Q1_9631"] = "A Colleague's Aid"			-- https://www.thegeekcrusade-serveur.com/db/?quest=9631
 Lang["Q2_9631"] = "Take the Charred Bone Fragment to Kalynna Lathred at Area 52 in Netherstorm."
 Lang["Q1_9637"] = "Kalynna's Request"			-- https://www.thegeekcrusade-serveur.com/db/?quest=9637
 Lang["Q2_9637"] = "Kalynna Lathred wants you to retrieve the Tome of Dusk from Grand Warlock Nethekurse in the Shattered Halls of Hellfire Citadel and the Book of Forgotten Names from Darkweaver Syth in the Sethekk Halls in Auchindoun."
 Lang["Q1_9644"] = "Nightbane"			-- https://www.thegeekcrusade-serveur.com/db/?quest=9644
 Lang["Q2_9644"] = "Go to the Master's Terrace in Karazhan and use Kalynna's Urn to summon Nightbane. Retrieve the Faint Arcane Essence from Nightbane's corpse and bring it to Archmage Alturus."
-Lang["Q1_10901"] = "The Cudgel of Kar'desh"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10901
-Lang["Q2_10901"] = "Skar'this the Heretic in the heroic Slave Pens of Coilfang Reservoir wants you to bring him the Earthen Signet and the Blazing Signet."
+Lang["Q1_10901|13431"] = "The Cudgel of Kar'desh"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10901|13431
+Lang["Q2_10901|13431"] = "Skar'this the Heretic in the heroic Slave Pens of Coilfang Reservoir wants you to bring him the Earthen Signet and the Blazing Signet."
 Lang["Q1_10900"] = "The Mark of Vashj"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10900
 Lang["Q2_10900"] = ""
 Lang["Q1_10681"] = "The Hand of Gul'dan"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10681
@@ -698,12 +767,12 @@ Lang["Q1_10885"] = "Trial of the Naaru: Strength"			-- https://www.thegeekcrusad
 Lang["Q2_10885"] = "A'dal in Shattrath City wants you to recover Kalithresh's Trident and Murmur's Essence.\n\nThis quest must be completed in Heroic dungeon difficulty."
 Lang["Q1_10886"] = "Trial of the Naaru: Tenacity"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10886
 Lang["Q2_10886"] = "A'dal in Shattrath City wants you to rescue Millhouse Manastorm from the Arcatraz of Tempest Keep.\n\nThis quest must be completed in Heroic dungeon difficulty."
-Lang["Q1_10888"] = "Trial of the Naaru: Magtheridon"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10888
-Lang["Q2_10888"] = "A'dal in Shattrath City wants you to slay Magtheridon."
+Lang["Q1_10888|13430"] = "Trial of the Naaru: Magtheridon"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10888|13430
+Lang["Q2_10888|13430"] = "A'dal in Shattrath City wants you to slay Magtheridon."
 Lang["Q1_10680"] = "The Hand of Gul'dan"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10680
 Lang["Q2_10680"] = "Speak with Earthmender Torlok at the Altar of Damnation in Shadowmoon Valley."
-Lang["Q1_10445"] = "The Vials of Eternity"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10445
-Lang["Q2_10445"] = "Soridormi at Caverns of Time wants you to retrieve Vashj's Vial Remnant from Lady Vashj at Coilfang Reservoir and Kael's Vial Remnant from Kael'thas Sunstrider at Tempest Keep."
+Lang["Q1_10445|13432"] = "The Vials of Eternity"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10445|13432
+Lang["Q2_10445|13432"] = "Soridormi at Caverns of Time wants you to retrieve Vashj's Vial Remnant from Lady Vashj at Coilfang Reservoir and Kael's Vial Remnant from Kael'thas Sunstrider at Tempest Keep."
 Lang["Q1_10568"] = "Tablets of Baa'ri"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10568
 Lang["Q2_10568"] = "Anchorite Ceyla at the Altar of Sha'tar wants you to collect 12 Baa'ri Tablets from the ground and from Ashtongue Workers at the Ruins of Baa'ri.\n\nCompleting quests with the Aldor will cause your Scryers reputation level to decrease."
 Lang["Q1_10683"] = "Tablets of Baa'ri"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10683
@@ -742,8 +811,8 @@ Lang["Q1_10948"] = "The Hostage Soul"			-- https://www.thegeekcrusade-serveur.co
 Lang["Q2_10948"] = "Travel to Shattrath City to tell A'dal about Akama's request."
 Lang["Q1_10949"] = "Entry Into the Black Temple"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10949
 Lang["Q2_10949"] = "Travel to the entrance to the Black Temple in Shadowmoon Valley and speak to Xi'ri."
-Lang["Q1_10985"] = "A Distraction for Akama"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10985
-Lang["Q2_10985"] = "Ensure that Akama and Maiev enter the Black Temple in Shadowmoon Valley after Xi'ri's forces create a distraction."
+Lang["Q1_10985|13429"] = "A Distraction for Akama"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10985|13429
+Lang["Q2_10985|13429"] = "Ensure that Akama and Maiev enter the Black Temple in Shadowmoon Valley after Xi'ri's forces create a distraction."
 --v243
 Lang["Q1_10984"] = "Speak with the Ogre"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10984
 Lang["Q2_10984"] = "Speak with the Ogre, Grok, in the Lower City section of Shattrath City."
@@ -782,7 +851,291 @@ Lang["Q1_10866"] = "Zuluhed the Whacked"			-- https://www.thegeekcrusade-serveur
 Lang["Q2_10866"] = "Kill Zuluhed the Whacked and recover Zuluhed's Key. Use Zuluhed's Key on Zuluhed's Chains to free Karynaku."
 Lang["Q1_10870"] = "Ally of the Netherwing"			-- https://www.thegeekcrusade-serveur.com/db/?quest=10870
 Lang["Q2_10870"] = "Let Karynaku return you to Mordenai in the Netherwing Fields."
-	
+--v247
+Lang["Q1_3801"] = "Dark Iron Legacy"			-- https://www.thegeekcrusade-serveur.com/db/?quest=3801
+Lang["Q2_3801"] = "Speak with Franclorn Forgewright if you are interested in obtaining a key to the city major."
+Lang["Q1_3802"] = "Dark Iron Legacy"			-- https://www.thegeekcrusade-serveur.com/db/?quest=3802
+Lang["Q2_3802"] = "Slay Fineous Darkvire and recover the great hammer, Ironfel. Take Ironfel to the Shrine of Thaurissan and place it on the statue of Franclorn Forgewright."
+Lang["Q1_5096"] = "Scarlet Diversions"
+Lang["Q2_5096"] = "Proceed to the Scarlet Crusade's base camp between Felstone Field and Dalson's Tears and destroy their command tent."
+Lang["Q1_5098"] = "All Along the Watchtowers"
+Lang["Q2_5098"] = "Using the Beacon Torch, mark each tower in Andorhal; you will need to stand in the doorway of the tower to successfully mark it."
+Lang["Q1_838"] = "Scholomance"
+Lang["Q2_838"] = "Speak with Apothecary Dithers at the Bulwark, Western Plaguelands."
+Lang["Q1_964"] = "Skeletal Fragments"
+Lang["Q2_964"] = "Bring 15 Skeletal Fragments to Apothecary Dithers at the Bulwark, Western Plaguelands."
+Lang["Q1_5514"] = "Mold Rhymes With..."
+Lang["Q2_5514"] = "Bring the Imbued Skeletal Fragments and 15 gold coins to Krinkle Goodsteel in Gadgetzan."
+Lang["Q1_5802"] = "Fire Plume Forged"
+Lang["Q2_5802"] = "Take the Skeleton Key Mold and 2 Thorium Bars to the top of Fire Plume Ridge in Un'Goro Crater. Use the Skeleton Key Mold by the lava lake to forge the Unfinished Skeleton Key."
+Lang["Q1_5804"] = "Araj's Scarab"
+Lang["Q2_5804"] = "Destroy Araj the Summoner and bring Araj's Scarab to Apothecary Dithers at the Bulwark, Western Plaguelands."
+Lang["Q1_5511"] = "The Key to Scholomance"
+Lang["Q2_5511"] = "Well, here you are - the completed Skeleton Key.  I am certain as I can be that this key will allow you within the confines of the Scholomance. "
+Lang["Q1_5092"] = "Clear the Way"
+Lang["Q2_5092"] = "Kill 10 Skeletal Flayers and 10 Slavering Ghouls in Sorrow Hill."
+Lang["Q1_5097"] = "All Along the Watchtowers"
+Lang["Q2_5097"] = "Using the Beacon Torch, mark each tower in Andorhal; you will need to stand in the doorway of the tower to successfully mark it."
+Lang["Q1_5533"] = "Scholomance"
+Lang["Q2_5533"] = "Speak with Alchemist Arbington at Chillwind Point, Western Plaguelands."
+Lang["Q1_5537"] = "Skeletal Fragments"
+Lang["Q2_5537"] = "Bring 15 Skeletal Fragments to Alchemist Arbington at Chillwind Point, Western Plaguelands."
+Lang["Q1_5538"] = "Mold Rhymes With..."
+Lang["Q2_5538"] = "Bring the Imbued Skeletal Fragments and 15 gold coins to Krinkle Goodsteel in Gadgetzan."
+Lang["Q1_5801"] = "Fire Plume Forged"
+Lang["Q2_5801"] = "Take the Skeleton Key Mold and 2 Thorium Bars to the top of Fire Plume Ridge in Un'Goro Crater. Use the Skeleton Key Mold by the lava lake to forge the Unfinished Skeleton Key."
+Lang["Q1_5803"] = "Araj's Scarab"
+Lang["Q2_5803"] = "Destroy Araj the Summoner and bring Araj's Scarab to Alchemist Arbington at Chillwind Point, Western Plaguelands."
+Lang["Q1_5505"] = "The Key to Scholomance"
+Lang["Q2_5505"] = "Well, here you are - the completed Skeleton Key.  I am certain as I can be that this key will allow you within the confines of the Scholomance. "
+--v250
+Lang["Q1_6804"] = "Poisoned Water"
+Lang["Q2_6804"] = "Use the Aspect of Neptulon on poisoned elementals of Eastern Plaguelands. Bring 12 Discordant Bracers and the Aspect of Neptulon to Duke Hydraxis in Azshara."
+Lang["Q1_6805"] = "Stormers and Rumblers"
+Lang["Q2_6805"] = "Kill 15 Dust Stormers and 15 Desert Rumbers and then return to Duke Hydraxis in Azshara."
+Lang["Q1_6821"] = "Eye of the Emberseer"
+Lang["Q2_6821"] = "Bring the Eye of the Emberseer to Duke Hydraxis in Azshara."
+Lang["Q1_6822"] = "The Molten Core"
+Lang["Q2_6822"] = "Kill 1 Fire Lord, 1 Molten Giant, 1 Ancient Core Hound and 1 Lava Surger, then return to Duke Hydraxis in Azshara."
+Lang["Q1_6823"] = "Agent of Hydraxis"
+Lang["Q2_6823"] = "Earn an Honored faction with the Hydraxian Waterlords, then talk to Duke Hydraxis in Azshara."
+Lang["Q1_6824"] = "Hands of the Enemy"
+Lang["Q2_6824"] = "Bring the Hands of Lucifron, Sulfuron, Gehennas and Shazzrah to Duke Hydraxis in Azshara."
+Lang["Q1_7486"] = "A Hero's Reward"
+Lang["Q2_7486"] = "Claim your reward from Hydraxis' Coffer."
+--v254
+Lang["Q1_11481"] = "Crisis at the Sunwell"
+Lang["Q2_11481"] = "Adyen the Lightwarden on the Aldor Rise in Shattrath City has requested that you travel to Sunwell Plateau and speak with Larethor."
+Lang["Q1_11488"] = "Magisters' Terrace"
+Lang["Q2_11488"] = "Exarch Larethor at the Shattered Sun Staging Area wants you to search Magisters' Terrace and find Tyrith, a blood elf spy."
+Lang["Q1_11490"] = "The Scryer's Scryer"
+Lang["Q2_11490"] = "Tyrith wants you to use the orb on the balcony in Magisters' Terrace."
+Lang["Q1_11492"] = "Hard to Kill"
+Lang["Q2_11492"] = "Kalecgos has asked you to defeat Kael'thas in Magisters' Terrace. You are to take Kael's head and report back to Larethor at the Shattered Sun Staging Area."
+
+
+--WOTLK QUESTS
+-- The ids are Q1_<QuestId> and Q2_<QuestId>
+-- Q1 is just the title of the quest
+-- Q2 is the description/synopsis, with some helpful comments in between \n\n|cff33ff99 and |r--WOTLK
+Lang["Q1_12892"] = "It's All Fun and Games"
+Lang["Q2_12892"] = "Destroy The Ocular and then report to Baron Sliver at The Shadow Vault."
+Lang["Q1_12887"] = "It's All Fun and Games"
+Lang["Q2_12887"] = "Destroy The Ocular and then report to Baron Sliver at The Shadow Vault."
+Lang["Q1_12891"] = "I Have an Idea, But First..."
+Lang["Q2_12891"] = "Baron Sliver at The Shadow Vault has asked you to collect a Cultist Rod, an Abomination Hook, a Geist Rope, and 5 Scourge Essences.\n\n|cff33ff99They roam around the platforms surrounding the Vault.|r"
+Lang["Q1_12893"] = "Free Your Mind"
+Lang["Q2_12893"] = "Baron Sliver at the Shadow Vault wants you to use the Sovereign Rod on the corpses of Vile, Lady Nightswood, and The Leaper."
+Lang["Q1_12897"] = "If He Cannot Be Turned"
+Lang["Q2_12897"] = "Defeat General Lightsbane and then report your success back to Koltira Deathweaver aboard the gunship, Orgrim's Hammer."
+Lang["Q1_12896"] = "If He Cannot Be Turned"
+Lang["Q2_12896"] = "Defeat General Lightsbane and then report your success back to Thassarian aboard the gunship, The Skybreaker."
+Lang["Q1_12899"] = "The Shadow Vault"
+Lang["Q2_12899"] = "Report back to Baron Sliver at The Shadow Vault."
+Lang["Q1_12898"] = "The Shadow Vault"
+Lang["Q2_12898"] = "Report back to Baron Sliver at The Shadow Vault."
+Lang["Q1_11978"] = "Into the Fold"
+Lang["Q2_11978"] = "Emissary Brighthoof at the Westwind Refugee Camp in the Dragonblight wants you to recover 10 Horde Armaments."
+Lang["Q1_11983"] = "Blood Oath of the Horde"
+Lang["Q2_11983"] = "Speak to the taunka at Westwind Refugee Camp and make 5 of them pledge their allegiance to the Horde."
+Lang["Q1_12008"] = "Agmar's Hammer"
+Lang["Q2_12008"] = "Travel to Agmar's Hammer in the Dragonblight and speak to Overlord Agmar.\n\n|cff33ff99He is located in the hold at (38.1, 46.3).|r"
+Lang["Q1_12034"] = "Victory Nears..."
+Lang["Q2_12034"] = "Speak to Senior Sergeant Juktok at Agmar's Hammer.\n\n|cff33ff99In the middle of the camp, at (36.6, 46.6).|r"
+Lang["Q1_12036"] = "From the Depths of Azjol-Nerub"
+Lang["Q2_12036"] = "Explore the Pit of Narjun and return with your findings to Senior Sergeant Juktok at Agmar's Hammer.\n\n|cff33ff99Entrance is to the west of Agmar's Hammer, at (26.2, 49.6). Drop down the hole to get credit.|r"
+Lang["Q1_12053"] = "The Might of the Horde"
+Lang["Q2_12053"] = "Senior Sergeant Juktok at Agmar's Hammer in the Dragonblight wants you to use the Warsong Battle Standard at Icemist Village and defend it against attackers.\n\n|cff33ff99You can plant the banner around (25.2, 24.8).|r"
+Lang["Q1_12071"] = "Attack by Air!"
+Lang["Q2_12071"] = "Speak with Valnok Windrager at Agmar's Hammer."
+Lang["Q1_12072"] = "Blightbeasts be Damned!"
+Lang["Q2_12072"] = "Use Valnok's Flare Gun to call down a Kor'kron War Rider at Icemist Village. Mount the Kor'kron War Rider and then use it to kill 25 Anub'ar Blightbeasts!\n\n|cff33ff99There a few under the village near the lower waterfall, and quite some more near the large waterfalls.|r"
+Lang["Q1_12063"] = "Strength of Icemist"
+Lang["Q2_12063"] = "Find Banthok Icemist at Icemist Village.\n\n|cff33ff99He's at water level, in a little cove at (22.7, 41.6).|r"
+Lang["Q1_12064"] = "Chains of the Anub'ar"
+Lang["Q2_12064"] = "Banthok Icemist at Icemist Village in the Dragonblight has asked that you bring him Anok'ra's Key Fragment, Tivax's Key Fragment and Sinok's Key Fragment.\n\n|cff33ff99They are in the buildings. Tivax is at (26.7, 39.0), Sinok is at (24.3, 44.2) and Anok'ra is below Sinok at (24.9, 43.9).|r"
+Lang["Q1_12069"] = "Return of the High Chief"
+Lang["Q2_12069"] = "Free High Chief Icemist using the Anub'ar Prison Key and assist him in defeating Under-king Anub'et'kan.\n\n|cff33ff99The High Chief is in a magic cage, at (25.3, 40.9).|r"
+Lang["Q1_12140"] = "All Hail Roanauk!"
+Lang["Q2_12140"] = "Seek out Roanauk Icemist at Agmar's Hammer and initiate him as a member and leader of the Horde forces."
+Lang["Q1_12189"] = "Imbeciles Abound!"
+Lang["Q2_12189"] = "Travel to Venomspite in Dragonblight and speak with Chief Plaguebringer Middleton.\n\n|cff33ff99He is in the inside the building, at (77.7, 62.8).|r"
+Lang["Q1_12188"] = "The Forsaken Blight and You: How Not to Die"
+Lang["Q2_12188"] = "Chief Plaguebringer Middleton at Venomspite in Dragonblight wants you to bring him 10 Ectoplasmic Residue."
+Lang["Q1_12200"] = "Emerald Dragon Tears"
+Lang["Q2_12200"] = "Chief Plaguebringer Middleton at Venomspite in Dragonblight wants you to collect 8 Emerald Dragon Tears.\n\n|cff33ff99They look like green gems on the ground around (63.5, 71.9).|r"
+Lang["Q1_12218"] = "Spread the Good Word"
+Lang["Q2_12218"] = "Chief Plaguebringer Middleton at Venomspite in Dragonblight wants you to use the Forsaken Blight Spreader's Blight Bomb to destroy 30 Hungering Dead on the outskirts of the Carrion Fields."
+Lang["Q1_12221"] = "The Forsaken Blight"
+Lang["Q2_12221"] = "Deliver The Forsaken Blight to Doctor Sintar Malefious at Agmar's Hammer."
+Lang["Q1_12224"] = "The Kor'kron Vanguard!"
+Lang["Q2_12224"] = "Report to Saurfang the Younger at the Kor'kron Vanguard.\n\n|cff33ff99He is located at (40.7, 18.2).|r"
+Lang["Q1_12496"] = "Audience With The Dragon Queen"
+Lang["Q2_12496"] = "Seek out Alexstrasza the Life-Binder at Wyrmrest Temple in Dragonblight.\n\n|cff33ff99Talk to Tariolstrasz (57.9, 54.2) and ask to go to the top of the tower. She's there, in humanoid form (59.8, 54.7).|r"
+Lang["Q1_12497"] = "Galakrond and the Scourge"
+Lang["Q2_12497"] = "Speak with Torastrasza at Wyrmrest Temple in Dragonblight."
+Lang["Q1_12498"] = "On Ruby Wings"
+Lang["Q2_12498"] = "Destroy 30 Wastes Scavengers and recover the Scythe of Antiok. Return to Alexstrasza the Life-Binder at Wyrmrest Temple should you complete this task.\n\n|cff33ff99You can find them north, at (56.8, 33.3). Don't forget the Scythe, at (54.6, 31.4).|r"
+Lang["Q1_12500"] = "Return To Angrathar"
+Lang["Q2_12500"] = "Speak with Saurfang the Younger at the Kor'kron Vangaurd and tell him of your victory over the Scourge.\n\n|cff33ff99Enjoy the cutscene! :-)|r"
+Lang["Q1_13242"] = "Darkness Stirs"
+Lang["Q2_13242"] = "Gather Saurfang's Battle Armor from the field of battle and return it to High Overlord Saurfang at Warsong Hold in Borean Tundra."
+Lang["Q1_13257"] = "Herald of War"
+Lang["Q2_13257"] = "Report to Thrall at Grommash Hold in Orgrimmar.\n\n|cff33ff99Enjoy the RP :-)|r"
+Lang["Q1_13266"] = "A Life Without Regret"
+Lang["Q2_13266"] = "Take the portal to Undercity located in Grommash Hold and report to Vol'jin."
+Lang["Q1_13267"] = "The Battle For The Undercity"
+Lang["Q2_13267"] = "Assist Thrall and Sylvanas in retaking the Undercity for the Horde."
+Lang["Q1_12235"] = "Naxxramas and the Fall of Wintergarde"
+Lang["Q2_12235"] = "Speak with Gryphon Commander Urik at the gryphon station in Wintergarde Keep."
+Lang["Q1_12237"] = "Flight of the Wintergarde Defender"
+Lang["Q2_12237"] = "Rescue 10 Helpless Wintergarde Villagers and return to Gryphon Commander Urik at Wintergarde Keep."
+Lang["Q1_12251"] = "Return to the High Commander"
+Lang["Q2_12251"] = "Speak with High Commander Halford Wyrmbane at Wintergarde Keep in Dragonblight."
+Lang["Q1_12253"] = "Rescue from Town Square"
+Lang["Q2_12253"] = "High Commander Halford Wyrmbane at Wintergarde Keep in Dragonblight wants you to rescue 6 Trapped Wintergarde Villagers."
+Lang["Q1_12309"] = "Find Durkon!"
+Lang["Q2_12309"] = "Seek out Cavalier Durkon at the Wintergarde Crypt in Dragonblight.\n\n|cff33ff99He's standing just outside the Crypt, at (79.0, 53.2).|r"
+Lang["Q1_12311"] = "The Noble's Crypt"
+Lang["Q2_12311"] = "Cavalier Durkon at Wintergarde Keep wants you to slay Necrolord Amarion.\n\n|cff33ff99All the way down the crypt, at the very bottom.|r"
+Lang["Q1_12275"] = "The Demo-gnome"
+Lang["Q2_12275"] = "Speak with Siege Engineer Quarterflash at Wintergarde Keep in Dragonblight.\n\n|cff33ff99He's near the gryphon master, at (77.8, 50.3).|r"
+Lang["Q1_12276"] = "The Search for Slinkin"
+Lang["Q2_12276"] = "Find Slinkin the Demo-gnome in Wintergarde Mine. Use Quarterflash's Homing Bot if you need help finding the mine.\n\n|cff33ff99The robot is quite quick, mount up if you need to follow it.\nEnter the mine via the bottom entrance and keep right to find the body at (81.5, 42.2).|r"
+Lang["Q1_12277"] = "Leave Nothing to Chance"
+Lang["Q2_12277"] = "Retrieve a Wintergarde Mine Bomb and use it to blow up the Upper Wintergarde Mine Shaft and the Lower Wintergarde Mine Shaft. Report back to Siege Engineer Quarterflash at Wintergarde Keep in Dragonblight when you have completed this task.\n\n|cff33ff99Coming from the corpse, take a right to find the explosives at (80.7, 41.3).|r"
+Lang["Q1_12325"] = "Into Hostile Territory"
+Lang["Q2_12325"] = "Speak with Gryphon Commander Urik to secure a ride to Thorson's Post. Report to Duke August Foehammer when you arrive at Thorson's Post in Dragonblight.\n\n|cff33ff99Don't actually talk to the Gryphon Master, instead jump onto a gryphon vehicle.|r"
+Lang["Q1_12312"] = "Secrets of the Scourge"
+Lang["Q2_12312"] = "Deliver the Flesh-bound Tome to Cavalier Durkon at Wintergarde Keep in Dragonblight."
+Lang["Q1_12319"] = "Mystery of the Tome"
+Lang["Q2_12319"] = "Take the Flesh-bound Tome to High Commander Halford Wyrmbane at Wintergarde Keep in Dragonblight."
+Lang["Q1_12320"] = "Understanding the Language of Death"
+Lang["Q2_12320"] = "Take the Flesh-bound Tome to Inquisitor Hallard at the Wintergarde Keep prison.\n\n|cff33ff99The prison is the big barracks building up the road from Halford.\nIn the courtyard take the stairs going down (Behind Gluth). Hallard is at (76.7, 47.4).|r"
+Lang["Q1_12321"] = "A Righteous Sermon"
+Lang["Q2_12321"] = "Wait for Inquisitor Hallard to finish his Righteous Sermon and return to High Commander Halford Wyrmbane at Wintergarde Keep in Dragonblight with the information you uncover."
+Lang["Q1_12272"] = "The Bleeding Ore"
+Lang["Q2_12272"] = "Siege Engineer Quarterflash at Wintergarde Keep in Dragonblight wants you to recover 10 samples of Strange Ore from Wintergarde Mine."
+Lang["Q1_12281"] = "Understanding the Scourge War Machine"
+Lang["Q2_12281"] = "Deliver Quarterflash's Package to High Commander Halford Wyrmbane at Wintergarde Keep."
+Lang["Q1_12326"] = "Steamtank Surprise"
+Lang["Q2_12326"] = "Use an Alliance Steam Tank to destroy 6 Plague Wagons and deliver the 7th Legion Elites to Wintergarde Mausoleum. Speak with Ambo Cash inside the Wintergarde Mausoleum in Dragonblight should you succeed.\n\n|cff33ff99The Mausoleum is at (85.9, 50.8), Ambo Cash is waiting inside.|r"
+Lang["Q1_12455"] = "Scattered To The Wind"
+Lang["Q2_12455"] = "Ambo Cash at the Wintergarde Mausoleum in Dragonblight wants you to recover 8 Wintergarde Munitions.\n\n|cff33ff99They are outside the Mausoleum, scattered in the field around.|r"
+Lang["Q1_12457"] = "The Chain Gun And You"
+Lang["Q2_12457"] = "Ambo Cash at the Wintergarde Mausoleum in Dragonblight wants you to save 8 Injured 7th Legion Soldiers.\n\n|cff33ff99Soldiers always spawn at the back of the room, so make sure you clear that out with the gun.|r"
+Lang["Q1_12463"] = "Plunderbeard Must Be Found!"
+Lang["Q2_12463"] = "Ambo Cash at the Wintergarde Mausoleum in Dragonblight wants you to find Plunderbeard.\n\n|cff33ff99He is at the end of the room, in a side nook (84.2, 54.7).|r"
+Lang["Q1_12465"] = "Plunderbeard's Journal"
+Lang["Q2_12465"] = "Recover Page 4 of Plunderbeard's Journal, Page 5 of Plunderbeard's Journal, Page 6 of Plunderbeard's Journal, and Page 7 of Plunderbeard's Journal and return them to Ambo Cash at the Wintergarde Mausoleum in Dragonblight.\n\n|cff33ff99Follow the dirt tunnel starting at Plunderbeard to find the right mobs|r"
+Lang["Q1_12466"] = "Chasing Icestorm: The 7th Legion Front"
+Lang["Q2_12466"] = "Report to Legion Commander Tyralion at the 7th Legion Front in central Dragonblight.\n\n|cff33ff99The Legion Front is located at (64.7, 27.9)|r"
+Lang["Q1_12467"] = "Chasing Icestorm: Thel'zan's Phylactery"
+Lang["Q2_12467"] = "Recover Thel'zan's Phylactery from Icestorm and return it to High Commander Halford Wyrmbane at Wintergarde Keep."
+Lang["Q1_12472"] = "Finality"
+Lang["Q2_12472"] = "Take Thel'zan's Phylactery to Legion Commander Yorik inside the Wintergarde Mausoleum in Dragonblight.\n\n|cff33ff99The entrance to the tunnel is just outside the keep, at (82.0, 50.7).|r"
+Lang["Q1_12473"] = "An End And A Beginning"
+Lang["Q2_12473"] = "Defeat Thel'zan the Duskbringer and report to High Commander Halford Wyrmbane at Wintergarde Keep in Dragonblight.\n\n|cff33ff99If you die, don't release; the NPCs might finish your quest for you.|r"
+Lang["Q1_12474"] = "To Fordragon Hold!"
+Lang["Q2_12474"] = "Venture to Fordragon Hold in Dragonblight and speak with Highlord Bolvar Fordragon.\n\n|cff33ff99He is at the very top, at (37.8, 23.4).|r"
+Lang["Q1_12495"] = "Audience With The Dragon Queen"
+Lang["Q2_12495"] = "Seek out Alexstrasza the Life-Binder at Wyrmrest Temple in Dragonblight.\n\n|cff33ff99Talk to Tariolstrasz (57.9, 54.2) and ask to go to the top of the tower. She's there, in humanoid form (59.8, 54.7).|r"
+Lang["Q1_12499"] = "Return To Angrathar"
+Lang["Q2_12499"] = "Speak with Highlord Bolvar Fordragon at Fordragon Hold and tell him of your victory over the Scourge."
+Lang["Q1_13347"] = "Reborn From The Ashes"
+Lang["Q2_13347"] = "Gather Fordragon's Shield from the field of battle at Angrathar the Wrath Gate and return it to King Varian Wrynn at Stormwind Keep in Stormwind City."
+Lang["Q1_13369"] = "Fate, Up Against Your Will"
+Lang["Q2_13369"] = "Assist Lady Jaina Proudmoore in Orgrimmar. Speak to the Warchief of the Horde, Thrall, at Orgrimmar on the continent of Kalimdor."
+Lang["Q1_13370"] = "A Royal Coup"
+Lang["Q2_13370"] = "Use the portal in Grommash Hold to return to Stormwind Keep and deliver Thrall's message to King Varian Wrynn."
+Lang["Q1_13371"] = "The Killing Time"
+Lang["Q2_13371"] = "Use the Portal to the Undercity inside Stormwind Keep to teleport to the Undercity. Report to Broll Bearmantle when you arrive at your destination."
+Lang["Q1_13377"] = "The Battle For The Undercity"
+Lang["Q2_13377"] = "Assist King Varian Wrynn and Lady Jaina Proudmoore in bringing Grand Apothecary Putress to justice! Report to King Varian Wrynn should you succeed."
+--WOTLK Sons of Hodir
+Lang["Q1_12843"] = "They Took Our Men!"
+Lang["Q2_12843"] = "Gretchen Fizzlespark wants you to go to Sifreldar Village and rescue 5 Goblin Prisoners.\n\n|cff33ff99Go to the village at (41.4, 70.6), kill giants to get keys to the prisoners' cages scattered in the village.|r"
+Lang["Q1_12846"] = "Leave No Goblin Behind"
+Lang["Q2_12846"] = "Find the entrance to the Forlorn Mine in northern Sifreldar Village and look for clues for Zeev Fizzlespark's whereabouts.\n\n|cff33ff99The entrance of the mine is in the village at (42.1, 69.5), not under. If you see spiders you're in the wrong one:-).|r"
+Lang["Q1_12841"] = "The Crone's Bargain"
+Lang["Q2_12841"] = "Lok'lira the Crone inside the Forlorn Mine wants you to retrieve the Runes of the Yrkvinn from Overseer Syra.\n\n|cff33ff99Syra patrols the side corridors of the mine.|r"
+Lang["Q1_12905"] = "Mildred the Cruel"
+Lang["Q2_12905"] = "Speak to Mildred the Cruel inside the Forlorn Mine.\n\n|cff33ff99Mildred is on the platform as you walk further inside the mine.|r"
+Lang["Q1_12906"] = "Discipline"
+Lang["Q2_12906"] = "Mildred the Cruel at the Forlorn Mine wants you to use the Disciplining Rod on 6 Exhausted Vrykul."
+Lang["Q1_12907"] = "Examples to be Made"
+Lang["Q2_12907"] = "Mildred the Cruel at the Forlorn Mine wants you to slay Garhal.\n\n|cff33ff99He's with a couple others further down the mine, at (45.4, 69.1). The guards help you.|r"
+Lang["Q1_12908"] = "A Certain Prisoner"
+Lang["Q2_12908"] = "Take Mildred's Key to Lok'lira the Crone in the Forlorn Mine."
+Lang["Q1_12921"] = "A Change of Scenery"
+Lang["Q2_12921"] = "Reconvene with Lok'lira the Crone in Brunnhildar Village."
+Lang["Q1_12969"] = "Is That Your Goblin?"
+Lang["Q2_12969"] = "Challenge Agnetta Tyrsdottar in order to save Zeev Fizzlespark. Return to Lok'lira the Crone in Brunnhildar Village after you've succeeded."
+Lang["Q1_12970"] = "The Hyldsmeet"
+Lang["Q2_12970"] = "Listen to Lok'lira the Crone's proposal.\n\n|cff33ff99Just talk to the crone and click through the various messages.|r"
+Lang["Q1_12971"] = "Taking on All Challengers"
+Lang["Q2_12971"] = "Lok'lira the Crone in Brunnhildar Village wants you to defeat 6 Victorious Challengers.\n\n|cff33ff99Just talk to the various challengers that are not currently in a fight.|r"
+Lang["Q1_12972"] = "You'll Need a Bear"
+Lang["Q2_12972"] = "Speak to Brijana outside Brunnhildar Village.\n\n|cff33ff99Brijana is at (53.1, 65.7).|r"
+Lang["Q1_12851"] = "Bearly Hanging On"
+Lang["Q2_12851"] = "Brijana at Brunnhildar Village wants you to mount Icefang and shoot 7 Frostworgs and 15 Frost Giants in the Valley of Ancient Winters."
+Lang["Q1_12856"] = "Cold Hearted"
+Lang["Q2_12856"] = "Brijana, just east of Brunnhildar Village, wants you to fly to Dun Niffelem, then free 3 Captured Proto-Drakes and rescue 9 Brunnhildar Prisoners.\n\n|cff33ff99Fly to (64.3, 61.5) and jump on one of the Proto-Drakes chained to the ceiling. You can then 'shoot' at the iceblocked maidens to free them. Do 3 then return. Do this 3 times to get all 9.|r"
+Lang["Q1_13063"] = "Deemed Worthy"
+Lang["Q2_13063"] = "Brijana wants you to go to Brunnhildar Village and speak with Astrid Bjornrittar.\n\n|cff33ff99Astrid is inside a house at (49.7, 71.8).|r"
+Lang["Q1_12900"] = "Making a Harness"
+Lang["Q2_12900"] = "Astrid Bjornrittar in Brunnhildar Village wants you to obtain 3 Icemane Yeti Hides."
+Lang["Q1_12983"] = "The Last of Her Kind"
+Lang["Q2_12983"] = "Astrid Bjornrittar in Brunnhildar Village wants you to rescue an Icemaw Matriarch in the Hibernal Cavern.\n\n|cff33ff99The entrance to the cavern is at (55.9, 64.3). Follow the path to the right and you'll find the matriarch easily.|r"
+Lang["Q1_12996"] = "The Warm-Up"
+Lang["Q2_12996"] = "Astrid Bjornrittar in Brunnhildar Village wants you to use the Reins of the Warbear Matriarch to defeat Kirgaraak.\n\n|cff33ff99Maul (4) on cooldown, when charge is ready, do the knockback (5) and then charge (6). If the bear dies finish the mob by yourself it you can, it will still count.|r"
+Lang["Q1_12997"] = "Into the Pit"
+Lang["Q2_12997"] = "Astrid Bjornrittar, in Brunnhildar Village, wants you to use the Reins of the Warbear Matriarch inside the Pit of the Fang and defeat 6 Hyldsmeet Warbears."
+Lang["Q1_13061"] = "Prepare for Glory"
+Lang["Q2_13061"] = "Speak to Lok'lira the Crone in Brunnhildar Village."
+Lang["Q1_13062"] = "Lok'lira's Parting Gift"
+Lang["Q2_13062"] = "Speak to Gretta the Arbiter in Brunnhildar Village."
+Lang["Q1_12886"] = "The Drakkensryd"
+Lang["Q2_12886"] = "Use the Hyldnir Harpoon to defeat 10 Hyldsmeet Drakeriders at the Temple of Storms. Use the Hyldnir Harpoon on a Column Ornament to exit the Drakkensryd and speak to Thorim when you've succeeded.\n\n|cff33ff99Use the harpoon to jump onto other drakes and kill their riders. After 10 times, use the harpoon on a little lamp hanging off a column, that will take you to the platform.|r"
+Lang["Q1_13064"] = "Sibling Rivalry"
+Lang["Q2_13064"] = "Thorim wants you to listen to his story."
+Lang["Q1_12915"] = "Mending Fences"
+Lang["Q2_12915"] = "Thorim at the Temple of Storms wants you to Kill Fjorn and 5 Stormforged Iron Giants at Fjorn's Anvil, east of Dun Niffelem.\n\n|cff33ff99Fly to the Anvil at the very east of Storm Peaks (76.9, 63.2), and pick up a boulder from the floor. Use Thorim's charm on a target and let the dwarves tank it.\nNote, you'll need a new (unique) boulder for each target (so 6 minimum).|r"
+Lang["Q1_12922"] = "The Refiner's Fire"
+Lang["Q2_12922"] = "You must collect 10 Furious Sparks from the Seething Revenants at Frostfield Lake and then use the anvil at Fjorn's Anvil."
+Lang["Q1_12956"] = "A Spark of Hope"
+Lang["Q2_12956"] = "You are to bring the Refined Gleaming Ore to Thorim in the Temple of Storms."
+Lang["Q1_12924"] = "Forging an Alliance"
+Lang["Q2_12924"] = "You are to go to Dun Niffelem and ask King Jokkum to allow Thorim's armor to be reforged. After completing Jokkum's task, you are to speak with Njormeld in Dun Niffelem.\n\n|cff33ff99The king is in the center of Dun Niffelem, at (65.4, 60.1).\n\nYou however eventually turn in this quest to Njormeld at (63.2, 63.3).|r"
+Lang["Q1_13009"] = "A New Beginning"
+Lang["Q2_13009"] = "Njormeld wants you to take the Reforged Armor to Thorim at the Temple of Storms."
+Lang["Q1_13050"] = "Veranus"
+Lang["Q2_13050"] = "Thorim, at the Temple of Storms, wants you to obtain 5 Small Proto-Drake Eggs from the peaks near Brunnhildar Village.\n\n|cff33ff99There's various nests around the area, for example at (52.5, 73.4).|r"
+Lang["Q1_13051"] = "Territorial Trespass"
+Lang["Q2_13051"] = "Place the Stolen Proto-Dragon Eggs on top of the Broodmother's Nest and return to Thorim at the Temple of Storms.\n\n|cff33ff99The correct nest is at (38.7, 65.5). Put the eggs down and wait for Thorim to appear on top of Veranus.|r"
+Lang["Q1_13010"] = "Krolmir, Hammer of Storms"
+Lang["Q2_13010"] = "Thorim wants you to talk to King Jokkum in Dun Niffelem and discover what he knows of Krolmir.\n\n|cff33ff99You might be short a little bit of rep for the King to answer your question. Complete one of the two daily quests to become friendly.|r"
+Lang["Q1_12966"] = "You Can't Miss Him"
+Lang["Q2_12966"] = "King Jokkum in Dun Niffelem wants you to find Njormeld at Fjorn's Anvil."
+Lang["Q1_12967"] = "Battling the Elements"
+Lang["Q2_12967"] = "Njormeld wants you to accompany Snorri to Fjorn's anvil and help him kill 10 Seething Revenants."
+Lang["Q1_12975"] = "In Memoriam"
+Lang["Q2_12975"] = "King Jokkum in Dun Niffelem wants you to collect 8 Horn Fragments from Thunderfall.\n\n|cff33ff99They look like little grey bits in the snow at (71.6, 48.9).|r"
+Lang["Q1_12976"] = "A Monument to the Fallen"
+Lang["Q2_12976"] = "King Jokkum wants you to bring Hodir's Horn Fragments to Njormeld in Dun Niffelem."
+Lang["Q1_13011"] = "Culling Jorcuttar"
+Lang["Q2_13011"] = "King Jokkum in Dun Niffelem wants you to slay Jorcuttar in Hibernal Cavern.\n\n|cff33ff99Enter the cave and stick to the right. You can summon Jorcuttar at (54.8, 61.0). It might take a few tries to get the bear meat.|r"
+Lang["Q1_13372"] = "The Key to the Focusing Iris"
+Lang["Q2_13372"] = "Deliver the Key to the Focusing Iris to Alexstrasza the Life-Binder atop Wyrmrest Temple in the Dragonblight."
+Lang["Q1_13375"] = "The Heroic Key to the Focusing Iris"
+Lang["Q2_13375"] = "Deliver the Heroic Key to the Focusing Iris to Alexstrasza the Life-Binder atop Wyrmrest Temple in the Dragonblight."
+
+--  \n\n|cff33ff99 |r
+Lang["Q1_"] = ""
+Lang["Q2_"] = ""
+
+
+
 
 -- NPC
 Lang["N1_9196"] = "Highlord Omokk"	-- https://www.thegeekcrusade-serveur.com/db/?npc=9196
@@ -943,7 +1296,85 @@ Lang["N2_22497"] = "V'eru is in the same room as A'dal, but he's blue. He's on t
 --v244
 Lang["N1_22113"] = "Mordenai"
 Lang["N2_22113"] = "A Blood Elf (spoiler alert, actually a dragon) who walks the Netherwing Fields just east of the Sanctum of the Stars"
+--v247
+Lang["N1_8888"]  = "Franclorn Forgewright"
+Lang["N2_8888"]  = "A ghost dwarf, standing on his own tomb OUTSIDE the dungeon, in the structure suspended above the lava. You can only interact with him if you are DEAD."
+Lang["N1_9056"]  = "Fineous Darkvire"
+Lang["N2_9056"]  = "He is INSIDE the dungeon, and patrols the quarry area outside of Lord Incendius' chamber."
+Lang["N1_10837"] = "High Executor Derrington"
+Lang["N2_10837"] = "He can be found at the Bulwark, near the border of Tirisfal and Western Plaguelands"
+Lang["N1_10838"] = "Commander Ashlam Valorfist"
+Lang["N2_10838"] = "He can be found at Chillwind Camp, just south of Andorhal in the Western Plaguelands"
+Lang["N1_1852"]  = "Araj the Summoner"
+Lang["N2_1852"]  = "The Lich, in the middle of Andorhal"
+--v250
+Lang["N1_13278"]  = "Duke Hydraxis"
+Lang["N2_13278"]  = "A large Water Elemental on a tiny faraway island in Azshara (79.2,73.6)"
+Lang["N1_12264"]  = "Shazzrah"
+Lang["N2_12264"]  = "Shazzrah is the fifth boss of Molten Core."
+Lang["N1_12118"]  = "Lucifron"
+Lang["N2_12118"]  = "Lucifron is the first boss of Molten Core."
+Lang["N1_12259"]  = "Gehennas"
+Lang["N2_12259"]  = "Gehennas is the third boss of Molten Core."
+Lang["N1_12098"]  = "Sulfuron Harbinger"
+Lang["N2_12098"]  = "Sulfuron Harbinger, herald of Ragnaros, is the eighth boss of the Molten Core."
+
+
+
+
+--WOTLK NPCs
+--WOTLK QUESTS
+-- The ids are N1_<NPCId> and N2_<NPCId>
+-- N1 is just the name of the NPC
+-- N2 is a helpful description
+Lang["N1_29795"]  = "Koltira Deathweaver"
+Lang["N2_29795"]  = "Don't look for him on the ground. He's on the Orgrim's Hammer, flying somewhere above over the plain between Ymirheim and Syndragosa's Fall."
+Lang["N1_29799"]  = "Thassarian"
+Lang["N2_29799"]  = "Don't look for him on the ground. He's on the Skybreaker, flying somewhere above over the plain between Ymirheim and Syndragosa's Fall."
+Lang["N1_29804"]  = "Baron Sliver"
+Lang["N2_29804"]  = "He is standing outside, south of the tower, just near the ground entrance (44, 24.6).\n\nOnce the chain is over he moves to (42.8, 25.1)."
+Lang["N1_29747"]  = "The Ocular"
+Lang["N2_29747"]  = "A big blue Eye of (not) Sauron, at the very top of the Shadow Vault (44.6, 21.6).\n\nSimply zap it 10 times with the Eyesore Blaster."
+Lang["N1_29769"]  = "Vile"
+Lang["N2_29769"]  = "Stands on the mid-platform just a bit south of Baron Sliver (44.4, 26.9)."
+Lang["N1_29770"]  = "Lady Nightswood"
+Lang["N2_29770"]  = "Stands on the small mid-platform just west of Baron Sliver (41.9, 24.5)."
+Lang["N1_29840"]  = "The Leaper"
+Lang["N2_29840"]  = "Bounces all around the top-platform high above Baron Sliver (45.0, 23.8).\nCan be hard to catch, use '/tar The Leaper'"
+Lang["N1_29851"]  = "General Lightsbane"
+Lang["N2_29851"]  = "Comes when the weapon rack inside at the end of the Shadow Vault is clicked. The other 3 you just killed come and help during the fight.\n\nYou can fly in and out (44.9, 20.0)."
+Lang["N1_26181"]  = "Emissary Brighthoof"
+Lang["N2_26181"]  = "Circles the lower part of the Westwind Refugee Camp in Dragonblight, at the border of Borean Tundra (13.9, 48.6)."
+Lang["N1_26652"]  = "Greatmother Icemist"
+Lang["N2_26652"]  = "She walks around the center circle in Agmar's Hammer. She's in blue armor with a purple staff."
+Lang["N1_26505"]  = "Doctor Sintar Malefious"
+Lang["N2_26505"]  = "He's in the alchemy corner of Agmar's Hammer (36.1, 48.8)."
+Lang["N1_25257"]  = "Saurfang the Younger"
+Lang["N2_25257"]  = "He's near the Wrathgate, in the north-west corner of Dragonblight, at (40.7, 18.1).\n\nDon't get too attached to him!"
+Lang["N1_31333"]  = "Alexstrasza the Life-Binder"
+Lang["N2_31333"]  = "She is now in dragon form, in front of the Wrathgate. Quite big, can't miss her (38.3, 19.2)."
+Lang["N1_25256"]  = "High Overlord Saurfang"
+Lang["N2_25256"]  = "Saurfang is Chuck Norris's main. He is at the bottom of Warsong Hold in Borean Tundra, at (41.4, 53.7)."
+Lang["N1_27136"]  = "High Commander Halford Wyrmbane"
+Lang["N2_27136"]  = "He is near the top of Wintergarde Keep, at (78.5, 48.3)."
+Lang["N1_27872"]  = "Highlord Bolvar Fordragon"
+Lang["N2_27872"]  = "Bolvar Fordragon, a true hero of the alliance, struck with a terrible fate.\n\nHe awaits it at (37.8, 23.4)."
+Lang["N1_29611"]  = "King Varian Wrynn"
+Lang["N2_29611"]  = "Doesn't look too happy.."
+Lang["N1_29473"]  = "Gretchen Fizzlespark"
+Lang["N2_29473"]  = "She's in the K3 Inn at (41.2, 86.1)."
+Lang["N1_15989"]  = "Sapphiron"
+Lang["N2_15989"]  = "Sapphiron is a gigantic undead frost wyrm who guards the entrance to Kel'Thuzad's inner sanctum in Naxxramas."
+
+Lang["N1_"]  = ""
+Lang["N2_"]  = ""
+
 
 
 Lang["O_1"] = "Click Drakkisath's Brand to complete the quest.\nIt's a glowing orb located behind General Drakkisath."
 Lang["O_2"] = "It's a tiny glowing red dot on the ground\nin front of the gates of Ahn'Qiraj (28.7,89.2)."
+--v247
+Lang["O_3"] = "The shrine is located at the end of a corridor\nthat starts from the upper level of the Ring of Law."
+Lang["O_189311"] = "|cFFFFFFFFFlesh-bound Tome|r\n|cFF808080Starts a new quest|r\n\nThe book is on the floor of the crypt,\nnext to where Necrolord Amarion is (78.3, 52.3).\n\nOnce you have the quest, hurry up and get out\nof the crypt as mobs will spawn and attack you"
+Lang["Flesh-bound Tome"] = "Flesh-bound Tome"
+

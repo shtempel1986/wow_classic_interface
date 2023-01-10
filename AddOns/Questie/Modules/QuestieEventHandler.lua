@@ -1,6 +1,3 @@
---- COMPATIBILITY ---
-local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted or C_QuestLog.IsQuestFlaggedCompleted
-
 --- GLOBAL ---
 ---@class QuestieEventHandler
 local QuestieEventHandler = QuestieLoader:CreateModule("QuestieEventHandler")
@@ -19,22 +16,18 @@ local QuestieComms = QuestieLoader:ImportModule("QuestieComms")
 local QuestieProfessions = QuestieLoader:ImportModule("QuestieProfessions")
 ---@type QuestieTracker
 local QuestieTracker = QuestieLoader:ImportModule("QuestieTracker")
+---@type TrackerBaseFrame
+local TrackerBaseFrame = QuestieLoader:ImportModule("TrackerBaseFrame")
 ---@type QuestieReputation
 local QuestieReputation = QuestieLoader:ImportModule("QuestieReputation")
 ---@type QuestieNameplate
 local QuestieNameplate = QuestieLoader:ImportModule("QuestieNameplate")
 ---@type QuestieMap
 local QuestieMap = QuestieLoader:ImportModule("QuestieMap")
----@type QuestieLib
-local QuestieLib = QuestieLoader:ImportModule("QuestieLib")
----@type QuestieHash
-local QuestieHash = QuestieLoader:ImportModule("QuestieHash")
 ---@type QuestieOptions
 local QuestieOptions = QuestieLoader:ImportModule("QuestieOptions")
 ---@type QuestiePlayer
 local QuestiePlayer = QuestieLoader:ImportModule("QuestiePlayer")
----@type QuestieDB
-local QuestieDB = QuestieLoader:ImportModule("QuestieDB")
 ---@type QuestieAuto
 local QuestieAuto = QuestieLoader:ImportModule("QuestieAuto")
 ---@type QuestieAnnounce
@@ -44,43 +37,21 @@ local QuestieCombatQueue = QuestieLoader:ImportModule("QuestieCombatQueue")
 ---@type QuestieInit
 local QuestieInit = QuestieLoader:ImportModule("QuestieInit")
 ---@type MinimapIcon
-local MinimapIcon = QuestieLoader:ImportModule("MinimapIcon");
+local MinimapIcon = QuestieLoader:ImportModule("MinimapIcon")
+---@type AchievementTracker
+local AchievementTracker = QuestieLoader:ImportModule("AchievementTracker")
+---@type GossipFrameDailyMarker
+local GossipFrameDailyMarker = QuestieLoader:ImportModule("GossipFrameDailyMarker")
 
---- LOCAL ---
---False -> true -> nil
-local didPlayerEnterWorld = false
-local shouldRunQLU = false
+local questAcceptedMessage  = string.gsub(ERR_QUEST_ACCEPTED_S , "(%%s)", "(.+)")
+local questCompletedMessage  = string.gsub(ERR_QUEST_COMPLETE_S , "(%%s)", "(.+)")
 
-local function _Hack_prime_log() -- this seems to make it update the data much quicker
-    for i=1, GetNumQuestLogEntries() do
-        GetQuestLogTitle(i)
-        QuestieQuest:GetRawLeaderBoardDetails(i)
-    end
-end
+--* Calculated in _EventHandler:PlayerLogin()
+---en/br/es/fr/gb/it/mx: "You are now %s with %s." (e.g. "You are now Honored with Stormwind."), all other languages are very alike
+local FACTION_STANDING_CHANGED_PATTERN
 
 function QuestieEventHandler:RegisterEarlyEvents()
-    local savedVarsTimer
-    Questie:RegisterEvent("PLAYER_LOGIN", function()
-        MinimapIcon:Init() -- This needs to happen outside of a Timer
-
-        local maxTickerRuns = 50 -- 50 * 0.1 seconds = 5 seconds
-        local tickCounter = 0
-
-        savedVarsTimer = C_Timer.NewTicker(0.1, function()
-            tickCounter = tickCounter + 1
-            if (not QuestieConfig) then
-                -- The Saved Variables are not loaded yet
-                if tickCounter == (maxTickerRuns - 1) then
-                    -- The time is over, must be a fresh install
-                    _EventHandler:PlayerLogin()
-                end
-                return
-            end
-
-            savedVarsTimer:Cancel()
-            _EventHandler:PlayerLogin()
-        end, maxTickerRuns)
-    end)
+    Questie:RegisterEvent("PLAYER_LOGIN", _EventHandler.PlayerLogin)
 end
 
 function QuestieEventHandler:RegisterLateEvents()
@@ -93,22 +64,19 @@ function QuestieEventHandler:RegisterLateEvents()
     Questie:RegisterEvent("MAP_EXPLORATION_UPDATED", _EventHandler.MapExplorationUpdated)
     Questie:RegisterEvent("MODIFIER_STATE_CHANGED", _EventHandler.ModifierStateChanged)
     -- Events to update a players professions and reputations
-    Questie:RegisterEvent("CHAT_MSG_SKILL", _EventHandler.ChatMsgSkill)
-    Questie:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", _EventHandler.ChatMsgCompatFactionChange)
+    Questie:RegisterBucketEvent("CHAT_MSG_SKILL", 2, _EventHandler.ChatMsgSkill)
+    Questie:RegisterBucketEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", 2, _EventHandler.ChatMsgCompatFactionChange)
+    Questie:RegisterEvent("CHAT_MSG_SYSTEM", _EventHandler.ChatMsgSystem)
 
-    -- Quest Events
-    Questie:RegisterEvent("QUEST_ACCEPTED", _EventHandler.QuestAccepted)
+    -- UI Quest Events
     Questie:RegisterEvent("UI_INFO_MESSAGE", _EventHandler.UiInfoMessage)
-    Questie:RegisterEvent("UNIT_QUEST_LOG_CHANGED", _EventHandler.UnitQuestLogChanged)
-    Questie:RegisterEvent("QUEST_TURNED_IN", _EventHandler.QuestTurnedIn)
-    Questie:RegisterEvent("QUEST_REMOVED", _EventHandler.QuestRemoved)
-    Questie:RegisterEvent("QUEST_FINISHED", _EventHandler.QuestFinished)
-    -- Use bucket for QUEST_LOG_UPDATE to let information propagate through to the blizzard API
-    -- Might be able to change this to 0.5 seconds instead, further testing needed.
-    Questie:RegisterBucketEvent("QUEST_LOG_UPDATE", 1, _EventHandler.QuestLogUpdate)
+    Questie:RegisterEvent("QUEST_FINISHED", QuestieAuto.QUEST_FINISHED)
     Questie:RegisterEvent("QUEST_DETAIL", QuestieAuto.QUEST_DETAIL) -- When the quest is presented!
     Questie:RegisterEvent("QUEST_PROGRESS", QuestieAuto.QUEST_PROGRESS)
-    Questie:RegisterEvent("GOSSIP_SHOW", QuestieAuto.GOSSIP_SHOW)
+    Questie:RegisterEvent("GOSSIP_SHOW", function (...)
+        QuestieAuto.GOSSIP_SHOW(...)
+        GossipFrameDailyMarker.Mark(...)
+    end)
     Questie:RegisterEvent("QUEST_GREETING", QuestieAuto.QUEST_GREETING) -- The window when multiple quest from a NPC
     Questie:RegisterEvent("QUEST_ACCEPT_CONFIRM", QuestieAuto.QUEST_ACCEPT_CONFIRM) -- If an escort quest is taken by people close by
     Questie:RegisterEvent("GOSSIP_CLOSED", QuestieAuto.GOSSIP_CLOSED) -- Called twice when the stopping to talk to an NPC
@@ -141,47 +109,97 @@ function QuestieEventHandler:RegisterLateEvents()
         end
     end)
 
-    Questie:ContinueInit() -- continue startup inside Questie.lua
+    if Questie.IsWotlk then
+        Questie:RegisterEvent("TRACKED_ACHIEVEMENT_LIST_CHANGED", AchievementTracker.TrackedAchievementListChanged)
+        Questie:RegisterEvent("TRACKED_ACHIEVEMENT_UPDATE", AchievementTracker.Update)
+    end
 end
 
 function _EventHandler:PlayerLogin()
+    -- Check config exists
+    if not Questie.db or not QuestieConfig then
+        -- Did you move Questie.db = LibStub("AceDB-3.0"):New("QuestieConfig",.......) out of Questie:OnInitialize() ?
+        Questie:Error("Config DB from saved variables is not loaded and initialized. Please report this issue on Questie github or discord.")
+        error("Config DB from saved variables is not loaded and initialized. Please report this issue on Questie github or discord.")
+        return
+    end
+
+    do
+        -- All this information was researched here: https://www.townlong-yak.com/framexml/live/GlobalStrings.lua
+
+        local locale = GetLocale()
+        local FACTION_STANDING_CHANGED_LOCAL = FACTION_STANDING_CHANGED or "You are now %s with %s."
+        local replaceCount -- Just init it with an impossible value
+        local replaceString = ".+"
+
+        --! Has to got from least likely to work to most, otherwise you will get false positives
+        local replaceTypes = {
+            ruRU = "%(%%%d$s%)", --ruRU "|3-6(%2$s) |3-6(%1$s)." ("Ваша репутация с %2$s теперь %1$s.
+            zhTW = "%%s%(%%s%)", --zhTW "你在%2$s中的聲望達到了%1$s。"")
+            deDE = "'%%%d$s'", --deDE  "Die Fraktion '%2$s' ist Euch gegenüber jetzt '%1$s' eingestellt."
+            zhCNkoKR = "%%%d$s", --zhCN(zhTW?)/koKR "你在%2$s中的声望达到了%1$s。" / "%2$s에 대해 %1$s 평판이 되었습니다."
+            enPlus = "%%s", -- European languages except (deDE)
+        }
+
+        if locale == "zhCN" or locale == "koKR" then --CN/KR "你在%2$s中的声望达到了%1$s。" / "%2$s에 대해 %1$s 평판이 되었습니다."
+            FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceTypes.zhCNkoKR, replaceString)
+        elseif locale == "deDE" then --DE  "Die Fraktion '%2$s' ist Euch gegenüber jetzt '%1$s' eingestellt."
+            FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceTypes.deDE, replaceString) -- Germans are always special
+        elseif locale == "zhTW" then --TW "你的聲望已達到%s(%s)。", should we remove the parentheses?
+            FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceTypes.zhTW, replaceString)
+        elseif locale == "ruRU" then --RU "|3-6(%2$s) |3-6(%1$s).", should we remove the parentheses?
+            FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceTypes.ruRU, replaceString)
+        else
+            FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceTypes.enPlus, replaceString)
+        end
+
+        --? A fallback to try everything if the replaceCount is still -1 or 0
+        if replaceCount and replaceCount < 1 then
+            for _, replaceType in pairs(replaceTypes) do
+                FACTION_STANDING_CHANGED_PATTERN, replaceCount = string.gsub(FACTION_STANDING_CHANGED_LOCAL, replaceType, replaceString)
+                if replaceCount > 0 then
+                    break
+                end
+            end
+        end
+
+        --? Nothing worked :(
+        if replaceCount and replaceCount < 1 then --- Error: Default to match EVERYTHING, because it's better that it works
+            FACTION_STANDING_CHANGED_PATTERN = ".+"
+            Questie:Error("Something went wrong with the FACTION_STANDING_CHANGED_PATTERN!")
+            Questie:Error("FACTION_STANDING_CHANGED is set to " .. tostring(FACTION_STANDING_CHANGED) .. ", please report this on GitHub!")
+        end
+    end
+
+    -- Start real Questie init
     QuestieInit:Init()
 end
 
-
---Fires when a quest is accepted in anyway.
-function _EventHandler:QuestAccepted(questLogIndex, questId)
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] QUEST_ACCEPTED", "QLogIndex: "..questLogIndex,  "QuestId: "..questId)
-    --Try and cache all the potential items required for the quest.
-    QuestieLib:CacheItemNames(questId)
-    _Hack_prime_log()
-    local timer
-    timer = C_Timer.NewTicker(0.5, function()
-        if(QuestieLib:IsResponseCorrect(questId)) then
-            QuestieQuest:AcceptQuest(questId)
-            QuestieJourney:AcceptQuest(questId)
-            timer:Cancel()
-            Questie:Debug(Questie.DEBUG_DEVELOP, "Accept seems correct, cancel timer")
-        else
-            Questie:Debug(Questie.DEBUG_CRITICAL, "Response is wrong for quest, waiting with timer")
-        end
-    end)
-
+--- Fires when a System Message (yellow text) is output to the main chat window
+---@param message string The message value from the CHAT_MSG_SYSTEM event
+function _EventHandler:ChatMsgSystem(message)
+    -- When a new quest is accepted or completed quest is turned in, update the LibDataBroker text with the appropriate message
+    if string.find(message, questCompletedMessage) == 1 or string.find(message, questAcceptedMessage) == 1 then
+        MinimapIcon:UpdateText(message)
+    elseif string.find(message, FACTION_STANDING_CHANGED_PATTERN) then -- When you discover a new faction or increase standing eg. Neutral -> Friendly
+        QuestieReputation:Update()
+    end
 end
 
 --- Fires when a UI Info Message (yellow text) appears near the top of the screen
 ---@param errorType number The error type value from the UI_INFO_MESSAGE event
 ---@param message string The message value from the UI_INFO_MESSAGE event
 function _EventHandler:UiInfoMessage(errorType, message)
-    -- When the UI Info Message is for a quest objective, update the LibDataBroker text with the message
-    -- Global Strings used:
-    -- 287: ERR_QUEST_OBJECTIVE_COMPLETE_S
-    -- 288: ERR_QUEST_UNKNOWN_COMPLETE
-    -- 289: ERR_QUEST_ADD_KILL_SII
-    -- 290: ERR_QUEST_ADD_FOUND_SII
-    -- 291: ERR_QUEST_ADD_ITEM_SII
-    -- 292: ERR_QUEST_ADD_PLAYER_KILL_SII
-    if errorType >= 287 and errorType <= 292 then
+    local messages = {
+        ["ERR_QUEST_OBJECTIVE_COMPLETE_S"] = true,
+        ["ERR_QUEST_UNKNOWN_COMPLETE"] = true,
+        ["ERR_QUEST_ADD_KILL_SII"] = true,
+        ["ERR_QUEST_ADD_FOUND_SII"] = true,
+        ["ERR_QUEST_ADD_ITEM_SII"] = true,
+        ["ERR_QUEST_ADD_PLAYER_KILL_SII "] = true,
+        ["ERR_QUEST_FAILED_S"] = true,
+    }
+    if messages[GetGameMessageInfo(errorType)] then
         MinimapIcon:UpdateText(message)
     end
 end
@@ -191,142 +209,6 @@ function _EventHandler:MapExplorationUpdated()
     Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] MAP_EXPLORATION_UPDATED")
     if Questie.db.char.hideUnexploredMapIcons then
         QuestieMap.utils:MapExplorationUpdate()
-    end
-end
-
--- Needed to distinguish finished quests from abandoned quests
-local latestTurnedInQuestIds = {}
-
---- Fires when a quest is removed from the questlog, this includes turning it in
---- and abandoning it.
----@param questId QuestId
-function _EventHandler:QuestRemoved(questId)
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] QUEST_REMOVED", questId)
-    _Hack_prime_log()
-    if latestTurnedInQuestIds[1] then
-        table.remove(latestTurnedInQuestIds, 1)
-        shouldRunQLU = false
-        _EventHandler:CompleteQuest(questId)
-        --Broadcast our removal!
-        Questie:SendMessage("QC_ID_BROADCAST_QUEST_REMOVE", questId)
-        return
-    end
-    QuestieQuest:AbandonedQuest(questId)
-    QuestieJourney:AbandonQuest(questId)
-    shouldRunQLU = false
-
-    --Broadcast our removal!
-    Questie:SendMessage("QC_ID_BROADCAST_QUEST_REMOVE", questId)
-end
-
---- Helper function to remove quests correctly
----@param questId QuestId
----@param count number @The amount of calls already made in recursion
-function _EventHandler:CompleteQuest(questId, count)
-    if(not count) then
-        count = 1
-    end
-    ---@type Quest
-    local quest = QuestieDB:GetQuest(questId)
-    if not quest then
-        return
-    end
-    if(IsQuestFlaggedCompleted(questId) or quest.IsRepeatable or count > 50) then
-        QuestieQuest:CompleteQuest(quest)
-        QuestieJourney:CompleteQuest(questId)
-    else
-        Questie:Debug(Questie.DEBUG_INFO, "[QuestieEventHandler]", questId, ":Quest not complete starting timer! IsQuestFlaggedCompleted", IsQuestFlaggedCompleted(questId), "Repeatable:", quest.IsRepeatable, "Count:", count)
-        C_Timer.After(0.1, function()
-            _EventHandler:CompleteQuest(questId, count + 1)
-        end)
-    end
-end
-
---- Fires when a quest is turned in, but before it is remove from the quest log.
---- We need to save the ID of the finished quest to check it in QR event.
----@param questId QuestId
----@param xpReward number
----@param moneyReward number
-function _EventHandler:QuestTurnedIn(questId, xpReward, moneyReward)
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] QUEST_TURNED_IN", questId, xpReward, moneyReward)
-    _Hack_prime_log()
-    table.insert(latestTurnedInQuestIds, questId)
-
-    -- Some repeatable sub quests don't fire a UQLC event when they're completed.
-    -- Therefore we have to check here to make sure the next QLU updates the state.
-    ---@type Quest
-    local quest = QuestieDB:GetQuest(questId)
-    if quest and ((quest.parentQuest and quest.IsRepeatable) or quest.Description == nil or table.getn(quest.Description) == 0) then
-        Questie:Debug(Questie.DEBUG_DEVELOP, "Enabling shouldRunQLU")
-        shouldRunQLU = true
-    end
-end
-
-function _EventHandler:QuestFinished()
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] QUEST_FINISHED")
-
-    C_Timer.After(0.5, function()
-        if _EventHandler:AllQuestWindowsClosed() then
-            Questie:Debug(Questie.DEBUG_DEVELOP, "All quest windows closed! Resetting shouldRunAuto")
-            QuestieAuto:ResetModifier()
-        end
-    end)
-
-    -- Quests which are just turned in don't trigger QLU.
-    -- So shouldRunQLU is still active from QUEST_TURNED_IN
-    if shouldRunQLU then
-        Questie:Debug(Questie.DEBUG_DEVELOP, "shouldRunQLU still active")
-        if next(latestTurnedInQuestIds) then
-            Questie:Debug(Questie.DEBUG_DEVELOP, "finishedEventReceived is questId")
-            -- these quests won't fire QUEST_REMOVED event
-            local questId = table.remove(latestTurnedInQuestIds, 1)
-            Questie:Debug(Questie.DEBUG_DEVELOP, "Completing automatic completion quest")
-            _EventHandler:CompleteQuest(questId)
-        else
-            Questie:Debug(Questie.DEBUG_DEVELOP, "latestTurnedInQuestIds is empty. Something is off?")
-        end
-        shouldRunQLU = false
-    end
-end
-
---- Fires when the quest log changes. That includes visual changes and
---- client/server communication, so not every event really updates the log data.
-function _EventHandler:QuestLogUpdate()
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] QUEST_LOG_UPDATE")
-    if didPlayerEnterWorld then
-        Questie:Debug(Questie.DEBUG_DEVELOP, "---> Player entered world, START.")
-        C_Timer.After(1, function ()
-            Questie:Debug(Questie.DEBUG_DEVELOP, "---> Player entered world, DONE.")
-            QuestieQuest:GetAllQuestIds()
-            QuestieCombatQueue:Queue(function()
-                QuestieTracker:ResetLinesForChange()
-                QuestieTracker:Update()
-            end)
-            _EventHandler:GroupJoined()
-        end)
-        didPlayerEnterWorld = nil
-    end
-
-    -- QR or UQLC events have set the flag, so we need to update Questie state.
-    if shouldRunQLU then
-        local hashChanged = QuestieHash:CompareQuestHashes()
-        QuestieNameplate:UpdateNameplate()
-        if hashChanged then
-            shouldRunQLU = false
-        end
-    end
-end
-
---- Fired before data for quest log changes, including other players.
----@param unitTarget string @The unitTarget, e.g. "player"
-function _EventHandler:UnitQuestLogChanged(unitTarget)
-    Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] UNIT_QUEST_LOG_CHANGED")
-    -- If the unitTarget is "player" the changed log is from "our" player and
-    -- we need to tell the next QLU event to check the quest log for updated
-    -- data.
-    if unitTarget == "player" then
-        Questie:Debug(Questie.DEBUG_DEVELOP, "UNIT_QUEST_LOG_CHANGED: player")
-        shouldRunQLU = true
     end
 end
 
@@ -341,7 +223,7 @@ function _EventHandler:PlayerLevelUp(level)
     C_Timer.After(3, function()
         QuestiePlayer:SetPlayerLevel(level)
 
-        QuestieQuest:CalculateAndDrawAvailableQuestsIterative()
+        QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
     end)
     QuestieJourney:PlayerLevelUp(level)
 end
@@ -357,9 +239,9 @@ function _EventHandler:ModifierStateChanged()
         GameTooltip:Show()
     end
     if Questie.db.global.trackerLocked then
-        if QuestieTracker.private.baseFrame ~= nil then
+        if TrackerBaseFrame.IsInitialized then
             QuestieCombatQueue:Queue(function()
-                QuestieTracker.private.baseFrame:Update()
+                TrackerBaseFrame.Update()
             end)
         end
     end
@@ -368,37 +250,35 @@ end
 --- Fires when some chat messages about skills are displayed
 function _EventHandler:ChatMsgSkill()
     Questie:Debug(Questie.DEBUG_DEVELOP, "CHAT_MSG_SKILL")
-    local isProfUpdate = QuestieProfessions:Update()
+    local isProfUpdate, isNewProfession = QuestieProfessions:Update()
     -- This needs to be done to draw new quests that just came available
-    if isProfUpdate then
-        QuestieQuest:CalculateAndDrawAvailableQuestsIterative()
+    if isProfUpdate or isNewProfession then
+        QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
     end
 end
 
 --- Fires when some chat messages about reputations are displayed
 function _EventHandler:ChatMsgCompatFactionChange()
     Questie:Debug(Questie.DEBUG_DEVELOP, "CHAT_MSG_COMBAT_FACTION_CHANGE")
-    local factionChanged = QuestieReputation:Update(false)
-    if factionChanged then
+    local factionChanged, newFaction = QuestieReputation:Update(false)
+    if factionChanged or newFaction then
         QuestieCombatQueue:Queue(function()
-            QuestieTracker:ResetLinesForChange()
             QuestieTracker:Update()
         end)
-        QuestieQuest:CalculateAndDrawAvailableQuestsIterative()
+        QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
     end
 end
 
-local numberOfGroupMembers = -1
-function _EventHandler:GroupRosterUpdate()
+function _EventHandler.GroupRosterUpdate()
     local currentMembers = GetNumGroupMembers()
     -- Only want to do logic when number increases, not decreases.
-    if numberOfGroupMembers < currentMembers then
+    if QuestiePlayer.numberOfGroupMembers < currentMembers then
         -- Tell comms to send information to members.
         --Questie:SendMessage("QC_ID_BROADCAST_FULL_QUESTLIST")
-        numberOfGroupMembers = currentMembers
+        QuestiePlayer.numberOfGroupMembers = currentMembers
     else
         -- We do however always want the local to be the current number to allow up and down.
-        numberOfGroupMembers = currentMembers
+        QuestiePlayer.numberOfGroupMembers = currentMembers
     end
 end
 
@@ -406,19 +286,19 @@ function _EventHandler:GroupJoined()
     Questie:Debug(Questie.DEBUG_DEVELOP, "GROUP_JOINED")
     local checkTimer
     --We want this to be fairly quick.
-    checkTimer = C_Timer.NewTicker(0.1, function()
+    checkTimer = C_Timer.NewTicker(0.2, function()
         local partyPending = UnitInParty("player")
         local isInParty = UnitInParty("party1")
         local isInRaid = UnitInRaid("raid1")
         if partyPending then
             if (isInParty or isInRaid) then
-                Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieEventHandler]", "Player joined party/raid, ask for questlogs")
+                Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieEventHandler] Player joined party/raid, ask for questlogs")
                 --Request other players log.
                 Questie:SendMessage("QC_ID_REQUEST_FULL_QUESTLIST")
                 checkTimer:Cancel()
             end
         else
-            Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieEventHandler]", "Player no longer in a party or pending invite. Cancel timer")
+            Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieEventHandler] Player no longer in a party or pending invite. Cancel timer")
             checkTimer:Cancel()
         end
     end)
@@ -463,16 +343,4 @@ function _EventHandler:ZoneChangedNewArea()
     elseif wasTrackerExpanded then
         QuestieTracker:Expand()
     end
-end
-
-function _EventHandler:AllQuestWindowsClosed()
-    if GossipFrame and (not GossipFrame:IsVisible())
-            and GossipFrameGreetingPanel and (not GossipFrameGreetingPanel:IsVisible())
-            and QuestFrameGreetingPanel and (not QuestFrameGreetingPanel:IsVisible())
-            and QuestFrameDetailPanel and (not QuestFrameDetailPanel:IsVisible())
-            and QuestFrameProgressPanel and (not QuestFrameProgressPanel:IsVisible())
-            and QuestFrameRewardPanel and (not QuestFrameRewardPanel:IsVisible()) then
-        return true
-    end
-    return false
 end

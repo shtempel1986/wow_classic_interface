@@ -654,9 +654,9 @@ local function createAmrEquipmentSet()
     C_EquipmentSet.IgnoreSlotForSave(INVSLOT_TABARD)
 		
 	-- for now use icon of the spec
-	local _, specName, _, setIcon = GetSpecializationInfo(GetSpecialization())
+	--local _, specName, _, setIcon = GetSpecializationInfo(GetSpecialization())
 	
-	--[[
+	local setIcon = nil
 	local item = Amr.ParseItemLink(GetInventoryItemLink("player", INVSLOT_MAINHAND))
 	if not item then
 		item = Amr.ParseItemLink(GetInventoryItemLink("player", INVSLOT_OFFHAND))
@@ -667,7 +667,10 @@ local function createAmrEquipmentSet()
 			setIcon = itemObj:GetItemIcon()
 		end
 	end
-	]]
+	if not setIcon then
+		local _, clsEn = UnitClass("player")
+		setIcon = Amr.ClassIcons[clsEn]
+	end
 
 	local setup = getSetupById(_activeSetupId)
 	local setname = setup.Label -- "AMR " .. specName
@@ -685,7 +688,6 @@ end
 local function onEquipGearSetComplete()
 	if Amr.db.profile.options.disableEm then return end
 	
-	--[[
 	-- create an equipment manager set
 	createAmrEquipmentSet()
 
@@ -693,7 +695,6 @@ local function onEquipGearSetComplete()
 	Amr.Wait(1, function()
 		createAmrEquipmentSet()
 	end)
-	]]
 end
 
 -- stop any currently in-progress gear swapping operation and clean up

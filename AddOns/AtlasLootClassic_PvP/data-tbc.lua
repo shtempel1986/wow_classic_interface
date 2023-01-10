@@ -11,9 +11,10 @@ local format = string.format
 -- ----------------------------------------------------------------------------
 -- AddOn namespace.
 -- ----------------------------------------------------------------------------
-local addonname = ...
+local addonname, private = ...
 local AtlasLoot = _G.AtlasLoot
-local data = AtlasLoot.ItemDB:Add(addonname, 1, 2)
+if AtlasLoot:GameVersion_LT(AtlasLoot.BC_VERSION_NUM) then return end
+local data = AtlasLoot.ItemDB:Add(addonname, 1, AtlasLoot.BC_VERSION_NUM)
 
 local AL = AtlasLoot.Locales
 local ALIL = AtlasLoot.IngameLocales
@@ -53,7 +54,8 @@ local PVP_INSIGNIA = {	-- Insignias
 	NORMAL_ITTYPE = ICON_ITTYPE,
 	ExtraList = true,
 	[ALLIANCE_DIFF] = {
-		{ 1, 37864, [PRICE_EXTRA_ITTYPE] = "honorA:40000" }, -- Medallion of the Alliance
+		{ 1, 25829, [PRICE_EXTRA_ITTYPE] = "honorA:22950:pvpEye:10" }, -- Talisman of the Alliance
+		{ 2, 37864, [PRICE_EXTRA_ITTYPE] = "honorA:40000" }, -- Medallion of the Alliance
 		{ 3, 28235, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
 		{ 4, 28237, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
 		{ 5, 28238, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
@@ -63,14 +65,10 @@ local PVP_INSIGNIA = {	-- Insignias
 		{ 9, 30351, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
 		{ 10, 30348, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
 		{ 11, 30350, [PRICE_EXTRA_ITTYPE] = "honorA:8000" }, -- Medallion of the Alliance
-
-
-		--{ 2, 25829, [PRICE_EXTRA_ITTYPE] = "honorA:22950:pvpEye:10" }, -- Talisman of the Alliance
-		--{ 16, 28246 }, -- Band of Triumph
-		--{ 17, 28247 }, -- Band of Dominance
 	},
 	[HORDE_DIFF] = {
-		{ 1, 37865, [PRICE_EXTRA_ITTYPE] = "honorH:40000" }, -- Medallion of the Horde
+		{ 1, 24551, [PRICE_EXTRA_ITTYPE] = "honorH:22950:pvpEye:10" }, -- Talisman of the Horde
+		{ 2, 37865, [PRICE_EXTRA_ITTYPE] = "honorH:40000" }, -- Medallion of the Horde
 		{ 3, 28241, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
 		{ 4, 28243, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
 		{ 5, 28239, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
@@ -80,10 +78,6 @@ local PVP_INSIGNIA = {	-- Insignias
 		{ 9, 30345, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
 		{ 10, 30343, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
 		{ 11, 30344, [PRICE_EXTRA_ITTYPE] = "honorH:8000" }, -- Medallion of the Horde
-
-		--{ 2, 24551, [PRICE_EXTRA_ITTYPE] = "honorH:22950:pvpEye:10" }, -- Talisman of the Horde
-		--{ 16, 28246 }, -- Band of Triumph
-		--{ 17, 28247 }, -- Band of Dominance
 	},
 }
 
@@ -103,7 +97,7 @@ local PVP_GEMS = {	-- Gems
 	},
 }
 
-data["BCCHonorSet"] = {
+data["HonorSetBCC"] = {
 	name = AL["Honor"],
 	ContentType = GENERAL_CONTENT,
 	LoadDifficulty = LOAD_DIFF,
@@ -250,7 +244,7 @@ data["BCCHonorSet"] = {
 	},
 }
 
-data["BCCReputationSet"] = {
+data["ReputationSetBCC"] = {
 	name = AL["Reputation"],
 	ContentType = GENERAL_CONTENT,
 	LoadDifficulty = LOAD_DIFF,
@@ -285,9 +279,7 @@ data["PvPMountsBCC"] = {
 	name = ALIL["Mounts"],
 	ContentType = GENERAL_CONTENT,
 	LoadDifficulty = LOAD_DIFF,
-	CorrespondingFields = {
-		[1] = "Mounts",
-	},
+	CorrespondingFields = private.MOUNTS_LINK,
 	items = {
 		{ -- PvPMountsPvP
 			name = ALIL["Mounts"],
@@ -299,9 +291,9 @@ data["PvPMountsBCC"] = {
 				{ 6,  29471 }, -- Reins of the Black War Tiger
 				{ 7,  35906 }, -- Reins of the Black War Elekk
 				{ 16,  30609 }, -- Swift Nether Drake
-				{ 17,  37676 }, -- Vengeful Nether Drake
-				{ 18,  34092 }, -- Merciless Nether Drake
-				--{ 19,  43516 }, -- Brutal Nether Drake NYI
+				{ 17,  34092 }, -- Merciless Nether Drake
+				{ 18,  37676 }, -- Vengeful Nether Drake
+				{ 19,  43516 }, -- Brutal Nether Drake
 			},
 			[HORDE_DIFF] = {
 				{ 1, 19029  }, -- Horn of the Frostwolf Howler
@@ -311,9 +303,9 @@ data["PvPMountsBCC"] = {
 				{ 6, 29470 }, -- Red Skeletal Warhorse
 				{ 7, 34129 }, -- Swift Warstrider
 				{ 16,  30609 }, -- Swift Nether Drake
-				{ 17,  37676 }, -- Vengeful Nether Drake
-				{ 18,  34092 }, -- Merciless Nether Drake
-				--{ 19,  43516 }, -- Brutal Nether Drake NYI
+				{ 17,  34092 }, -- Merciless Nether Drake
+				{ 18,  37676 }, -- Vengeful Nether Drake
+				{ 19,  43516 }, -- Brutal Nether Drake
 			},
 		},
 	},
@@ -591,7 +583,7 @@ data["ArenaS2PvP"] = {
 	TableType = NORMAL_ITTYPE,
 	items = {
 		{
-			name = AL["Sets"]..BLIZZARD_NYI,
+			name = AL["Sets"],
 			TableType = SET_ITTYPE,
 			[NORMAL_DIFF] = {
 				{ 1,    702 }, -- Warlock
@@ -797,7 +789,7 @@ data["ArenaS3PvP"] = {
 	TableType = NORMAL_ITTYPE,
 	items = {
 		{
-			name = AL["Sets"]..BLIZZARD_NYI,
+			name = AL["Sets"],
 			TableType = SET_ITTYPE,
 			[NORMAL_DIFF] = {
 				{ 1,    734 }, -- Warlock
@@ -857,7 +849,7 @@ data["ArenaS3PvP"] = {
 				{ 6, 33727 }, -- Gladiator's Painsaw
 
 				{ 8, 33663 }, -- Gladiator's Bonegrinder
-				{ 9, 32014 }, -- Gladiator's Maul
+				--{ 9, 32014 }, -- Gladiator's Maul
 
 				{ 16, 33766 }, -- Gladiator's War Staff
 				{ 17, 34540 }, -- Vengeful Gladiator's Battle Staff
@@ -921,6 +913,17 @@ data["ArenaS3PvP"] = {
 				{ 2, 35320 }, -- Vindicator's Band of Subjugation
 				{ 3, 33918 }, -- Vindicator's Band of Salvation
 				{ 4, 33853 }, -- Vindicator's Band of Dominance
+			},
+		},
+		{
+			name = ALIL["Trinket"],
+			[NORMAL_DIFF] = {
+				{ 1, 35327 }, -- Alacrity
+				{ 2, 34579 }, --
+				{ 3, 34576 }, --
+				{ 4, 34577 }, --
+				{ 5, 34578 }, --
+				{ 6, 34580 }, --
 			},
 		},
 		{
@@ -1018,10 +1021,27 @@ data["ArenaS4PvP"] = {
 	TableType = NORMAL_ITTYPE,
 	items = {
 		{
-			name = AL["Sets"]..BLIZZARD_NYI,
+			name = AL["Sets"],
 			TableType = SET_ITTYPE,
 			[NORMAL_DIFF] = {
-				-- NYI
+				{ 1,    2000568 }, -- Warlock
+				{ 2,    2000615 }, -- Warlock 2
+				{ 4,    2000687 }, -- Priest / Heal
+				{ 5,    2000581 }, -- Priest / Shadow
+				{ 7,    2000577 }, -- Rogue
+				{ 9,    2000586 }, -- Hunter
+				{ 11,   2000567 }, -- Warrior
+				AtlasLoot:GameVersion_GE(AtlasLoot.WRATH_VERSION_NUM, { 13,   760 }), -- Deathknight
+				{ 16,   2000579 }, -- Mage
+				{ 18,   2000685 }, -- Druid / Heal
+				{ 19,   2000585 }, -- Druid / Owl
+				{ 20,   2000584 }, -- Druid / Feral
+				{ 22,   2000580 }, -- Shaman / Heal
+				{ 23,   2000686 }, -- Shaman / Ele
+				{ 24,   2000578 }, -- Shaman / Enh
+				{ 26,   2000690 }, -- Paladin / Heal
+				{ 27,   2000582 }, -- Paladin / Prot
+				{ 28,   2000583 }, -- Paladin / DD
 			},
 		},
 		{
@@ -1095,6 +1115,15 @@ data["ArenaS4PvP"] = {
 				{ 18, 35016 }, -- Vengeful Gladiator's Grimoire
 			},
 		},
+		AtlasLoot:GameVersion_GE(AtlasLoot.WRATH_VERSION_NUM, {
+			name = ALIL["Back"],
+			[NORMAL_DIFF] = {
+				{ 1, 44431 }, -- Cloak of Certain Reprieve
+				{ 2, 41591 }, --  Sergeant's Reinforced Cape
+				{ 3, 41592 }, --  The Gladiator's Resolution
+				{ 4, 44429 }, --  Volanthius Shroud
+			},
+		}),
 		{
 			name = ALIL["Relic"],
 			[NORMAL_DIFF] = {
@@ -1129,6 +1158,15 @@ data["ArenaS4PvP"] = {
 				{ 4, 35129 }, -- Guardian's Band of Dominance
 			},
 		},
+		AtlasLoot:GameVersion_GE(AtlasLoot.WRATH_VERSION_NUM, {
+			name = ALIL["Trinket"],
+			[NORMAL_DIFF] = {
+				{ 1, 41588 }, --  Battlemaster's Aggression
+				{ 2, 41587 }, --  Battlemaster's Celerity
+				{ 3, 41590 }, --  Battlemaster's Courage
+				{ 4, 41589 }, --  Battlemaster's Resolve
+			},
+		}),
 		{
 			name = format(AL["Non Set '%s'"], ALIL["Cloth"]),
 			[NORMAL_DIFF] = {
@@ -1208,10 +1246,10 @@ data["ArenaS4PvP"] = {
 		PVP_INSIGNIA,
 		PVP_GEMS,
 		{
-			name = AL["Gladiator Mount"]..BLIZZARD_NYI,
+			name = AL["Gladiator Mount"],
 			ExtraList = true,
 			[NORMAL_DIFF] = {
-				{ 1,  43516 }, -- Brutal Nether Drake NYI
+				{ 1,  43516 }, -- Brutal Nether Drake
 			}
 		}
 	}

@@ -165,7 +165,6 @@ local function CreateUnitTabGroup(unitID, localizedUnit, order)
                         min = -999,
                         max = 999,
                         step = 1,
-                        bigStep = 10,
                         hidden = unitID ~= "nameplate",
                         get = function() return ClassicCastbars.db[unitID].position[2] end,
                         set = function(_, value)
@@ -185,7 +184,6 @@ local function CreateUnitTabGroup(unitID, localizedUnit, order)
                         min = -999,
                         max = 999,
                         step = 1,
-                        bigStep = 10,
                         hidden = unitID ~= "nameplate",
                         get = function()
                             return ClassicCastbars.db[unitID].position[3]
@@ -509,6 +507,9 @@ local function CreateUnitTabGroup(unitID, localizedUnit, order)
                         end,
                         set = function(info, value)
                             ClassicCastbars.db[info[1]][info[3]] = GetLSMTable("border")[value]
+                            if ClassicCastbars.db[info[1]].showBorderShield then
+                                print("ClassicCastbars: " .. L.CAST_BORDER_SHIELD_NOTICE) --luacheck: ignore
+                            end
                             ClassicCastbars_TestMode:OnOptionChanged(unitID)
                         end,
                     },
@@ -568,7 +569,7 @@ local function GetOptionsTable()
             target = CreateUnitTabGroup("target", L.TARGET, 1),
             nameplate = CreateUnitTabGroup("nameplate", L.NAMEPLATE, 2),
             party = CreateUnitTabGroup("party", L.PARTY, 3),
-            player = CreateUnitTabGroup("player", L.PLAYER, 4),
+            player = WOW_PROJECT_ID ~= 1 and CreateUnitTabGroup("player", L.PLAYER, 4) or nil,
             focus = CreateUnitTabGroup("focus", _G.FOCUS or "Focus", 5),
             arena = not isClassic and CreateUnitTabGroup("arena", _G.ARENA or "Arena", 6) or nil,
 
@@ -629,15 +630,3 @@ end
 -- Initialize option panel
 LibStub("AceConfig-3.0"):RegisterOptionsTable("ClassicCastbars", GetOptionsTable)
 LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ClassicCastbars")
-
--- Slash commands to open panel
-SLASH_CLASSICCASTBARS1 = "/castbars"
-SLASH_CLASSICCASTBARS2 = "/castbar"
-SLASH_CLASSICCASTBARS3 = "/classiccastbars"
-SLASH_CLASSICCASTBARS4 = "/classicastbars"
-SlashCmdList["CLASSICCASTBARS"] = function()
-    LibStub("AceConfigDialog-3.0"):Open("ClassicCastbars")
-    if LibStub("AceConfigDialog-3.0").OpenFrames["ClassicCastbars"] then
-        LibStub("AceConfigDialog-3.0").OpenFrames["ClassicCastbars"]:SetStatusText("https://www.curseforge.com/wow/addons/classiccastbars")
-    end
-end
