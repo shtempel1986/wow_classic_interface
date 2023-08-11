@@ -31,6 +31,8 @@ AL["Brightly Colored Egg"] = "Huevo de colores vivos"
 --[[ AL["Card Game Tabards"] = "Card Game Tabards"--]] 
 AL["Childrens Week"] = "Semana de los Niños"
 AL["Crimson Templar"] = "Templario Carmesí"
+--[[Translation missing --]]
+--[[ AL["Day of the Dead"] = "Day of the Dead"--]] 
 AL["Drops"] = "Despoja"
 AL["Dungeon Set %s"] = "Conjunto de mazmorra %s"
 AL["Dungeon Sets"] = "Conjuntos de mazmorra"
@@ -72,6 +74,8 @@ AL["Masks"] = "Máscaras"
 AL["Midsummer Festival"] = "Festival de Fuego del Solsticio de Verano"
 AL["Noblegarden"] = "Jardín Noble"
 AL["One-Handed Weapons"] = "Armas de una mano"
+--[[Translation missing --]]
+--[[ AL["Pilgrim's Bounty"] = "Pilgrim's Bounty"--]] 
 AL["Prince Skaldrenox"] = "Príncipe Skaldrenox"
 AL["Princess Tempestria"] = "Princesa Tempestria"
 AL["Ranged Weapons"] = "Armas a distancia"
@@ -79,6 +83,8 @@ AL["Rare Fish"] = "Pescados raros"
 AL["Rare Fish Rewards"] = "Recompensas raras de pesca"
 AL["Scarlet Monastery - Graveyard"] = "Monasterio Escarlata - Cementerio"
 AL["Scourge Invasion"] = "Invasión de la Plaga"
+--[[Translation missing --]]
+--[[ AL["Sidereal Essence"] = "Sidereal Essence"--]] 
 AL["Silithus Abyssal"] = "Abisal Silithus"
 AL["Smokywood Pastures"] = "Pastos de Bosquehumeante"
 AL["Smokywood Pastures Special Gift"] = "Obsequio especial de Pastos de Bosquehumeante"

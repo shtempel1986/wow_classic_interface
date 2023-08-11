@@ -21,9 +21,9 @@ module.db.statsList = {'intellect','agility','strength','haste','mastery','crit'
 module.db.statsListName = {L.InspectViewerInt,L.InspectViewerAgi,L.InspectViewerStr,L.InspectViewerHaste,L.InspectViewerMastery,L.InspectViewerCrit,L.InspectViewerSpd, L.InspectViewerMS, L.InspectViewerVer, L.InspectViewerBonusArmor, L.InspectViewerLeech, L.InspectViewerAvoidance, L.InspectViewerSpeed,ITEM_MOD_CORRUPTION}
 
 module.db.baseStats = {	--By class IDs
-	strength =  {	450,	450,	0,	0,	0,	450,	0,	0,	0,	0,	0,	0,	},
-	agility =   {	0,	0,	450,	450,	0,	0,	450,	0,	0,	450,	450,	450,	},
-	intellect = {	0,	450,	0,	0,	450,	0,	450,	450,	450,	450,	450,	0,	},
+	strength =  {	450,	450,	0,	0,	0,	450,	0,	0,	0,	0,	0,	0,	0},
+	agility =   {	0,	0,	450,	450,	0,	0,	450,	0,	0,	450,	450,	450,	0},
+	intellect = {	0,	450,	0,	0,	450,	0,	450,	450,	450,	450,	450,	0,	0},
 		--	WARRIOR,PALADIN,HUNTER,	ROGUE,	PRIEST,	DK,	SHAMAN,	MAGE,	WARLOCK,MONK,	DRUID,	DH,
 }
 module.db.raceList = {'Human','Dwarf','Night Elf','Orc','Tauren','Undead','Gnome','Troll','Blood Elf','Draenei','Goblin','Worgen','Pandaren'}
@@ -236,7 +236,10 @@ module.db.topEnchGems = IS_SL and {
 
 
 module.db.achievementsList = {
-	{	--VotI
+	{	--A
+		L.S_ZoneT30,
+		18160,18163,18164,18165,18167,18151,18152,18153,18154,18155,18156,18157,18158,18159,
+	},{	--VotI
 		L.S_ZoneT29VotI,
 		17110,17111,17112,16343,16346,16347,16348,16349,16350,16351,16352,16353,17107,17108,
 	},{	--SotFO
@@ -317,7 +320,9 @@ module.db.achievementsList = {
 	},
 }
 module.db.achievementsList_statistic = {
-	{	--VotI
+	{	--A
+
+	},{	--VotI
 
 	},{	--SotFO
 
@@ -501,6 +506,7 @@ do
 		[581] = "agi",
 		[1467] = "int",
 		[1468] = "int",
+		[1473] = "int",
 	}
 	function module:GetSpecMainStat(specID)
 		return specToStat[specID or 0]
@@ -1079,11 +1085,11 @@ function module.options:Load()
 									icon.text:SetText("|c"..(itemColor or "ffffffff")..(itemLevel or ""))
 
 									if not ExRT.isClassic and (
-										(enchantID == 0 and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and ((module:GetSpecMainStat(spec)=="agi" and IS_SL) or IS_DF)) or (slotID == 9 and ((module:GetSpecMainStat(spec)=="int" and IS_SL) or IS_DF)) or (slotID == 10 and ((module:GetSpecMainStat(spec)=="str" and IS_SL) or IS_DF)) or (slotID == 5 and IS_SL)) and module.db.colorizeNoEnch) or
+										(enchantID == 0 and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and ((module:GetSpecMainStat(spec)=="agi" and IS_SL) or IS_DF)) or (slotID == 9 and ((module:GetSpecMainStat(spec)=="int" and IS_SL) or IS_DF)) or (slotID == 10 and ((module:GetSpecMainStat(spec)=="str" and IS_SL) and not IS_DF)) or (slotID == 5 and IS_SL) or (slotID == 7 and IS_DF)) and module.db.colorizeNoEnch) or
 										(items_ilvl[slotID] and items_ilvl[slotID] > 0 and items_ilvl[slotID] < colorizeLowIlvl630 and module.db.colorizeLowIlvl) or
 										(module.db.colorizeNoGems and ExRT.F.IsBonusOnItem(item,module.db.socketsBonusIDs) and IsItemHasNotGem(item)) or 
 										(module.db.colorizeNoGems and (slotID == 16 or slotID == 17) and itemQuality == 6 and IsArtifactItemHasNot3rdGem(item)) or 
-										(module.db.colorizeNoTopEnchGems and not IsTopEnchAndGems(item) and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and ((module:GetSpecMainStat(spec)=="agi" and IS_SL) or IS_DF)) or (slotID == 9 and ((module:GetSpecMainStat(spec)=="int" and IS_SL) or IS_DF)) or (slotID == 10 and ((module:GetSpecMainStat(spec)=="str" and IS_SL) or IS_DF)) or (slotID == 5 and IS_SL))) or
+										(module.db.colorizeNoTopEnchGems and not IsTopEnchAndGems(item) and ((slotID == 2 and IS_LOW) or (slotID == 15 and IS_LOW) or slotID == 11 or slotID == 12 or (slotID == 16) or (slotID == 17 and module.db.specHasOffhand[spec or 0]) or (slotID == 15 and IS_SL) or (slotID == 8 and ((module:GetSpecMainStat(spec)=="agi" and IS_SL) or IS_DF)) or (slotID == 9 and ((module:GetSpecMainStat(spec)=="int" and IS_SL) or IS_DF)) or (slotID == 10 and ((module:GetSpecMainStat(spec)=="str" and IS_SL) and not IS_DF)) or (slotID == 5 and IS_SL))) or
 										(items_ilvl[slotID] and items_ilvl[slotID] > 0 and items_ilvl[slotID] < colorizeLowIlvl685 and module.db.colorizeLowIlvl685)
 									) then
 										icon.border:Show()
@@ -2218,7 +2224,14 @@ function module.options:Load()
 	end)
 
 
-	self.moreInfoButton = ELib:Button(self,L.InspectViewerMoreInfo):Size(150,20):Point("TOPRIGHT",self.borderList,"BOTTOMRIGHT",-1,1):OnClick(function() module.options.moreInfoWindow:Show() end)
+	self.refreshAllButton = ELib:Button(self,L.InspectViewerRefreshAll):Size(120,20):Point("TOPRIGHT",self.borderList,"BOTTOMRIGHT",-1,1):OnClick(function() 
+		for _, name in ExRT.F.IterateRoster do
+			parentModule:AddToQueue(name)
+		end
+		module.options:showPage()
+	end)
+
+	self.moreInfoButton = ELib:Button(self,L.InspectViewerMoreInfo):Size(120,20):Point("RIGHT",self.refreshAllButton,"LEFT",-5,0):OnClick(function() module.options.moreInfoWindow:Show() end)
 
 	self.moreInfoWindow = ELib:Popup(L.InspectViewerMoreInfo):Size(250,170)
 	self.moreInfoWindow:SetScript("OnShow",function (self)
@@ -2276,7 +2289,7 @@ function module.options:Load()
 	end)
 	self.moreInfoWindow.textData  = ELib:Text(self.moreInfoWindow,"",11):Size(225,180):Point("TOP",0,-32):Top():Color()
 
-	self.buttonForce = ELib:Button(self,L.InspectViewerForce):Size(90,20):Point("RIGHT",self.moreInfoButton,"LEFT",-5,0):OnClick(function(self) 
+	self.buttonForce = ELib:Button(self,L.InspectViewerForce):Size(60,20):Point("RIGHT",self.moreInfoButton,"LEFT",-5,0):OnClick(function(self) 
 		parentModule:Force() 
 		self:SetEnabled(false)
 	end)

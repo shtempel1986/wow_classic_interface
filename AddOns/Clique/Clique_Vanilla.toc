@@ -1,8 +1,9 @@
 ## Interface: 11403
 ## Title: Clique
 ## Author: Cladhaire
-## Version: v3.4.12-release
+## Version: v3.5.2-release
 ## Notes: Simply powerful click-casting interface
+## IconTexture: Interface\AddOns\Clique\images\icon_square_64.tga
 ## SavedVariables: CliqueDB, CliqueDB3
 ## X-Curse-Project-ID: 15564
 ## X-WoWI-ID: 5108

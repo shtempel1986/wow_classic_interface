@@ -8,8 +8,8 @@
 --
 -------------------------------------------------------------------------
 
--- Done in 309
---  Optim to event handling (Thanks @RoadBlock!)
+-- Done in 312
+--  Removed the achievement announcement features
 
 
 -------------------------------------------------------------------------
@@ -116,7 +116,7 @@ local attunelocal_raidcount = 1  				-- selected raid, number of raid groups to 
 
 local attunelocal_inactivity = 60*60*24*30		-- number of seconds to account for inactivity
 
-local attunelocal_achieveDelayDone = false		-- Wait a few seconds to avoid the barrage of achieves when one first logs in
+--local attunelocal_achieveDelayDone = false		-- Wait a few seconds to avoid the barrage of achieves when one first logs in
 
 local patch = 0
 
@@ -218,7 +218,7 @@ local attune_options = {
 					width = 1.65,
 					order = 19,
 				},
-				announceAchieveCompleted = {
+--[[				announceAchieveCompleted = {
 					type = "toggle",
 					name = Lang["AnnounceAchieve_TEXT"],
 					desc = Lang["AnnounceAchieve_DESC"],
@@ -249,7 +249,7 @@ local attune_options = {
 					width = 0.7,
 					order = 21,
 				},
-
+]]--
 				showList = {
 					type = "toggle",
 					name = Lang["ShowGuildies_TEXT"],
@@ -553,7 +553,7 @@ function Attune:OnEnable()
 	self:RegisterEvent("BAG_UPDATE")
 	self:RegisterEvent("GOSSIP_SHOW")
 	self:RegisterEvent("QUEST_DETAIL")
-	self:RegisterEvent("ACHIEVEMENT_EARNED")
+--	self:RegisterEvent("ACHIEVEMENT_EARNED")
 	
 	--self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	cleu_parser:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -577,7 +577,7 @@ function Attune:OnEnable()
 	if Attune_DB.showDeprecatedAttunes == nil then Attune_DB.showDeprecatedAttunes = true end
 		
 	
-	--convert global setting to a per toon setting
+--[[	--convert global setting to a per toon setting
 	local oldAnnounceAchieveCompleted = true
 	if Attune_DB.announceAchieveCompleted ~= nil then oldAnnounceAchieveCompleted = Attune_DB.announceAchieveCompleted;  end --get previous setting
 	if Attune_DB.toons[attunelocal_charKey].announceAchieveCompleted == nil then Attune_DB.toons[attunelocal_charKey].announceAchieveCompleted = oldAnnounceAchieveCompleted end
@@ -589,7 +589,7 @@ function Attune:OnEnable()
 	local oldAnnounceAchieveSurvey = false
 	if Attune_DB.announceAchieveSurvey ~= nil then oldAnnounceAchieveSurvey = Attune_DB.announceAchieveSurvey  end  --get previous setting
 	if Attune_DB.toons[attunelocal_charKey].announceAchieveSurvey == nil then Attune_DB.toons[attunelocal_charKey].announceAchieveSurvey = oldAnnounceAchieveSurvey end
-
+]]
 	
 	if Attune_DB.showOtherChat == nil then Attune_DB.showOtherChat = true end
 	if Attune_DB.maxListSize == nil then Attune_DB.maxListSize = "20" end
@@ -715,10 +715,10 @@ function Attune:OnEnable()
 		Attune:SendCommMessage(attunelocal_versionprefix, attunelocal_version, "YELL", "");
 	end)
 
-	C_Timer.After(15, function()
+--[[	C_Timer.After(15, function()
 		attunelocal_achieveDelayDone = true -- after 10s the spam should have been done
 	end)
-
+]]
 	-- sending a couple version checks to make sure people update to the latest version
 
 	if Attune_DB.autosurvey then
@@ -793,7 +793,7 @@ function Attune:OnEnable()
 	if Attune_DB.minimapbuttonpos.hide then attunelocal_minimapicon:Hide("Attune_Broker"); attunelocal_minimapicon:Hide("Attune_Broker") else attunelocal_minimapicon:Show("Attune_Broker");attunelocal_minimapicon:Show("Attune_Broker") end
 
 
-
+--[[
 	C_Timer.After(10, function()
 		if not Attune_DB.toons[attunelocal_charKey].announceAchieveSurvey then
 			StaticPopupDialogs["ACHIEVEANNOUNCE_CONFIRM"] = {
@@ -817,7 +817,7 @@ function Attune:OnEnable()
 			StaticPopup_Show ("ACHIEVEANNOUNCE_CONFIRM")
 		end
 	end)
-
+]]
 
 	--Attune_CreateRepWidget()
 
@@ -908,7 +908,7 @@ end
 -------------------------------------------------------------------------
 -- EVENT: Fired when an achievement is gained
 -------------------------------------------------------------------------
-
+--[[
 function Attune:ACHIEVEMENT_EARNED(event, id)
 	local FEAT_OF_STRENGTH_CATEGID = 81
 
@@ -931,7 +931,7 @@ function Attune:ACHIEVEMENT_EARNED(event, id)
 			SendChatMessage(msg , "GUILD")
 	end
 end
-
+]]
 -------------------------------------------------------------------------
 -- EVENT: Addon Chat message is received
 -------------------------------------------------------------------------
@@ -1545,7 +1545,7 @@ function Attune_CheckProgress()
 		end
 	end
 
-	-- some specific steps mean the whole achievement is complete. Close off the whole tree if those are done
+	-- some specific steps mean the whole attunement is complete. Close off the whole tree if those are done
 	-- including a second pass to mark as done all non-trackable steps (interact/kill/past items) that belong to earlier (completed) quests
 	Attune_SendPushInfo("TOON")
 	Attune_CheckComplete(true)
@@ -1895,7 +1895,11 @@ function Attune_Frame()
 	--attunelocal_frame.frame:SetHeight(Attune_DB.height)
 	--attunelocal_frame.frame:SetWidth(Attune_DB.width)
 
-	attunelocal_frame.frame:SetMinResize(1010, 550)
+	if attunelocal_frame.frame.SetResizeBounds then
+		attunelocal_frame.frame:SetResizeBounds(1010, 550)
+	else
+		attunelocal_frame.frame:SetMinResize(1010, 550)
+	end
 	attunelocal_frame.frame:SetFrameStrata("HIGH")
 
 
@@ -4755,6 +4759,7 @@ function Attune_Icons(what, gender)
 	if (what == "SHAMAN") 	then icon = "Interface\\Icons\\spell_nature_bloodlust" end
 	if (what == "WARLOCK") then icon = "Interface\\Icons\\spell_nature_drowsy" end
 	if (what == "WARRIOR") then icon = "Interface\\Icons\\inv_sword_27" end
+	if (what == "DEATHKNIGHT") then icon = "Interface\\Icons\\Spell_deathknight_classicon" end
 	if (what == "UNKNOWN") then icon = "Interface\\Icons\\Inv_misc_questionmark" end
 	
 	local g = 'male'
@@ -4934,7 +4939,11 @@ function Attune_RaidPlannerFrame()
 	attunelocal_raidframe:SetWidth(1020)
 	attunelocal_raidframe:SetLayout("Flow")
 	
-	attunelocal_raidframe.frame:SetMinResize(620, 620)
+	if attunelocal_raidframe.frame.SetResizeBounds then
+		attunelocal_raidframe.frame:SetResizeBounds(620, 620)
+	else
+		attunelocal_raidframe.frame:SetMinResize(620, 620)
+	end
 	attunelocal_raidframe.frame:SetFrameStrata("HIGH")
 
 	

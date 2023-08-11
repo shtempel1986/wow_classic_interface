@@ -95,6 +95,7 @@ end
 
 function ArkInventory.GetLocationCodex( loc_id )
 	
+	--error( "stop here" )
 	--local tz = debugprofilestop( )
 	
 	local codex = helper_CodexInit( loc_id )

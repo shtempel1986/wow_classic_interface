@@ -341,3 +341,20 @@ function addon:GetBindingPrefixSuffix(binding, global)
 
     return prefix, suffix
 end
+
+function addon:BindingConflictsWithSelfCast(binding)
+    local selfCastKey = GetModifiedClick("SELFCAST")
+    if not selfCastKey then return end
+
+    selfCastKey = selfCastKey:upper()
+    if binding.key and binding.key:match(selfCastKey) then
+        return true
+    end
+end
+
+function addon:GetSelfCastKeyText()
+    local selfCastKey = GetModifiedClick("SELFCAST")
+    if not selfCastKey then return "Undefined" end
+
+    return selfCastKey:upper()
+end

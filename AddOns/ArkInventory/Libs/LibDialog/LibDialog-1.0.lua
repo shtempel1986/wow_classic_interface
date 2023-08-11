@@ -241,18 +241,13 @@ local function _Dialog_OnShow(dialog)
 end
 
 local function _Dialog_OnHide(dialog)
-    local delegate = dialog.delegate
-	
-    if not delegate then
-        return
-    end
-
     _G.PlaySound(SOUNDKIT.IG_MAINMENU_CLOSE, "Master")
 
     -- Required so lib:ActiveDialog() will return false if called from code which is called from the delegate's on_hide
     _RecycleWidget(dialog, active_dialogs, dialog_heap)
 
-    if delegate.on_hide then
+    local delegate = dialog.delegate
+    if delegate and delegate.on_hide then
         delegate.on_hide(dialog, dialog.data)
     end
 

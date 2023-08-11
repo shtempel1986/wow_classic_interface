@@ -35,6 +35,7 @@ function UF:Construct_RaidFrames()
 	self.HealthPrediction = UF:Construct_HealComm(self)
 	self.Fader = UF:Construct_Fader()
 	self.Cutaway = UF:Construct_Cutaway(self)
+	self.PrivateAuras = UF:Construct_PrivateAuras(self)
 	self.customTexts = {}
 
 	if E.Retail then
@@ -55,14 +56,14 @@ function UF:Update_RaidHeader(header, db)
 	if not parent.positioned then
 		parent:ClearAllPoints()
 		parent:Point('BOTTOMLEFT', E.UIParent, 'BOTTOMLEFT', 4, 248)
-		E:CreateMover(parent, parent:GetName()..'Mover', format(L["Raid Frames %d"], parent.raidFrameN), nil, nil, nil, 'ALL,RAID', nil, format('unitframe,groupUnits,%s,generalGroup', parent.groupName))
+		E:CreateMover(parent, parent:GetName()..'Mover', format(L["Raid %d Frames"], parent.raidFrameN), nil, nil, nil, 'ALL,RAID', nil, format('unitframe,groupUnits,%s,generalGroup', parent.groupName))
 		parent.positioned = true
 	end
 
 	if db.customName ~= '' then
-		parent.mover:SetFormattedText('%s - %s', format(L["Raid Frames %d"], parent.raidFrameN), db.customName)
+		parent.mover:SetFormattedText('%s - %s', format(L["Raid %d Frames"], parent.raidFrameN), db.customName)
 	else
-		parent.mover:SetFormattedText(L["Raid Frames %d"], parent.raidFrameN)
+		parent.mover:SetFormattedText(L["Raid %d Frames"], parent.raidFrameN)
 	end
 end
 
@@ -130,6 +131,7 @@ function UF:Update_RaidFrames(frame, db)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_PhaseIcon(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_ClassBar(frame)
 	UF:UpdateNameSettings(frame)
 

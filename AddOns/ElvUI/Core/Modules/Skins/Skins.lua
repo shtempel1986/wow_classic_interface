@@ -136,6 +136,7 @@ function S:HandleFrame(frame, setBackdrop, template, x1, y1, x2, y2)
 	local portraitFrame = name and _G[name..'Portrait'] or frame.Portrait or frame.portrait
 	local portraitFrameOverlay = name and _G[name..'PortraitOverlay'] or frame.PortraitOverlay
 	local artFrameOverlay = name and _G[name..'ArtOverlayFrame'] or frame.ArtOverlayFrame
+	local closeButton = frame.CloseButton or name and _G[name..'CloseButton']
 
 	frame:StripTextures()
 
@@ -147,8 +148,8 @@ function S:HandleFrame(frame, setBackdrop, template, x1, y1, x2, y2)
 		S:HandleInsetFrame(insetFrame)
 	end
 
-	if frame.CloseButton then
-		S:HandleCloseButton(frame.CloseButton)
+	if closeButton then
+		S:HandleCloseButton(closeButton)
 	end
 
 	if setBackdrop then
@@ -669,7 +670,7 @@ do
 		end
 	end
 
-	function S:HandleTrimScrollBar(frame, small)
+	function S:HandleTrimScrollBar(frame)
 		assert(frame, 'does not exist.')
 
 		frame:StripTextures()
@@ -688,17 +689,13 @@ do
 
 		local thumb = frame:GetThumb()
 		if thumb then
+			thumb:DisableDrawLayer('ARTWORK')
 			thumb:DisableDrawLayer('BACKGROUND')
 			thumb:CreateBackdrop('Transparent')
 			thumb.backdrop:SetFrameLevel(thumb:GetFrameLevel()+1)
 
 			local r, g, b = unpack(E.media.rgbvaluecolor)
 			thumb.backdrop:SetBackdropColor(r, g, b, .25)
-
-			if not small then
-				thumb.backdrop:Point('TOPLEFT', 4, -1)
-				thumb.backdrop:Point('BOTTOMRIGHT', -4, 1)
-			end
 
 			thumb:HookScript('OnEnter', ThumbOnEnter)
 			thumb:HookScript('OnLeave', ThumbOnLeave)
@@ -1070,7 +1067,7 @@ do
 	local closeOnLeave = function(btn) if btn.Texture then btn.Texture:SetVertexColor(1, 1, 1) end end
 
 	function S:HandleCloseButton(f, point, x, y)
-		assert(f, 'doenst exist!')
+		if f.isSkinned then return end
 
 		f:StripTextures()
 
@@ -1087,9 +1084,11 @@ do
 		if point then
 			f:Point('TOPRIGHT', point, 'TOPRIGHT', x or 2, y or 2)
 		end
+
+		f.isSkinned = true
 	end
 
-	function S:HandleNextPrevButton(btn, arrowDir, color, noBackdrop, stripTexts, frameLevel)
+	function S:HandleNextPrevButton(btn, arrowDir, color, noBackdrop, stripTexts, frameLevel, buttonSize)
 		if btn.isSkinned then return end
 
 		if not arrowDir then
@@ -1128,8 +1127,9 @@ do
 
 		local Normal, Disabled, Pushed = btn:GetNormalTexture(), btn:GetDisabledTexture(), btn:GetPushedTexture()
 
+		btn:Size(buttonSize or (noBackdrop and 20 or 18))
+
 		if noBackdrop then
-			btn:Size(20, 20)
 			Disabled:SetVertexColor(.5, .5, .5)
 			btn.Texture = Normal
 
@@ -1138,7 +1138,6 @@ do
 				btn:HookScript('OnLeave', closeOnLeave)
 			end
 		else
-			btn:Size(18, 18)
 			Disabled:SetVertexColor(.3, .3, .3)
 		end
 
@@ -1548,6 +1547,7 @@ do
 
 		if not dontOffset then -- place it off to the side of parent with correct offsets
 			frame:HookScript('OnShow', selectionOffset)
+			frame:Height(frame:GetHeight() + 10)
 		end
 
 		local borderBox = frame.BorderBox or _G.BorderBox -- it's a sub frame only on retail, on wrath it's a global?
@@ -1559,7 +1559,6 @@ do
 
 		frame:StripTextures()
 		frame:SetTemplate('Transparent')
-		frame:Height(frame:GetHeight() + 10)
 
 		if borderBox then
 			borderBox:StripTextures()
@@ -1784,11 +1783,11 @@ function S:SkinWidgetContainer(widget)
 end
 
 function S:ADDON_LOADED(_, addonName)
-	if not self.allowBypass[addonName] and not E.initialized then
+	if not S.allowBypass[addonName] and not E.initialized then
 		return
 	end
 
-	local object = self.addonsToLoad[addonName]
+	local object = S.addonsToLoad[addonName]
 	if object then
 		S:CallLoadedAddon(addonName, object)
 	end
@@ -1820,23 +1819,23 @@ end
 
 function S:RegisterSkin(addonName, func, forceLoad, bypass, position)
 	if bypass then
-		self.allowBypass[addonName] = true
+		S.allowBypass[addonName] = true
 	end
 
 	if forceLoad then
 		xpcall(func, errorhandler)
-		self.addonsToLoad[addonName] = nil
+		S.addonsToLoad[addonName] = nil
 	elseif addonName == 'ElvUI' then
 		if position then
-			tinsert(self.nonAddonsToLoad, position, func)
+			tinsert(S.nonAddonsToLoad, position, func)
 		else
-			tinsert(self.nonAddonsToLoad, func)
+			tinsert(S.nonAddonsToLoad, func)
 		end
 	else
-		local addon = self.addonsToLoad[addonName]
+		local addon = S.addonsToLoad[addonName]
 		if not addon then
-			self.addonsToLoad[addonName] = {}
-			addon = self.addonsToLoad[addonName]
+			S.addonsToLoad[addonName] = {}
+			addon = S.addonsToLoad[addonName]
 		end
 
 		if position then
@@ -1852,19 +1851,25 @@ function S:CallLoadedAddon(addonName, object)
 		xpcall(func, errorhandler)
 	end
 
-	self.addonsToLoad[addonName] = nil
+	S.addonsToLoad[addonName] = nil
+end
+
+function S:UpdateAllWidgets()
+	for _, widget in pairs(_G.UIWidgetTopCenterContainerFrame.widgetFrames) do
+		S:SkinWidgetContainer(widget)
+	end
 end
 
 function S:Initialize()
-	self.Initialized = true
-	self.db = E.private.skins
+	S.Initialized = true
+	S.db = E.private.skins
 
-	for index, func in next, self.nonAddonsToLoad do
+	for index, func in next, S.nonAddonsToLoad do
 		xpcall(func, errorhandler)
-		self.nonAddonsToLoad[index] = nil
+		S.nonAddonsToLoad[index] = nil
 	end
 
-	for addonName, object in pairs(self.addonsToLoad) do
+	for addonName, object in pairs(S.addonsToLoad) do
 		local isLoaded, isFinished = IsAddOnLoaded(addonName)
 		if isLoaded and isFinished then
 			S:CallLoadedAddon(addonName, object)
@@ -1884,21 +1889,16 @@ function S:Initialize()
 			S:Ace3_SkinTooltip(LibStub(n, true))
 		end
 	end
-	if S.EarlyDropdowns then
+
+	if E.private.skins.libDropdown and S.EarlyDropdowns then
 		for _, n in next, S.EarlyDropdowns do
 			S:SkinLibDropDownMenu(n)
 		end
 	end
 
 	if E.Retail then
-		local frame = CreateFrame('Frame')
-		frame:RegisterEvent('PLAYER_ENTERING_WORLD')
-		frame:RegisterEvent('UPDATE_ALL_UI_WIDGETS')
-		frame:SetScript('OnEvent', function()
-			for _, widget in pairs(_G.UIWidgetTopCenterContainerFrame.widgetFrames) do
-				S:SkinWidgetContainer(widget)
-			end
-		end)
+		S:RegisterEvent('PLAYER_ENTERING_WORLD', 'UpdateAllWidgets')
+		S:RegisterEvent('UPDATE_ALL_UI_WIDGETS', 'UpdateAllWidgets')
 	end
 end
 

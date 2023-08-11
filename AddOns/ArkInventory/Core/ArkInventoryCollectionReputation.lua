@@ -648,11 +648,43 @@ local function Scan_Threaded( thread_id )
 					
 				else
 					
-					standingMax = MAX_REPUTATION_REACTION
-					standingText = _G["FACTION_STANDING_LABEL" .. standingID] or ArkInventory.Localise["UNKNOWN"]
+					local isMajorFaction = factionID and C_Reputation and C_Reputation.IsMajorFaction and C_Reputation.IsMajorFaction( factionID )
+					local factionData = factionID and C_GossipInfo and C_GossipInfo.GetFriendshipReputation and C_GossipInfo.GetFriendshipReputation( factionID )
+					if factionData and factionData.friendshipFactionID > 0 then
+						
+						cache[id].friendID = factionData.friendshipFactionID
+						
+						standingText = factionData.reaction
+						
+						if factionData.nextThreshold then
+							barMin = factionData.reactionThreshold
+							barMax = factionData.nextThreshold
+							repValue = factionData.standing
+						else
+							barMin = 0
+							barMax = 1
+							repValue = 1
+							isCapped = 1
+						end
+						
+					elseif isMajorFaction then
+						
+						factionData = C_MajorFactions.GetMajorFactionData( factionID )
+						barMin = 0
+						barMax = factionData.renownLevelThreshold
+						isCapped = C_MajorFactions.HasMaximumRenown( factionID )
+						repValue = isCapped and factionData.renownLevelThreshold or factionData.renownReputationEarned or 0
+						standingText = RENOWN_LEVEL_LABEL .. factionData.renownLevel
+						isCapped = isCapped and 1 or 0
+						
+					else
+						
+						standingMax = MAX_REPUTATION_REACTION
+						standingText = _G["FACTION_STANDING_LABEL" .. standingID] or ArkInventory.Localise["UNKNOWN"]
+						
+					end
 					
 				end
-				
 				
 				if atWarWith then
 					icon = [[Interface\Calendar\UI-Calendar-Event-PVP]]
@@ -727,6 +759,7 @@ local function Scan_Threaded( thread_id )
 					cache[id].icon = icon or ""
 					
 					-- custom itemlink, not blizzard supported
+					--ArkInventory.Output( { id, standingText, barValue, barMax, isCapped, paragonLevel, hasParagonReward } )
 					cache[id].link = string.format( "reputation:%s:%s:%s:%s:%s:%s:%s", id, standingText, barValue, barMax, isCapped, paragonLevel, hasParagonReward )
 					
 					update = true

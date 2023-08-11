@@ -6,16 +6,15 @@ local IsFalling = IsFalling
 local IsFlying = IsFlying
 local IsSwimming = IsSwimming
 local GetUnitSpeed = GetUnitSpeed
+
 local STAT_CATEGORY_ENHANCEMENTS = STAT_CATEGORY_ENHANCEMENTS
 local BASE_MOVEMENT_SPEED = BASE_MOVEMENT_SPEED
 
-local displayString, lastPanel = ''
+local displayString, db = ''
 local beforeFalling, wasFlying
 
 local delayed
-local function DelayUpdate()
-	if not lastPanel then return end
-
+local function DelayUpdate(self)
 	local _, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed('player')
 	local speed
 
@@ -37,10 +36,10 @@ local function DelayUpdate()
 	end
 
 	local percent = speed / BASE_MOVEMENT_SPEED * 100
-	if E.global.datatexts.settings.MovementSpeed.NoLabel then
-		lastPanel.text:SetFormattedText(displayString, percent)
+	if db.NoLabel then
+		self.text:SetFormattedText(displayString, percent)
 	else
-		lastPanel.text:SetFormattedText(displayString, E.global.datatexts.settings.MovementSpeed.Label ~= '' and E.global.datatexts.settings.MovementSpeed.Label or L["Mov. Speed"], percent)
+		self.text:SetFormattedText(displayString, db.Label ~= '' and db.Label or L["Mov. Speed"], percent)
 	end
 
 	delayed = nil
@@ -48,17 +47,16 @@ end
 
 local function OnEvent(self)
 	if not delayed then
-		delayed = E:Delay(0.05, DelayUpdate)
+		delayed = E:Delay(0.05, DelayUpdate, self)
+	end
+end
+
+local function ApplySettings(self, hex)
+	if not db then
+		db = E.global.datatexts.settings[self.name]
 	end
 
-	lastPanel = self
+	displayString = strjoin('', db.NoLabel and '' or '%s: ', hex, '%.'..db.decimalLength..'f%%|r')
 end
 
-local function ValueColorUpdate(hex)
-	displayString = strjoin('', E.global.datatexts.settings.MovementSpeed.NoLabel and '' or '%s: ', hex, '%.'..E.global.datatexts.settings.MovementSpeed.decimalLength..'f%%|r')
-
-	if lastPanel then OnEvent(lastPanel) end
-end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
-
-DT:RegisterDatatext('MovementSpeed', STAT_CATEGORY_ENHANCEMENTS, { 'UNIT_STATS', 'UNIT_AURA', 'UNIT_SPELL_HASTE' }, OnEvent, nil, nil, nil, nil, _G.STAT_MOVEMENT_SPEED, nil, ValueColorUpdate)
+DT:RegisterDatatext('MovementSpeed', STAT_CATEGORY_ENHANCEMENTS, { 'UNIT_STATS', 'UNIT_AURA', 'UNIT_SPELL_HASTE' }, OnEvent, nil, nil, nil, nil, _G.STAT_MOVEMENT_SPEED, nil, ApplySettings)

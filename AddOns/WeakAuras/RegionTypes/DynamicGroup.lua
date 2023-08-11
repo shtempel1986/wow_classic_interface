@@ -114,6 +114,8 @@ local function create(parent)
   region.sortedChildren = {}
   region.controlledChildren = {}
   region.updatedChildren = {}
+  region.sortStates = {}
+  region.growStates = {}
   local background = CreateFrame("Frame", nil, region, "BackdropTemplate")
   region.background = background
   region.selfPoint = "TOPLEFT"
@@ -274,7 +276,7 @@ local sorters = {
     return WeakAuras.ComposeSorts(
       WeakAuras.SortAscending({"dataIndex"}),
       WeakAuras.SortAscending({"region", "state", "index"})
-    )
+    ), { index = true }
   end,
   hybrid = function(data)
     local sortHybridTable = data.sortHybridTable or {}
@@ -305,23 +307,31 @@ local sorters = {
       sortHybridStatus,
       sortExpirationTime,
       WeakAuras.SortAscending({"dataIndex"})
-    )
+    ), {expirationTime = true}
   end,
   ascending = function(data)
     return WeakAuras.ComposeSorts(
       WeakAuras.SortAscending({"region", "state", "expirationTime"}),
       WeakAuras.SortAscending({"dataIndex"})
-    )
+    ), {expirationTime = true}
   end,
   descending = function(data)
     return WeakAuras.ComposeSorts(
       WeakAuras.SortDescending({"region", "state", "expirationTime"}),
       WeakAuras.SortAscending({"dataIndex"})
-    )
+    ), {expirationTime = true}
   end,
   custom = function(data)
     local sortStr = data.customSort or ""
     local sortFunc = WeakAuras.LoadFunction("return " .. sortStr) or noop
+    local sortOn = nil
+    local events = WeakAuras.split(data.sortOn or "")
+    if #events > 0 then
+      sortOn = {}
+      for _, event in ipairs(events) do
+        sortOn[event] = true
+      end
+    end
     return function(a, b)
       Private.ActivateAuraEnvironment(data.id)
       local ok, result = xpcall(sortFunc, Private.GetErrorHandlerId(data.id, L["Custom Sort"]), a, b)
@@ -329,7 +339,7 @@ local sorters = {
       if ok then
         return result
       end
-    end
+    end, sortOn
   end
 }
 WeakAuras.SortFunctions = sorters
@@ -382,7 +392,7 @@ local anchorers = {
           tinsert(frames[Private.personalRessourceDisplayFrame], regionData)
         end
       end
-    end
+    end, {unit = true }
   end,
   ["UNITFRAME"] = function(data)
     return function(frames, activeRegions)
@@ -396,16 +406,26 @@ local anchorers = {
           end
         end
       end
-    end
+    end, {unit = true }
   end,
   ["CUSTOM"] = function(data)
     local anchorStr = data.customAnchorPerUnit or ""
     local anchorFunc = WeakAuras.LoadFunction("return " .. anchorStr) or noop
+
+    local anchorOn = nil
+    local events = WeakAuras.split(data.anchorOn or "")
+    if #events > 0 then
+      anchorOn = {}
+      for _, event in ipairs(events) do
+        anchorOn[event] = true
+      end
+    end
+
     return function(frames, activeRegions)
       Private.ActivateAuraEnvironment(data.id)
       xpcall(anchorFunc, Private.GetErrorHandlerUid(data.uid, L["Custom Anchor"]), frames, activeRegions)
       Private.ActivateAuraEnvironment()
-    end
+    end, anchorOn
   end
 }
 
@@ -495,7 +515,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local startX, startY = 0, 0
     local coeff = staggerCoefficient(data.align, data.stagger)
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -515,7 +538,7 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   RIGHT = function(data)
     local stagger = data.stagger or 0
@@ -523,7 +546,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local startX, startY = 0, 0
     local coeff = 1 - staggerCoefficient(data.align, stagger)
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -543,7 +569,7 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   UP = function(data)
     local stagger = data.stagger or 0
@@ -551,7 +577,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local startX, startY = 0, 0
     local coeff = 1 - staggerCoefficient(data.align, stagger)
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -571,7 +600,7 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   DOWN = function(data)
     local stagger = data.stagger or 0
@@ -579,7 +608,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local startX, startY = 0, 0
     local coeff = staggerCoefficient(data.align, stagger)
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -599,14 +631,17 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   HORIZONTAL = function(data)
     local stagger = data.stagger or 0
     local space = data.space or 0
     local limit = data.useLimit and data.limit or math.huge
     local midX, midY = 0, 0
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     local FirstIndex = centeredIndexerStart[data.centerType]
     local NextIndex = centeredIndexerNext[data.centerType]
     return function(newPositions, activeRegions)
@@ -637,14 +672,17 @@ local growers = {
           i = NextIndex(i, numVisible)
         end
       end
-    end
+    end, anchorOn
   end,
   VERTICAL = function(data)
     local stagger = -(data.stagger or 0)
     local space = data.space or 0
     local limit = data.useLimit and data.limit or math.huge
     local midX, midY = 0, 0
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     local FirstIndex = centeredIndexerStart[data.centerType]
     local NextIndex = centeredIndexerNext[data.centerType]
     return function(newPositions, activeRegions)
@@ -673,7 +711,7 @@ local growers = {
           i = NextIndex(i, numVisible)
         end
       end
-    end
+    end, anchorOn
   end,
   CIRCLE = function(data)
     local oX, oY = 0, 0
@@ -683,7 +721,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local sAngle = (data.rotation or 0) * math.pi / 180
     local arc = (data.fullCircle and 360 or data.arcLength or 0) * math.pi / 180
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -721,7 +762,7 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   COUNTERCIRCLE = function(data)
     local oX, oY = 0, 0
@@ -731,7 +772,10 @@ local growers = {
     local limit = data.useLimit and data.limit or math.huge
     local sAngle = (data.rotation or 0) * math.pi / 180
     local arc = (data.fullCircle and 360 or data.arcLength or 0) * math.pi / 180
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -769,7 +813,7 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   GRID = function(data)
     local gridType = data.gridType
@@ -818,7 +862,10 @@ local growers = {
     if not rowFirst then
       primary, secondary = secondary, primary
     end
-    local anchorPerUnitFunc = data.useAnchorPerUnit and createAnchorPerUnitFunc(data)
+    local anchorPerUnitFunc, anchorOn
+    if data.useAnchorPerUnit then
+      anchorPerUnitFunc, anchorOn = createAnchorPerUnitFunc(data)
+    end
     return function(newPositions, activeRegions)
       local frames = {}
       if anchorPerUnitFunc then
@@ -908,11 +955,19 @@ local growers = {
           end
         end
       end
-    end
+    end, anchorOn
   end,
   CUSTOM = function(data)
     local growStr = data.customGrow or ""
     local growFunc = WeakAuras.LoadFunction("return " .. growStr) or noop
+    local growOn = nil
+    local events = WeakAuras.split(data.growOn or "")
+    if #events > 0 then
+      growOn = {}
+      for _, event in ipairs(events) do
+        growOn[event] = true
+      end
+    end
     return function(newPositions, activeRegions)
       Private.ActivateAuraEnvironment(data.id)
       local ok = xpcall(growFunc, Private.GetErrorHandlerId(data.id, L["Custom Grow"]), newPositions, activeRegions)
@@ -920,7 +975,7 @@ local growers = {
       if not ok then
         wipe(newPositions)
       end
-    end
+    end, growOn
   end
 }
 WeakAuras.GrowFunctions = growers
@@ -937,6 +992,50 @@ local function SafeGetPos(region, func)
   local ok, value1, value2 = xpcall(func, nullErrorHandler, region)
   if ok then
     return value1, value2
+  end
+end
+
+local function isDifferent(regionData, cache, events)
+  local id = regionData.id
+  local cloneId = regionData.cloneId or ""
+  local state = regionData.region.state
+  if not events then
+    return false
+  elseif events.changed then
+    return true -- escape hatch, not super recommended
+  else
+    local isDifferent = false
+    if not cache[id] then
+      isDifferent = true
+      local cachedState = {}
+      cache[id] = {[cloneId] = cachedState}
+      for event in pairs(events) do
+        cachedState[event] = state[event]
+      end
+    elseif not cache[id][cloneId] then
+      isDifferent = true
+      local cachedState = {}
+      cache[id][cloneId] = cachedState
+      for event in pairs(events) do
+        cachedState[event] = state[event]
+      end
+    else
+      local cachedState = cache[id][cloneId]
+      for event in pairs(events) do
+        if regionData.region.state[event] ~= cachedState[event] then
+          cachedState[event] = state[event]
+          isDifferent = true
+        end
+      end
+    end
+    return isDifferent
+  end
+end
+
+local function clearCache(cache, id, cloneId)
+  cloneId = cloneId or ""
+  if cache[id] then
+    cache[id][cloneId] = nil
   end
 end
 
@@ -1067,6 +1166,8 @@ local function modify(parent, region, data)
       Private.StartProfileAura(data.id)
       self.needToReload = false
       self.sortedChildren = {}
+      self.sortStates = {}
+      self.growStates = {}
       self.controlledChildren = {}
       self.updatedChildren = {}
       self.controlPoints:ReleaseAll()
@@ -1130,9 +1231,14 @@ local function modify(parent, region, data)
     -- if it has been, then don't insert it again
     if not regionData.active and self.updatedChildren[regionData] == nil then
       tinsert(self.sortedChildren, regionData)
+      self.updatedChildren[regionData] = true
+      self:SortUpdatedChildren()
+    elseif isDifferent(regionData, self.sortStates, self.sortOn) then
+      self.updatedChildren[regionData] = true
+      self:SortUpdatedChildren()
+    elseif isDifferent(regionData, self.growStates, self.growOn) then
+      self:PositionChildren()
     end
-    self.updatedChildren[regionData] = true
-    self:SortUpdatedChildren()
   end
 
   function region:RemoveChild(childID, cloneID)
@@ -1142,6 +1248,8 @@ local function modify(parent, region, data)
     if not regionData then return end
     releaseRegionData(regionData)
     self.updatedChildren[regionData] = false
+    clearCache(self.sortStates, childID, cloneID)
+    clearCache(self.growStates, childID, cloneID)
     self:SortUpdatedChildren()
   end
 
@@ -1152,10 +1260,12 @@ local function modify(parent, region, data)
     if regionData and not regionData.region.toShow then
       self.updatedChildren[regionData] = false
     end
+    clearCache(self.sortStates, childID, cloneID)
+    clearCache(self.growStates, childID, cloneID)
     self:SortUpdatedChildren()
   end
 
-  region.sortFunc = createSortFunc(data)
+  region.sortFunc, region.sortOn = createSortFunc(data)
 
   function region:SortUpdatedChildren()
     -- iterates through cache to insert all updated children in the right spot
@@ -1200,7 +1310,7 @@ local function modify(parent, region, data)
     end
   end
 
-  region.growFunc = createGrowFunc(data)
+  region.growFunc, region.growOn = createGrowFunc(data)
   region.anchorPerUnit = data.useAnchorPerUnit and data.anchorPerUnit
 
   local animate = data.animate
@@ -1235,12 +1345,21 @@ local function modify(parent, region, data)
 
       local controlPoint = regionData.controlPoint
       controlPoint:ClearAnchorPoint()
-      controlPoint:SetAnchorPoint(
-        data.selfPoint,
-        frame == "" and self.relativeTo or frame,
-        data.anchorPoint,
-        x + data.xOffset, y + data.yOffset
-      )
+      if frame == "" then
+        controlPoint:SetAnchorPoint(
+          data.selfPoint,
+          self,
+          data.selfPoint,
+          x, y
+        )
+      else
+        controlPoint:SetAnchorPoint(
+          data.selfPoint,
+          frame,
+          data.anchorPoint,
+          x + data.xOffset, y + data.yOffset
+        )
+      end
       controlPoint:SetShown(show and frame ~= WeakAuras.HiddenFrames)
       controlPoint:SetWidth(regionData.dimensions.width)
       controlPoint:SetHeight(regionData.dimensions.height)

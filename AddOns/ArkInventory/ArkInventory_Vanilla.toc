@@ -3,7 +3,7 @@
 ## Title: ArkInventory [Classic]
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31012
+## Version: 31016
 ## X-ReleaseType: 
 ## SavedVariables: ARKINVDB
 
@@ -58,6 +58,7 @@ Core\ArkInventoryTransfer.lua
 Core\ArkInventoryMenu.lua
 Core\ArkInventoryRules.lua
 Core\ArkInventorySearch.lua
+Core\ArkInventoryDebug.lua
 Core\ArkInventoryUpgrades.lua
 
 Core\ArkInventoryCollectionPet.lua

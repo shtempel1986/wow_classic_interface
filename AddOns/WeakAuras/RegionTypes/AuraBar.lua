@@ -297,10 +297,22 @@ local barPrototype = {
     -- Create statusbar illusion
     if (self.horizontal) then
       local xProgress = self:GetRealSize() * progress;
-      self.fgMask:SetWidth(xProgress > 0.0001 and (xProgress + 0.1) or 0.0001);
+      local show = xProgress > 0.0001
+      self.fgMask:SetWidth(show and (xProgress + 0.1) or 0.1);
+      if show then
+        self.fg:Show()
+      else
+        self.fg:Hide()
+      end
     else
       local yProgress = select(2, self:GetRealSize()) * progress;
-      self.fgMask:SetHeight(yProgress > 0.0001 and (yProgress + 0.1) or 0.0001);
+      local show = yProgress > 0.0001
+      self.fgMask:SetHeight(show and (yProgress + 0.1) or 0.1);
+      if show then
+        self.fg:Show()
+      else
+        self.fg:Hide()
+      end
     end
 
     local sparkHidden = self.spark.sparkHidden;
@@ -554,11 +566,11 @@ local barPrototype = {
   end,
 
   ["SetForegroundGradient"] = function(self, orientation, r1, g1, b1, a1, r2, g2, b2, a2)
-    if WeakAuras.IsRetail() then
+    if self.fg.SetGradientAlpha then
+      self.fg:SetGradientAlpha(orientation, r1, g1, b1, a1, r2, g2, b2, a2)
+    else
       self.fg:SetGradient(orientation, CreateColor(r1, g1, b1, a1),
                                        CreateColor(r2, g2, b2, a2))
-    else
-      self.fg:SetGradientAlpha(orientation, r1, g1, b1, a1, r2, g2, b2, a2)
     end
   end,
 
@@ -1061,7 +1073,7 @@ local function create(parent)
   end
 
   local bar = CreateFrame("Frame", nil, region);
-  Mixin(bar, SmoothStatusBarMixin);
+  Mixin(bar, Private.SmoothStatusBarMixin);
 
   -- Now create a bunch of textures
   local bg = region:CreateTexture(nil, "ARTWORK");
@@ -1296,6 +1308,7 @@ local function modify(parent, region, data)
     return region.currentMin or 0, region.currentMax or 0
   end
 
+  region.TimerTick = nil
   function region:Update()
     local state = region.state
     region:UpdateMinMax()
@@ -1307,7 +1320,7 @@ local function modify(parent, region, data)
         end
         if region.TimerTick then
           region.TimerTick = nil
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:RemoveSubscriber("TimerTick", self)
         end
         expirationTime = GetTime() + (state.remaining or 0)
       else
@@ -1316,7 +1329,7 @@ local function modify(parent, region, data)
         end
         if not region.TimerTick then
           region.TimerTick = TimerTick
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:AddSubscriber("TimerTick", self, true)
         end
         expirationTime = state.expirationTime and state.expirationTime > 0 and state.expirationTime or math.huge;
       end
@@ -1333,7 +1346,7 @@ local function modify(parent, region, data)
       region:SetValue(value - region.currentMin, region.currentMax - region.currentMin);
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     else
       if region.paused then
@@ -1342,7 +1355,7 @@ local function modify(parent, region, data)
       region:SetTime(0, math.huge)
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     end
 

@@ -5,18 +5,18 @@ local _G = _G
 local ipairs, tinsert, tremove = ipairs, tinsert, tremove
 local format, next, strjoin = format, next, strjoin
 
+local EasyMenu = EasyMenu
 local GetLootSpecialization = GetLootSpecialization
 local GetNumSpecializations = GetNumSpecializations
 local GetPvpTalentInfoByID = GetPvpTalentInfoByID
 local GetSpecialization = GetSpecialization
 local GetSpecializationInfo = GetSpecializationInfo
-local HideUIPanel = HideUIPanel
 local IsControlKeyDown = IsControlKeyDown
 local IsShiftKeyDown = IsShiftKeyDown
 local LoadAddOn = LoadAddOn
 local SetLootSpecialization = SetLootSpecialization
 local SetSpecialization = SetSpecialization
-local ShowUIPanel = ShowUIPanel
+local ToggleTalentFrame = ToggleTalentFrame
 
 local C_SpecializationInfo_GetAllSelectedPvpTalentIDs = C_SpecializationInfo.GetAllSelectedPvpTalentIDs
 local C_Traits_GetConfigInfo = C_Traits.GetConfigInfo
@@ -35,7 +35,7 @@ local SELECT_LOOT_SPECIALIZATION = SELECT_LOOT_SPECIALIZATION
 local LOOT_SPECIALIZATION_DEFAULT = LOOT_SPECIALIZATION_DEFAULT
 local STARTER_ID = Constants.TraitConsts.STARTER_BUILD_TRAIT_CONFIG_ID
 
-local displayString, lastPanel, active = ''
+local displayString, active = '|cffFFFFFF%s:|r'
 local activeString = strjoin('', '|cff00FF00' , _G.ACTIVE_PETS, '|r')
 local inactiveString = strjoin('', '|cffFF0000', _G.FACTION_INACTIVE, '|r')
 
@@ -87,8 +87,6 @@ local function spec_checked(data) return data and data.arg1 == GetSpecialization
 local function spec_func(_, arg1) SetSpecialization(arg1) end
 
 local function OnEvent(self, event, loadoutID)
-	lastPanel = self
-
 	if #menuList == 2 then
 		for index = 1, GetNumSpecializations() do
 			local id, name, _, icon = GetSpecializationInfo(index)
@@ -233,18 +231,12 @@ local function OnClick(self, button)
 
 	local menu
 	if button == 'LeftButton' then
-		local frame = _G.ClassTalentFrame
-		if not frame then
+		if not _G.ClassTalentFrame then
 			LoadAddOn('Blizzard_ClassTalentUI')
-			frame = _G.ClassTalentFrame
 		end
 
 		if IsShiftKeyDown() then
-			if frame:IsShown() then
-				HideUIPanel(frame)
-			else
-				ShowUIPanel(frame)
-			end
+			ToggleTalentFrame(_G.TalentMicroButton.suggestedTab)
 		else
 			menu = IsControlKeyDown() and loadoutList or specList
 		end
@@ -259,15 +251,8 @@ local function OnClick(self, button)
 
 	if menu then
 		E:SetEasyMenuAnchor(E.EasyMenu, self)
-		_G.EasyMenu(menu, E.EasyMenu, nil, nil, nil, 'MENU')
+		EasyMenu(menu, E.EasyMenu, nil, nil, nil, 'MENU')
 	end
 end
-
-local function ValueColorUpdate()
-	displayString = strjoin('', '|cffFFFFFF%s:|r ')
-
-	if lastPanel then OnEvent(lastPanel) end
-end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
 
 DT:RegisterDatatext('Talent/Loot Specialization', nil, { 'PLAYER_TALENT_UPDATE', 'ACTIVE_TALENT_GROUP_CHANGED', 'PLAYER_LOOT_SPEC_UPDATED', 'TRAIT_CONFIG_DELETED', 'TRAIT_CONFIG_UPDATED' }, OnEvent, nil, OnClick, OnEnter, nil, L["Talent/Loot Specialization"])

@@ -105,10 +105,10 @@ function Details:OpenForge()
         f:SetScript("OnHide", function()
             for _, module in ipairs(all_modules) do
                 if (module.data) then
-                    wipe (module.data)
+                    Details:Destroy(module.data)
                 end
             end
-            wipe (spell_already_added)
+            Details:Destroy(spell_already_added)
         end)
         
         f.bg1 = f:CreateTexture(nil, "background")
@@ -428,6 +428,8 @@ function Details:OpenForge()
                     entry:SetPoint("left", label, "right", 2, 0)
                     entry:SetTemplate(Details.gump:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
                 end
+
+                Details.latest_spell_pool_access = time()
                 return DetailsForgeAllSpellsFilterPanel
             end,
             search = function()
@@ -436,8 +438,8 @@ function Details:OpenForge()
                 local filter_name = DetailsForgeAllSpellsNameFilter:GetText()
                 local lower_FilterCaster = lower (filter_caster)
                 local lower_FilterSpellName = lower (filter_name)
-                wipe (spell_already_added)
-                
+                Details:Destroy(spell_already_added)
+
                 local SpellPoll = Details.spell_pool
                 for spellID, className in pairs(SpellPoll) do
                     
@@ -516,8 +518,7 @@ function Details:OpenForge()
                         {texture = spellIcon, texcoord = {.1, .9, .1, .9}},
                         {text = spellName or "", id = data[1] or 1},
                         data[1] or "",
-                        Details:GetSpellSchoolFormatedName (Details.spell_school_cache [spellName]) or "",
-                        "|c" .. classColor .. data[2] .. "|r",
+                        Details:GetSpellSchoolFormatedName (Details.spell_school_cache [spellName]) or "", "|c" .. classColor .. data[2] .. "|r",
                         events,
                         Details.spellid_ignored[data[1]]
                     }
@@ -566,6 +567,8 @@ function Details:OpenForge()
                     entry:SetPoint("left", label, "right", 2, 0)
                     entry:SetTemplate(Details.gump:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
                 end
+
+                Details.latest_encounter_spell_pool_access = time()
                 return DetailsForgeEncounterBossSpellsFilterPanel
             end,
             search = function()
@@ -579,7 +582,7 @@ function Details:OpenForge()
                 local lower_FilterSpellName = lower (filter_name)
                 local lower_FilterEncounterName = lower (filter_encounter)
                 
-                wipe (spell_already_added)
+                Details:Destroy(spell_already_added)
                 
                 local SpellPoll = Details.encounter_spell_pool
                 for spellID, spellTable in pairs(SpellPoll) do
@@ -712,6 +715,8 @@ function Details:OpenForge()
                     searchEntry:SetTemplate(Details.gump:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
 
                 end
+
+                Details.latest_npcid_pool_access = time()
                 return DetailsForgeEncounterNpcIDsFilterPanel
             end,
 
@@ -813,6 +818,8 @@ function Details:OpenForge()
                     entry:SetPoint("left", label, "right", 2, 0)
                     entry:SetTemplate(Details.gump:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
                 end
+
+                Details.boss_mods_timers.latest_boss_mods_access = time()
                 return DetailsForgeDBMBarsFilterPanel
             end,
             search = function()
@@ -945,6 +952,8 @@ function Details:OpenForge()
                     entry:SetTemplate(Details.gump:GetTemplate("button", "OPTIONS_BUTTON_TEMPLATE"))
                     --
                 end
+
+                Details.boss_mods_timers.latest_boss_mods_access = time()
                 return DetailsForgeBigWigsBarsFilterPanel
             end,
             search = function()

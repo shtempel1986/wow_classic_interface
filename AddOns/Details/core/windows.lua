@@ -1,5 +1,5 @@
 
-	local Details =	_G._detalhes
+	local Details =	_G.Details
 	local Loc = _G.LibStub("AceLocale-3.0"):GetLocale("Details")
 	local libwindow = LibStub("LibWindow-1.1")
 	local _
@@ -599,7 +599,7 @@
 		return self:RestoreMainWindowPosition()
 	end
 
-	function Details:ResetaGump (instancia, tipo, segmento)
+	function Details:ResetaGump (instancia, tipo, segmento) --replaced by instance:ResetWindow(resetType, segmentId)
 		if (not instancia or type(instancia) == "boolean") then
 			segmento = tipo
 			tipo = instancia
@@ -1342,7 +1342,7 @@
 
 						--2 = reset data
 						elseif (Details.minimap.onclick_what_todo == 2) then
-							Details.tabela_historico:resetar()
+							Details.tabela_historico:ResetAllCombatData()
 
 						--3 = show hide windows
 						elseif (Details.minimap.onclick_what_todo == 3) then
@@ -1366,15 +1366,8 @@
 						GameCooltip:SetOption("HeighMod", 5)
 						GameCooltip:SetOption("TextSize", 10)
 
-						--344 427 200 268 0.0009765625
-						--0.672851, 0.833007, 0.391601, 0.522460
-
-						--GameCooltip:SetBannerImage (1, [[Interface\AddOns\Details\images\icons]], 83*.5, 68*.5, {"bottomleft", "topleft", 1, -4}, {0.672851, 0.833007, 0.391601, 0.522460}, nil)
-						--GameCooltip:SetBannerImage (2, "Interface\\PetBattles\\Weather-Windy", 512*.35, 128*.3, {"bottomleft", "topleft", -25, -4}, {0, 1, 1, 0})
-						--GameCooltip:SetBannerText (1, "Mini Map Menu", {"left", "right", 2, -5}, "white", 10)
-
 						--reset
-						GameCooltip:AddMenu (1, Details.tabela_historico.resetar, true, nil, nil, Loc ["STRING_ERASE_DATA"], nil, true)
+						GameCooltip:AddMenu (1, Details.tabela_historico.ResetAllCombatData, true, nil, nil, Loc ["STRING_ERASE_DATA"], nil, true)
 						GameCooltip:AddIcon ([[Interface\COMMON\VOICECHAT-MUTED]], 1, 1, 14, 14)
 
 						GameCooltip:AddLine("$div")
@@ -1463,12 +1456,12 @@
 				end
 
 			elseif (Details.hotcorner_topleft.onclick_what_todo == 2) then
-				Details.tabela_historico:resetar()
+				Details.tabela_historico:ResetAllCombatData()
 			end
 		end
 
 		local quickclick_func1 = function(frame, button)
-			Details.tabela_historico:resetar()
+			Details.tabela_historico:ResetAllCombatData()
 		end
 
 		local quickclick_func2 = function(frame, button)

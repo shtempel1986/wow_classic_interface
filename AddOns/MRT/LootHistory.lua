@@ -30,11 +30,21 @@ function module.main:ADDON_LOADED()
 end
 
 function module:Enable()
-  	module:RegisterEvents('ENCOUNTER_LOOT_RECEIVED','BOSS_KILL')
+  	module:RegisterEvents('ENCOUNTER_LOOT_RECEIVED','BOSS_KILL',"ENCOUNTER_END")
+	if ExRT.clientVersion > 100007 then
+		module:RegisterEvents('LOOT_HISTORY_UPDATE_ENCOUNTER')
+	else
+		module:RegisterEvents("LOOT_HISTORY_AUTO_SHOW","LOOT_HISTORY_FULL_UPDATE","LOOT_HISTORY_ROLL_COMPLETE")
+	end
 end
 
 function module:Disable()
-  	module:UnregisterEvents('ENCOUNTER_LOOT_RECEIVED','BOSS_KILL')
+  	module:UnregisterEvents('ENCOUNTER_LOOT_RECEIVED','BOSS_KILL',"ENCOUNTER_END")
+	if ExRT.clientVersion > 100007 then
+		module:UnregisterEvents('LOOT_HISTORY_UPDATE_ENCOUNTER')
+	else
+		module:UnregisterEvents("LOOT_HISTORY_AUTO_SHOW","LOOT_HISTORY_FULL_UPDATE","LOOT_HISTORY_ROLL_COMPLETE")
+	end
 end
 
 function module.main:BOSS_KILL(encounterID, name)
@@ -71,6 +81,118 @@ function module.main:ENCOUNTER_LOOT_RECEIVED(encounterID, itemID, itemLink, quan
 	local record = currTime.."#"..(encounterID or 0).."#"..(instanceID or 0).."#"..(difficulty or 0).."#"..playerName.."#"..classID.."#"..quantity.."#"..itemLinkShort
 
 	VMRT.LootHistory.list[#VMRT.LootHistory.list+1] = record
+end
+
+local rollIDtoRecord = {}
+function module.main:LOOT_HISTORY_FULL_UPDATE()
+	local instanceName,instance_type,difficulty,_,_,_,_,instanceID = GetInstanceInfo()
+
+	if not difficulty or not module.db.allowedDiff[difficulty] then
+		--return
+	end
+	if instance_type ~= "raid" then
+		return
+	end
+
+	local numItems = C_LootHistory.GetNumItems()
+	for i=1, numItems do
+		local rollID, itemLink, numPlayers, isDone, winnerIdx, isMasterLoot = C_LootHistory.GetItem(i)
+		if rollID and itemLink then
+			local currTime, encounterID, playerName, classID, quantity, itemLinkShort, rollType, _
+			local recordID
+			if rollIDtoRecord[rollID] then
+				recordID = rollIDtoRecord[rollID]
+				currTime, encounterID, _, _, playerName, classID, quantity, itemLinkShort = strsplit("#",VMRT.LootHistory.list[recordID])
+				if itemLinkShort ~= itemLink:match("(item:.-)|h") then
+					currTime, encounterID, playerName, classID, quantity, itemLinkShort = nil
+					recordID = nil
+				end
+			end
+			if isDone and winnerIdx then
+				local name, class, ProllType, roll, isWinner = C_LootHistory.GetPlayerInfo(i, winnerIdx)
+				if name then
+					playerName = name
+					classID = ExRT.GDB.ClassID[class or ""] or 0
+					rollType = ProllType
+				end
+			end
+			if not currTime then
+				currTime = time()
+			
+				itemLinkShort = itemLink:match("(item:.-)|h")
+			
+				local _, _, itemRarity = GetItemInfo(itemLink)
+				if itemRarity and itemRarity < 4 then
+					currTime = nil
+				end
+				encounterID = module.db.prevEncounterID
+			end
+			if currTime then
+				local record = currTime.."#"..(encounterID or 0).."#"..(instanceID or 0).."#"..(difficulty or 0).."#"..(playerName or "").."#"..(classID or "0").."#"..(quantity or "1").."#"..itemLinkShort..(rollType and "#"..rollType or "")
+
+				VMRT.LootHistory.instanceNames[instanceID or 0] = instanceName
+
+				recordID = recordID or #VMRT.LootHistory.list+1
+				VMRT.LootHistory.list[recordID] = record
+				rollIDtoRecord[rollID] = recordID
+			end
+		end
+	end
+end
+module.main.LOOT_HISTORY_AUTO_SHOW = module.main.LOOT_HISTORY_FULL_UPDATE
+module.main.LOOT_HISTORY_ROLL_COMPLETE = module.main.LOOT_HISTORY_FULL_UPDATE
+
+function module.main:LOOT_HISTORY_UPDATE_ENCOUNTER(encounterID)
+	local drops = C_LootHistory.GetSortedDropsForEncounter(encounterID)
+	if not drops then return end
+	for _, dropInfo in ipairs(drops) do
+		local lootListID = dropInfo.lootListID
+
+		local dropInfo = C_LootHistory.GetSortedInfoForDrop(encounterID, lootListID)
+
+		local itemLink = dropInfo and dropInfo.itemHyperlink
+		if itemLink then
+			local rollID = (encounterID or "").."-"..(lootListID or "0")
+
+			local currTime, playerName, classID, quantity, itemLinkShort, rollType, _
+			local recordID
+			if rollIDtoRecord[rollID] then
+				recordID = rollIDtoRecord[rollID]
+				currTime, _, _, _, playerName, classID, quantity, itemLinkShort, rollType = strsplit("#",VMRT.LootHistory.list[recordID])
+				if itemLinkShort ~= itemLink:match("(item:.-)|h") then
+					currTime, playerName, classID, quantity, itemLinkShort = nil
+					recordID = nil
+				end
+			end
+			if dropInfo.winner then
+				playerName = dropInfo.winner.playerName
+				classID = ExRT.GDB.ClassID[dropInfo.winner.playerClass or ""] or 0
+			end
+			if not currTime then
+				currTime = time()
+			
+				itemLinkShort = itemLink:match("(item:.-)|h")
+			
+				local _, _, itemRarity = GetItemInfo(itemLink)
+				if itemRarity and itemRarity < 4 then
+					currTime = nil
+				end
+			end
+			if currTime then
+				local record = currTime.."#"..(encounterID or 0).."#"..(instanceID or 0).."#"..(difficulty or 0).."#"..(playerName or "").."#"..(classID or "0").."#"..(quantity or "1").."#"..itemLinkShort..(rollType and "#"..rollType or "")
+
+				VMRT.LootHistory.instanceNames[instanceID or 0] = instanceName
+
+				recordID = recordID or #VMRT.LootHistory.list+1
+				VMRT.LootHistory.list[recordID] = record
+				rollIDtoRecord[rollID] = recordID
+			end
+		end
+	end
+end
+
+function module.main:ENCOUNTER_END(encounterID)
+	module.db.prevEncounterID = encounterID
 end
 
 function module.options:Load()
@@ -196,13 +318,19 @@ function module.options:Load()
 	end
 
 
+	local RollTypeToText = {
+		["0"] = "|r [pass]",
+		["1"] = "|r [need]",
+		["2"] = "|r [greed]",
+		["3"] = "|r [disenchant]",
+	}
 	function self:UpdatePage()
 		local result = {}
 
 		for i=#VMRT.LootHistory.list,1,-1 do
-			local timeRec,encounterID,instanceID,difficulty,playerName,classID,quantity,itemLink = strsplit("#",VMRT.LootHistory.list[i])
+			local timeRec,encounterID,instanceID,difficulty,playerName,classID,quantity,itemLink,rollType = strsplit("#",VMRT.LootHistory.list[i])
 
-			local instanceName = VMRT.LootHistory.instanceNames[tonumber(instanceID)]
+			local instanceName = VMRT.LootHistory.instanceNames[tonumber(instanceID)] or ""
 
 			local dateRec = date("%d.%m.%Y %H:%M:%S",tonumber(timeRec))
 
@@ -213,7 +341,7 @@ function module.options:Load()
 			end
 
 			local class = ExRT.GDB.ClassList[tonumber(classID)]
-			local playerNameStyle = (class and "|c"..ExRT.F.classColor(class) or "")..playerName
+			local playerNameStyle = (class and "|c"..ExRT.F.classColor(class) or "")..playerName..(rollType and RollTypeToText[rollType] or "")
 
 			quantity = tonumber(quantity)
 			difficulty = tonumber(difficulty)
@@ -238,6 +366,8 @@ function module.options:Load()
 					elseif diffName and diffName:lower():find(searchText) then
 						toAddNow = true
 					elseif tonumber(searchText) and searchText == itemLink:match("item:(%d+)") then
+						toAddNow = true
+					elseif (searchText == "pass" and rollType == "0") or (searchText == "need" and rollType == "1") or (searchText == "greed" and rollType == "2") then
 						toAddNow = true
 					else
 						local itemName = GetItemInfo(itemLink) 

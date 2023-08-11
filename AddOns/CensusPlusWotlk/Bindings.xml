@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="CENSUSPLUSWOTLK_MANUALWHO" header="CENSUSPLUSWOTLK" category="ADDONS">
+		ManualWho();
+	</Binding>
+</Bindings>

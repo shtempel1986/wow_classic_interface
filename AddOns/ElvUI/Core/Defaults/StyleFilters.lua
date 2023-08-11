@@ -44,7 +44,7 @@ G.nameplates.filters = {
 }
 
 if E.Retail then
-	G.nameplates.filters.ElvUI_Explosives = {
+	G.nameplates.filters.ElvUI_Incorporeal = {
 		triggers = {
 			priority = 2,
 			nameplateType = {
@@ -52,15 +52,14 @@ if E.Retail then
 				enemyNPC = true
 			},
 			names = {
-				['120651'] = true
+				['204560'] = true -- Incorporeal Being
 			}
 		},
 		actions = {
-			usePortrait = true,
 			scale = 1.15,
 			color = {
 				health = true,
-				healthColor = {r = 0, g = 255, b = 255}
+				healthColor = { r = 0, g = 1, b = 1 }
 			}
 		}
 	}
@@ -78,6 +77,11 @@ E.StyleFilterDefaults = {
 		names = {},
 		items = {},
 		slots = {},
+		known = {
+			notKnown = false,
+			playerSpell = false,
+			spells = {} -- new talents
+		},
 		class = {}, -- this can stay empty we only will accept values that exist
 		casting = {
 			isCasting = false,
@@ -121,25 +125,6 @@ E.StyleFilterDefaults = {
 			square = false,
 			cross = false,
 			skull = false
-		},
-		talent = {
-			type = 'normal',
-			enabled = false,
-			requireAll = false,
-			tier1enabled = false,
-			tier1 = {missing = false, column = 0},
-			tier2enabled = false,
-			tier2 = {missing = false, column = 0},
-			tier3enabled = false,
-			tier3 = {missing = false, column = 0},
-			tier4enabled = false,
-			tier4 = {missing = false, column = 0},
-			tier5enabled = false,
-			tier5 = {missing = false, column = 0},
-			tier6enabled = false,
-			tier6 = {missing = false, column = 0},
-			tier7enabled = false,
-			tier7 = {missing = false, column = 0}
 		},
 		threat = {
 			enable = false,
@@ -262,6 +247,8 @@ E.StyleFilterDefaults = {
 			maxTimeLeft = 0,
 			hasStealable = false,
 			hasNoStealable = false,
+			onMe = false,
+			onPet = false,
 			fromMe = false,
 			fromPet = false,
 			names = {}
@@ -273,6 +260,8 @@ E.StyleFilterDefaults = {
 			maxTimeLeft = 0,
 			hasDispellable = false,
 			hasNoDispellable = false,
+			onMe = false,
+			onPet = false,
 			fromMe = false,
 			fromPet = false,
 			names = {}
@@ -343,11 +332,11 @@ E.StyleFilterDefaults = {
 			power = false,
 			border = false,
 			healthClass = false,
-			healthColor = {r = 1, g = 1, b = 1, a = 1},
+			healthColor = { r = 1, g = 1, b = 1, a = 1 },
 			powerClass = false,
-			powerColor = {r = 1, g = 1, b = 1, a = 1},
+			powerColor = { r = 1, g = 1, b = 1, a = 1 },
 			borderClass = false,
-			borderColor = {r = 1, g = 1, b = 1, a = 1}
+			borderColor = { r = 1, g = 1, b = 1, a = 1 }
 		},
 		texture = {
 			enable = false,
@@ -365,6 +354,16 @@ E.StyleFilterDefaults = {
 			title = '',
 			health = '',
 			power = ''
+		},
+		glow = {
+			enable = false,
+			useColor = true, -- not a real option
+			frameLevel = 5, -- not a real option
+			color = { 0.09, 0.52, 0.82, 0.9 }, -- lib uses old index table
+			style = 'Pixel Glow',
+			speed = 0.3,
+			lines = 8,
+			size = 1
 		},
 		hide = false,
 		usePortrait = false,

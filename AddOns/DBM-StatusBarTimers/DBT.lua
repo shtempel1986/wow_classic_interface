@@ -120,6 +120,7 @@ DBT.DefaultOptions = {
 	IconLocked = true,
 	DynamicColor = true,
 	ClickThrough = false,
+	DisableRightClick = false,
 	KeepBars = true,
 	FadeBars = true,
 	Texture = "Interface\\AddOns\\DBM-StatusBarTimers\\textures\\default.blp",
@@ -186,7 +187,7 @@ do
 			smallBarsAnchor:StopMovingOrSizing()
 			largeBarsAnchor:StopMovingOrSizing()
 			DBT:SavePosition()
-			if btn == "RightButton" then
+			if btn == "RightButton" and not DBT.Options.DisableRightClick then
 				self.obj:Cancel()
 			elseif btn == "LeftButton" and IsShiftKeyDown() then
 				self.obj:Announce()
@@ -194,7 +195,7 @@ do
 		end
 	end
 
-	local function onHide(self)
+	local function onHide()
 		smallBarsAnchor:StopMovingOrSizing()
 		largeBarsAnchor:StopMovingOrSizing()
 	end
@@ -433,7 +434,7 @@ do
 		if not DBT_AllPersistentOptions[name] then
 			DBT_AllPersistentOptions[name] = {}
 		end
-		DBT_AllPersistentOptions[DBM_UsedProfile][id] = DBT_AllPersistentOptions[name][id] or {}
+		DBT_AllPersistentOptions[DBM_UsedProfile][id] = CopyTable(DBT_AllPersistentOptions[name][id]) or {}
 		self:AddDefaultOptions(DBT_AllPersistentOptions[DBM_UsedProfile][id], self.DefaultOptions)
 		self.Options = DBT_AllPersistentOptions[DBM_UsedProfile][id]
 		self:Rearrange()
@@ -575,7 +576,6 @@ end
 function DBT:CancelBar(id)
 	for bar in self:GetBarIterator() do
 		if id == bar.id then
-			bar.paused = nil
 			bar:Cancel()
 			return true
 		end
@@ -689,7 +689,7 @@ function barPrototype:SetElapsed(elapsed)
 		self:ResetAnimations()
 	-- Bar was small, or moving from small to large when time was removed
 	-- Also force reset animation but this time move it from small anchor into large one
-	elseif (not self.enlarged or self.moving == "enlarge") and self.timer <= enlargeTime then
+	elseif not self.paused and (not self.enlarged or self.moving == "enlarge") and self.timer <= enlargeTime then
 		self:ResetAnimations(true)
 	end
 	self:Update(0)
@@ -920,6 +920,7 @@ function barPrototype:Cancel()
 	DBT.bars[self] = nil
 	unusedBarObjects[self] = self
 	self.dead = true
+	self.paused = nil
 	DBT.numBars = DBT.numBars - 1
 end
 
@@ -1145,7 +1146,7 @@ do
 			DBT_AllPersistentOptions[DBM_UsedProfile] = {}
 		end
 		if not DBT_AllPersistentOptions[DBM_UsedProfile][id] then
-			DBT_AllPersistentOptions[DBM_UsedProfile][id] = DBT_AllPersistentOptions[DBM_UsedProfile].DBM or {}
+			DBT_AllPersistentOptions[DBM_UsedProfile][id] = CopyTable(DBT_AllPersistentOptions[DBM_UsedProfile].DBM) or {}
 			for option, value in pairs(skins[id].Defaults) do
 				DBT_AllPersistentOptions[DBM_UsedProfile][id][option] = value
 			end
@@ -1165,9 +1166,10 @@ do
 		if not DBT_AllPersistentOptions[DBM_UsedProfile] then
 			DBT_AllPersistentOptions[DBM_UsedProfile] = {}
 		end
-		DBT_AllPersistentOptions[DBM_UsedProfile]["DBM"] = self.DefaultOptions
+		local skin = self.Options.Skin
+		DBT_AllPersistentOptions[DBM_UsedProfile][skin] = self.DefaultOptions
 		self.Options = self.DefaultOptions
-		self:SetOption("Skin", "") -- Forces an UpdateBars and ApplyStyle
+		self:SetOption("Skin", skin) -- Forces an UpdateBars and ApplyStyle
 	end
 
 	function DBT:GetSkins()

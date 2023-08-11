@@ -37,6 +37,7 @@ DF:Mixin(DropDownMetaFunctions, DF.SetPointMixin)
 DF:Mixin(DropDownMetaFunctions, DF.FrameMixin)
 DF:Mixin(DropDownMetaFunctions, DF.TooltipHandlerMixin)
 DF:Mixin(DropDownMetaFunctions, DF.ScriptHookMixin)
+DF:Mixin(DropDownMetaFunctions, DF.Language.LanguageMixin)
 
 ------------------------------------------------------------------------------------------------------------
 --metatables
@@ -384,18 +385,19 @@ local canRunCallbackFunctionForOption = function(canRunCallback, optionTable, dr
 	end
 end
 
---if onlyShown is true it'll first create a table with visible options that has .shown and then select in this table the index passed (if byOptionNumber)
---@optionName: value or string shown in the name of the option
---@byOptionNumber: the option name is considered a number and selects the index of the menu
---@onlyShown: the selected option index when selecting by option number must be visible
---@runCallback: run the callback (onclick) function after selecting the option
-function DropDownMetaFunctions:Select(optionName, byOptionNumber, onlyShown, runCallback)
+---if bOnlyShown is true it'll first create a table with visible options that has .shown and then select in this table the index passed (if byOptionNumber)
+---@param optionName string value or string shown in the name of the option
+---@param byOptionNumber number the option name is considered a number and selects the index of the menu
+---@param bOnlyShown boolean the selected option index when selecting by option number must be visible
+---@param runCallback function run the callback (onclick) function after selecting the option
+---@return boolean
+function DropDownMetaFunctions:Select(optionName, byOptionNumber, bOnlyShown, runCallback)
 	if (type(optionName) == "boolean" and not optionName) then
 		self:NoOptionSelected()
 		return false
 	end
 
-	local optionsTable = DF:Dispatch(self.func, self)
+	local optionsTable = DF:Dispatch(self.func, self) --399
 
 	if (#optionsTable == 0) then
 		self:NoOption(true)
@@ -407,7 +409,7 @@ function DropDownMetaFunctions:Select(optionName, byOptionNumber, onlyShown, run
 	if (byOptionNumber and type(optionName) == "number") then
 		local optionIndex = optionName
 
-		if (onlyShown) then
+		if (bOnlyShown) then
 			local onlyShownOptions = {}
 
 			for i = 1, #optionsTable do
@@ -492,7 +494,28 @@ function DropDownMetaFunctions:Selected(thisOption)
 	self.last_select = thisOption
 	self:NoOption(false)
 
-	self.label:SetText(thisOption.label)
+	local addonId = self.addonId
+	local languageId = thisOption.languageId
+	local phraseId = thisOption.phraseId
+
+	local overrideFont
+	if (addonId) then
+		local thisLanguageId = languageId or DF.Language.GetLanguageIdForAddonId(addonId)
+		if (thisLanguageId) then
+			if (thisLanguageId ~= self.label.languageId) then
+				local newFont = DF.Language.GetFontForLanguageID(thisLanguageId)
+				self.label.languageId = thisLanguageId
+				overrideFont = newFont
+			end
+		end
+  	end
+
+	if (addonId and phraseId) then
+		self.label:SetText(DF.Language.GetText(addonId, phraseId))
+	else
+		self.label:SetText(thisOption.label)
+	end
+
 	self.icon:SetTexture(thisOption.icon)
 
 	if (thisOption.icon) then
@@ -510,7 +533,11 @@ function DropDownMetaFunctions:Selected(thisOption)
 			self.icon:SetVertexColor(1, 1, 1, 1)
 		end
 
-		self.icon:SetSize(self:GetHeight()-4, self:GetHeight()-4)
+		if (thisOption.iconsize) then
+			self.icon:SetSize(thisOption.iconsize[1], thisOption.iconsize[2])
+		else
+			self.icon:SetSize(self:GetHeight()-4, self:GetHeight()-4)
+		end
 	else
 		self.label:SetPoint("left", self.label:GetParent(), "left", 4, 0)
 	end
@@ -543,8 +570,12 @@ function DropDownMetaFunctions:Selected(thisOption)
 		self.label:SetTextColor(1, 1, 1, 1)
 	end
 
-	if (thisOption.font) then
+	if (overrideFont) then
+		self.label:SetFont(overrideFont, 10)
+
+	elseif (thisOption.font) then
 		self.label:SetFont(thisOption.font, 10)
+
 	else
 		self.label:SetFont("GameFontHighlightSmall", 10)
 	end
@@ -648,7 +679,7 @@ end
 function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 	local object = button.MyObject
 
-	--click to open
+	--~click to open
 	if (not object.opened and not rawget(object, "lockdown")) then
 		local optionsTable = DF:Dispatch(object.func, object)
 		object.builtMenu = optionsTable
@@ -734,12 +765,6 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 						thisOptionFrame.icon:SetSize(thisOptionFrame:GetHeight()-6, thisOptionFrame:GetHeight()-6)
 					end
 
-					if (thisOption.font) then
-						thisOptionFrame.label:SetFont(thisOption.font, 10.5)
-					else
-						thisOptionFrame.label:SetFont("GameFontHighlightSmall", 10.5)
-					end
-
 					if (thisOption.statusbar) then
 						thisOptionFrame.statusbar:SetTexture(thisOption.statusbar)
 						if (thisOption.statusbarcolor) then
@@ -757,7 +782,34 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 						thisOptionFrame.rightButton:Hide()
 					end
 
+					local overrideFont
+					local languageId = thisOption.languageId
+					if (languageId) then
+						if (languageId ~= thisOptionFrame.label.languageId) then
+							local newFont = DF.Language.GetFontForLanguageID(languageId)
+							thisOptionFrame.label.languageId = languageId
+							overrideFont = newFont
+						end
+					else
+						languageId = DF.Language.DetectLanguageId(thisOption.label)
+						if (languageId ~= thisOptionFrame.label.languageId) then
+							local newFont = DF.Language.GetFontForLanguageID(languageId)
+							thisOptionFrame.label.languageId = languageId
+							overrideFont = newFont
+						end
+					end
+
 					thisOptionFrame.label:SetText(thisOption.label)
+
+					if (overrideFont) then
+						thisOptionFrame.label:SetFont(overrideFont, 10.5)
+
+					elseif (thisOption.font) then
+						thisOptionFrame.label:SetFont(thisOption.font, 10.5)
+
+					else
+						thisOptionFrame.label:SetFont("GameFontHighlightSmall", 10.5)
+					end
 
 					if (currentText and currentText == thisOption.label) then
 						if (thisOption.icon) then
@@ -859,10 +911,6 @@ function DetailsFrameworkDropDownOnMouseDown(button, buttontype)
 			end
 
 			object:Open()
-
-			--scrollFrame:SetHeight(300)
-			--scrollChild:SetHeight(300)
-			--scrollBorder:SetHeight(300)
 		else
 			--clear menu
 		end

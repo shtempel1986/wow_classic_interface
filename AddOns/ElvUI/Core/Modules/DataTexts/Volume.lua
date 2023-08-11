@@ -7,6 +7,7 @@ local format = format
 local ipairs = ipairs
 local tinsert = tinsert
 
+local EasyMenu = EasyMenu
 local SetCVar = SetCVar
 local GetCVar = GetCVar
 local GetCVarBool = GetCVarBool
@@ -32,14 +33,14 @@ local Sound_CVars = {
 }
 
 local AudioStreams = {
-	{ Name = _G.MASTER, Volume = 'Sound_MasterVolume', Enabled = 'Sound_EnableAllSound' },
+	{ Name = _G.MASTER_VOLUME, Volume = 'Sound_MasterVolume', Enabled = 'Sound_EnableAllSound' },
 	{ Name = _G.SOUND_VOLUME or _G.FX_VOLUME, Volume = 'Sound_SFXVolume', Enabled = 'Sound_EnableSFX' },
 	{ Name = _G.AMBIENCE_VOLUME, Volume = 'Sound_AmbienceVolume', Enabled = 'Sound_EnableAmbience' },
 	{ Name = _G.DIALOG_VOLUME, Volume = 'Sound_DialogVolume', Enabled = 'Sound_EnableDialog' },
 	{ Name = _G.MUSIC_VOLUME, Volume = 'Sound_MusicVolume', Enabled = 'Sound_EnableMusic' }
 }
 
-local panel, OnEvent
+local panelText
 local activeIndex = 1
 local activeStream = AudioStreams[activeIndex]
 local menu = {{ text = L["Select Volume Stream"], isTitle = true, notCheckable = true }}
@@ -59,7 +60,7 @@ local function SelectStream(_, ...)
 	activeIndex = ...
 	activeStream = AudioStreams[activeIndex]
 
-	panel.text:SetText(GetStreamString(activeStream))
+	panelText:SetText(GetStreamString(activeStream))
 end
 
 local function ToggleStream(_, ...)
@@ -67,7 +68,7 @@ local function ToggleStream(_, ...)
 
 	SetCVar(Stream.Enabled, GetCVarBool(Stream.Enabled) and 0 or 1, 'ELVUI_VOLUME')
 
-	panel.text:SetText(GetStreamString(activeStream))
+	panelText:SetText(GetStreamString(activeStream))
 end
 
 for Index, Stream in ipairs(AudioStreams) do
@@ -124,11 +125,12 @@ local function onMouseWheel(_, delta)
 	end
 
 	SetCVar(activeStream.Volume, vol, 'ELVUI_VOLUME')
+	panelText:SetText(GetStreamString(activeStream))
 end
 
-function OnEvent(self, event, arg1)
+local function OnEvent(self, event, arg1)
 	activeStream = AudioStreams[activeIndex]
-	panel = self
+	panelText = self.text
 
 	local force = event == 'ELVUI_FORCE_UPDATE'
 	if force or (event == 'CVAR_UPDATE' and (E.Retail and Sound_CVars[arg1] or arg1 == 'ELVUI_VOLUME')) then
@@ -137,7 +139,7 @@ function OnEvent(self, event, arg1)
 			self:SetScript('OnMouseWheel', onMouseWheel)
 		end
 
-		self.text:SetText(GetStreamString(activeStream))
+		panelText:SetText(GetStreamString(activeStream))
 	end
 end
 
@@ -153,12 +155,12 @@ local function OnClick(self, button)
 		end
 
 		E:SetEasyMenuAnchor(E.EasyMenu, self)
-		_G.EasyMenu(menu, E.EasyMenu, nil, nil, nil, 'MENU')
+		EasyMenu(menu, E.EasyMenu, nil, nil, nil, 'MENU')
 	elseif button == 'MiddleButton' then
 		SetCVar(AudioStreams[1].Enabled, GetCVarBool(AudioStreams[1].Enabled) and 0 or 1, 'ELVUI_VOLUME')
 	elseif button == 'RightButton' then
 		E:SetEasyMenuAnchor(E.EasyMenu, self)
-		_G.EasyMenu(IsShiftKeyDown() and deviceMenu or toggleMenu, E.EasyMenu, nil, nil, nil, 'MENU')
+		EasyMenu(IsShiftKeyDown() and deviceMenu or toggleMenu, E.EasyMenu, nil, nil, nil, 'MENU')
 	end
 end
 

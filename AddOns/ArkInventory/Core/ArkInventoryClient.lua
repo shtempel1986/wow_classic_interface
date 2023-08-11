@@ -502,9 +502,9 @@ end
 
 function ArkInventory.CrossClient.GetContainerFreeSlots( ... )
 	if C_Container and C_Container.GetContainerFreeSlots then
-		return C_Container.GetContainerFreeSlots( ... )
+		return C_Container.GetContainerFreeSlots( ... ) or { }
 	elseif GetContainerFreeSlots then
-		return GetContainerFreeSlots( ... )
+		return GetContainerFreeSlots( ... ) or { }
 	end
 end
 

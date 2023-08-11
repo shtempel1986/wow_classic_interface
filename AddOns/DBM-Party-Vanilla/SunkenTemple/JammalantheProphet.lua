@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod(458, "DBM-Party-Vanilla", 17, 237)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20221129003558")
+mod:SetRevision("20230620214231")
 mod:SetCreatureID(5710)--5711 Ogom the Wretched
 mod:SetEncounterID(488)
 

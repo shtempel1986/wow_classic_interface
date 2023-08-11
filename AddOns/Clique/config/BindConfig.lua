@@ -407,10 +407,14 @@ function CliqueConfig:UpdateList()
         local offsetIndex = offset + idx
         if sort[offsetIndex] then
             local bind = sort[offsetIndex]
+            local selfCastConflict = addon:BindingConflictsWithSelfCast(bind)
+            local bindKeyColor = selfCastConflict and "|cffff0000" or "|cffffffff"
+            local bindKeyWarning = selfCastConflict and L["!!!"] or ""
+            local bindKeyText = string.format("%s%s%s|r", bindKeyWarning, bindKeyColor, addon:GetBindingKeyComboText(bind))
             row.icon:SetTexture(addon:GetBindingIcon(bind))
             row.name:SetText(addon:GetBindingActionText(bind.type, bind))
             row.info:SetText(addon:GetBindingInfoText(bind))
-            row.bind:SetText(addon:GetBindingKeyComboText(bind))
+            row.bind:SetText(bindKeyText)
             row.binding = bind
             row:Show()
         else
@@ -672,6 +676,31 @@ function CliqueConfig:Row_OnClick(frame, button)
     })
 
     menu:Toggle()
+end
+
+local warningTooltip = CreateFrame("GameTooltip", "CliqueWarningTooltip", UIParent, "GameTooltipTemplate")
+
+function CliqueConfig:Row_OnEnter(frame)
+    if not addon:BindingConflictsWithSelfCast(frame.binding) then
+        return
+    end
+
+    warningTooltip:SetOwner(frame, "ANCHOR_RIGHT")
+    warningTooltip:SetText("Binding conflict")
+    warningTooltip:AddLine(" ")
+    warningTooltip:AddLine(L["This binding currently conflicts and may not work."], 1, 1, 1)
+    warningTooltip:AddLine(L["Your 'self cast key' is set and includes the modifier used in this binding."], 1, 1, 1)
+    warningTooltip:AddLine(L["When you cast this spell it will likely only cast on you, rather than your intended target."], 1, 1, 1)
+    warningTooltip:AddLine(L["To fix this, go into the Interface Options, under the Combat section."], 1, 1, 1)
+    warningTooltip:AddLine(L["Set the 'self cast key' to NONE, or another modifier key that does not conflict."], 1, 1, 1)
+    warningTooltip:AddLine(L["Alternatively you can change this binding instead to not conflict."], 1, 1, 1)
+    warningTooltip:AddLine(" ")
+    warningTooltip:AddLine("Self cast key currently set to: " .. addon:GetSelfCastKeyText())
+    warningTooltip:Show()
+end
+
+function CliqueConfig:Row_OnLeave(frame)
+    warningTooltip:Hide()
 end
 
 function CliqueConfig:SpellTab_OnClick(frame)

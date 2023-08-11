@@ -2,8 +2,8 @@
 
 License: All Rights Reserved, (c) 2006-2018
 
-$Revision: 2995 $
-$Date: 2022-10-27 00:36:13 +1100 (Thu, 27 Oct 2022) $
+$Revision: 3001 $
+$Date: 2023-01-20 08:12:19 +1100 (Fri, 20 Jan 2023) $
 
 ]]--
 
@@ -282,18 +282,6 @@ function ArkInventory.ConfigInternal( )
 				else
 					ArkInventory:Disable( )
 				end
-			end,
-		},
-		debugmode = {
-			cmdHidden = true,
-			order = 400,
-			name = ArkInventory.Localise["CONFIG_DEBUG"],
-			type = "toggle",
-			get = function( info )
-				return ArkInventory.Global.Debug
-			end,
-			set = function( info, v )
-				ArkInventory.OutputDebugModeSet( not ArkInventory.Global.Debug )
 			end,
 		},
 		
@@ -3290,6 +3278,7 @@ function ArkInventory.ConfigInternal( )
 									name = ArkInventory.Localise["SHOW"],
 									desc = ArkInventory.Localise["RULES"],
 									type = "execute",
+									width = "half",
 									func = function( )
 										ArkInventory.Frame_Rules_Show( )
 									end,
@@ -3582,6 +3571,7 @@ function ArkInventory.ConfigInternal( )
 									name = ArkInventory.Localise["SHOW"],
 									desc = ArkInventory.Localise["SEARCH"],
 									type = "execute",
+									width = "half",
 									func = function( )
 										ArkInventory.Search.Frame_Show( )
 									end,
@@ -3604,7 +3594,7 @@ function ArkInventory.ConfigInternal( )
 										if v > 2 then v = 2 end
 										if ArkInventory.db.option.ui.search.scale ~= v then
 											ArkInventory.db.option.ui.search.scale = v
-											ArkInventory.Frame_Search_Paint( )
+											ArkInventory.Search.Frame_Paint( )
 										end
 									end,
 								},
@@ -3628,7 +3618,7 @@ function ArkInventory.ConfigInternal( )
 											set = function( info, v )
 												if ArkInventory.db.option.ui.search.background.style ~= v then
 													ArkInventory.db.option.ui.search.background.style = v
-													ArkInventory.Frame_Search_Paint( )
+													ArkInventory.Search.Frame_Paint( )
 												end
 											end,
 										},
@@ -3646,7 +3636,7 @@ function ArkInventory.ConfigInternal( )
 											end,
 											set = function( info, r, g, b, a )
 												helperColourSet( ArkInventory.db.option.ui.search.background.colour, r, g, b, a )
-												ArkInventory.Frame_Search_Paint( )
+												ArkInventory.Search.Frame_Paint( )
 											end,
 										},
 									},
@@ -3678,7 +3668,7 @@ function ArkInventory.ConfigInternal( )
 													ArkInventory.db.option.ui.search.border.offset = sd.offsetdefault.window
 													ArkInventory.db.option.ui.search.border.scale = sd.scale
 													
-													ArkInventory.Frame_Search_Paint( )
+													ArkInventory.Search.Frame_Paint( )
 													
 												end
 											end,
@@ -3697,7 +3687,7 @@ function ArkInventory.ConfigInternal( )
 											end,
 											set = function( info, r, g, b )
 												helperColourSet( ArkInventory.db.option.ui.search.border.colour, r, g, b )
-												ArkInventory.Frame_Search_Paint( )
+												ArkInventory.Search.Frame_Paint( )
 											end,
 										},
 										size = {
@@ -3715,7 +3705,7 @@ function ArkInventory.ConfigInternal( )
 												if v < 0 then v = 0 end
 												if ArkInventory.db.option.ui.search.border.size ~= v then
 													ArkInventory.db.option.ui.search.border.size = v
-													ArkInventory.Frame_Search_Paint( )
+													ArkInventory.Search.Frame_Paint( )
 												end
 											end,
 										},
@@ -3738,7 +3728,7 @@ function ArkInventory.ConfigInternal( )
 												if v > 10 then v = 10 end
 												if ArkInventory.db.option.ui.search.border.offset ~= v then
 													ArkInventory.db.option.ui.search.border.offset = v
-													ArkInventory.Frame_Search_Paint( )
+													ArkInventory.Search.Frame_Paint( )
 												end
 											end,
 										},
@@ -3763,7 +3753,7 @@ function ArkInventory.ConfigInternal( )
 												if v > 4 then v = 4 end
 												if ArkInventory.db.option.ui.search.border.scale ~= v then
 													ArkInventory.db.option.ui.search.border.scale = v
-													ArkInventory.Frame_Search_Paint( )
+													ArkInventory.Search.Frame_Paint( )
 												end
 											end,
 										},
@@ -3807,6 +3797,268 @@ function ArkInventory.ConfigInternal( )
 										
 										ArkInventory.db.option.ui.search.strata = v
 										ArkInventory.Search.Frame_Hide( )
+										
+									end,
+								},
+							},
+						},
+					},
+				},
+				debug = {
+					cmdHidden = true,
+					order = 3000,
+					name = ArkInventory.Localise["DEBUG"],
+					type = "group",
+					childGroups = "tab",
+					args = {
+						interface = {
+							order = 200,
+							name = ArkInventory.Localise["INTERFACE"],
+							type = "group",
+							args = {
+								enable = {
+									order = 10,
+									name = ArkInventory.Localise["ENABLE"],
+									type = "toggle",
+									get = function( )
+										return ArkInventory.db.option.ui.debug.enable
+									end,
+									set = function( info, v )
+										ArkInventory.db.option.ui.debug.enable = v
+									end,
+								},
+								display = {
+									order = 100,
+									name = ArkInventory.Localise["SHOW"],
+									desc = ArkInventory.Localise["DEBUG"],
+									type = "execute",
+									width = "half",
+									func = function( )
+										ArkInventory.Debug.Frame_Show( )
+									end,
+								},
+								scale = {
+									order = 200,
+									name = ArkInventory.Localise["SCALE"],
+									desc = ArkInventory.Localise["CONFIG_DESIGN_WINDOW_SCALE_DESC"],
+									type = "range",
+									min = 0.4,
+									max = 2,
+									step = 0.05,
+									isPercent = true,
+									get = function( info )
+										return ArkInventory.db.option.ui.debug.scale
+									end,
+									set = function( info, v )
+										local v = math.floor( v / 0.05 ) * 0.05
+										if v < 0.4 then v = 0.4 end
+										if v > 2 then v = 2 end
+										if ArkInventory.db.option.ui.debug.scale ~= v then
+											ArkInventory.db.option.ui.debug.scale = v
+											ArkInventory.Debug.Frame_Paint( )
+										end
+									end,
+								},
+								background = {
+									order = 1200,
+									name = ArkInventory.Localise["BACKGROUND"],
+									type = "group",
+									inline = true,
+									args = {
+										style = {
+											order = 100,
+											name = ArkInventory.Localise["STYLE"],
+											desc = ArkInventory.Localise["CONFIG_DESIGN_WINDOW_BORDER_STYLE_DESC"],
+											type = "select",
+											width = "double",
+											dialogControl = "LSM30_Background",
+											values = ArkInventory.Lib.SharedMedia:HashTable( ArkInventory.Lib.SharedMedia.MediaType.BACKGROUND ),
+											get = function( info )
+												return ArkInventory.db.option.ui.debug.background.style or ArkInventory.Const.Texture.BackgroundDefault
+											end,
+											set = function( info, v )
+												if ArkInventory.db.option.ui.debug.background.style ~= v then
+													ArkInventory.db.option.ui.debug.background.style = v
+													ArkInventory.Debug.Frame_Paint( )
+												end
+											end,
+										},
+										colour = {
+											order = 200,
+											name = ArkInventory.Localise["COLOUR"],
+											desc = ArkInventory.Localise["CONFIG_DESIGN_WINDOW_BACKGROUND_COLOUR_DESC"],
+											type = "color",
+											hasAlpha = true,
+											hidden = function( info )
+												return ArkInventory.db.option.ui.debug.background.style ~= ArkInventory.Const.Texture.BackgroundDefault
+											end,
+											get = function( info )
+												return helperColourGet( ArkInventory.db.option.ui.debug.background.colour )
+											end,
+											set = function( info, r, g, b, a )
+												helperColourSet( ArkInventory.db.option.ui.debug.background.colour, r, g, b, a )
+												ArkInventory.Debug.Frame_Paint( )
+											end,
+										},
+									},
+								},
+								border = {
+									order = 1300,
+									name = ArkInventory.Localise["BORDER"],
+									type = "group",
+									inline = true,
+									args = {
+										style = {
+											order = 100,
+											name = ArkInventory.Localise["STYLE"],
+											desc = ArkInventory.Localise["CONFIG_DESIGN_WINDOW_BORDER_STYLE_DESC"],
+											type = "select",
+											width = "double",
+											dialogControl = "LSM30_Border",
+											values = ArkInventory.Lib.SharedMedia:HashTable( ArkInventory.Lib.SharedMedia.MediaType.BORDER ),
+											get = function( info )
+												return ArkInventory.db.option.ui.debug.border.style or ArkInventory.Const.Texture.BorderDefault
+											end,
+											set = function( info, v )
+												if ArkInventory.db.option.ui.debug.border.style ~= v then
+													
+													ArkInventory.db.option.ui.debug.border.style = v
+													
+													local sd = ArkInventory.Const.Texture.Border[v] or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault]
+													ArkInventory.db.option.ui.debug.border.size = sd.size
+													ArkInventory.db.option.ui.debug.border.offset = sd.offsetdefault.window
+													ArkInventory.db.option.ui.debug.border.scale = sd.scale
+													
+													ArkInventory.Debug.Frame_Paint( )
+													
+												end
+											end,
+										},
+										colour = {
+											order = 200,
+											name = ArkInventory.Localise["COLOUR"],
+											desc = ArkInventory.Localise["CONFIG_DESIGN_WINDOW_BORDER_COLOUR_DESC"],
+											type = "color",
+											hidden = function( )
+												return ArkInventory.db.option.ui.debug.border.style == ArkInventory.Const.Texture.BorderNone
+											end,
+											hasAlpha = false,
+											get = function( info )
+												return helperColourGet( ArkInventory.db.option.ui.debug.border.colour )
+											end,
+											set = function( info, r, g, b )
+												helperColourSet( ArkInventory.db.option.ui.debug.border.colour, r, g, b )
+												ArkInventory.Debug.Frame_Paint( )
+											end,
+										},
+										size = {
+											order = 300,
+											name = ArkInventory.Localise["HEIGHT"],
+											type = "input",
+											hidden = function( )
+												 return ArkInventory.db.option.ui.debug.border.style == ArkInventory.Const.Texture.BorderNone
+											end,
+											get = function( info )
+												return string.format( "%i", ArkInventory.db.option.ui.debug.border.size or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].size )
+											end,
+											set = function( info, v )
+												local v = math.floor( tonumber( v ) or 0 )
+												if v < 0 then v = 0 end
+												if ArkInventory.db.option.ui.debug.border.size ~= v then
+													ArkInventory.db.option.ui.debug.border.size = v
+													ArkInventory.Debug.Frame_Paint( )
+												end
+											end,
+										},
+										offset = {
+											order = 400,
+											name = ArkInventory.Localise["OFFSET"],
+											type = "range",
+											min = -10,
+											max = 10,
+											step = 1,
+											hidden = function( info )
+												return ArkInventory.db.option.ui.debug.border.style == ArkInventory.Const.Texture.BorderNone
+											end,
+											get = function( info )
+												return ArkInventory.db.option.ui.debug.border.offset or ArkInventory.Const.Texture.Border[ArkInventory.Const.Texture.BorderDefault].offsetdefault.window
+											end,
+											set = function( info, v )
+												local v = math.floor( v )
+												if v < -10 then v = -10 end
+												if v > 10 then v = 10 end
+												if ArkInventory.db.option.ui.debug.border.offset ~= v then
+													ArkInventory.db.option.ui.debug.border.offset = v
+													ArkInventory.Debug.Frame_Paint( )
+												end
+											end,
+										},
+										scale = {
+											order = 500,
+											name = ArkInventory.Localise["SCALE"],
+											desc = ArkInventory.Localise["CONFIG_BORDER_SCALE_DESC"],
+											type = "range",
+											min = 0.25,
+											max = 4,
+											step = 0.05,
+											isPercent = true,
+											hidden = function( )
+												return ArkInventory.db.option.ui.debug.border.style == ArkInventory.Const.Texture.BorderNone
+											end,
+											get = function( info )
+												return ArkInventory.db.option.ui.debug.border.scale or 1
+											end,
+											set = function( info, v )
+												local v = math.floor( v / 0.05 ) * 0.05
+												if v < 0.25 then v = 0.25 end
+												if v > 4 then v = 4 end
+												if ArkInventory.db.option.ui.debug.border.scale ~= v then
+													ArkInventory.db.option.ui.debug.border.scale = v
+													ArkInventory.Debug.Frame_Paint( )
+												end
+											end,
+										},
+									},
+								},
+								strata = {
+									order = 300,
+									name = ArkInventory.Localise["CONFIG_GENERAL_FRAMESTRATA"],
+									desc = ArkInventory.Localise["CONFIG_GENERAL_FRAMESTRATA_DESC"],
+									type = "select",
+									values = function( )
+										local t = {
+											[1] = string.upper( ArkInventory.Localise["LOW"] ),
+											[2] = string.upper( ArkInventory.Localise["MEDIUM"] ),
+											[3] = string.upper( ArkInventory.Localise["HIGH"] ),
+										}
+										return t
+									end,
+									get = function( info )
+										
+										local v = ArkInventory.db.option.ui.debug.strata
+										if v == "LOW" then
+											return 1
+										elseif v == "MEDIUM" then
+											return 2
+										elseif v == "HIGH" then
+											return 3
+										end
+										
+									end,
+									set = function( info, v )
+										
+										local v = v
+										if v == 1 then
+											v = "LOW"
+										elseif v == 2 then
+											v = "MEDIUM"
+										elseif v == 3 then
+											v = "HIGH"
+										end
+										
+										ArkInventory.db.option.ui.debug.strata = v
+										ArkInventory.Debug.Frame_Paint( )
+										ArkInventory.Debug.Frame_Hide( )
 										
 									end,
 								},
@@ -8038,42 +8290,8 @@ function ArkInventory.ConfigInternalDesignData( path )
 										end
 									end,
 								},
-								fade = {
-									order = 400,
-									name = ArkInventory.Localise["CONFIG_DESIGN_ITEM_FADE"],
-									desc = ArkInventory.Localise["CONFIG_DESIGN_ITEM_FADE_DESC"],
-									type = "toggle",
-									get = function( info )
-										local id = ConfigGetNodeArg( info, #info - 4 )
-										local style = ArkInventory.ConfigInternalDesignGet( id )
-										return style.slot.offline.fade
-									end,
-									set = function( info, v )
-										local id = ConfigGetNodeArg( info, #info - 4 )
-										local style = ArkInventory.ConfigInternalDesignGet( id )
-										style.slot.offline.fade = v
-										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
-									end,
-								},
-								unusable_tint = {
-									order = 500,
-									name = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_USABLE"],
-									desc = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_USABLE_DESC"],
-									type = "toggle",
-									get = function( info )
-										local id = ConfigGetNodeArg( info, #info - 4 )
-										local style = ArkInventory.ConfigInternalDesignGet( id )
-										return style.slot.unusable.tint
-									end,
-									set = function( info, v )
-										local id = ConfigGetNodeArg( info, #info - 4 )
-										local style = ArkInventory.ConfigInternalDesignGet( id )
-										style.slot.unusable.tint = v
-										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
-									end,
-								},
 								scale = {
-									order = 700,
+									order = 300,
 									name = ArkInventory.Localise["SCALE"],
 									type = "range",
 									min = 0.25,
@@ -8095,6 +8313,57 @@ function ArkInventory.ConfigInternalDesignData( path )
 											style.slot.scale = v
 											ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Restart )
 										end
+									end,
+								},
+								fade = {
+									order = 400,
+									name = ArkInventory.Localise["CONFIG_DESIGN_ITEM_FADE"],
+									desc = ArkInventory.Localise["CONFIG_DESIGN_ITEM_FADE_DESC"],
+									type = "toggle",
+									get = function( info )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										return style.slot.offline.fade
+									end,
+									set = function( info, v )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										style.slot.offline.fade = v
+										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
+									end,
+								},
+								unusable_tint = {
+									order = 500,
+									name = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_UNUSABLE"],
+									desc = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_UNUSABLE_DESC"],
+									type = "toggle",
+									get = function( info )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										return style.slot.unusable.tint
+									end,
+									set = function( info, v )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										style.slot.unusable.tint = v
+										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
+									end,
+								},
+								unwearable_tint = {
+									order = 600,
+									name = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_UNWEARABLE"],
+									desc = ArkInventory.Localise["CONFIG_DESIGN_ITEM_TINT_UNWEARABLE_DESC"],
+									type = "toggle",
+									get = function( info )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										return style.slot.unwearable.tint
+									end,
+									set = function( info, v )
+										local id = ConfigGetNodeArg( info, #info - 4 )
+										local style = ArkInventory.ConfigInternalDesignGet( id )
+										style.slot.unwearable.tint = v
+										ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
 									end,
 								},
 								stacklimit = {
@@ -9714,8 +9983,8 @@ function ArkInventory.ConfigInternalDesignData( path )
 											name = ArkInventory.Localise["SIZE"],
 											desc = string.format( ArkInventory.Localise["ANCHOR_TEXT2"], string.format( ArkInventory.Localise["CONFIG_DESIGN_ITEM_STATUSICON_TEXT"], ArkInventory.Localise["CONFIG_DESIGN_ITEM_OVERLAY_PROFESSIONRANK"] ), "" ),
 											type = "range",
-											min = 12,
-											max = 36,
+											min = 30,
+											max = 60,
 											step = 1,
 											disabled = function( info )
 												local id = ConfigGetNodeArg( info, #info - 5 )
@@ -9731,8 +10000,8 @@ function ArkInventory.ConfigInternalDesignData( path )
 												local id = ConfigGetNodeArg( info, #info - 5 )
 												local style = ArkInventory.ConfigInternalDesignGet( id )
 												local v = math.floor( v )
-												if v < 12 then v = 12 end
-												if v > 36 then v = 36 end
+												if v < 30 then v = 30 end
+												if v > 60 then v = 60 end
 												if style.slot.overlay.professionrank.size ~= v then
 													style.slot.overlay.professionrank.size = v
 													ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
@@ -11390,6 +11659,7 @@ function ArkInventory.ConfigInternalLDBMountsUpdate( path, args2 )
 				end,
 				set = function( info )
 					config.me.player.data.ldb.mounts.dragonriding = not config.me.player.data.ldb.mounts.dragonriding
+					ArkInventory.SetMountMacro( )
 				end,
 			}
 			

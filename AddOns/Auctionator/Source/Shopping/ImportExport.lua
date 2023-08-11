@@ -1,8 +1,8 @@
 function Auctionator.Shopping.Lists.GetBatchExportString(listName)
-  local list = Auctionator.Shopping.Lists.GetListByName(listName)
+  local items = Auctionator.Shopping.ListManager:GetByName(listName):GetAllItems()
 
   local result = listName
-  for _, item in ipairs(list.items) do
+  for _, item in ipairs(items) do
     result = result .. "^" .. item
   end
 
@@ -21,8 +21,8 @@ function Auctionator.Shopping.Lists.BatchImportFromString(importString)
   for index, list in ipairs(lists) do
     local name, items = strsplit("^", list, 2)
 
-    if Auctionator.Shopping.Lists.ListIndex(name) == nil and name ~= nil and name:len() > 0 then
-      Auctionator.Shopping.Lists.Create(name)
+    if Auctionator.Shopping.ListManager:GetIndexForName(name) == nil and name ~= nil and name:len() > 0 then
+      Auctionator.Shopping.ListManager:Create(name)
     end
 
     Auctionator.Shopping.Lists.OneImportFromString(name, items)
@@ -30,7 +30,7 @@ function Auctionator.Shopping.Lists.BatchImportFromString(importString)
     if name ~= nil and name:len() > 0 then
       Auctionator.EventBus
         :RegisterSource(Auctionator.Shopping.Lists.BatchImportFromString, "BatchImportFromString")
-        :Fire(Auctionator.Shopping.Lists.BatchImportFromString, Auctionator.Shopping.Events.ListCreated, Auctionator.Shopping.Lists.GetListByName(name))
+        :Fire(Auctionator.Shopping.Lists.BatchImportFromString, Auctionator.Shopping.Events.ListImportFinished, name)
         :UnregisterSource(Auctionator.Shopping.Lists.BatchImportFromString)
     end
   end
@@ -44,9 +44,11 @@ function Auctionator.Shopping.Lists.OneImportFromString(listName, importString)
     return
   end
 
-  local list = Auctionator.Shopping.Lists.GetListByName(listName)
+  local list = Auctionator.Shopping.ListManager:GetByName(listName)
 
-  list.items = {strsplit("^", importString)}
+  for _, item in ipairs({strsplit("^", importString)}) do
+    list:InsertItem(item)
+  end
 end
 
 --Import multiple instances of lists in the format
@@ -70,28 +72,31 @@ function Auctionator.Shopping.Lists.OldBatchImportFromString(importString)
   for index, list in ipairs(lists) do
     local name, items = strsplit("\n", list, 2)
 
-    if Auctionator.Shopping.Lists.ListIndex(name) == nil then
-      Auctionator.Shopping.Lists.Create(name)
+    if Auctionator.Shopping.ListManager:GetIndexForName(name) == nil then
+      Auctionator.Shopping.ListManager:Create(name)
     end
 
     Auctionator.Shopping.Lists.OldOneImportFromString(name, items)
 
     Auctionator.EventBus
       :RegisterSource(Auctionator.Shopping.Lists.OldBatchImportFromString, "OldBatchImportFromString")
-      :Fire(Auctionator.Shopping.Lists.OldBatchImportFromString, Auctionator.Shopping.Events.ListCreated, Auctionator.Shopping.Lists.GetListByName(name))
+      :Fire(Auctionator.Shopping.Lists.OldBatchImportFromString, Auctionator.Shopping.Events.ListImportFinished, name)
       :UnregisterSource(Auctionator.Shopping.Lists.OldBatchImportFromString)
   end
 end
 
 function Auctionator.Shopping.Lists.OldOneImportFromString(listName, importString)
-  local list = Auctionator.Shopping.Lists.GetListByName(listName)
+  local list = Auctionator.Shopping.ListManager:GetByName(listName)
 
   importString = gsub(importString, "\n$", "")
 
-  list.items = {strsplit("\n", importString)}
+  for _, item in ipairs({strsplit("\n", importString)}) do
+    list:InsertItem(item)
+  end
 end
 
-local TSMImportName = "TSM (" .. AUCTIONATOR_L_TEMPORARY_LOWER_CASE .. ")"
+local TSMImportName = AUCTIONATOR_L_IMPORTED .. " (" .. AUCTIONATOR_L_TEMPORARY_LOWER_CASE .. ")"
+local IMPORT_ERROR = "IMPORT ERROR"
 
 --Import a TSM group in the format
 --  i:itemID 1,i:itemID 2 OR
@@ -100,53 +105,96 @@ local TSMImportName = "TSM (" .. AUCTIONATOR_L_TEMPORARY_LOWER_CASE .. ")"
 --Saves the result in a temporary list and fires a list creation event.
 function Auctionator.Shopping.Lists.TSMImportFromString(importString)
   -- Remove line breaks
-  importString = gsub(importString, "\n", "")
+  importString = gsub(importString, "%s", "")
 
-  local itemStrings = {strsplit(",", importString)}
-  local left = #itemStrings
   local items = {}
 
-  for index, itemString in ipairs(itemStrings) do
-    --TSM uses the same format for normal items and pets, so we try to load an
-    --item with the ID first, if that doesn't work, then we try loading a pet.
-    local itemType, stringID = string.match(itemString, "^([ip]):(%d+)$")
-
-    local id = tonumber(stringID) or tonumber(itemString)
-
-    local item = Item:CreateFromItemID(id)
-
-    if itemType == "p" or item:IsItemEmpty() then
-      item = Item:CreateFromItemID(Auctionator.Constants.PET_CAGE_ID)
+  local function OnFinish()
+    if Auctionator.Shopping.ListManager:GetIndexForName(TSMImportName) ~= nil then
+      Auctionator.Shopping.ListManager:Delete(TSMImportName)
     end
-    item:ContinueOnItemLoad(function()
-      items[index] = GetItemInfo(id)
-      if itemType == "p" or items[index] == nil then
-        items[index] = C_PetJournal.GetPetInfoBySpeciesID(id)
-        if type(items[index]) ~= "string" then
-          items[index] = nil
-        end
-      end
 
-      if items[index] == nil then
-        items[index] = "IMPORT ERROR"
-      end
+    Auctionator.Shopping.ListManager:Create(TSMImportName, true)
 
-      left = left - 1
-      if left == 0 then
-        if Auctionator.Shopping.Lists.ListIndex(TSMImportName) ~= nil then
-          Auctionator.Shopping.Lists.Delete(TSMImportName)
-        end
+    local list = Auctionator.Shopping.ListManager:GetByName(TSMImportName)
 
-        Auctionator.Shopping.Lists.CreateTemporary(TSMImportName)
+    for _, i in ipairs(items) do
+      list:InsertItem(i)
+    end
 
-        local list = Auctionator.Shopping.Lists.GetListByName(TSMImportName)
-        list.items = items
-
-        Auctionator.EventBus
-          :RegisterSource(Auctionator.Shopping.Lists.TSMImportFromString, "TSMImportFromString")
-          :Fire(Auctionator.Shopping.Lists.TSMImportFromString, Auctionator.Shopping.Events.ListCreated, list)
-          :UnregisterSource(Auctionator.Shopping.Lists.TSMImportFromString)
-        end
-    end)
+    Auctionator.EventBus
+      :RegisterSource(Auctionator.Shopping.Lists.TSMImportFromString, "TSMImportFromString")
+      :Fire(Auctionator.Shopping.Lists.TSMImportFromString, Auctionator.Shopping.Events.ListImportFinished, list:GetName())
+      :UnregisterSource(Auctionator.Shopping.Lists.TSMImportFromString)
   end
+
+  local entries = {}
+
+  for itemType, stringID in importString:gmatch("([ip]?):?(%d+)") do
+    table.insert(entries, {itemType = itemType, stringID = stringID})
+  end
+
+  local left = #entries
+
+  local function ImportBatch(start, size)
+    if start > #entries then
+      -- Check for case when item data is missing from the Blizzard item database so
+      -- that some kind of list is imported
+      C_Timer.After(2, function()
+        if left > 0 then
+          left = 0
+          for i = 1, #entries do
+            if items[i] == nil then
+              items[i] = IMPORT_ERROR
+            end
+          end
+          OnFinish()
+        end
+      end)
+      return
+    end
+
+    for index = start, math.min(start+size, #entries) do
+      local entry = entries[index]
+
+      local id = tonumber(entry.stringID)
+
+      local item = Item:CreateFromItemID(id)
+
+      if entry.itemType == "p" or item:IsItemEmpty() then
+        item = Item:CreateFromItemID(Auctionator.Constants.PET_CAGE_ID)
+      end
+      if item:IsItemEmpty() then
+        items[index] = IMPORT_ERROR
+        left = left - 1
+      -- Work around API error where GetItemInfoInstant(itemID) sometimes
+      -- returns nil inside the callback mechanism
+      elseif item:GetItemID() ~= nil then
+        item:ContinueOnItemLoad(function()
+          items[index] = GetItemInfo(id)
+          if entry.itemType == "p" or items[index] == nil then
+            items[index] = C_PetJournal.GetPetInfoBySpeciesID(id)
+            if type(items[index]) ~= "string" then
+              items[index] = nil
+            end
+          end
+
+          if items[index] == nil then
+            items[index] = IMPORT_ERROR
+          end
+
+          left = left - 1
+          if left == 0 then
+            OnFinish()
+          end
+        end)
+      else
+        left = left - 1
+      end
+    end
+
+    C_Timer.After(0, function() ImportBatch(start+size, size) end)
+  end
+
+  ImportBatch(1, 250)
 end

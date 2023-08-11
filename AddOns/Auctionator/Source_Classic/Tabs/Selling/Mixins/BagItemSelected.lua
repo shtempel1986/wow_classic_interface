@@ -1,11 +1,30 @@
 AuctionatorBagItemSelectedMixin = CreateFromMixins(AuctionatorBagItemMixin)
 
+function AuctionatorBagItemSelectedMixin:SetItemInfo(info, ...)
+  AuctionatorBagItemMixin.SetItemInfo(self, info, ...)
+  self.IconSelectedHighlight:Hide()
+  self.IconBorder:SetShown(info ~= nil)
+  self.Icon:SetAlpha(1)
+end
+
 local seenBag, seenSlot
 
 function AuctionatorBagItemSelectedMixin:OnClick(button)
+  local wasCursorItem = C_Cursor.GetCursorItem()
   if not self:ProcessCursor() then
-    AuctionatorBagItemMixin.OnClick(self, button)
+    if button == "LeftButton" and not wasCursorItem and self.itemInfo ~= nil then
+      self:SearchInShoppingTab()
+    else
+      AuctionatorBagItemMixin.OnClick(self, button)
+    end
   end
+end
+
+function AuctionatorBagItemSelectedMixin:SearchInShoppingTab()
+  local item = Item:CreateFromItemLink(self.itemInfo.itemLink)
+  item:ContinueOnItemLoad(function()
+    Auctionator.API.v1.MultiSearchExact(AUCTIONATOR_L_SELLING_TAB, { item:GetItemName() })
+  end)
 end
 
 function AuctionatorBagItemSelectedMixin:OnReceiveDrag()
@@ -50,14 +69,20 @@ function AuctionatorBagItemSelectedMixin:ProcessCursor()
     return true
   end
 
+  Auctionator.Selling.ShowCannotSellReason(itemInfo.location)
   Auctionator.Debug.Message("AuctionatorBagItemSelected", "err")
-  UIErrorsFrame:AddMessage(ERR_AUCTION_BOUND_ITEM, 1.0, 0.1, 0.1, 1.0)
   return false
+end
+
+local function HookForPickup(bag, slot)
+  seenBag = bag
+  seenSlot = slot
 end
 
 -- Record clicks on bag items so that we can make keyring items being picked up
 -- and placed in the Selling tab work.
-hooksecurefunc("PickupContainerItem", function(bag, slot)
-  seenBag = bag
-  seenSlot = slot
-end)
+if C_Container and C_Container.PickupContainerItem then
+  hooksecurefunc(C_Container, "PickupContainerItem", HookForPickup)
+else
+  hooksecurefunc("PickupContainerItem", HookForPickup)
+end

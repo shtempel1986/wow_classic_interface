@@ -287,11 +287,7 @@ function ArkInventory.OutputSerialize( d )
 end
 
 local ArkInventory_TempOutputTable = { }
-function ArkInventory.Output( ... )
-	
-	if not DEFAULT_CHAT_FRAME then
-		return
-	end
+function ArkInventory.OutputBuild( ... )
 	
 	ArkInventory.Table.Wipe( ArkInventory_TempOutputTable )
 	
@@ -299,7 +295,7 @@ function ArkInventory.Output( ... )
 	
 	if n == 0 then
 		
-		ArkInventory:Print( "nil" )
+		ArkInventory_TempOutputTable[1] = "nil"
 		
 	else
 		
@@ -308,9 +304,19 @@ function ArkInventory.Output( ... )
 			ArkInventory_TempOutputTable[i] = ArkInventory.OutputSerialize( v )
 		end
 		
-		ArkInventory:Print( table.concat( ArkInventory_TempOutputTable ) )
-		
 	end
+	
+	return table.concat( ArkInventory_TempOutputTable )
+	
+end
+
+function ArkInventory.Output( ... )
+	
+	if not DEFAULT_CHAT_FRAME then
+		return
+	end
+	
+	ArkInventory:Print( ArkInventory.OutputBuild( ... ) )
 	
 end
 
@@ -326,10 +332,40 @@ function ArkInventory.OutputThread( ... )
 	end
 end
 
-function ArkInventory.OutputDebug( ... )
-	if ArkInventory.Global.Debug then
-		ArkInventory.Output( "|cffffff9aDEBUG> ", ... )
+function ArkInventory.OutputDebugConfig( )
+	
+	local obj = _G[ArkInventory.Const.Frame.Debug.Name]
+	if not obj then return end
+	
+	local m = obj.List:GetMaxLines( )
+	if m ~= ArkInventory.db.option.ui.debug.lines then
+		obj.List:SetMaxLines( ArkInventory.db.option.ui.debug.lines )
 	end
+	
+end
+
+function ArkInventory.OutputDebug( ... )
+	
+	if ArkInventory.db and not ArkInventory.db.option.ui.debug.enable then return end
+	
+	local obj = _G[ArkInventory.Const.Frame.Debug.Name]
+	if not obj then
+		
+		ArkInventory.OutputError( ArkInventory.Const.Frame.Debug.Name, " does not exist" )
+		
+	else
+		
+		local tz = ArkInventory.Const.StartupTime + ( debugprofilestop( ) / 1000 )
+		local ms = math.floor( ( tz % 1 ) * 1000000 )
+		local msg = string.format( "[%s.%06i]  %s", date( "%X", tz ), ms, ArkInventory.OutputBuild( ... ) )
+		
+		obj.List:AddMessage( msg )
+		local numMessages = obj.List:GetNumMessages( )
+		obj.List.ScrollBar:SetMinMaxValues( 1, numMessages )
+		obj.List.ScrollBar:SetValue( numMessages - obj.List:GetScrollOffset( ) )
+		
+	end
+	
 end
 
 function ArkInventory.OutputWarning( ... )
@@ -697,18 +733,18 @@ ArkInventory.Const = { -- constants
 			PROFESSIONRANK = {
 				COLOR = {
 					[0] = { r = 255 / 255, g = 255 / 255, b = 255 / 255 },
-					[1] = { r = 169 / 255, g = 113 / 255, b =  66 / 255 },
-					[2] = { r = 192 / 255, g = 192 / 255, b = 192 / 255 },
-					[3] = { r = 215 / 255, g = 190 / 255, b = 105 / 255 },
-					[4] = { r =  80 / 255, g = 200 / 255, b = 120 / 255 },
-					[5] = { r = 222 / 255, g = 129 / 255, b =  35 / 255 },
+					[1] = { r = 165 / 255, g =  66 / 255, b =   0 / 255 },
+					[2] = { r = 255 / 255, g = 255 / 255, b = 255 / 255 },
+					[3] = { r = 255 / 255, g = 230 / 255, b =   0 / 255 },
+					[4] = { r = 120 / 255, g = 255 / 255, b = 210 / 255 },
+					[5] = { r = 255 / 255, g =  94 / 255, b =  40 / 255 },
 				},
 				OFFSET = {
-					[1] = { x = -5, y = -5 },
-					[2] = { x = -1, y = -5 },
-					[3] = { x = -1, y = -3 },
-					[4] = { x = -1, y = -1 },
-					[5] = { x = -1, y = -1 },
+					[1] = { x = -3, y = -2 },
+					[2] = { x = 0, y = -3 },
+					[3] = { x = -1, y = -2 },
+					[4] = { x = -3, y = -1 },
+					[5] = { x = -3, y = -2 },
 				}
 			},
 			CONTAINER = {
@@ -841,6 +877,11 @@ ArkInventory.Const = { -- constants
 		},
 		Cooldown = {
 			Name = "Cooldown",
+		},
+		Debug = {
+			Name = "ARKINV_Debug",
+			MinHeight = 100,
+			MinWidth = 400,
 		},
 	},
 	
@@ -1227,9 +1268,13 @@ ArkInventory.Const = { -- constants
 			["x"] = 4, -- ignored / unknown
 		},
 		Zone = {
+			-- where the mount is properly disabled by blizzard set an empty table and the code will check the spell instead
+			-- where it isnt you need to specifiy the mapids for each zone its allowed in
+			
+			-- /dump C_Map.GetBestMapForUnit( "player" )
 			AhnQiraj = { 247,320 },
 			Vashjir = { 201,204,205 },
-			DragonIsles = { 2112,2022,2023,2024,2025 },
+			DragonIsles = { },
 		},
 	},
 	
@@ -1362,6 +1407,7 @@ ArkInventory.Const = { -- constants
 			[2374] = 15514, -- Shadowlands / Zereth Mortis
 		},
 		Spell = {
+			
 		},
 		Quest = {
 			[2222] = 63893, -- Shadowlands Flying
@@ -1373,6 +1419,12 @@ ArkInventory.Const = { -- constants
 			[571] = true, -- Northrend
 			[730] = true, -- Maelstrom (Deepholm)
 --			[870] = true, -- Pandaria (appears to be working now)
+		},
+		Dragonriding = { -- mount spells to check via IsUsableSpell()
+			368901, -- cliffside
+			368896, -- renewed
+			360954, -- highland
+			368899, -- windborne
 		},
 	},
 	

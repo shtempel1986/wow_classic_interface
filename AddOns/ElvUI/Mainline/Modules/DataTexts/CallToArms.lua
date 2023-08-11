@@ -9,16 +9,18 @@ local GetNumRandomDungeons = GetNumRandomDungeons
 local GetNumRFDungeons = GetNumRFDungeons
 local GetRFDungeonInfo = GetRFDungeonInfo
 local PVEFrame_ToggleFrame = PVEFrame_ToggleFrame
+
 local LFG_ROLE_NUM_SHORTAGE_TYPES = LFG_ROLE_NUM_SHORTAGE_TYPES
 local BATTLEGROUND_HOLIDAY = BATTLEGROUND_HOLIDAY
 local DUNGEONS = DUNGEONS
 local RAID_FINDER = RAID_FINDER
+local NOT_APPLICABLE = NOT_APPLICABLE
 
 local TANK_ICON = E:TextureString(E.Media.Textures.Tank, ':14:14')
 local HEALER_ICON = E:TextureString(E.Media.Textures.Healer, ':14:14')
 local DPS_ICON = E:TextureString(E.Media.Textures.DPS, ':14:14')
-local enteredFrame, lastPanel = false
-local displayString = ''
+local enteredFrame = false
+local displayString, db = ''
 
 local function MakeIconString(tank, healer, damage)
 	local str = ''
@@ -63,24 +65,25 @@ local function OnEvent(self)
 		end
 	end
 
-	if E.global.datatexts.settings.CallToArms.NoLabel then
-		self.text:SetFormattedText(displayString, unavailable and 'N/A' or MakeIconString(tankReward, healerReward, dpsReward))
+	local stat = unavailable and NOT_APPLICABLE or MakeIconString(tankReward, healerReward, dpsReward)
+	if db.NoLabel then
+		self.text:SetFormattedText(displayString, stat)
 	else
-		self.text:SetFormattedText(displayString, E.global.datatexts.settings.CallToArms.Label ~= '' and E.global.datatexts.settings.CallToArms.Label or BATTLEGROUND_HOLIDAY..': ', unavailable and 'N/A' or MakeIconString(tankReward, healerReward, dpsReward))
+		self.text:SetFormattedText(displayString, db.Label ~= '' and db.Label or BATTLEGROUND_HOLIDAY..': ', stat)
 	end
-	lastPanel = self
 end
 
 local function OnClick()
 	PVEFrame_ToggleFrame('GroupFinderFrame', _G.LFDParentFrame)
 end
 
-local function ValueColorUpdate(hex)
-	displayString = strjoin('', E.global.datatexts.settings.CallToArms.NoLabel and '' or '%s', hex, '%s|r')
+local function ApplySettings(self, hex)
+	if not db then
+		db = E.global.datatexts.settings[self.name]
+	end
 
-	if lastPanel then OnEvent(lastPanel) end
+	displayString = strjoin('', db.NoLabel and '' or '%s', hex, '%s|r')
 end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
 
 local function OnEnter()
 	DT.tooltip:ClearLines()
@@ -168,4 +171,4 @@ local function OnLeave()
 	enteredFrame = false
 end
 
-DT:RegisterDatatext('CallToArms', nil, { 'LFG_UPDATE_RANDOM_INFO' }, OnEvent, Update, OnClick, OnEnter, OnLeave, BATTLEGROUND_HOLIDAY, nil, ValueColorUpdate)
+DT:RegisterDatatext('CallToArms', nil, { 'LFG_UPDATE_RANDOM_INFO' }, OnEvent, Update, OnClick, OnEnter, OnLeave, BATTLEGROUND_HOLIDAY, nil, ApplySettings)

@@ -39,21 +39,33 @@ function AuctionatorSellingBagFrameMixin:OnLoad()
   end
 
   self.ScrollBox.ItemListingFrame.OnCleaned = function(listing)
-    local maxShift = math.max(0, (listing.oldHeight or listing:GetHeight()) - self.ScrollBox:GetHeight())
-    local offset = self.ScrollBox:GetScrollPercentage() * maxShift
+    local oldOffset = self.ScrollBox:GetDerivedScrollOffset()
 
     self.ScrollBox:FullUpdate(ScrollBoxConstants.UpdateImmediately);
 
-    local newMaxShift =  math.max(0, listing:GetHeight() - self.ScrollBox:GetHeight())
-    if newMaxShift == 0 then
-      return
-    end
-    self.ScrollBox:SetScrollPercentage(offset / newMaxShift)
+    self.ScrollBox:SetScrollTargetOffset(oldOffset)
   end
 
   local view = CreateScrollBoxLinearView()
   view:SetPanExtent(50)
   ScrollUtil.InitScrollBoxWithScrollBar(self.ScrollBox, self.ScrollBar, view);
+
+
+  Auctionator.EventBus:Register(self, {
+    Auctionator.Selling.Events.BagItemClicked
+  })
+end
+
+function AuctionatorSellingBagFrameMixin:OnHide()
+  self.highlightedKey = nil
+end
+
+function AuctionatorSellingBagFrameMixin:ReceiveEvent(event, ...)
+  if event == Auctionator.Selling.Events.BagItemClicked then
+    local itemInfo = ...
+    self.highlightedKey = Auctionator.Selling.UniqueBagKey(itemInfo)
+    self:Update()
+  end
 end
 
 function AuctionatorSellingBagFrameMixin:Init(dataProvider)
@@ -109,23 +121,37 @@ function AuctionatorSellingBagFrameMixin:SetupFavourites()
     entry = self.dataProvider:GetEntryAt(index)
     if Auctionator.Selling.IsFavourite(entry) then
       seenKeys[Auctionator.Selling.UniqueBagKey(entry)] = true
-      table.insert(self.items[FAVOURITE], CopyTable(entry))
+      table.insert(self.items[FAVOURITE], CopyTable(entry, true))
     end
   end
 
   if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_MISSING_FAVOURITES) then
     local moreFavourites = Auctionator.Selling.GetAllFavourites()
-
-    --Make favourite order independent of the order that the favourites were
-    --added.
-    table.sort(moreFavourites, function(left, right)
-      return Auctionator.Selling.UniqueBagKey(left) < Auctionator.Selling.UniqueBagKey(right)
-    end)
+    local entries = {}
 
     for _, fav in ipairs(moreFavourites) do
       if seenKeys[Auctionator.Selling.UniqueBagKey(fav)] == nil then
-        table.insert(self.items[FAVOURITE], CopyTable(fav))
+        table.insert(entries, CopyTable(fav, true))
       end
+    end
+
+    if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_FAVOURITES_SORT_OWNED) then
+      table.sort(entries, function(left, right)
+        return Auctionator.Selling.UniqueBagKey(left) < Auctionator.Selling.UniqueBagKey(right)
+      end)
+
+      for _, e in ipairs(entries) do
+        table.insert(self.items[FAVOURITE], e)
+      end
+
+    else
+      for _, e in ipairs(entries) do
+        table.insert(self.items[FAVOURITE], e)
+      end
+
+      table.sort(self.items[FAVOURITE], function(left, right)
+        return Auctionator.Selling.UniqueBagKey(left) < Auctionator.Selling.UniqueBagKey(right)
+      end)
     end
   end
 end
@@ -134,9 +160,6 @@ function AuctionatorSellingBagFrameMixin:Update()
   Auctionator.Debug.Message("AuctionatorSellingBagFrameMixin:Update()")
   self.ScrollBox.ItemListingFrame.oldHeight = self.ScrollBox.ItemListingFrame:GetHeight()
 
-  local minHeight = 0
-  local maxHeight = 0
-  local classItems = {}
   local lastItem = nil
 
   for _, classId in ipairs(self.orderedClassIds) do
@@ -144,22 +167,25 @@ function AuctionatorSellingBagFrameMixin:Update()
     local items = self.items[classId]
     frame:Reset()
 
-    classItems = {}
+    local classItems = {}
 
     for _, item in ipairs(items) do
       if item.auctionable then
         table.insert(classItems, item)
+        item.selected = self.highlightedKey == Auctionator.Selling.UniqueBagKey(item)
         if lastItem then
           lastItem.nextItem = item
+          item.prevItem = lastItem
+        else
+          -- Necessary as sometimes favourites get copied around and may have a
+          -- prevItem field set
+          item.prevItem = nil
         end
         lastItem = item
       end
     end
 
     frame:AddItems(classItems)
-
-    minHeight = minHeight + frame.SectionTitle:GetHeight()
-    maxHeight = maxHeight + frame:GetHeight()
   end
 
   self.ScrollBox.ItemListingFrame:OnSettingDirty()

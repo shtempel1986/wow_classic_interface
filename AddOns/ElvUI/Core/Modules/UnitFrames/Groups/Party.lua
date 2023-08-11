@@ -78,6 +78,7 @@ function UF:Construct_PartyFrames()
 
 	self.Fader = UF:Construct_Fader()
 	self.Cutaway = UF:Construct_Cutaway(self)
+	self.PrivateAuras = UF:Construct_PrivateAuras(self)
 
 	return self
 end
@@ -177,8 +178,8 @@ function UF:Update_PartyFrames(frame, db)
 
 		UF:EnableDisable_Auras(frame)
 		UF:Configure_AllAuras(frame)
-		UF:Configure_HealthBar(frame)
 		UF:Configure_InfoPanel(frame)
+		UF:Configure_HealthBar(frame)
 		UF:Configure_PhaseIcon(frame)
 		UF:Configure_Power(frame)
 		UF:Configure_Portrait(frame)
@@ -206,6 +207,7 @@ function UF:Update_PartyFrames(frame, db)
 	UF:Configure_Threat(frame)
 	UF:Configure_Fader(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_AuraHighlight(frame)
 
 	UF:HandleRegisterClicks(frame)

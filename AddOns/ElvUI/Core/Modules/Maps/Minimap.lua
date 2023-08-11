@@ -3,10 +3,8 @@ local M = E:GetModule('Minimap')
 local LSM = E.Libs.LSM
 
 local _G = _G
-local mod = mod
 local next = next
 local sort = sort
-local floor = floor
 local tinsert = tinsert
 local unpack = unpack
 local hooksecurefunc = hooksecurefunc
@@ -16,7 +14,6 @@ local CloseAllWindows = CloseAllWindows
 local CloseMenus = CloseMenus
 local CreateFrame = CreateFrame
 local GetMinimapZoneText = GetMinimapZoneText
-local GetTime = GetTime
 local GetZonePVPInfo = GetZonePVPInfo
 local HideUIPanel = HideUIPanel
 local InCombatLockdown = InCombatLockdown
@@ -26,6 +23,7 @@ local PlaySound = PlaySound
 local ShowUIPanel = ShowUIPanel
 local ToggleFrame = ToggleFrame
 local UIParentLoadAddOn = UIParentLoadAddOn
+local UIDropDownMenu_RefreshAll = UIDropDownMenu_RefreshAll
 
 local MainMenuMicroButton = MainMenuMicroButton
 local MainMenuMicroButton_SetNormal = MainMenuMicroButton_SetNormal
@@ -33,6 +31,8 @@ local MainMenuMicroButton_SetNormal = MainMenuMicroButton_SetNormal
 local WorldMapFrame = _G.WorldMapFrame
 local MinimapCluster = _G.MinimapCluster
 local Minimap = _G.Minimap
+
+local IndicatorLayout
 
 -- GLOBALS: GetMinimapShape
 
@@ -109,6 +109,10 @@ tinsert(menuList, { text = _G.MAINMENU_BUTTON,
 
 tinsert(menuList, { text = _G.HELP_BUTTON, bottom = true, func = _G.ToggleHelpFrame })
 
+for _, menu in ipairs(menuList) do
+	menu.notCheckable = true
+end
+
 M.RightClickMenu = menuFrame
 M.RightClickMenuList = menuList
 
@@ -133,33 +137,6 @@ function M:HandleExpansionButton()
 	end
 end
 
-function M:HandleQueueButton()
-	local queueDisplay = M.QueueStatusDisplay
-	if queueDisplay then
-		local db = E.db.general.minimap.icons.queueStatus
-		local _, position, xOffset, yOffset = M:GetIconSettings('queueStatus')
-		queueDisplay.text:ClearAllPoints()
-		queueDisplay.text:Point(position, Minimap, xOffset, yOffset)
-		queueDisplay.text:FontTemplate(LSM:Fetch('font', db.font), db.fontSize, db.fontOutline)
-
-		if not db.enable and queueDisplay.title then
-			M:ClearQueueStatus()
-		end
-	end
-
-	local queueButton = M:GetQueueStatusButton()
-	if queueButton then
-		queueButton:SetParent(Minimap)
-		queueButton:SetFrameLevel(_G.MinimapBackdrop:GetFrameLevel() + 2)
-
-		local scale, position, xOffset, yOffset = M:GetIconSettings('lfgEye')
-		queueButton:ClearAllPoints()
-		queueButton:Point(position, Minimap, xOffset, yOffset)
-
-		M:SetScale(queueButton, scale)
-	end
-end
-
 function M:HandleTrackingButton()
 	local tracking = MinimapCluster.Tracking and MinimapCluster.Tracking.Button or _G.MiniMapTrackingFrame or _G.MiniMapTracking
 	if not tracking then return end
@@ -172,6 +149,10 @@ function M:HandleTrackingButton()
 		tracking:ClearAllPoints()
 		tracking:Point(position, Minimap, xOffset, yOffset)
 		M:SetScale(tracking, scale)
+
+		if E.Retail and (tracking:GetScript('OnMouseDown') ~= M.TrackingButton_OnMouseDown) then
+			tracking:SetScript('OnMouseDown', M.TrackingButton_OnMouseDown)
+		end
 
 		if _G.MiniMapTrackingButtonBorder then
 			_G.MiniMapTrackingButtonBorder:Hide()
@@ -232,6 +213,12 @@ function M:CreateMinimapTrackingDropdown()
 	return dropdown
 end
 
+function M:MinimapTracking_UpdateTracking()
+	if _G.UIDROPDOWNMENU_OPEN_MENU == M.TrackingDropdown then
+		UIDropDownMenu_RefreshAll(M.TrackingDropdown)
+	end
+end
+
 function M:Minimap_OnMouseDown(btn)
 	menuFrame:Hide()
 
@@ -272,6 +259,12 @@ function M:MapCanvas_OnMouseDown(btn)
 			E:DropDown(menuList, menuFrame, -160, 0)
 		end
 	elseif btn == 'RightButton' and M.TrackingDropdown then
+		_G.ToggleDropDownMenu(1, nil, M.TrackingDropdown, 'cursor')
+	end
+end
+
+function M:TrackingButton_OnMouseDown()
+	if M.TrackingDropdown then
 		_G.ToggleDropDownMenu(1, nil, M.TrackingDropdown, 'cursor')
 	end
 end
@@ -345,19 +338,30 @@ function M:GetIconSettings(button)
 	return profile.scale or defaults.scale, profile.position or defaults.position, profile.xOffset or defaults.xOffset, profile.yOffset or defaults.yOffset
 end
 
-function M:GetQueueStatusButton()
-	return _G.QueueStatusButton or _G.MiniMapLFGFrame
-end
-
 function M:UpdateSettings()
-	if M.Initialized or E.private.actionbar.enable then
-		M:HandleQueueButton()
-	end
-
 	if not M.Initialized then return end
 
 	local noCluster = not E.Retail or E.db.general.minimap.clusterDisable
 	E.MinimapSize = E.db.general.minimap.size or Minimap:GetWidth()
+
+	local indicator = MinimapCluster.IndicatorFrame
+	if indicator then
+		-- save original indicator layout function
+		if not IndicatorLayout then
+			IndicatorLayout = indicator.Layout
+		end
+
+		-- use this to prevent no cluster mode moving mail icon
+		local layoutCall = (noCluster and E.noop) or IndicatorLayout
+		if indicator.Layout ~= layoutCall then
+			indicator.Layout = layoutCall
+
+			-- let it update once because we changed the setting back to cluster
+			if layoutCall == IndicatorLayout then
+				layoutCall(indicator)
+			end
+		end
+	end
 
 	-- silly little hack to get the canvas to update
 	if E.MinimapSize ~= M.NeedsCanvasUpdate then
@@ -404,7 +408,6 @@ function M:UpdateSettings()
 		M.ClusterBackdrop:SetSize(width, height)
 		M.ClusterBackdrop:SetShown(E.db.general.minimap.clusterBackdrop and not noCluster)
 
-		-- elements
 		_G.MinimapZoneText:FontTemplate(locationFont, locaitonSize, locationOutline)
 		_G.TimeManagerClockTicker:FontTemplate(LSM:Fetch('font', E.db.general.minimap.timeFont), E.db.general.minimap.timeFontSize, E.db.general.minimap.timeFontOutline)
 
@@ -463,7 +466,15 @@ function M:UpdateSettings()
 			end
 		end
 
-		local mailFrame = MinimapCluster.MailFrame or _G.MiniMapMailFrame
+		local craftingFrame = indicator and indicator.CraftingOrderFrame
+		if craftingFrame then
+			local scale, position, xOffset, yOffset = M:GetIconSettings('crafting')
+			craftingFrame:ClearAllPoints()
+			craftingFrame:Point(position, Minimap, xOffset, yOffset)
+			M:SetScale(craftingFrame, scale)
+		end
+
+		local mailFrame = (indicator and indicator.MailFrame) or _G.MiniMapMailFrame
 		if mailFrame then
 			local scale, position, xOffset, yOffset = M:GetIconSettings('mail')
 			mailFrame:ClearAllPoints()
@@ -521,84 +532,11 @@ function M:SetGetMinimapShape()
 	Minimap:Size(E.db.general.minimap.size)
 end
 
-function M:QueueStatusTimeFormat(seconds)
-	local hours = floor(mod(seconds,86400)/3600)
-	if hours > 0 then return M.QueueStatusDisplay.text:SetFormattedText('%dh', hours) end
-
-	local mins = floor(mod(seconds,3600)/60)
-	if mins > 0 then return M.QueueStatusDisplay.text:SetFormattedText('%dm', mins) end
-
-	local secs = mod(seconds,60)
-	if secs > 0 then return M.QueueStatusDisplay.text:SetFormattedText('%ds', secs) end
-end
-
-function M:QueueStatusSetTime(seconds)
-	local timeInQueue = GetTime() - seconds
-	M:QueueStatusTimeFormat(timeInQueue)
-
-	local wait = M.QueueStatusDisplay.averageWait
-	local waitTime = wait and wait > 0 and (timeInQueue / wait)
-	if not waitTime or waitTime >= 1 then
-		M.QueueStatusDisplay.text:SetTextColor(1, 1, 1)
-	else
-		M.QueueStatusDisplay.text:SetTextColor(E:ColorGradient(waitTime, 1,.1,.1, 1,1,.1, .1,1,.1))
+function M:ClusterSize(width, height)
+	local holder = M.ClusterHolder
+	if holder and (width ~= holder.savedWidth or height ~= holder.savedHeight) then
+		self:SetSize(holder.savedWidth, holder.savedHeight)
 	end
-end
-
-function M:QueueStatusOnUpdate(elapsed)
-	-- Replicate QueueStatusEntry_OnUpdate throttle
-	self.updateThrottle = self.updateThrottle - elapsed
-	if self.updateThrottle <= 0 then
-		M:QueueStatusSetTime(self.queuedTime)
-		self.updateThrottle = 0.1
-	end
-end
-
-function M:SetFullQueueStatus(title, queuedTime, averageWait)
-	local db = E.db.general.minimap.icons.queueStatus
-	if not db or not db.enable then return end
-
-	local display = M.QueueStatusDisplay
-	if not display.title or display.title == title then
-		if queuedTime then
-			display.title = title
-			display.updateThrottle = 0
-			display.queuedTime = queuedTime
-			display.averageWait = averageWait
-			display:SetScript('OnUpdate', M.QueueStatusOnUpdate)
-		else
-			M:ClearQueueStatus()
-		end
-	end
-end
-
-function M:SetMinimalQueueStatus(title)
-	if M.QueueStatusDisplay.title == title then
-		M:ClearQueueStatus()
-	end
-end
-
-function M:ClearQueueStatus()
-	local display = M.QueueStatusDisplay
-	display.text:SetText('')
-	display.title = nil
-	display.queuedTime = nil
-	display.averageWait = nil
-	display:SetScript('OnUpdate', nil)
-end
-
-function M:CreateQueueStatusText()
-	local display = CreateFrame('Frame', 'ElvUIQueueStatusDisplay', _G.QueueStatusButton)
-	display:SetIgnoreParentScale(true)
-	display:SetScale(E.uiscale)
-	display.text = display:CreateFontString(nil, 'OVERLAY')
-	display.text:FontTemplate()
-
-	M.QueueStatusDisplay = display
-
-	_G.QueueStatusButton:HookScript('OnHide', M.ClearQueueStatus)
-	hooksecurefunc('QueueStatusEntry_SetMinimalDisplay', M.SetMinimalQueueStatus)
-	hooksecurefunc('QueueStatusEntry_SetFullDisplay', M.SetFullQueueStatus)
 end
 
 function M:ClusterPoint(_, anchor)
@@ -616,10 +554,6 @@ function M:Initialize()
 		Minimap:SetMaskTexture(E.Retail and 130937 or [[interface\chatframe\chatframebackground]])
 	else
 		Minimap:SetMaskTexture(E.Retail and 186178 or [[textures\minimapmask]])
-
-		if E.private.actionbar.enable then
-			M:HandleQueueButton()
-		end
 
 		return
 	end
@@ -639,8 +573,10 @@ function M:Initialize()
 		MinimapCluster:KillEditMode()
 
 		local clusterHolder = CreateFrame('Frame', 'ElvUI_MinimapClusterHolder', MinimapCluster)
+		clusterHolder.savedWidth, clusterHolder.savedHeight = MinimapCluster:GetSize()
 		clusterHolder:Point('TOPRIGHT', E.UIParent, -3, -3)
-		clusterHolder:Size(MinimapCluster:GetSize())
+		clusterHolder:SetSize(clusterHolder.savedWidth, clusterHolder.savedHeight)
+		clusterHolder:SetFrameLevel(10) -- over minimap mover
 		E:CreateMover(clusterHolder, 'MinimapClusterMover', L["Minimap Cluster"], nil, nil, nil, nil, nil, 'maps,minimap')
 		M.ClusterHolder = clusterHolder
 
@@ -655,14 +591,13 @@ function M:Initialize()
 		Minimap:SetArchBlobRingScalar(0)
 		Minimap:SetQuestBlobRingAlpha(0)
 		Minimap:SetQuestBlobRingScalar(0)
-
-		_G.QueueStatusFrame:SetClampedToScreen(true)
 	end
 
 	M:ClusterPoint()
 	MinimapCluster:EnableMouse(false)
 	MinimapCluster:SetFrameLevel(20) -- set before minimap itself
 	hooksecurefunc(MinimapCluster, 'SetPoint', M.ClusterPoint)
+	hooksecurefunc(MinimapCluster, 'SetSize', M.ClusterSize)
 
 	Minimap:EnableMouseWheel(true)
 	Minimap:SetFrameLevel(10)
@@ -714,6 +649,8 @@ function M:Initialize()
 		MinimapCluster.BorderTop:StripTextures()
 		MinimapCluster.Tracking.Background:StripTextures()
 
+		M:RegisterEvent('MINIMAP_UPDATE_TRACKING', M.MinimapTracking_UpdateTracking)
+
 		if _G.GarrisonLandingPageMinimapButton_UpdateIcon then
 			hooksecurefunc('GarrisonLandingPageMinimapButton_UpdateIcon', M.HandleExpansionButton)
 		else
@@ -745,9 +682,7 @@ function M:Initialize()
 		M:SetupHybridMinimap()
 	end
 
-	if _G.QueueStatusButton then
-		M:CreateQueueStatusText()
-	elseif _G.MiniMapLFGFrame then
+	if _G.MiniMapLFGFrame then
 		(E.Wrath and _G.MiniMapLFGFrameBorder or _G.MiniMapLFGBorder):Hide()
 	end
 

@@ -37,8 +37,8 @@ local UnitInRaid = UnitInRaid
 local UnitIsMercenary = UnitIsMercenary
 local UnitIsUnit = UnitIsUnit
 
-local GetSpecialization = (E.Classic or E.Wrath and LCS.GetSpecialization) or GetSpecialization
-local GetSpecializationRole = (E.Classic or E.Wrath and LCS.GetSpecializationRole) or GetSpecializationRole
+local GetSpecialization = (E.Classic or E.Wrath) and LCS.GetSpecialization or GetSpecialization
+local GetSpecializationRole = (E.Classic or E.Wrath) and LCS.GetSpecializationRole or GetSpecializationRole
 
 local C_MountJournal_GetMountIDs = C_MountJournal and C_MountJournal.GetMountIDs
 local C_MountJournal_GetMountInfoByID = C_MountJournal and C_MountJournal.GetMountInfoByID
@@ -56,8 +56,11 @@ local GameMenuButtonLogout = GameMenuButtonLogout
 local GameMenuFrame = GameMenuFrame
 -- GLOBALS: ElvDB, ElvUF
 
+local DebuffColors = E.Libs.Dispel:GetDebuffTypeColor()
+
 E.MountIDs = {}
 E.MountText = {}
+E.MountDragons = {}
 
 function E:ClassColor(class, usePriestColor)
 	if not class then return end
@@ -198,6 +201,29 @@ end
 
 function E:IsDispellableByMe(debuffType)
 	return E.Libs.Dispel:IsDispellableByMe(debuffType)
+end
+
+function E:UpdateDispelColors()
+	local colors = E.db.general.debuffColors
+	for debuffType, db in next, colors do
+		local color = DebuffColors[debuffType]
+		if color then
+			E:UpdateClassColor(db)
+			color.r, color.g, color.b = db.r, db.g, db.b
+		end
+	end
+end
+
+function E:UpdateDispelColor(debuffType, r, g, b)
+	local color = DebuffColors[debuffType]
+	if color then
+		color.r, color.g, color.b = r, g, b
+	end
+
+	local db = E.db.general.debuffColors[debuffType]
+	if db then
+		db.r, db.g, db.b = r, g, b
+	end
 end
 
 do
@@ -603,6 +629,14 @@ function E:SetupGameMenu()
 	end
 end
 
+function E:IsDragonRiding()
+	for spellID in next, E.MountDragons do
+		if E:GetAuraByID('player', spellID, 'HELPFUL') then
+			return true
+		end
+	end
+end
+
 function E:LoadAPI()
 	E:RegisterEvent('PLAYER_LEVEL_UP')
 	E:RegisterEvent('PLAYER_ENTERING_WORLD')
@@ -615,9 +649,13 @@ function E:LoadAPI()
 	if E.Retail then
 		for _, mountID in next, C_MountJournal_GetMountIDs() do
 			local _, _, sourceText = C_MountJournal_GetMountInfoExtraByID(mountID)
-			local _, spellID = C_MountJournal_GetMountInfoByID(mountID)
+			local _, spellID, _, _, _, _, _, _, _, _, _, _, isForDragonriding = C_MountJournal_GetMountInfoByID(mountID)
 			E.MountIDs[spellID] = mountID
 			E.MountText[mountID] = sourceText
+
+			if isForDragonriding then
+				E.MountDragons[spellID] = mountID
+			end
 		end
 
 		E:RegisterEvent('NEUTRAL_FACTION_SELECT_RESULT')

@@ -1,7 +1,7 @@
 -- License: LICENSE.txt
 
 local MAJOR_VERSION = "LibActionButton-1.0-ElvUI"
-local MINOR_VERSION = 41 -- the real minor version is 106
+local MINOR_VERSION = 43 -- the real minor version is 107
 
 local LibStub = LibStub
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
@@ -807,6 +807,13 @@ if UseCustomFlyout then
 			local slotButton = self:GetFrameRef("flyoutButton" .. i)
 			if slotButton then
 				slotButton:Hide()
+
+				-- unset its action, so it stops updating
+				slotButton:SetAttribute("labtype-0", "empty")
+				slotButton:SetAttribute("labaction-0", nil)
+
+				slotButton:CallMethod("SetStateFromHandlerInsecure", 0, "empty")
+				slotButton:CallMethod("UpdateAction")
 			end
 		end
 
@@ -1003,6 +1010,14 @@ if UseCustomFlyout then
 			end
 
 			lib.flyoutHandler:SetAttribute("numFlyoutButtons", #lib.FlyoutButtons)
+		end
+
+		-- hide flyout frame
+		GetFlyoutHandler():Hide()
+
+		-- ensure buttons are cleared, they will be filled when the flyout is shown
+		for i = 1, #lib.FlyoutButtons do
+			lib.FlyoutButtons[i]:SetState(0, "empty")
 		end
 
 		InSync = false
@@ -1314,6 +1329,11 @@ function InitializeEventHandler()
 		lib.eventFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
 	end
 
+	if not WoWRetail then
+		 -- Needed for classics show grid.. ACTIONBAR_SHOWGRID fires with PET_BAR_SHOWGRID but ACTIONBAR_HIDEGRID doesn't fire with PET_BAR_HIDEGRID
+		lib.eventFrame:RegisterEvent("PET_BAR_HIDEGRID")
+	end
+
 	-- With those two, do we still need the ACTIONBAR equivalents of them?
 	lib.eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 	lib.eventFrame:RegisterEvent("SPELL_UPDATE_USABLE")
@@ -1383,7 +1403,7 @@ function OnEvent(frame, event, arg1, ...)
 		end
 	elseif event == "ACTIONBAR_SHOWGRID" then
 		ShowGrid()
-	elseif event == "ACTIONBAR_HIDEGRID" then
+	elseif event == "ACTIONBAR_HIDEGRID" or event == "PET_BAR_HIDEGRID" then
 		HideGrid()
 	elseif event == "UPDATE_BINDINGS" then
 		ForAllButtons(UpdateHotkeys)
@@ -2487,13 +2507,13 @@ Spell.GetTexture              = function(self) return GetSpellTexture(self._stat
 Spell.GetCharges              = function(self) return GetSpellCharges(self._state_action) end
 Spell.GetCount                = function(self) return GetSpellCount(self._state_action) end
 Spell.GetCooldown             = function(self) return GetSpellCooldown(self._state_action) end
-Spell.IsAttack                = function(self) local id = FindSpellBookSlotBySpellID(self._state_action); return id and IsAttackSpell(id, "spell") end -- needs spell book id as of 4.0.1.13066
+Spell.IsAttack                = function(self) local slot = FindSpellBookSlotBySpellID(self._state_action) return slot and IsAttackSpell(slot, "spell") or nil end -- needs spell book id as of 4.0.1.13066
 Spell.IsEquipped              = function(self) return nil end
 Spell.IsCurrentlyActive       = function(self) return IsCurrentSpell(self._state_action) end
-Spell.IsAutoRepeat            = function(self) local id = FindSpellBookSlotBySpellID(self._state_action); return id and IsAutoRepeatSpell(id, "spell") end -- needs spell book id as of 4.0.1.13066
+Spell.IsAutoRepeat            = function(self) local slot = FindSpellBookSlotBySpellID(self._state_action) return slot and IsAutoRepeatSpell(slot, "spell") or nil end -- needs spell book id as of 4.0.1.13066
 Spell.IsUsable                = function(self) return IsUsableSpell(self._state_action) end
 Spell.IsConsumableOrStackable = function(self) return IsConsumableSpell(self._state_action) end
-Spell.IsUnitInRange           = function(self, unit) local id = FindSpellBookSlotBySpellID(self._state_action); return id and IsSpellInRange(id, "spell", unit) end -- needs spell book id as of 4.0.1.13066
+Spell.IsUnitInRange           = function(self, unit) local slot = FindSpellBookSlotBySpellID(self._state_action) return slot and IsSpellInRange(slot, "spell", unit) or nil end -- needs spell book id as of 4.0.1.13066
 Spell.SetTooltip              = function(self) return GameTooltip:SetSpellByID(self._state_action) end
 Spell.GetSpellId              = function(self) return self._state_action end
 Spell.GetLossOfControlCooldown = function(self) return GetSpellLossOfControlCooldown(self._state_action) end

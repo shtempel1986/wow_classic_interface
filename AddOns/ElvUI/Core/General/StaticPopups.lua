@@ -12,7 +12,6 @@ local format, error, ipairs, ceil = format, error, ipairs, ceil
 
 local CreateFrame = CreateFrame
 local IsAddOnLoaded = IsAddOnLoaded
-local PickupContainerItem = PickupContainerItem
 local DeleteCursorItem = DeleteCursorItem
 local MoneyFrame_Update = MoneyFrame_Update
 local UnitIsDeadOrGhost, InCinematic = UnitIsDeadOrGhost, InCinematic
@@ -21,21 +20,24 @@ local SetCVar, EnableAddOn, DisableAddOn = SetCVar, EnableAddOn, DisableAddOn
 local ReloadUI, PlaySound, StopMusic = ReloadUI, PlaySound, StopMusic
 local StaticPopup_Resize = StaticPopup_Resize
 local GetBindingFromClick = GetBindingFromClick
+
 local AutoCompleteEditBox_OnEnterPressed = AutoCompleteEditBox_OnEnterPressed
 local AutoCompleteEditBox_OnTextChanged = AutoCompleteEditBox_OnTextChanged
 local ChatEdit_FocusActiveWindow = ChatEdit_FocusActiveWindow
+local PickupContainerItem = (C_Container and C_Container.PickupContainerItem) or PickupContainerItem
+
 local STATICPOPUP_TEXTURE_ALERT = STATICPOPUP_TEXTURE_ALERT
 local STATICPOPUP_TEXTURE_ALERTGEAR = STATICPOPUP_TEXTURE_ALERTGEAR
 local YES, NO, OKAY, CANCEL, ACCEPT, DECLINE = YES, NO, OKAY, CANCEL, ACCEPT, DECLINE
 -- GLOBALS: ElvUIBindPopupWindowCheckButton
 
-local DOWNLOAD_URL = 'https://www.tukui.org/download.php?ui=elvui'
+local DOWNLOAD_URL = 'https://tukui.org/elvui'
 
 E.PopupDialogs = {}
 E.StaticPopup_DisplayedFrames = {}
 
 E.PopupDialogs.ELVUI_UPDATE_AVAILABLE = {
-	text = L["ElvUI is five or more revisions out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"],
+	text = L["ElvUI is five or more revisions out of date. You can download the newest version from tukui.org."],
 	hasEditBox = 1,
 	OnShow = function(self)
 		self.editBox:SetAutoFocus(false)
@@ -51,7 +53,6 @@ E.PopupDialogs.ELVUI_UPDATE_AVAILABLE = {
 	end,
 	hideOnEscape = 1,
 	button1 = OKAY,
-	OnAccept = E.noop,
 	EditBoxOnEnterPressed = function(self)
 		ChatEdit_FocusActiveWindow()
 		self:GetParent():Hide()
@@ -107,16 +108,14 @@ E.PopupDialogs.ELVUI_EDITBOX = {
 		self:HighlightText()
 		self:ClearFocus()
 	end,
-	OnAccept = E.noop,
 	whileDead = 1,
 	preferredIndex = 3,
 	hideOnEscape = 1,
 }
 
-E.PopupDialogs.CLIENT_UPDATE_REQUEST = {
-	text = L["Detected that your ElvUI Options addon is out of date. This may be a result of your Tukui Client being out of date. Please visit our download page and update your Tukui Client, then reinstall ElvUI. Not having your ElvUI Options addon up to date will result in missing options."],
+E.PopupDialogs.UPDATE_REQUEST = {
+	text = L["UPDATE_REQUEST"],
 	button1 = OKAY,
-	OnAccept = E.noop,
 	showAlert = 1,
 }
 
@@ -390,7 +389,6 @@ E.PopupDialogs.SCRIPT_PROFILE = {
 		SetCVar('scriptProfile', 0)
 		ReloadUI()
 	end,
-	OnCancel = E.noop,
 	showAlert = 1,
 	whileDead = 1,
 	hideOnEscape = false,

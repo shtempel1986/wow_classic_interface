@@ -2,8 +2,8 @@
 
 License: All Rights Reserved, (c) 2009-2018
 
-$Revision: 2996 $
-$Date: 2022-10-27 00:36:21 +1100 (Thu, 27 Oct 2022) $
+$Revision: 3002 $
+$Date: 2023-01-20 08:12:26 +1100 (Fri, 20 Jan 2023) $
 
 ]]--
 
@@ -1777,7 +1777,7 @@ function ArkInventoryRules.System.boolean_transmog( ... )
 	
 end
 
-function ArkInventoryRules.System.boolean_itemstat( ... )
+function ArkInventoryRules.System.boolean_itemstat_check( check_type, ... )
 	
 	if not ArkInventoryRules.Object.h then
 		return false
@@ -1796,7 +1796,7 @@ function ArkInventoryRules.System.boolean_itemstat( ... )
 	
 	--ArkInventory.Output( ArkInventoryRules.Object.h, " [", e, "]" )
 	
-	local stats = ArkInventory.TooltipGetBaseStats( ArkInventoryRules.Tooltip )
+	local stats = ArkInventory.TooltipGetBaseStats( ArkInventoryRules.Tooltip, check_type )
 	
 	if stats ~= "" then
 		
@@ -1825,6 +1825,14 @@ function ArkInventoryRules.System.boolean_itemstat( ... )
 	
 	return false
 	
+end
+
+function ArkInventoryRules.System.boolean_itemstat( ... )
+	return ArkInventoryRules.System.boolean_itemstat_check( false, ... )
+end
+
+function ArkInventoryRules.System.boolean_itemstat_active( ... )
+	return ArkInventoryRules.System.boolean_itemstat_check( true, ... )
 end
 
 function ArkInventoryRules.System.boolean_isknown( ... )
@@ -2269,6 +2277,7 @@ ArkInventoryRules.Environment = {
 	statlevel = ArkInventoryRules.System.boolean_itemlevelstat,
 	
 	itemstat = ArkInventoryRules.System.boolean_itemstat,
+	itemstatactive = ArkInventoryRules.System.boolean_itemstat_active,
 	
 	ireq = ArkInventoryRules.System.boolean_itemleveluse,
 	uselevel = ArkInventoryRules.System.boolean_itemleveluse,

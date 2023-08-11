@@ -10,18 +10,19 @@ local pairs = pairs
 local _unpack = unpack
 local type = type
 --api locals
-local _GetSpellInfo = _detalhes.getspellinfo
+local _GetSpellInfo = Details.getspellinfo
 local GameTooltip = GameTooltip
 local IsInRaid = IsInRaid
 local IsInGroup = IsInGroup
 
-local _string_replace = _detalhes.string.replace --details api
+local _string_replace = Details.string.replace --details api
 
-local _detalhes = 		_G._detalhes
+local _detalhes = 		_G.Details
 local AceLocale = LibStub("AceLocale-3.0")
 local Loc = AceLocale:GetLocale ( "Details" )
 local _
 local addonName, Details222 = ...
+local detailsFramework = DetailsFramework
 
 local gump = 			_detalhes.gump
 
@@ -55,7 +56,7 @@ local headerColor = "yellow"
 
 local actor_class_color_r, actor_class_color_g, actor_class_color_b
 
-local info = _detalhes.playerDetailWindow
+local breakdownWindowFrame = Details.BreakdownWindowFrame
 local keyName
 
 
@@ -84,6 +85,7 @@ function atributo_energy:NovaTabela (serial, nome, link)
 		spells = container_habilidades:NovoContainer (container_energy),
 	}
 	
+	detailsFramework:Mixin(_new_energyActor, Details222.Mixins.ActorMixin)
 	setmetatable(_new_energyActor, atributo_energy)
 	
 	return _new_energyActor
@@ -265,6 +267,12 @@ function atributo_energy:AtualizarResources (whichRowLine, colocacao, instancia)
 	self:SetBarColors(esta_barra, instancia, actor_class_color_r, actor_class_color_g, actor_class_color_b)
 	--icon
 	self:SetClassIcon (esta_barra.icone_classe, instancia, self.classe)
+	if(esta_barra.mouse_over) then
+		local classIcon = esta_barra:GetClassIcon()
+		esta_barra.iconHighlight:SetTexture(classIcon:GetTexture())
+		esta_barra.iconHighlight:SetTexCoord(classIcon:GetTexCoord())
+		esta_barra.iconHighlight:SetVertexColor(classIcon:GetVertexColor())
+	end
 
 end
 
@@ -275,7 +283,7 @@ function atributo_energy:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 	local showing = tabela_do_combate [class_type]
 
 	if (#showing._ActorTable < 1) then --n�o h� barras para mostrar
-		return _detalhes:EsconderBarrasNaoUsadas (instancia, showing), "", 0, 0
+		return _detalhes:HideBarsNotInUse(instancia, showing), "", 0, 0
 	end
 	
 	local total = 0
@@ -537,7 +545,7 @@ function atributo_energy:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 			
 			Details.FadeHandler.Fader(row1, "out")
 			
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
+			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
 				for i = instancia.barraS[1], iter_last-1, 1 do --vai atualizar s� o range que esta sendo mostrado
 					conteudo[i]:RefreshLine(instancia, barras_container, whichRowLine, i, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator) --inst�ncia, index, total, valor da 1� barra
 					whichRowLine = whichRowLine+1
@@ -598,7 +606,7 @@ function atributo_energy:RefreshWindow (instancia, tabela_do_combate, forcar, ex
 			
 			Details.FadeHandler.Fader(row1, "out")
 			
-			if (following and myPos and myPos > instancia.rows_fit_in_window and instancia.barraS[2] < myPos) then
+			if (following and myPos and myPos+1 > instancia.rows_fit_in_window and instancia.barraS[2] < myPos+1) then
 				conteudo[myPos]:RefreshLine(instancia, barras_container, whichRowLine, myPos, total, sub_atributo, forcar, keyName, combat_time, percentage_type, use_animations, bars_show_data, bars_brackets, bars_separator) --inst�ncia, index, total, valor da 1� barra
 				whichRowLine = whichRowLine+1
 				for i = iter_last-1, instancia.barraS[1], -1 do --vai atualizar s� o range que esta sendo mostrado
@@ -784,6 +792,13 @@ function atributo_energy:RefreshBarra(esta_barra, instancia, from_resize)
 	
 	--icon
 	self:SetClassIcon (esta_barra.icone_classe, instancia, class)
+
+	if(esta_barra.mouse_over) then
+		local classIcon = esta_barra:GetClassIcon()
+		esta_barra.iconHighlight:SetTexture(classIcon:GetTexture())
+		esta_barra.iconHighlight:SetTexCoord(classIcon:GetTexCoord())
+		esta_barra.iconHighlight:SetVertexColor(classIcon:GetVertexColor())
+	end
 	--texture color
 	self:SetBarColors(esta_barra, instancia, actor_class_color_r, actor_class_color_g, actor_class_color_b)
 	--left text
@@ -1031,27 +1046,29 @@ end
 
 ---------DETALHES BIFURCA��O
 function atributo_energy:MontaInfo()
-	if (info.sub_atributo <= 4) then
+	if (breakdownWindowFrame.sub_atributo <= 4) then
 		return self:MontaInfoRegenRecebido()
 	end
 end
 
 ---------DETALHES bloco da direita BIFURCA��O
 function atributo_energy:MontaDetalhes (spellid, barra)
-	if (info.sub_atributo <= 4) then
+	if (breakdownWindowFrame.sub_atributo <= 4) then
 		return self:MontaDetalhesRegenRecebido (spellid, barra)
 	end
 end
 
 function atributo_energy:MontaInfoRegenRecebido()
 
+	if true then return end
+
 	reset_tooltips_table()
 
-	local barras = info.barras1
-	local barras2 = info.barras2
-	local barras3 = info.barras3
+	local barras = breakdownWindowFrame.barras1
+	local barras2 = breakdownWindowFrame.barras2
+	local barras3 = breakdownWindowFrame.barras3
 	
-	local instancia = info.instancia
+	local instancia = breakdownWindowFrame.instancia
 
 	local tabela_do_combate = instancia.showing
 	local container = tabela_do_combate [class_type] 
@@ -1171,7 +1188,7 @@ function atributo_energy:MontaInfoRegenRecebido()
 			break
 		end
 	
-		barra = info.barras2 [index]
+		barra = breakdownWindowFrame.barras2 [index]
 		
 		if (not barra) then
 			barra = gump:CriaNovaBarraInfo2 (instancia, index)
@@ -1209,17 +1226,13 @@ function atributo_energy:MontaInfoRegenRecebido()
 end
 
 function atributo_energy:MontaDetalhesRegenRecebido (nome, barra)
-
-	for _, barra in ipairs(info.barras3) do 
-		barra:Hide()
-	end
 	
 	reset_tooltips_table()
 	
-	local barras = info.barras3
-	local instancia = info.instancia
+	local barras = breakdownWindowFrame.barras3
+	local instancia = breakdownWindowFrame.instancia
 
-	local tabela_do_combate = info.instancia.showing
+	local tabela_do_combate = breakdownWindowFrame.instancia.showing
 	local container = tabela_do_combate [class_type]
 	
 	local total_regenerado = self.received
@@ -1260,12 +1273,15 @@ function atributo_energy:MontaDetalhesRegenRecebido (nome, barra)
 
 	local max_ = energy_tooltips_table [1][2]
 	
+	local lastIndex = 1
 	local barra
 	for index, tabela in ipairs(from) do
 	
 		if (tabela [2] < 1) then
 			break
 		end
+
+		lastIndex = index
 	
 		barra = barras [index]
 
@@ -1273,6 +1289,8 @@ function atributo_energy:MontaDetalhesRegenRecebido (nome, barra)
 			barra = gump:CriaNovaBarraInfo3 (instancia, index)
 			barra.textura:SetStatusBarColor(1, 1, 1, 1)
 		end
+
+		barra.show = tabela[1]
 		
 		if (index == 1) then
 			barra.textura:SetValue(100)
@@ -1294,11 +1312,16 @@ function atributo_energy:MontaDetalhesRegenRecebido (nome, barra)
 			break
 		end
 	end
+
+	for i = lastIndex+1, #barras do
+		barras[i]:Hide()
+	end
+
 end
 
 function atributo_energy:MontaTooltipAlvos (esta_barra, index)
 
-	local instancia = info.instancia
+	local instancia = breakdownWindowFrame.instancia
 	local tabela_do_combate = instancia.showing
 	local container = tabela_do_combate [class_type] 
 	
@@ -1351,7 +1374,7 @@ end
 
 
 --controla se o dps do jogador esta travado ou destravado
-function atributo_energy:Iniciar (iniciar)
+function atributo_energy:GetOrChangeActivityStatus (iniciar)
 	return false --retorna se o dps esta aberto ou fechado para este jogador
 end
 
@@ -1515,11 +1538,8 @@ end
 			return shadow
 		end
 
-function atributo_energy:ColetarLixo (lastevent)
-	return _detalhes:ColetarLixo (class_type, lastevent)
-end
-
 function _detalhes.refresh:r_atributo_energy (este_jogador, shadow)
+	detailsFramework:Mixin(este_jogador, Details222.Mixins.ActorMixin)
 	setmetatable(este_jogador, _detalhes.atributo_energy)
 	este_jogador.__index = _detalhes.atributo_energy
 
@@ -1527,12 +1547,11 @@ function _detalhes.refresh:r_atributo_energy (este_jogador, shadow)
 
 	if (shadow and not shadow.powertype) then
 		shadow.powertype = este_jogador.powertype
-	end	
+	end
 end
 
 function _detalhes.clear:c_atributo_energy (este_jogador)
 	este_jogador.__index = nil
-	este_jogador.shadow = nil
 	este_jogador.links = nil
 	este_jogador.minha_barra = nil
 	

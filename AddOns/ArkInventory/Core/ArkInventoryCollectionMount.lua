@@ -1223,34 +1223,27 @@ function ArkInventory.Collection.Mount.ZoneCheck( mapid_table )
 end
 
 function ArkInventory.Collection.Mount.GetUsable( mta )
-	
 	if mta then
-		
-		if mta =="a" or mta == "l" then
-			
-			if ArkInventory.Collection.Mount.ZoneCheck( ArkInventory.Const.Mount.Zone.DragonIsles ) then
-				ArkInventory.OutputDebug( "in the dragon isles" )
-				local codex = ArkInventory.GetPlayerCodex( )
-				if codex.player.data.ldb.mounts.dragonriding then
-					ArkInventory.OutputDebug( "dragonriding enabled" )
-					if mta == "a" then
-						mta = "l"
-						ArkInventory.OutputDebug( "swapping land for flying" )
-					elseif mta == "l" then
-						mta = "a"
-						ArkInventory.OutputDebug( "swapping flying for land" )
-					end
-				else
-					ArkInventory.OutputDebug( "dragonriding disabled" )
-				end
-			end
-			
-		end
-		
 		return collection.usable[mta]
-		
 	end
-	
+end
+
+function ArkInventory.Collection.Mount.isDragonridingAvailable( )
+	for _, id in pairs( ArkInventory.Const.Flying.Dragonriding ) do
+		if IsUsableSpell( id ) then
+			return true
+		end
+	end
+end
+
+function ArkInventory.Collection.Mount.getDragonridingMounts( )
+	local tbl = { }
+	for _, md in ArkInventory.Collection.Mount.Iterate( "a" ) do
+		if md.mountTypeID == 402 then
+			tbl[md.index] = md
+		end
+	end
+	return tbl
 end
 
 function ArkInventory.Collection.Mount.GetMountBySpell( spellID )
@@ -1302,21 +1295,25 @@ end
 
 function ArkInventory.Collection.Mount.isUsable( id )
 	
-	if IsOutdoors( ) then
+	local md = ArkInventory.Collection.Mount.GetMount( id )
+	if md then
 		
-		local md = ArkInventory.Collection.Mount.GetMount( id )
-		if md then
+		if IsUsableSpell( md.spellID ) then
 			
-			if ( IsUsableSpell( md.spellID ) ) then
+			local mz = false
+			
+			local mu = select( 5, C_MountJournal.GetMountInfoByID( id ) ) -- is not always correct
+			if mu then
 				
-				local mz = false
-				
-				local mu = select( 5, C_MountJournal.GetMountInfoByID( id ) ) -- is not always correct
-				if mu then
+				if ZoneRestrictions[md.spellID] then
 					
-					if ZoneRestrictions[md.spellID] then
+					ArkInventory.OutputDebug( "mount ", md.spellID, " has zone restrictions ", ZoneRestrictions[md.spellID] )
+					
+					if #ZoneRestrictions == 0 then
 						
-						ArkInventory.OutputDebug( "mount ", md.spellID, " has zone restrictions ", ZoneRestrictions[md.spellID] )
+						mz = true
+						
+					else
 						
 						local map = C_Map.GetBestMapForUnit( "player" )
 						for _, z in pairs( ZoneRestrictions[md.spellID] ) do
@@ -1326,18 +1323,18 @@ function ArkInventory.Collection.Mount.isUsable( id )
 							end
 						end
 						
-						if not mz then
-							ArkInventory.OutputDebug( "mount ", md.spellID, " cannot be used here [zone=", map, "]" )
-							mu = false
-						end
-						
+					end
+					
+					if not mz then
+						ArkInventory.OutputDebug( "mount ", md.spellID, " cannot be used here [zone=", map, "]" )
+						mu = false
 					end
 					
 				end
 				
-				return mu, mz
-				
 			end
+			
+			return mu, mz
 			
 		end
 		
@@ -1545,7 +1542,7 @@ local function Scan_Threaded( thread_id )
 		numTotal = numTotal + 1
 		YieldCount = YieldCount + 1
 		
-		local name, spellID, icon, isActive, isUsable, source, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID( index )
+		local name, spellID, icon, isActive, isUsable, source, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID, isDragonriding = C_MountJournal.GetMountInfoByID( index )
 		local creatureDisplayInfoID, description, source2, isSelfMount, mountTypeID, uiModelSceneID = C_MountJournal.GetMountInfoExtraByID( index )
 --		local isFavorite, canSetFavorite = C_MountJournal.GetIsFavorite( i )
 		
@@ -1590,6 +1587,7 @@ local function Scan_Threaded( thread_id )
 			c[i].isSelfMount = isSelfMount
 			c[i].mountTypeID = mountTypeID
 			c[i].uiModelSceneID = uiModelSceneID
+			c[i].isDragonriding = isDragonriding
 			
 			c[i].link = GetSpellLink( spellID )
 			

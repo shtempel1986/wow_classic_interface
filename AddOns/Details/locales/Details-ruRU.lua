@@ -1340,8 +1340,7 @@ L["STRING_OPTIONS_WINDOW_SCALE_DESC"] = [=[Отрегулируйте масшт
 
 |cFFFFFF00Текущий|r: %s]=]
 L["STRING_OPTIONS_WINDOW_SKIN_COLOR"] = "Цвет оболочки"
---[[Translation missing --]]
---[[ L["STRING_OPTIONS_WINDOW_SKIN_COLOR_DESC"] = ""--]] 
+L["STRING_OPTIONS_WINDOW_SKIN_COLOR_DESC"] = "Изменяет цвет скина, применяемого к этому окнe. |cFFFFFF00Важно|r: выбранный здесь альфа-канал перезаписывается значениями |cFFFFFF00Автоматическая прозрачность|r при включении. |cFFFFFF00Важно|r: выбор цвета скина перезаписывает любые настройки цвета, примененные к строке состояния.."
 L["STRING_OPTIONS_WINDOW_TITLE"] = "Общие настройки окна"
 L["STRING_OPTIONS_WINDOW_TITLE_DESC"] = "Эти параметры управляют внешним видом выбранного окна."
 L["STRING_OPTIONS_WINDOWSPEED"] = "Интервал обновления"
@@ -1677,4 +1676,3 @@ L["STRING_WIPE_ERROR1"] = "Уже было сказано: Ложимся!"
 L["STRING_WIPE_ERROR2"] = "Вы не находитесь в рейдовом сражении."
 L["STRING_WIPE_ERROR3"] = "не удалось закончить сражение."
 L["STRING_YES"] = "Да"
-

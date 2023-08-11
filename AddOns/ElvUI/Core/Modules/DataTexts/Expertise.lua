@@ -8,46 +8,45 @@ local GetExpertise = GetExpertise
 local IsDualWielding = IsDualWielding
 local GetCombatRating = GetCombatRating
 local GetCombatRatingBonus = GetCombatRatingBonus
+local GetExpertisePercent = GetExpertisePercent
 
-local STAT_EXPERTISE = STAT_EXPERTISE
 local STAT_CATEGORY_ENHANCEMENTS = STAT_CATEGORY_ENHANCEMENTS
 local CR_EXPERTISE_TOOLTIP = CR_EXPERTISE_TOOLTIP
+local STAT_EXPERTISE = STAT_EXPERTISE
 local CR_EXPERTISE = CR_EXPERTISE
 
-local displayString, lastPanel = ''
-
-local expertise, offhandExpertise, expertisePercent, offhandExpertisePercent, expertisePercentDisplay
-local expertiseRating, expertiseBonusRating
+local displayString, expertisePercentDisplay, ttStr = '', '', ''
+local expertisePercent, offhandExpertisePercent = 0, 0
+local expertiseRating, expertiseBonusRating = 0, 0
+local expertise, offhandExpertise = 0, 0
 
 local function OnEvent(self)
 	expertise, offhandExpertise = GetExpertise()
-	expertisePercent, offhandExpertisePercent = format('%.2f%%', expertise), format('%.2f%%', offhandExpertise)
+	expertisePercent, offhandExpertisePercent = GetExpertisePercent()
 	expertiseRating, expertiseBonusRating = GetCombatRating(CR_EXPERTISE), GetCombatRatingBonus(CR_EXPERTISE)
 
-	expertisePercentDisplay = expertisePercent
-
 	if IsDualWielding() then
-		expertisePercentDisplay = format('%s / %s', expertisePercent, offhandExpertisePercent)
+		expertisePercentDisplay = format('%.2f%% / %.2f%%', expertisePercent, offhandExpertisePercent)
+		ttStr = '%s / %s'
+	else
+		expertisePercentDisplay = format('%.2f%%', expertisePercent)
+		ttStr = '%s'
 	end
 
 	self.text:SetFormattedText(displayString, STAT_EXPERTISE..': ', expertisePercentDisplay)
-
-	lastPanel = self
 end
 
 local function OnEnter()
 	DT.tooltip:ClearLines()
-	DT.tooltip:AddLine(format(CR_EXPERTISE_TOOLTIP, expertisePercentDisplay, expertiseRating, expertiseBonusRating), nil, nil, nil, true)
+
+	DT.tooltip:AddDoubleLine(STAT_EXPERTISE, format(ttStr, expertise, offhandExpertise), 1, 1, 1)
+	DT.tooltip:AddLine(format(CR_EXPERTISE_TOOLTIP, expertisePercentDisplay, expertiseRating, expertiseBonusRating))
+
 	DT.tooltip:Show()
 end
 
-local function ValueColorUpdate(hex)
+local function ApplySettings(_, hex)
 	displayString = strjoin('', '%s', hex, '%s|r')
-
-	if lastPanel ~= nil then
-		OnEvent(lastPanel, 2000)
-	end
 end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
 
-DT:RegisterDatatext('Expertise', STAT_CATEGORY_ENHANCEMENTS, { 'UNIT_STATS', 'UNIT_AURA', 'ACTIVE_TALENT_GROUP_CHANGED', 'PLAYER_TALENT_UPDATE' }, OnEvent, nil, nil, OnEnter, nil, STAT_EXPERTISE, nil, ValueColorUpdate)
+DT:RegisterDatatext('Expertise', STAT_CATEGORY_ENHANCEMENTS, { 'UNIT_STATS', 'UNIT_AURA', 'ACTIVE_TALENT_GROUP_CHANGED', 'PLAYER_TALENT_UPDATE' }, OnEvent, nil, nil, OnEnter, nil, STAT_EXPERTISE, nil, ApplySettings)

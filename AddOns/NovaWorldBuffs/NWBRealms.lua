@@ -183,27 +183,41 @@ function NWB:setRealmData()
 	else
 		NWB.usRealms = {
 			--["Arugal"] = true,
-			--["Benediction"] = true,
-			--["Earthfury"] = true,
-			--["Faerlina"] = true,
-			--["Fairbanks"] = true,
-			--["Herod"] = true,
-			--["Pagle"] = true,
-			--["Sulfuras"] = true,
-			--["Whitemane"] = true,
+			--RP era server, no linked realms, full and layered.
+			["Bloodsail Buccaneers"] = true,
+			--Main west era cluster of linked realms, full and layered.
+			["Arcanite Reaper"] = true,
+			["Anathema"] = true,
+			["Thunderfury"] = true,
+			["Smolderweb"] = true,
+			["Fairbanks"] = true,
+			["Rattlegore"] = true,
+			["Kurinnaxx"] = true,
+			["Bigglesworth"] = true,
+			["Blaumeux"] = true,
+			["Whitemane"] = true,
+			--Main east era cluster of linked realms, full and layered.
+			["Ashkandi"] = true,
+			["Mankrik"] = true,
+			["Pagle"] = true,
+			["Westfall"] = true,
+			["Windseeker"] = true,
 		}
 		
 		NWB.euRealms = {
-			--["Auberdine"] = true,
-			--["Ashbringer"] = true,
-			--["Firemaw"] = true,
-			--["Flamegor"] = true,
-			--["Gehennas"] = true,
-			--["Golemagg"] = true,
-			--["Mograine"] = true,
-			--["Sulfuron"] = true,
-			--["Venoxis"] = true,
-			--["Пламегор"] = true,
+			--RP era server, no linked realms, full and layered.
+			["Hydraxian Waterlords"] = true,
+			--Main era cluster of linked realms, full and layered.
+			["Dragonfang"] = true,
+			["Ashbringer"] = true,
+			["Firemaw"] = true,
+			["Earthshaker"] = true,
+			["Bloodfang"] = true,
+			["Golemagg"] = true,
+			["Mograine"] = true,
+			["Skullflame"] = true,
+			["Noggenfogger"] = true,
+			["Gandling"] = true,
 		}
 		
 		NWB.krRealms = {

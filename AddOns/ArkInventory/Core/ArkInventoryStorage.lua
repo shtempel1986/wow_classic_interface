@@ -259,6 +259,8 @@ function ArkInventory:EVENT_ARKINV_PLAYER_ENTER( ... )
 	
 	ArkInventory.PlayerInfoSet( )
 	
+	ArkInventory.SetMountMacro( )
+	
 	--ArkInventory.ScanLocation( )
 	
 end
@@ -1601,8 +1603,7 @@ function ArkInventory:EVENT_ARKINV_QUEST_UPDATE_BUCKET( ... )
 	local event = ...
 	ArkInventory.OutputDebug( "EVENT: ", event )
 	
-	--ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
-	ArkInventory.Frame_Main_DrawStatus( ArkInventory.Const.Location.Bag, ArkInventory.Const.Window.Draw.Refresh )
+	ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Refresh )
 	
 end
 
@@ -1631,8 +1632,6 @@ function ArkInventory:EVENT_ARKINV_ZONE_CHANGED_BUCKET( ... )
 	
 	local event = ...
 	ArkInventory.OutputDebug( "EVENT: ", event )
-	
-	ArkInventory.SetMountMacro( )
 	
 end
 
@@ -1680,8 +1679,9 @@ function ArkInventory:EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET( ... )
 	if ArkInventory.Global.Mode.Combat then
 		-- ignored, in combat
 	else
-		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
-		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
+		ArkInventory.SetMountMacro( )
+		--ArkInventory:SendMessage( "EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET" )
+		--ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 	
 end
@@ -2052,7 +2052,106 @@ local function helper_ItemBindingStatus( tooltip )
 	
 end
 
+function ArkInventory.GetItemUnwearable( i, codex, wearable, ignore_known, ignore_level )
+	
+	if i and i.h then
+		
+		local info = i.info or ArkInventory.GetObjectInfo( i.h, i )
+		
+		local wearable = not not wearable
+		local ignore_known = not not ignore_known
+		local ignore_level = not not ignore_level
+		
+		local e = string.trim( info.equiploc )
+		if e == "" or info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT then
+			return false
+		end
+		
+		
+		-- is there any red text making it unwearable?  ignoring already known and player level requirements
+		ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, i.loc_id, i.bag_id, i.slot_id, i.h )
+		local canuse = ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Scan, nil, ignore_known, ignore_level )
+		if not canuse then
+			if wearable then
+				--ArkInventory.Output( "wearable fail 1: ", i.h )
+				return false
+			else
+				--ArkInventory.Output( "unwearable pass 1: ", i.h )
+				return true
+			end
+		end
+		
+		
+		-- everything past here should be equippable
+		
+		-- anything that isnt armour is wearable
+		if info.itemtypeid ~= ArkInventory.ENUM.ITEM.TYPE.ARMOR.PARENT then
+			if wearable then
+				--ArkInventory.Output( "wearable pass 1: ", i.h )
+				return true
+			else
+				--ArkInventory.Output( "unwearable fail 0: ", i.h )
+				return false
+			end
+		end
+		
+		-- cloaks are cloth, but everyone can wear them
+		if info.equiploc == "INVTYPE_CLOAK" then
+			if wearable then
+				return true
+			else
+				return false
+			end
+		end
+		
+		
+		-- class based armor subtype restrictions
+		local class = codex.player.data.info.class
+		if class == HUNTER and codex.player.data.info.level < 40 then
+			class = LOWLEVELHUNTER
+		end
+		
+		
+		-- should this class wear this type of armor
+		if ( not ArkInventory.Const.ClassArmor[info.itemsubtypeid] ) or ( ArkInventory.Const.ClassArmor[info.itemsubtypeid] and ArkInventory.Const.ClassArmor[info.itemsubtypeid][class] ) then
+			if wearable then
+				--ArkInventory.Output( "wearable pass 2: ", i.h )
+				return true
+			else
+				--ArkInventory.Output( "unwearable fail 1: ", i.h )
+				return false
+			end
+		end
+		
+		if ( ArkInventory.Const.ClassArmor[info.itemsubtypeid] and not ArkInventory.Const.ClassArmor[info.itemsubtypeid][class] ) then
+			if wearable then
+				--ArkInventory.Output( "wearable fail 3: ", i.h )
+				return false
+			else
+				--ArkInventory.Output( "unwearable pass 2: ", i.h )
+				return true
+			end
+		end
+		
+		
+		if wearable then
+			--ArkInventory.Output( "wearable fail final: ", i.h )
+		else
+			--ArkInventory.Output( "unwearable fail final: ", i.h, " / ", ArkInventory.Const.ClassArmor[info.itemsubtypeid] )
+		end
+		
+	end
+	
+	
+	return false
+	
+end
+
 function ArkInventory.GetItemTinted( i, codex )
+	
+	if not codex.style.slot.unusable.tint and not codex.style.slot.unwearable.tint then
+		return false
+	end
 	
 	if i and i.h then
 		
@@ -2061,43 +2160,72 @@ function ArkInventory.GetItemTinted( i, codex )
 		
 		if i.loc_id == ArkInventory.Const.Location.Pet or osd.class == "battlepet" then
 			
-			local codex = ArkInventory.GetLocationCodex( ArkInventory.Const.Location.Bag )
-			--local player_id = ArkInventory.PlayerIDAccount( )
-			--local account = ArkInventory.GetPlayerStorage( player_id )
-			
-			--if account and codex.player.data.info and codex.player.data.info.level and codex.player.data.info.level < osd.level then
-			if codex.player.data.info and codex.player.data.info.level and codex.player.data.info.level < osd.level then
-				return true
+			if codex.style.slot.unusable.tint then
+				
+				local codex = ArkInventory.GetLocationCodex( ArkInventory.Const.Location.Bag )
+				--local player_id = ArkInventory.PlayerIDAccount( )
+				--local account = ArkInventory.GetPlayerStorage( player_id )
+				
+				--if account and codex.player.data.info and codex.player.data.info.level and codex.player.data.info.level < osd.level then
+				if codex.player.data.info and codex.player.data.info.level and codex.player.data.info.level < osd.level then
+					return true
+				end
+				
 			end
 			
 		elseif i.loc_id == ArkInventory.Const.Location.Mount then
 			
-			if not ArkInventory.Collection.Mount.isUsable( i.index ) then
-				return true
+			if codex.style.slot.unusable.tint then
+				
+				if not ArkInventory.Collection.Mount.isUsable( i.index ) then
+					return true
+				end
+				
 			end
 			
 		elseif i.loc_id == ArkInventory.Const.Location.Heirloom or i.loc_id == ArkInventory.Const.Location.Toybox then
 			
-			local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, i.h )
-			--ArkInventory.Output( "lines = ", #tooltipInfo.lines, " / ", #ArkInventory.Global.Tooltip.Scan.ARKTTD.info.lines )
-			
-			if not ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Scan, nil, true ) then
-				return true
+			if codex.style.slot.unusable.tint then
+				
+				local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, i.loc_id, i.bag_id, i.slot_id, i.h )
+				--ArkInventory.Output( "lines = ", #tooltipInfo.lines, " / ", #ArkInventory.Global.Tooltip.Scan.ARKTTD.info.lines )
+				
+				if not ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Scan, nil, true ) then
+					return true
+				end
+				
 			end
 			
 		else
 			
-			local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, i.h )
+			if codex.style.slot.unusable.tint then
+				
+				local ignore_known = ignore_known or ( ( info.q or ArkInventory.ENUM.ITEM.QUALITY.POOR ) == ArkInventory.ENUM.ITEM.QUALITY.HEIRLOOM )
+				
+				local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, i.loc_id, i.bag_id, i.slot_id, i.h )
+				if not ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Scan, nil, ignore_known ) then
+					return true
+				end
+				
+			end
 			
-			local ignore_known = ( ( info.q or ArkInventory.ENUM.ITEM.QUALITY.POOR ) == ArkInventory.ENUM.ITEM.QUALITY.HEIRLOOM )
-			
-			if not ArkInventory.TooltipCanUse( ArkInventory.Global.Tooltip.Scan, nil, ignore_known ) then
-				return true
+			if codex.style.slot.unwearable.tint then
+				
+				local e = string.trim( info.equiploc )
+				if not ( e == "" or info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT ) then
+					
+					if ArkInventory.GetItemUnwearable( i, codex, false, true, ignore_level ) then
+						return true
+					end
+					
+				end
+				
 			end
 			
 		end
 		
 	end
+	
 	
 	return false
 	
@@ -2404,9 +2532,8 @@ function ArkInventory.ScanBag_Threaded( blizzard_id, loc_id, bag_id, thread_id, 
 		
 		i.h = h or nil
 		i.sb = sb or nil
-		--i.q = quality or nil
 		i.q = nil
-		i.r = itemInfo.isReadable or nil
+		i.r = nil
 		i.o = itemInfo.hasLoot or nil
 		i.count = itemInfo.stackCount or nil
 		i.u = nil

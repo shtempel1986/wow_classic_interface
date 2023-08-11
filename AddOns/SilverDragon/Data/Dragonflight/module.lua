@@ -9,13 +9,16 @@ local WAKINGSHORES = 2022
 local OHNAHRANPLAINS = 2023
 local AZURESPAN = 2024
 local THALDRASZUS = 2025
-local FORBIDDENREACH = 2026
+local FORBIDDENREACH = 2151 -- 2026
 local FORBIDDENREACHINTRO = 2118 -- Dracthyr
+local PRIMALISTFUTURE = 2085
+local ZARALEKCAVERN = 2133
 
 local FACTION_MARUUK = 2503
 local FACTION_DRAGONSCALE = 2507
 local FACTION_VALDRAKKEN = 2510
 local FACTION_ISKAARA = 2511
+local FACTION_LOAMM = 2564
 
 -- Rares
 
@@ -35,12 +38,39 @@ core:RegisterMobData("Dragonflight", {
 			{69205480, 69405940, 67606020, 63605860, r=1, g=1, b=0},
 		}},
 	},
+	-- Stormed off
+	-- Storm
+	[193653] = {name="Gaelzion", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Storm Invasions"},
+	[193647] = {name="Karantun", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Storm Invasions"},
+	[193684] = {name="Pipspark Thundersnap", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Storm Invasions"},
+	[193674] = {name="Voraazka", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Storm Invasions"},
+	-- Earth
+	[193644] = {name="Bouldron", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Earth Invasions"},
+	[193680] = {name="Zurgaz Corebreaker", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Earth Invasions"},
+	[193652] = {name="Grizzlerock", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Earth Invasions"},
+	[193654] = {name="Gravlion", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Earth Invasions"},
+	-- Fire
+	[193648] = {name="Infernum", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Fire Invasions"},
+	[193686] = {name="Neela Firebane", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Fire Invasions"},
+	[193675] = {name="Kain Firebrand", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Fire Invasions"},
+	[193650] = {name="Emblazion", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Fire Invasions"},
+	-- Water
+	[193645] = {name="Crystalus", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",},
+	[193682] = {name="Rouen Icewind", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",},
+	[193655] = {name="Frozion", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",},
+	[193677] = {name="Maeleera", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",vignette=5243,},
+	[193678] = {name="Fieraan", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",vignette=5243,},
+	[193679] = {name="Leerain", locations={[WAKINGSHORES]={},[OHNAHRANPLAINS]={},[AZURESPAN]={},[THALDRASZUS]={},},notes="Water Invasions",vignette=5243,},
+	-- Assorted hidden things
 	[190971] = {name="Shas'ith", hidden=true}, -- the locked-up variant which is always there
 	-- War party, except Brundin who's below:
 	[192737] = {name="Qalashi War Mammoth", locations={[WAKINGSHORES]={}},hidden=true,},
 	[192741] = {name="Flamebreaker Grella", locations={[WAKINGSHORES]={}},hidden=true,},
 	[192743] = {name="Stonefist Rejara", locations={[WAKINGSHORES]={}},hidden=true,},
 	[192744] = {name="Scalemelter Dorbane", locations={[WAKINGSHORES]={}},hidden=true,},
+	--
+	[201186] = {name="Shimmermaw Jr.", locations={[FORBIDDENREACH]={},},hidden=true,},
+	[201310] = {name="Nidharr", locations={[FORBIDDENREACH]={},},hidden=true,},
 }, true)
 
 -- Treasures
@@ -61,7 +91,7 @@ core:RegisterTreasureData("Dragonflight", {
 			{199065, quest=70534}, -- Sorrowful Letter
 			{199066, quest=70535}, -- Letter of Caution
 			{199068, quest=70537}, -- Time-Lost Memo
-			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
+			{199062, quest=70528, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
 			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Emerald Gardens Explorer's Notes
 			{199067, quest=70536, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Precious Plans
 			{198852, quest=70407, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Bear Termination Orders
@@ -87,7 +117,7 @@ core:RegisterTreasureData("Dragonflight", {
 			{199065, quest=70534}, -- Sorrowful Letter
 			{199066, quest=70535}, -- Letter of Caution
 			{199068, quest=70537}, -- Time-Lost Memo
-			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
+			{199062, quest=70528, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
 			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Emerald Gardens Explorer's Notes
 			{199067, quest=70536, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Precious Plans
 			{198852, quest=70407, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Bear Termination Orders
@@ -106,7 +136,7 @@ core:RegisterTreasureData("Dragonflight", {
 			{199065, quest=70534}, -- Sorrowful Letter
 			{199066, quest=70535}, -- Letter of Caution
 			{199068, quest=70537}, -- Time-Lost Memo
-			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
+			{199062, quest=70528, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Ruby Gem Cluster Map
 			{198843, quest=70392, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Emerald Gardens Explorer's Notes
 			{199067, quest=70536, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Precious Plans
 			{198852, quest=70407, requires=core.conditions.MajorFaction(FACTION_DRAGONSCALE, 21)}, -- Bear Termination Orders
@@ -114,12 +144,34 @@ core:RegisterTreasureData("Dragonflight", {
 			192055, -- Dragon Isles Artifact
 		},
 	},
+	[5614] = {
+		label="Forbidden Hoard",
+		loot={
+			{197000, quest=69200}, -- Cliffside Wylderdrake: Coiled Horns
+			{203463, quest=74359}, -- Atrenosh's Journal
+			202667, -- Sealed Artifact Scroll
+			202668, -- Sealed Spirit Scroll
+			202669, -- Sealed Fish Scroll
+			202670, -- Sealed Knowledge Scroll
+		},
+	},
+	[5463] = {
+		label="Forbidden Hoard", -- locked
+		loot={
+			{197000, quest=69200}, -- Cliffside Wylderdrake: Coiled Horns
+			{203463, quest=74359}, -- Atrenosh's Journal
+			202667, -- Sealed Artifact Scroll
+			202668, -- Sealed Spirit Scroll
+			202669, -- Sealed Fish Scroll
+			202670, -- Sealed Knowledge Scroll
+		},
+	},
 }, true)
 
 -- Handynotes imports
 --[[
 minor transformations applied:
-s/{ -- (.+)${/{\n\t\tlabel="$1",/g",
+s/(?<= ){ -- (.+)$/{\n\t\tlabel="$1",/g",
 --]]
 
 -- Stub time!
@@ -135,10 +187,13 @@ local ns = {
 	VALDRAKKEN = VALDRAKKEN,
 	FORBIDDENREACHINTRO = FORBIDDENREACHINTRO,
 	FORBIDDENREACH = FORBIDDENREACH,
+	PRIMALISTFUTURE = PRIMALISTFUTURE,
+	ZARALEKCAVERN = ZARALEKCAVERN,
 	FACTION_MARUUK = FACTION_MARUUK,
 	FACTION_DRAGONSCALE = FACTION_DRAGONSCALE,
 	FACTION_VALDRAKKEN = FACTION_VALDRAKKEN,
 	FACTION_ISKAARA = FACTION_ISKAARA,
+	FACTION_LOAMM = FACTION_LOAMM,
 	MAXLEVEL = {core.conditions.QuestComplete(67030), core.conditions.Level(70)},
 	DRAGONRIDING = core.conditions.SpellKnown(376777),
 	SUPERRARE = function(point)
@@ -907,8 +962,7 @@ ns.RegisterPoints(ns.WAKINGSHORES, {
 	},
 	[28047868] = {
 		label="Beakers",
-		-- no quest, no vignette, just a random rare-flagged mob
-		quest=nil,
+		quest=73902,
 		npc=193177,
 		loot={},
 	},
@@ -1135,7 +1189,7 @@ ns.RegisterPoints(ns.OHNAHRANPLAINS, {
 	[37005400] = {
 		label="Researcher Sneakwing",
 		criteria=56069,
-		quest=70689,
+		quest=70698, -- 74023
 		npc=196010,
 		loot={
 			{196992,quest=69192,}, -- Cliffside Wylderdrake: Heavy Horns
@@ -1497,7 +1551,7 @@ ns.RegisterPoints(ns.OHNAHRANPLAINS, {
 		label="Astray Splasher",
 		achievement=16678, -- Adventurer of the *Azure Span*
 		criteria=56130,
-		quest=nil,
+		quest=74057,
 		npc=197411,
 		loot={},
 	},
@@ -1664,6 +1718,39 @@ ns.RegisterPoints(ns.OHNAHRANPLAINS, {
 			66005880, 68805560, 68605160, 67205100, 68805680, 65605980, 65206900, r=1, g=0, b=0, loop=true,
 		},
 	},
+	[33803840] = {
+		label="Huntmaster Yrgena",
+		quest=74466,
+		npc=201538,
+		loot={
+			203672, -- Master Huntmaster's Wristguards
+		},
+	},
+	--[[
+	-- accompanied by
+	[33803840] = {
+		label="Rugren",
+		-- [33803840, 33803860]
+		quest=nil,
+		npc=201563,
+	},
+	]]
+	[35404080] = {
+		label="Groffnar",
+		quest=74463,
+		npc=201537,
+		loot={
+			203671, -- Pack Leader's Pelt
+		},
+	},
+	[37003640] = {
+		label="Bloodbeak the Ravenous",
+		quest=74467,
+		npc=201535,
+		loot={
+			203673, -- Bloodbeak's Ravenor
+		},
+	},
 })
 ns.RegisterPoints(ns.AZURESPAN, {
 	-- https://www.wowhead.com/beta/achievement=16678/adventurer-of-the-azure-span
@@ -1736,7 +1823,7 @@ ns.RegisterPoints(ns.AZURESPAN, {
 		label="Mucka the Raker",
 		-- ...very prone to resetting+evading and healing to full
 		criteria=56102,
-		quest=nil, -- no quest popped
+		quest=73885,
 		npc=193201,
 		loot={
 			{196976,quest=69176,}, -- Cliffside Wylderdrake: Head Mane
@@ -1752,6 +1839,7 @@ ns.RegisterPoints(ns.AZURESPAN, {
 			200563, -- Primal Ritual Shell
 			200859, -- Seasoned Hunter's Trophy
 		},
+		note="You may need to kill a stuck {npc:193219:Muckling} nearby to stop this from evading",
 	},
 	[08804860] = {
 		label="Brackle",
@@ -2274,16 +2362,17 @@ ns.RegisterPoints(ns.AZURESPAN, {
 		note="Kill the gnolls to summon",
 		vignette=5158, -- Thieving Gnolls (also 5484 Sharpfang)
 	},
-	[79503590] = { -- Bazual
+	[79503590] = {
+		label="Bazual",
 		quest=69927,
 		worldquest=69927,
 		npc=193532,
 		loot={
-				200654, -- Magmatic Vestments
-				200660, -- Cinderfang Wrap
-				200661, -- Basalt Brood Stompers
-				200663, -- Shackles of the Dreaded Flame
-				200761, -- Smoldering Sulfuron Signet
+			200654, -- Magmatic Vestments
+			200660, -- Cinderfang Wrap
+			200661, -- Basalt Brood Stompers
+			200663, -- Shackles of the Dreaded Flame
+			200761, -- Smoldering Sulfuron Signet
 		},
 	},
 })
@@ -2393,7 +2482,7 @@ ns.RegisterPoints(ns.THALDRASZUS, {
 	[59806100] = {
 		label="Phenran",
 		criteria=56140,
-		quest=69976,
+		quest=74020,
 		npc=193688,
 		loot={
 			{197100,quest=69301,}, -- Highland Drake: Crested Brow
@@ -2780,20 +2869,637 @@ ns.RegisterPoints(ns.THALDRASZUS, {
 		},
 		vignette=5437,
 	},
-	--[[
-	[] = {
-		label="Liskanoth",
-		-- TODO: location, quest
-		quest=nil,
-		worldquest=nil,
-		npc=193533,
+	[62005980] = {
+		label="Morlash",
+		quest=74450,
+		npc=201549,
 		loot={
-				200743, -- Frozen Footwraps
-				200744, -- Glacial Bindings
-				200745, -- Horns of the Futurebane
-				200746, -- Icebound Girdle
-				200763, -- Frosted Scale Drape
+			203666, -- Vinelashed Bracers
 		},
 	},
+	[59406120] = {
+		label="Overloading Defense Matrix",
+		quest=74449,
+		npc=201550,
+		loot={
+			203677, -- Watcher's 'Neck' Ring
+		},
+	},
+	[59566227] = {
+		label="Overseer Stonetongue",
+		quest=74566, -- 74448
+		npc=201552,
+		loot={
+			203665, -- Stonetongues Hood
+		},
+	},
+	[60008190] = {
+		-- also primalist future @ 53686325
+		label="Liskanoth",
+		quest=69928, -- 72057
+		worldquest=69928,
+		npc=193533,
+		loot={
+			200743, -- Frozen Footwraps
+			200744, -- Glacial Bindings
+			200745, -- Horns of the Futurebane
+			200746, -- Icebound Girdle
+			200763, -- Frosted Scale Drape
+		},
+	},
+})
+ns.RegisterPoints(ns.PRIMALISTFUTURE, {
+	[48601740] = {
+		label="Shardwing",
+		quest=74453,
+		npc=201562,
+		loot={
+			{197593,quest=69797,}, -- Windborne Velocidrake: Feathery Head
+			200241, -- Stormcaller's Ritual Hatchet
+			200242, -- Watcher's Lightning Rod
+			203669, -- Chillwing Leggings
+		},
+	},
+	[52206760] = {
+		label="Avalantus",
+		quest=74452,
+		npc=201543,
+		loot={
+			203670, -- Prismatic Diamond Loop
+		},
+	},
+	[61603200] = {
+		label="Tikarr Frostclaw",
+		quest=74451,
+		npc=201542,
+		loot={
+			203667, -- Frostclaw's Spellfingers
+		},
+	},
+	[46204120] = {
+		label="Shapemaster Za'lani",
+		quest=74454,
+		npc=201545,
+		loot={
+			203668, -- Earhshaping Grips
+		},
+	},
+})
+
+ns.RegisterPoints(ns.FORBIDDENREACH, {
+	[45917966] = {
+		label="Warden Entrix",
+		-- interior map: 2102 42908450
+		criteria=58470,
+		quest=73367, -- 74348
+		npc=200960,
+		loot={
+			{191930, pet=3261}, -- Wakyn
+		},
+		vignette=5520,
+		path=51935938,
+	},
+	[51717276] = {
+		label="Pyrachniss",
+		-- interior map: 2102 67175616
+		criteria=58472,
+		quest=73385, -- 74350
+		npc=200978,
+		loot={
+			{197590,quest=69794,}, -- Windborne Velocidrake: Small Head Fin
+		},
+		vignette=5521,
+		note="Jump down using the whirlwind for a slow fall",
+		path=51935939,
+	},
+	[32852931] = {
+		label="Duzalgor",
+		criteria=58462,
+		quest=73118, -- 74340
+		npc=200610, -- also 203674
+		vignette=5492,
+		note="Inside; grab a {spell:371045:Toxin Antidote} first",
+		path=36803250,
+	},
+	[78205066] = {
+		label="Volcanakk",
+		criteria=58473,
+		quest=73225, -- 74351
+		npc=200911,
+		loot={
+			{197617,quest=69821,}, -- Windborne Velocidrake: Heavy Scales
+		},
+		vignette=5515,
+		path=74505464,
+	},
+	[29005720] = {
+		label="Amephyst",
+		criteria=58486,
+		quest=74333,
+		npc=200743,
+		loot={
+			204219, -- Design: Unstable Elementium
+			204222, -- Conductive Ametrine Shard
+		},
+	},
+	[12401520] = {
+		label="Loot Specialist",
+		-- [12401520, 13005220, 13605420, 15001460, 16201540, 20201300, 28405680, 29005620, 29406020, 30805520, 31204900, 32406500, 32606520, 33804520, 34003860, 34203840, 35804440, 36401800, 37807060, 38003660, 38006340, 40002420, 40003640, 40203060, 40802700, 42004480, 42809020, 43004440, 43004480, 43804080, 44201900, 44204040, 44207620, 44403640, 44403660, 44606160, 44804560, 45003900, 45006100, 45204760, 45604200, 45605680, 45804120, 45807040, 45807080, 46205080, 47204240, 47404260, 47801460, 48001440, 48205360, 48606940, 48806960, 49002440, 50005260, 50605560, 50605680, 50805420, 51204740, 51605780, 51805120, 52202460, 52602420, 52607740, 53204760, 53205160, 53404720, 53405500, 53805440, 54405740, 54604160, 54605760, 54803580, 55005880, 55207080, 55804860, 56404780, 56805420, 57606620, 58005720, 58206180, 58404120, 60206340, 60406360, 61403940, 62803160, 63203140, 64202700, 66405800, 66406220, 66605840, 66806080, 68201040, 69000920, 69001240, 69405900, 69604560, 69606340, 71006720, 71205600, 71406100, 71806920, 72006140, 72805460, 73204620, 74205760, 81006160, 88006340]
+		criteria=58830,
+		quest=nil,
+		npc=203353,
+		note="Spawns anywhere",
+		vignette=5635,
+	},
+	[44727943] = {
+		label="Galakhad",
+		criteria=58464,
+		quest=74342,
+		npc=200717,
+		vignette=5498,
+	},
+	[55905141] = {
+		label="Luttrok",
+		criteria=58485,
+		quest=74332,
+		npc=200742,
+		loot={
+			{193235, pet=3285}, -- Luvvy
+		},
+		vignette=5507,
+		note="Summon with Cooking",
+	},
+	[80005900] = {
+		label="Tidesmith Zarviss",
+		criteria=58480,
+		quest=74325,
+		npc=200730,
+		loot={
+			191260, -- Serevite Repair Hammer
+			204230, -- Dense Seaforged Javelin
+		},
+	},
+	[28003860] = {
+		label="Gahz'raxes",
+		criteria=58459,
+		quest=73095, -- 74337
+		npc=200537,
+		note="In underwater cave",
+		path=26744144,
+	},
+	[56003940] = {
+		label="Agni Blazehoof",
+		criteria=58484,
+		quest=74331,
+		npc=200740,
+		loot={
+			191360, -- Bottled Putrescence
+			191387, -- Elemental Potion of Power
+			191399, -- Potion of Shocking Disclosure
+			204226, -- Blazehoof Ashes
+		},
+	},
+	[61202680] = {
+		label="Fimbol",
+		criteria=58483,
+		quest=74330,
+		npc=200739,
+		loot={
+			198199, -- Reinforced Machine Chassis
+			204227, -- Everflowing Antifreeze
+		},
+	},
+	[43204900] = {
+		label="Tectonus",
+		criteria=58474,
+		quest=74300,
+		npc=200619,
+		loot={
+			204233, -- Impenetrable Elemental Core
+		},
+	},
+	[55203660] = {
+		label="Manathema",
+		criteria=58476,
+		quest=74306,
+		npc=200621,
+		loot={
+			204224, -- Speck of Arcane Awareness
+		},
+	},
+	[31205340] = {
+		label="Gareed",
+		criteria=58478,
+		quest=74321,
+		npc=200722,
+		loot={
+			204225, -- Perfect Windfeather
+		},
+	},
+	[23006680] = {
+		label="Sir Pinchalot",
+		criteria=58475,
+		quest=74305,
+		npc=200620,
+	},
+	[61723400] = {
+		label="Wyrmslayer Angvardi",
+		criteria=58469,
+		quest=73409, -- 74347
+		npc=201013, -- accomanied by Nidharr (201310)
+		loot={
+			{197609,quest=69813,}, -- Windborne Velocidrake: White Horns
+
+		},
+		vignette=5526,
+	},
+	[59695883] = {
+		label="Lady Shaz'ra",
+		criteria=58466,
+		quest=73222, -- 74344
+		npc=200885,
+		loot={
+			{197628,quest=69834,}, -- Windborne Velocidrake: Plated Neck
+		},
+		vignette=5514,
+	},
+	[36731223] = {
+		label="Ookbeard",
+		criteria=58471,
+		quest=74349,
+		npc=200956,
+		loot={
+			{197636,quest=69847,}, -- Windborne Velocidrake: Shrieker Pattern
+		},
+		vignette=5519,
+	},
+	[37004700] = {
+		label="Snarfang",
+		criteria=58477,
+		quest=74307,
+		npc=200622,
+		loot={
+			204232, -- Slyvern Alpha Claw
+		},
+	},
+	[49204180] = {
+		label="Arcantrix",
+		criteria=58481,
+		quest=74328,
+		npc=200737,
+		loot={
+			198413, -- Serene Pigment
+			198416, -- Flourishing Pigment
+			198419, -- Blazing Pigment
+			198422, -- Shimmering Pigment
+			204229, -- Glimmering Rune of Arcantrix
+		},
+	},
+	[43776125] = {
+		label="Bonesifter Marwak",
+		criteria=58463,
+		quest=43150, -- 74341
+		npc=200681,
+		loot={
+			{193374, pet=3293}, -- Ashenwing
+		},
+		vignette=5497,
+	},
+	[58174826] = {
+		label="Vraken the Hunter",
+		criteria=58458,
+		quest=73111, -- 74336
+		npc=200584,
+		loot={
+			{193364, pet=3291}, -- Scruffles
+		},
+		vignette=5490,
+	},
+	[47722071] = {
+		label="Reisa the Drowned",
+		criteria=58461,
+		quest=73117, -- 74339
+		npc=200600,
+		vignette=5491,
+	},
+	[56405900] = {
+		label="Kangalo",
+		criteria=58482,
+		quest=74329,
+		npc=200738,
+		loot={
+			204228, -- Undigested Hochenblume Petal
+		},
+	},
+	[45003640] = {
+		label="Faunos",
+		criteria=58479,
+		quest=74322,
+		npc=200725,
+		loot={
+			204231, -- Kingly Sheepskin Pelt
+		},
+	},
+	[67924531] = {
+		label="Mad-Eye Carrey",
+		criteria=58468,
+		quest=74283, -- 74346
+		npc=201181,
+		vignette=5544,
+	},
+	[41021436] = {
+		label="Ishyra",
+		criteria=58460,
+		quest=73100, -- 74338
+		npc=200579,
+		vignette=5489,
+	},
+	[72986738] = {
+		label="Veltrax",
+		criteria=58467,
+		quest=73229, -- 74345
+		npc=200904,
+		vignette=5517,
+	},
+	[43949052] = {
+		label="Grugoth the Hullcrusher",
+		criteria=58465,
+		quest=73154, -- 74343
+		npc=200721,
+		vignette=5500,
+	},
+}, {
+	achievement=17525, -- Champion of the Forbidden Reach
+})
+
+ns.RegisterPoints(ns.ZARALEKCAVERN, {
+	--[[
+	[0] = { -- Lavermix
+		criteria=59201,
+		quest=75338,
+		npc=203630,
+	},
+	[0] = { -- Shadowforge Mole Machine
+		criteria=59211,
+		quest=75576, -- Grim Guzzler Invasion
+		npc=204096,
+	},
+	[0] = { -- Hadexia
+		criteria=59197,
+		quest=75314,
+		npc=203611,
+	},
+	[0] = { -- Kronkapace
+		criteria=59204,
+		quest=75342,
+		npc=203642,
+	},
 	--]]
+	[56207380] = { -- Alcanon
+		criteria=59188,
+		quest=75284, -- 75285
+		npc=203515,
+		loot={
+			{203307,quest=73795,}, -- Winding Slitherdrake: Plated Brow
+			205309, -- Loyal Attendant's Gaze
+			205318, -- Guardian Golem's Legplates
+		},
+		vignette=5646,
+	},
+	[48367509] = { -- Aquifon
+		criteria=59185,
+		quest=75270, -- 75271
+		npc=203468,
+		loot={
+			{205154, pet=3548}, -- Aquapo
+			205090, -- Zaralek Surveyor's Barrier
+			205295, -- Sediment Sifters
+			205306, -- Aquiferous Raiment
+		},
+		vignette=5640,
+	},
+	[57786911] = { -- Underlight Queen
+		criteria=59191,
+		quest=75297, -- 75298
+		npc=203593,
+		loot={
+			{205159, pet=3551}, -- Teardrop Moth
+			205302, -- Underlight Headwrap
+			205324, -- Moth Queen Mantle
+			205325, -- Crystal Wing Shield
+		},
+		vignette=5646,
+	},
+	[41518613] = { -- Brullo the Strong (Brulsef the Stronk?)
+		criteria=59202,
+		quest=75325, -- 75326
+		npc=203621,
+		loot={
+			-- All actually from the Chest of Massive Gains
+			{205114, pet=3533}, -- Brul
+			204847, -- Recipe: Rocks on the Rocks
+			205320, -- Greatbelt of the Stronk
+			205313, -- Brullo's Wristbraces
+		},
+		vignette=5652,
+	},
+	[55841899] = { -- Professor Gastrinax
+		criteria=59189,
+		quest=75291, -- 75292
+		npc=203521,
+		loot={
+			{203331,quest=73820,}, -- Winding Slitherdrake: Cluster Horns
+			205322, -- Algeth'ar Exile's Frock
+			205333, -- Obsidian Amulet of Transmutation
+		},
+		vignette=5644,
+	},
+	[46103346] = { -- Invoq (Invohq?)
+		criteria=59200,
+		quest=75335, -- 75336 (70518 also? probably just a curious djardin rune)
+		npc=203627,
+		loot={
+			{203328,quest=73816,}, -- Winding Slitherdrake: White Horns
+			204981, -- Neltharic Wand
+			205297, -- Flamewielder's Trousers
+			205329, -- Loop of Burning Invocation
+			{205796,toy=true,}, -- Molten Lava Pack
+		},
+		vignette=5654,
+	},
+	[28875085] = { -- Dinn (Jrumm?)
+		criteria=59206,
+		quest=75352, -- 75353
+		npc=203646,
+		loot={
+			{203320,quest=73808,}, -- Winding Slitherdrake: Ears
+			205299, -- Rudiment Cuffs
+			205304, -- Snareguard Sash
+			{205419,toy=true,}, -- Jrumm's Drum
+		},
+		vignette=5660,
+	},
+	[36324481] = { -- Flowfy
+		criteria=59207,
+		quest=75357, -- 75358
+		npc=203660,
+		loot={
+			{197109,quest=69310,}, -- Highland Drake: Spiked Head
+			205303, -- Leggings of Flowing Flame
+			205334, -- Flowfy's Smoldering Chain
+		},
+		vignette=5661,
+	},
+	[47822342] = { -- Colossian
+		criteria=59212,
+		quest=75475, -- 75476
+		npc=204093,
+		loot={
+			{197364,quest=69565,}, -- Renewed Proto-Drake: Short Spiked Crest
+			205096, -- Zaralek Surveyor's Shank
+			205315, -- Colossian Cuirass
+			205330, -- Signet of Colossal Mastery
+			205332, -- Fist of the Demolisher
+		},
+		vignette=5674,
+	},
+	[39407061] = { -- Viridian King
+		criteria=59210,
+		quest=75365, -- 75366
+		npc=201029,
+		loot={
+			{203345,quest=73836,}, -- Winding Slitherdrake: Split Jaw Horns
+			205316, -- Crystal Stompers
+			205327, -- Shard of the Veridian King
+			205336, -- Glowing Veridian Necklace
+		},
+		vignette=5664,
+	},
+	[60293933] = { -- Kapraku (Kaprachu?)
+		criteria=59184,
+		quest=75268, -- 75269
+		npc=203466,
+		loot={
+			{205341,quest=75743,}, -- Winding Slitherdrake: Heavy Scales
+			205310, -- Legguards of Kaprachu
+			205319, -- Deepflayer Shoulderguards
+			205461, -- Vicious Stoneclaw
+			205462, -- Royal Nerubian Capsa
+		},
+		vignette=5639,
+	},
+	[42521879] = { -- General Zskorro
+		criteria=59190,
+		quest=75295, -- 75296
+		npc=203592,
+		loot={205321}, -- Brimstone Bracers
+		vignette=5645,
+	},
+	[32445127] = { -- Emberdusk
+		criteria=59209,
+		quest=75361, -- 75364
+		npc=203664,
+		loot={
+			{203363,quest=73855,}, -- Winding Slitherdrake: Large Finned Throat
+			205293, -- Emberdusk's Embrace
+			205335, -- Talisman of the Dusk
+		},
+		vignette=5663,
+	},
+	[65435587] = { -- Kob'rok
+		criteria=59183,
+		quest=75266, -- 75267
+		npc=203462,
+		loot={
+			{206021, pet=3545}, -- Kob'rok's Luminescent Scale
+			{205152, pet=3546}, -- Skaarn
+			{205147, pet=3541}, -- Ridged Shalewing
+			205307, -- Kob'rok's Scale Sabatons
+		},
+		vignette=5638,
+	},
+	[68734593] = { -- Goopal
+		criteria=59186,
+		quest=75273, -- 75274
+		npc=203477,
+		loot={
+			{203309,quest=73797,}, -- Winding Slitherdrake: Long Chin Horn
+			205296, -- Goopal's Visage
+			205317, -- Crystalpod Gauntlets
+		},
+		vignette=5641,
+	},
+	[42176584] = { -- Karokta
+		criteria=59199,
+		quest=75333, -- 75334
+		npc=203625,
+		loot={
+			{203358,quest=73850,}, -- Winding Slitherdrake: Small Finned Tail
+			{205203, mount=1732}, -- Cobalt Shalewing
+			{205147, pet=3541}, -- Ridged Shalewing
+			205292, -- Kairoktra's Mane
+			205298, -- Belt of Floating Stone
+		},
+		vignette=5653,
+	},
+	[53724114] = { -- Klakatak
+		criteria=59198,
+		quest=75321, -- 75322
+		npc=203618,
+		loot={
+			205308, -- Clacking Clawguards
+			205343, -- Crude Seal of Mak'aru
+			205686, -- Clacking Claw
+		},
+		vignette=5651,
+	},
+	[36425329] = { -- Skornak
+		criteria=59205,
+		quest=75348, -- 75349
+		npc=203643,
+		loot={
+			{203321,quest=73809,}, -- Winding Slitherdrake: Curled Cheek Horn
+			205294, -- Sandals of Molten Scorn
+			205301, -- Hardened Lava Handwraps
+			-- {205463, toy=true}, -- Skornak's Lava Ball
+		},
+		vignette=5659,
+	},
+	[53106421] = { -- Spinmarrow
+		criteria=59187,
+		quest=75275, -- 75276
+		npc=203480,
+		loot={
+			{203318,quest=73806,}, -- Winding Slitherdrake: Hairy Crest
+			205290, -- Greatcloak of Spun Marrow
+			205305, -- Zaralek Arachnid Armbands
+			205326, -- Crystalweb Chelicera
+		},
+		path=54796586,
+	},
+	[37954642] = { -- Subterrax
+		criteria=59208,
+		quest=75359, -- 75360
+		npc=203662,
+		loot={
+			{203338,quest=73829,}, -- Winding Slitherdrake: Antler Horns
+			205312, -- Subterrax's Stout Waistguard
+			205314, -- Greathelm of the Emissary
+			205328, -- Earthen Emissasry's Edge
+		},
+		vignette=5662,
+	},
+	[41383744] = { -- Magtembo (magmanesha?)
+		criteria=59203,
+		quest=75339, -- 75340
+		npc=200111,
+		loot={
+			{203339,quest=73830,}, -- Winding Slitherdrake: Impaler Horns
+			205300, -- Magma Waders
+			205311, -- Magmascale Pauldrons
+		},
+		vignette=5656,
+	},
+}, {
+	achievement=17783, -- Adventurer of Zaralek Cavern
 })

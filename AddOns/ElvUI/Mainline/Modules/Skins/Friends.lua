@@ -149,15 +149,6 @@ function S:FriendsFrame()
 		_G[object]:StripTextures()
 	end
 
-	local mainFrames = {
-		'WhoFrame',
-		'LFRQueueFrame',
-	}
-
-	for _, frame in pairs(mainFrames) do
-		_G[frame]:StripTextures()
-	end
-
 	local FriendsFrame = _G.FriendsFrame
 	S:HandlePortraitFrame(FriendsFrame)
 
@@ -187,6 +178,9 @@ function S:FriendsFrame()
 	BattlenetFrame:SetScript('OnLeave', BattleNetFrame_OnLeave)
 
 	FriendsFrameBattlenetFrame.BroadcastButton:Kill() -- We use the BattlenetFrame to enter a Status Message
+
+	FriendsFrameBattlenetFrame.UnavailableInfoFrame.Bg:SetTexture(nil)
+	FriendsFrameBattlenetFrame.UnavailableInfoFrame:SetTemplate('Transparent')
 	FriendsFrameBattlenetFrame.UnavailableInfoFrame:ClearAllPoints()
 	FriendsFrameBattlenetFrame.UnavailableInfoFrame:Point('TOPLEFT', FriendsFrame, 'TOPRIGHT', 1, -18)
 
@@ -258,6 +252,7 @@ function S:FriendsFrame()
 	end)
 
 	--Who Frame
+	_G.WhoFrame:StripTextures()
 	_G.WhoFrameListInset:StripTextures()
 	_G.WhoFrameListInset.NineSlice:Hide()
 	_G.WhoFrameEditBoxInset:StripTextures()

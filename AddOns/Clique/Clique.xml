@@ -74,6 +74,12 @@
             <OnLoad>
                 self:RegisterForClicks("RightButtonDown")
             </OnLoad>
+            <OnEnter>
+                CliqueConfig:Row_OnEnter(self)
+            </OnEnter>
+            <OnLeave>
+                CliqueConfig:Row_OnLeave(self)
+            </OnLeave>
             <OnClick>
                 CliqueConfig:Row_OnClick(self, button)
             </OnClick>

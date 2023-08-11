@@ -61,6 +61,9 @@
   <Binding name="ARKINV_TOGGLE_SEARCH" category="ArkInventory ">
     ArkInventory.Search.Frame_Toggle( )
   </Binding>
+  <Binding name="ARKINV_TOGGLE_DEBUG" category="ArkInventory ">
+    ArkInventory.Debug.Frame_Toggle( )
+  </Binding>
   <Binding name="ARKINV_LDB_PETS_SUMMON" category="ArkInventory ">
     ArkInventory.LDB.Pets.OnClick( )
   </Binding>

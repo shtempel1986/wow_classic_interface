@@ -215,8 +215,10 @@ function ArkInventory.MediaAllFontSet( face, size )
 end
 
 function ArkInventory.MediaUpdate( )
-	ArkInventory.MediaAllFontSet( ArkInventory.db.option.font.face )
-	ArkInventory.Frame_Main_Paint_All( )
+	if ArkInventory.db then
+		ArkInventory.MediaAllFontSet( ArkInventory.db.option.font.face )
+		ArkInventory.Frame_Main_Paint_All( )
+	end
 end
 
 

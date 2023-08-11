@@ -1,14 +1,4 @@
-﻿local _G = _G
-local select = _G.select
-local pairs = _G.pairs
-local ipairs = _G.ipairs
-local string = _G.string
-local type = _G.type
-local error = _G.error
-local table = _G.table
-
-
-
+﻿
 ArkInventory.Search = { }
 
 function ArkInventory.Search.Frame_Hide( )
@@ -48,6 +38,13 @@ function ArkInventory.Search.Frame_Toggle( )
 	
 end
 
+function ArkInventory.Search.Frame_Paint( )
+	
+	if ArkInventory.Search.frame then
+		ArkInventorySearch.Frame_Paint( )
+	end
+	
+end
 
 function ArkInventory.Search.CleanText( txt )
 	

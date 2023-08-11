@@ -1,6 +1,7 @@
 <Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
     <Script file="ExtraObjectives\ClassicObjectives.lua"/>
     <Script file="ExtraObjectives\TbcObjectives.lua"/>
+    <Script file="ExtraObjectives\WotlkObjectives.lua"/>
 
     <Script file="Journey\MyJourney.lua"/>
     <Script file="Journey\QuestsByZone.lua"/>
@@ -29,6 +30,7 @@
     <Script file="Zones\ZoneSections.lua"/>
 
     <Script file="Classes.lua"/>
+    <Script file="Comms.lua"/>
     <Script file="DebugMessages.lua"/>
     <Script file="Events.lua"/>
     <Script file="Generics.lua"/>
@@ -37,6 +39,7 @@
     <Script file="Professions.lua"/>
     <Script file="QuestStates.lua"/>
     <Script file="Races.lua"/>
+    <Script file="StaticPopup.lua"/>
     <Script file="TooltipsUI.lua"/>
     <Script file="TrackerUI.lua"/>
 </Ui>

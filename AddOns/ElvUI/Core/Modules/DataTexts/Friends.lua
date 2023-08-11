@@ -7,8 +7,8 @@ local type, ipairs, pairs, select = type, ipairs, pairs, select
 local sort, next, wipe, tremove, tinsert = sort, next, wipe, tremove, tinsert
 local format, gsub, strfind, strjoin, strmatch = format, gsub, strfind, strjoin, strmatch
 
-local BNet_GetValidatedCharacterName = BNet_GetValidatedCharacterName
-local GetMouseFocus = GetMouseFocus
+local MouseIsOver = MouseIsOver
+local EasyMenu = EasyMenu
 local BNGetInfo = BNGetInfo
 local BNGetNumFriends = BNGetNumFriends
 local BNInviteFriend = BNInviteFriend
@@ -25,6 +25,8 @@ local SetItemRef = SetItemRef
 local ToggleFriendsFrame = ToggleFriendsFrame
 local UnitInParty = UnitInParty
 local UnitInRaid = UnitInRaid
+
+local BNet_GetValidatedCharacterName = BNet_GetValidatedCharacterName
 local C_FriendList_GetNumFriends = C_FriendList.GetNumFriends
 local C_FriendList_GetNumOnlineFriends = C_FriendList.GetNumOnlineFriends
 local C_FriendList_GetFriendInfoByIndex = C_FriendList.GetFriendInfoByIndex
@@ -117,12 +119,12 @@ local battleNetString = _G.BATTLENET_OPTIONS_LABEL
 local totalOnlineString = strjoin('', _G.FRIENDS_LIST_ONLINE, ': %s/%s')
 local tthead = {r=0.4, g=0.78, b=1}
 local activezone, inactivezone = {r=0.3, g=1.0, b=0.3}, {r=0.65, g=0.65, b=0.65}
-local displayString = ''
+local displayString, db = ''
 local friendTable, BNTable, tableList = {}, {}, {}
 local friendOnline, friendOffline = gsub(_G.ERR_FRIEND_ONLINE_SS,'|Hplayer:%%s|h%[%%s%]|h',''), gsub(_G.ERR_FRIEND_OFFLINE_S,'%%s','')
 local wowString = _G.BNET_CLIENT_WOW
 local retailID, classicID, tbcID = _G.WOW_PROJECT_MAINLINE, _G.WOW_PROJECT_CLASSIC, _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5
-local dataValid, lastPanel = false
+local dataValid = false
 local statusTable = {
 	AFK = ' |cffFFFFFF[|r|cffFF9900'..L["AFK"]..'|r|cffFFFFFF]|r',
 	DND = ' |cffFFFFFF[|r|cffFF3333'..L["DND"]..'|r|cffFFFFFF]|r'
@@ -137,21 +139,22 @@ local clientList = {
 	Pro =	{ index = 4, tag = 'OW',	name = 'Overwatch'},
 	OSI =	{ index = 5, tag = 'D2',	name = 'Diablo 2: Resurrected'},
 	D3 =	{ index = 6, tag = 'D3',	name = 'Diablo 3'},
-	ANBS =	{ index = 7, tag = 'DI',	name = 'Diablo Immortal'},
-	S1 =	{ index = 8, tag = 'SC',	name = 'Starcraft'},
-	S2 =	{ index = 9, tag = 'SC2',	name = 'Starcraft 2'},
-	W3 =	{ index = 10, tag = 'WC3',	name = 'Warcraft 3: Reforged'},
-	RTRO =	{ index = 11, tag = 'AC',	name = 'Arcade Collection'},
-	WLBY =	{ index = 12, tag = 'CB4',	name = 'Crash Bandicoot 4'},
-	VIPR =	{ index = 13, tag = 'BO4',	name = 'COD: Black Ops 4'},
-	ODIN =	{ index = 14, tag = 'WZ',	name = 'COD: Warzone'},
-	AUKS =	{ index = 15, tag = 'WZ2',	name = 'COD: Warzone 2'},
-	LAZR =	{ index = 16, tag = 'MW2',	name = 'COD: Modern Warfare 2'},
-	ZEUS =	{ index = 17, tag = 'CW',	name = 'COD: Cold War'},
-	FORE =	{ index = 18, tag = 'VG',	name = 'COD: Vanguard'},
-	GRY = 	{ index = 19, tag = 'AR',	name = 'Warcraft Arclight Rumble'},
-	App =	{ index = 20, tag = 'App',	name = 'App'},
-	BSAp =	{ index = 21, tag = L["Mobile"], name = L["Mobile"]}
+	Fen =	{ index = 7, tag = 'D4',	name = 'Diablo 4'},
+	ANBS =	{ index = 8, tag = 'DI',	name = 'Diablo Immortal'},
+	S1 =	{ index = 9, tag = 'SC',	name = 'Starcraft'},
+	S2 =	{ index = 10, tag = 'SC2',	name = 'Starcraft 2'},
+	W3 =	{ index = 11, tag = 'WC3',	name = 'Warcraft 3: Reforged'},
+	RTRO =	{ index = 12, tag = 'AC',	name = 'Arcade Collection'},
+	WLBY =	{ index = 13, tag = 'CB4',	name = 'Crash Bandicoot 4'},
+	VIPR =	{ index = 14, tag = 'BO4',	name = 'COD: Black Ops 4'},
+	ODIN =	{ index = 15, tag = 'WZ',	name = 'COD: Warzone'},
+	AUKS =	{ index = 16, tag = 'WZ2',	name = 'COD: Warzone 2'},
+	LAZR =	{ index = 17, tag = 'MW2',	name = 'COD: Modern Warfare 2'},
+	ZEUS =	{ index = 18, tag = 'CW',	name = 'COD: Cold War'},
+	FORE =	{ index = 19, tag = 'VG',	name = 'COD: Vanguard'},
+	GRY = 	{ index = 20, tag = 'AR',	name = 'Warcraft Arclight Rumble'},
+	App =	{ index = 21, tag = 'App',	name = 'App'},
+	BSAp =	{ index = 22, tag = L["Mobile"], name = L["Mobile"]}
 }
 
 DT.clientFullName = {}
@@ -361,13 +364,13 @@ local function Click(self, btn)
 		menuList[2].menuList = {}
 		menuList[3].menuList = {}
 
-		if not E.global.datatexts.settings.Friends.hideWoW then
+		if not db.hideWoW then
 			for _, info in ipairs(friendTable) do
 				if info.online then
 					local shouldSkip = false
-					if (info.status == statusTable.AFK) and E.global.datatexts.settings.Friends.hideAFK then
+					if (info.status == statusTable.AFK) and db.hideAFK then
 						shouldSkip = true
-					elseif (info.status == statusTable.DND) and E.global.datatexts.settings.Friends.hideDND then
+					elseif (info.status == statusTable.DND) and db.hideDND then
 						shouldSkip = true
 					end
 					if not shouldSkip then
@@ -389,12 +392,12 @@ local function Click(self, btn)
 		for _, info in ipairs(BNTable) do
 			if info.isOnline then
 				local shouldSkip = false
-				if (info.isBnetAFK == true) and E.global.datatexts.settings.Friends.hideAFK then
+				if (info.isBnetAFK == true) and db.hideAFK then
 					shouldSkip = true
-				elseif (info.isBnetDND == true) and E.global.datatexts.settings.Friends.hideDND then
+				elseif (info.isBnetDND == true) and db.hideDND then
 					shouldSkip = true
 				end
-				if info.client and E.global.datatexts.settings.Friends['hide'..info.client] then
+				if info.client and db['hide'..info.client] then
 					shouldSkip = true
 				end
 				if not shouldSkip then
@@ -426,7 +429,7 @@ local function Click(self, btn)
 		end
 
 		E:SetEasyMenuAnchor(E.EasyMenu, self)
-		_G.EasyMenu(menuList, E.EasyMenu, nil, nil, nil, 'MENU')
+		EasyMenu(menuList, E.EasyMenu, nil, nil, nil, 'MENU')
 	elseif InCombatLockdown() then
 		_G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT)
 	else
@@ -469,13 +472,13 @@ local function OnEnter()
 	local shiftDown = IsShiftKeyDown()
 
 	DT.tooltip:AddDoubleLine(L["Friends List"], format(totalOnlineString, totalonline, totalfriends),tthead.r,tthead.g,tthead.b,tthead.r,tthead.g,tthead.b)
-	if (onlineFriends > 0) and not E.global.datatexts.settings.Friends.hideWoW then
+	if (onlineFriends > 0) and not db.hideWoW then
 		for _, info in ipairs(friendTable) do
 			if info.online then
 				local shouldSkip = false
-				if (info.status == statusTable.AFK) and E.global.datatexts.settings.Friends.hideAFK then
+				if (info.status == statusTable.AFK) and db.hideAFK then
 					shouldSkip = true
-				elseif (info.status == statusTable.DND) and E.global.datatexts.settings.Friends.hideDND then
+				elseif (info.status == statusTable.DND) and db.hideDND then
 					shouldSkip = true
 				end
 				if not shouldSkip then
@@ -493,18 +496,18 @@ local function OnEnter()
 		local status
 		for _, client in ipairs(clientSorted) do
 			local Table = tableList[client]
-			local shouldSkip = E.global.datatexts.settings.Friends['hide'..client]
+			local shouldSkip = db['hide'..client]
 			if not shouldSkip then
 				for _, info in ipairs(Table) do
 					if info.isOnline then
 						shouldSkip = false
 						if info.isBnetAFK == true then
-							if E.global.datatexts.settings.Friends.hideAFK then
+							if db.hideAFK then
 								shouldSkip = true
 							end
 							status = statusTable.AFK
 						elseif info.isBnetDND == true then
-							if E.global.datatexts.settings.Friends.hideDND then
+							if db.hideDND then
 								shouldSkip = true
 							end
 							status = statusTable.DND
@@ -561,26 +564,23 @@ local function OnEvent(self, event, message)
 	-- force update when showing tooltip
 	dataValid = false
 
-	if not IsAltKeyDown() and event == 'MODIFIER_STATE_CHANGED' and GetMouseFocus() == self then
+	if not IsAltKeyDown() and event == 'MODIFIER_STATE_CHANGED' and MouseIsOver(self) then
 		OnEnter(self)
 	end
 
-	if E.global.datatexts.settings.Friends.NoLabel then
+	if db.NoLabel then
 		self.text:SetFormattedText(displayString, onlineFriends + numBNetOnline)
 	else
-		self.text:SetFormattedText(displayString, E.global.datatexts.settings.Friends.Label ~= '' and E.global.datatexts.settings.Friends.Label or _G.FRIENDS..': ', onlineFriends + numBNetOnline)
-	end
-
-	lastPanel = self
-end
-
-local function ValueColorUpdate(hex)
-	displayString = strjoin('', E.global.datatexts.settings.Friends.NoLabel and '' or '%s', hex, '%d|r')
-
-	if lastPanel then
-		OnEvent(lastPanel, 'ELVUI_COLOR_UPDATE')
+		self.text:SetFormattedText(displayString, db.Label ~= '' and db.Label or _G.FRIENDS..': ', onlineFriends + numBNetOnline)
 	end
 end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
 
-DT:RegisterDatatext('Friends', _G.SOCIAL_LABEL, {'BN_FRIEND_ACCOUNT_ONLINE', 'BN_FRIEND_ACCOUNT_OFFLINE', 'BN_FRIEND_INFO_CHANGED', 'FRIENDLIST_UPDATE', 'CHAT_MSG_SYSTEM', 'MODIFIER_STATE_CHANGED'}, OnEvent, nil, Click, OnEnter, nil, _G.FRIENDS, nil, ValueColorUpdate)
+local function ApplySettings(self, hex)
+	if not db then
+		db = E.global.datatexts.settings[self.name]
+	end
+
+	displayString = strjoin('', db.NoLabel and '' or '%s', hex, '%d|r')
+end
+
+DT:RegisterDatatext('Friends', _G.SOCIAL_LABEL, { 'BN_FRIEND_ACCOUNT_ONLINE', 'BN_FRIEND_ACCOUNT_OFFLINE', 'BN_FRIEND_INFO_CHANGED', 'FRIENDLIST_UPDATE', 'CHAT_MSG_SYSTEM', 'MODIFIER_STATE_CHANGED' }, OnEvent, nil, Click, OnEnter, nil, _G.FRIENDS, nil, ApplySettings)

@@ -8,6 +8,7 @@ local module = private:NewModule("TargetScanning")
 
 --Traditional loop scanning method tables
 local targetScanCount = {}
+local filteredTargetCache = {}
 local bossuIdCache = {}
 --UNIT_TARGET scanning method table
 local unitScanCount = 0
@@ -15,6 +16,7 @@ local unitMonitor = {}
 
 function module:OnModuleEnd()
 	twipe(targetScanCount)
+	twipe(filteredTargetCache)
 	twipe(bossuIdCache)
 	unitScanCount = 0
 	twipe(unitMonitor)
@@ -25,6 +27,20 @@ do
 
 	local bossTargetuIds = {
 		"boss1", "boss2", "boss3", "boss4", "boss5", "boss6", "boss7", "boss8", "boss9", "boss10", "focus", "target"
+	}
+
+	local fullUids = {
+		"boss1", "boss2", "boss3", "boss4", "boss5", "boss6", "boss7", "boss8", "boss9", "boss10",
+		"mouseover", "target", "focus", "focustarget", "targettarget", "mouseovertarget",
+		"party1target", "party2target", "party3target", "party4target",
+		"raid1target", "raid2target", "raid3target", "raid4target", "raid5target", "raid6target", "raid7target", "raid8target", "raid9target", "raid10target",
+		"raid11target", "raid12target", "raid13target", "raid14target", "raid15target", "raid16target", "raid17target", "raid18target", "raid19target", "raid20target",
+		"raid21target", "raid22target", "raid23target", "raid24target", "raid25target", "raid26target", "raid27target", "raid28target", "raid29target", "raid30target",
+		"raid31target", "raid32target", "raid33target", "raid34target", "raid35target", "raid36target", "raid37target", "raid38target", "raid39target", "raid40target",
+		"nameplate1", "nameplate2", "nameplate3", "nameplate4", "nameplate5", "nameplate6", "nameplate7", "nameplate8", "nameplate9", "nameplate10",
+		"nameplate11", "nameplate12", "nameplate13", "nameplate14", "nameplate15", "nameplate16", "nameplate17", "nameplate18", "nameplate19", "nameplate20",
+		"nameplate21", "nameplate22", "nameplate23", "nameplate24", "nameplate25", "nameplate26", "nameplate27", "nameplate28", "nameplate29", "nameplate30",
+		"nameplate31", "nameplate32", "nameplate33", "nameplate34", "nameplate35", "nameplate36", "nameplate37", "nameplate38", "nameplate39", "nameplate40"
 	}
 
 	local function getBossTarget(guid, scanOnlyBoss)
@@ -60,35 +76,13 @@ do
 				bossuIdCache[UnitGUID(cacheuid)] = cacheuid
 				name, uid, bossuid = getBossTarget(UnitGUID(cacheuid), scanOnlyBoss)
 			else
-				local found = false
-				for _, uId in ipairs(bossTargetuIds) do
+				local usedTable = scanOnlyBoss and bossTargetuIds or fullUids
+				for _, uId in ipairs(usedTable) do
 					if mod:GetUnitCreatureId(uId) == cidOrGuid then
-						found = true
 						bossuIdCache[cidOrGuid] = uId
 						bossuIdCache[UnitGUID(uId)] = uId
 						name, uid, bossuid = getBossTarget(UnitGUID(uId), scanOnlyBoss)
 						break
-					end
-				end
-				if not found and not scanOnlyBoss then
-					if IsInRaid() then
-						for i = 1, GetNumGroupMembers() do
-							if mod:GetUnitCreatureId("raid"..i.."target") == cidOrGuid then
-								bossuIdCache[cidOrGuid] = "raid"..i.."target"
-								bossuIdCache[UnitGUID("raid"..i.."target")] = "raid"..i.."target"
-								name, uid, bossuid = getBossTarget(UnitGUID("raid"..i.."target"))
-								break
-							end
-						end
-					elseif IsInGroup() then
-						for i = 1, GetNumSubgroupMembers() do
-							if mod:GetUnitCreatureId("party"..i.."target") == cidOrGuid then
-								bossuIdCache[cidOrGuid] = "party"..i.."target"
-								bossuIdCache[UnitGUID("party"..i.."target")] = "party"..i.."target"
-								name, uid, bossuid = getBossTarget(UnitGUID("party"..i.."target"))
-								break
-							end
-						end
 					end
 				end
 			end
@@ -109,9 +103,10 @@ do
 		targetScanCount[cidOrGuid] = nil--Reset count for later use.
 		mod:UnscheduleMethod("BossTargetScanner", cidOrGuid, returnFunc)
 		DBM:Debug("Boss target scan for "..cidOrGuid.." should be aborting.", 2)
+		filteredTargetCache[cidOrGuid] = nil
 	end
 
-	function module:BossTargetScanner(mod, cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, isFinalScan, targetFilter, tankFilter, onlyPlayers)
+	function module:BossTargetScanner(mod, cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, isFinalScan, targetFilter, tankFilter, onlyPlayers, filterFallback)
 		--Increase scan count
 		cidOrGuid = cidOrGuid or mod.creatureId
 		if not cidOrGuid then return end
@@ -126,28 +121,36 @@ do
 		local targetname, targetuid, bossuid = self:GetBossTarget(mod, cidOrGuid, scanOnlyBoss)
 		DBM:Debug("Boss target scan "..targetScanCount[cidOrGuid].." of "..scanTimes..", found target "..(targetname or "nil").." using "..(bossuid or "nil"), 3)--Doesn't hurt to keep this, as level 3
 		--Do scan
-		if targetname and targetname ~= CL.UNKNOWN and (not targetFilter or (targetFilter and targetFilter ~= targetname)) then
+		--Cache the filtered target if using a filter target fallback
+		--so when scan ends we can return that instead of tank when scan ends
+		--(because boss might have already swapped back to aggro target by then)
+		if targetname and targetname ~= CL.UNKNOWN and filterFallback and targetFilter and targetFilter == targetname then
+			filteredTargetCache[cidOrGuid] = targetname
+		end
+		if targetname and targetname ~= CL.UNKNOWN and (not targetFilter or (targetFilter and targetFilter ~= targetname)) or (filteredTargetCache[cidOrGuid] and isFinalScan) then
 			if not IsInGroup() then scanTimes = 1 end--Solo, no reason to keep scanning, give faster warning. But only if first scan is actually a valid target, which is why i have this check HERE
 			if (isEnemyScan and UnitIsFriend("player", targetuid) or (onlyPlayers and not UnitIsPlayer("player", targetuid)) or mod:IsTanking(targetuid, bossuid)) and not isFinalScan then--On player scan, ignore tanks. On enemy scan, ignore friendly player. On Only player, ignore npcs and pets
 				if targetScanCount[cidOrGuid] < scanTimes then--Make sure no infinite loop.
-					mod:ScheduleMethod(scanInterval, "BossTargetScanner", cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, nil, targetFilter, tankFilter, onlyPlayers)--Scan multiple times to be sure it's not on something other then tank (or friend on enemy scan, or npc/pet on only person)
+					mod:ScheduleMethod(scanInterval, "BossTargetScanner", cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, nil, targetFilter, tankFilter, onlyPlayers, filterFallback)--Scan multiple times to be sure it's not on something other then tank (or friend on enemy scan, or npc/pet on only person)
 				else--Go final scan.
-					self:BossTargetScanner(mod, cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, true, targetFilter, tankFilter, onlyPlayers)
+					self:BossTargetScanner(mod, cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, true, targetFilter, tankFilter, onlyPlayers, filterFallback)
 				end
 			else--Scan success. (or failed to detect right target.) But some spells can be used on tanks, anyway warns tank if player scan. (enemy scan block it)
 				targetScanCount[cidOrGuid] = nil--Reset count for later use.
 				mod:UnscheduleMethod("BossTargetScanner", cidOrGuid, returnFunc)--Unschedule all checks just to be sure none are running, we are done.
 				if (tankFilter and mod:IsTanking(targetuid, bossuid)) or (isFinalScan and isEnemyScan) or onlyPlayers and not UnitIsPlayer("player", targetuid) then return end--If enemyScan and playerDetected, return nothing
 				local scanningTime = (targetScanCount[cidOrGuid] or 1) * scanInterval
-				mod[returnFunc](mod, targetname, targetuid, bossuid, scanningTime)--Return results to warning function with all variables.
+				mod[returnFunc](mod, filteredTargetCache[cidOrGuid] or targetname, targetuid, bossuid, scanningTime)--Return results to warning function with all variables.
 				DBM:Debug("BossTargetScanner has ended for "..cidOrGuid, 2)
+				filteredTargetCache[cidOrGuid] = nil
 			end
 		else--target was nil, lets schedule a rescan here too.
 			if targetScanCount[cidOrGuid] < scanTimes then--Make sure not to infinite loop here as well.
-				mod:ScheduleMethod(scanInterval, "BossTargetScanner", cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, nil, targetFilter, tankFilter, onlyPlayers)
+				mod:ScheduleMethod(scanInterval, "BossTargetScanner", cidOrGuid, returnFunc, scanInterval, scanTimes, scanOnlyBoss, isEnemyScan, nil, targetFilter, tankFilter, onlyPlayers, filterFallback)
 			else
 				targetScanCount[cidOrGuid] = nil--Reset count for later use.
 				mod:UnscheduleMethod("BossTargetScanner", cidOrGuid, returnFunc)--Unschedule all checks just to be sure none are running, we are done.
+				filteredTargetCache[cidOrGuid] = nil
 			end
 		end
 	end

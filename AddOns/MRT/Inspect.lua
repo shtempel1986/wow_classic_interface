@@ -287,12 +287,6 @@ do
 			local itemLink, tooltipData
 			if ExRT.is10 then
 				tooltipData = C_TooltipInfo.GetInventoryItem(inspectedName, itemSlotID)
-				if tooltipData then
-					TooltipUtil.SurfaceArgs(tooltipData)
-					for _, line in ipairs(tooltipData.lines) do
-					    TooltipUtil.SurfaceArgs(line)
-					end
-				end
 				itemLink = GetInventoryItemLink(inspectedName, itemSlotID)
 			else
 				inspectScantip:SetInventoryItem(inspectedName, itemSlotID)
@@ -1482,6 +1476,9 @@ function module:IsAzeriteItemEnabled()
 	end
 	return false
 end
+
+local EQUIPPED_FIRST = 1
+local EQUIPPED_LAST = 19
 
 function module.main:ENCOUNTER_START()
 	if ExRT.isClassic then

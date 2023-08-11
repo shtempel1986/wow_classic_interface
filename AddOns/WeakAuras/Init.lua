@@ -4,6 +4,8 @@ WeakAuras = {}
 WeakAuras.L = {}
 Private.frames = {}
 
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+
 --- @alias uid string
 --- @alias auraId string
 
@@ -35,7 +37,8 @@ Private.frames = {}
 --- @field CanHaveTooltip fun(data: auraData): boolean
 --- @field ContainsCustomPlaceHolder fun(input: string): boolean
 --- @field ContainsAnyPlaceHolders fun(input: string): boolean
---- @field ContainsPlaceHolders fun(input: string, placeholders: string): boolean
+--- @field ContainsPlaceHolders fun(input: string, placeholders: string, checkDoublePercent?: boolean): boolean
+--- @field CreateSubscribableObject fun(): SubscribableObject
 --- @field clones table<auraId, table<string, table>>
 --- @field customActionsFunctions table<auraId, table<string, function?>>
 --- @field DebugLog debugLog
@@ -295,10 +298,9 @@ Private.frames = {}
 WeakAuras.normalWidth = 1.3
 WeakAuras.halfWidth = WeakAuras.normalWidth / 2
 WeakAuras.doubleWidth = WeakAuras.normalWidth * 2
-
 local versionStringFromToc = GetAddOnMetadata("WeakAuras", "Version")
-local versionString = "5.3.3"
-local buildTime = "20221210164722"
+local versionString = "5.6.0"
+local buildTime = "20230711143134"
 
 local flavorFromToc = GetAddOnMetadata("WeakAuras", "X-Flavor")
 local flavorFromTocToNumber = {
@@ -310,7 +312,7 @@ local flavorFromTocToNumber = {
 local flavor = flavorFromTocToNumber[flavorFromToc]
 
 --[==[@debug@
-if versionStringFromToc == "5.3.3" then
+if versionStringFromToc == "5.6.0" then
   versionStringFromToc = "Dev"
   buildTime = "Dev"
 end
@@ -321,13 +323,11 @@ WeakAuras.buildTime = buildTime
 WeakAuras.newFeatureString = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0|t"
 WeakAuras.BuildInfo = select(4, GetBuildInfo())
 
-function WeakAuras.IsClassic()
+function WeakAuras.IsClassicEra()
   return flavor == 1
 end
-
-function WeakAuras.IsBCC()
-  return flavor == 2
-end
+-- save compatibility with old auras
+WeakAuras.IsClassic = WeakAuras.IsClassicEra
 
 function WeakAuras.IsWrathClassic()
   return flavor == 3
@@ -337,26 +337,13 @@ function WeakAuras.IsRetail()
   return flavor == 10
 end
 
-function WeakAuras.IsClassicOrBCC()
-  return WeakAuras.IsClassic() or WeakAuras.IsBCC()
-end
-
-function WeakAuras.IsClassicOrBCCOrWrath()
-  return WeakAuras.IsClassic() or WeakAuras.IsBCC() or WeakAuras.IsWrathClassic()
-end
-
-function WeakAuras.IsBCCOrWrath()
-  return WeakAuras.IsBCC() or WeakAuras.IsWrathClassic()
-end
-
-function WeakAuras.IsBCCOrWrathOrRetail()
-  return WeakAuras.IsBCC() or WeakAuras.IsWrathClassic() or WeakAuras.IsRetail()
+function WeakAuras.IsClassicEraOrWrath()
+  return WeakAuras.IsClassicEra() or WeakAuras.IsWrathClassic()
 end
 
 function WeakAuras.IsWrathOrRetail()
   return WeakAuras.IsRetail() or WeakAuras.IsWrathClassic()
 end
-
 
 WeakAuras.prettyPrint = function(...)
   print("|cff9900ffWeakAuras:|r ", ...)
@@ -392,13 +379,41 @@ do
     "LibSerialize",
     "LibUIDropDownMenu-4.0"
   }
-  if WeakAuras.IsClassic() then
+  if WeakAuras.IsClassicEra() then
     tinsert(LibStubLibs, "LibClassicSpellActionCount-1.0")
     tinsert(LibStubLibs, "LibClassicCasterino")
     tinsert(LibStubLibs, "LibClassicDurations")
   end
   if WeakAuras.IsRetail() then
     tinsert(LibStubLibs, "LibSpecialization")
+    AddonCompartmentFrame:RegisterAddon({
+      text = AddonName,
+      icon = "Interface\\AddOns\\WeakAuras\\Media\\Textures\\icon.blp",
+      registerForAnyClick = true,
+      notCheckable = true,
+      func = function(btn, arg1, arg2, checked, mouseButton)
+        if mouseButton == "LeftButton" then
+          if IsShiftKeyDown() then
+            if not (WeakAuras.IsOptionsOpen()) then
+              WeakAuras.Toggle()
+            end
+          else
+            WeakAuras.OpenOptions()
+          end
+        elseif mouseButton == "MiddleButton" then
+          WeakAuras.ToggleMinimap()
+        else
+          WeakAuras.RealTimeProfilingWindow:Toggle()
+        end
+      end,
+      funcOnEnter = function()
+        GameTooltip:SetOwner(AddonCompartmentFrame, "ANCHOR_TOPRIGHT")
+        GameTooltip:SetText(AddonName)
+        GameTooltip:AddLine(WeakAuras.L["|cffeda55fLeft-Click|r to toggle showing the main window."], 1, 1, 1, true)
+        GameTooltip:Show()
+        WeakAuras.GenerateTooltip(true)
+      end,
+    })
   end
   for _, lib in ipairs(StandAloneLibs) do
     if not lib then

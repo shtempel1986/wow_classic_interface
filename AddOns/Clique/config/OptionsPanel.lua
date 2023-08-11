@@ -12,6 +12,7 @@ local addonName, addon = ...
 local L = addon.L
 
 local LibDropDown = LibStub("LibDropDown")
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 --[[-------------------------------------------------------------------------
 --  Addon 'About' Dialog for Interface Options

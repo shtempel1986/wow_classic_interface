@@ -7,6 +7,7 @@ local BreakUpLargeNumbers = BreakUpLargeNumbers
 local GetCombatRating = GetCombatRating
 local GetCombatRatingBonus = GetCombatRatingBonus
 local GetLifesteal = GetLifesteal
+
 local CR_LIFESTEAL = CR_LIFESTEAL
 local CR_LIFESTEAL_TOOLTIP = CR_LIFESTEAL_TOOLTIP
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
@@ -15,7 +16,7 @@ local PAPERDOLLFRAME_TOOLTIP_FORMAT = PAPERDOLLFRAME_TOOLTIP_FORMAT
 local STAT_CATEGORY_ENHANCEMENTS = STAT_CATEGORY_ENHANCEMENTS
 local STAT_LIFESTEAL = STAT_LIFESTEAL
 
-local displayString, lastPanel = ''
+local displayString = ''
 
 local function OnEnter()
 	DT.tooltip:ClearLines()
@@ -31,14 +32,10 @@ end
 local function OnEvent(self)
 	local lifesteal = GetLifesteal()
 	self.text:SetFormattedText(displayString, STAT_LIFESTEAL, lifesteal)
-	lastPanel = self
 end
 
-local function ValueColorUpdate(hex)
+local function ApplySettings(_, hex)
 	displayString = strjoin('', '%s: ', hex, '%.2f%%|r')
-
-	if lastPanel then OnEvent(lastPanel) end
 end
-E.valueColorUpdateFuncs[ValueColorUpdate] = true
 
-DT:RegisterDatatext('Leech', STAT_CATEGORY_ENHANCEMENTS, {'UNIT_STATS', 'UNIT_AURA', 'PLAYER_DAMAGE_DONE_MODS'}, OnEvent, nil, nil, OnEnter, nil, STAT_LIFESTEAL, nil, ValueColorUpdate)
+DT:RegisterDatatext('Leech', STAT_CATEGORY_ENHANCEMENTS, {'UNIT_STATS', 'UNIT_AURA', 'PLAYER_DAMAGE_DONE_MODS'}, OnEvent, nil, nil, OnEnter, nil, STAT_LIFESTEAL, nil, ApplySettings)

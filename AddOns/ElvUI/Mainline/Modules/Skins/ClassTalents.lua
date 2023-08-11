@@ -32,6 +32,8 @@ function S:Blizzard_ClassTalentUI()
 	S:HandleButton(ClassTalentFrame.TalentsTab.ApplyButton)
 	S:HandleDropDownBox(ClassTalentFrame.TalentsTab.LoadoutDropDown.DropDownControl.DropDownMenu)
 
+	S:HandleButton(ClassTalentFrame.TalentsTab.InspectCopyButton)
+
 	ClassTalentFrame.TalentsTab.ClassCurrencyDisplay.CurrencyLabel:FontTemplate(nil, 18)
 	ClassTalentFrame.TalentsTab.ClassCurrencyDisplay.CurrencyAmount:FontTemplate(nil, 26)
 
@@ -47,6 +49,9 @@ function S:Blizzard_ClassTalentUI()
 	for _, tab in next, { ClassTalentFrame.TabSystem:GetChildren() } do
 		S:HandleTab(tab)
 	end
+
+	ClassTalentFrame.TabSystem:ClearAllPoints()
+	ClassTalentFrame.TabSystem:Point('TOPLEFT', ClassTalentFrame, 'BOTTOMLEFT', -3, 0)
 
 	hooksecurefunc(ClassTalentFrame.SpecTab, 'UpdateSpecFrame', function(frame)
 		for specContentFrame in frame.SpecContentFramePool:EnumerateActive() do

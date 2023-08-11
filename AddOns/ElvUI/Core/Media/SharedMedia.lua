@@ -142,7 +142,6 @@ AddMedia('texture','Healer')
 AddMedia('texture','Help')
 AddMedia('texture','Highlight')
 AddMedia('texture','Invisible')
-AddMedia('texture','LeaderHQ')
 AddMedia('texture','LogoBottom')
 AddMedia('texture','LogoBottomSmall')
 AddMedia('texture','LogoTop')
@@ -162,7 +161,6 @@ AddMedia('texture','Plus')
 AddMedia('texture','PlusButton')
 AddMedia('texture','Reset')
 AddMedia('texture','RoleIcons')
-AddMedia('texture','RolesHQ')
 AddMedia('texture','Scroll')
 AddMedia('texture','SkullIcon')
 AddMedia('texture','Smooth')
@@ -223,6 +221,7 @@ AddMedia('logo','TyroneBiggums')
 AddMedia('logo','SuperBear')
 
 E.Media.CombatIcons.COMBAT = E.Media.Textures.Combat
+E.Media.Arrows.ArrowUp = E.Media.Textures.ArrowUp
 
 do -- LSM Font Preloader ~Simpy
 	local preloader = CreateFrame('Frame')

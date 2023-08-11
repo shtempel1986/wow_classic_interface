@@ -8,6 +8,14 @@ local POSTING_HISTORY_PROVIDER_LAYOUT ={
   },
   {
     headerTemplate = "AuctionatorStringColumnHeaderTemplate",
+    headerText = AUCTIONATOR_L_BID_PRICE,
+    headerParameters = { "bidPrice" },
+    cellTemplate = "AuctionatorPriceCellTemplate",
+    cellParameters = { "bidPrice" },
+    defaultHide = Auctionator.Constants.IsClassic,
+  },
+  {
+    headerTemplate = "AuctionatorStringColumnHeaderTemplate",
     headerText = AUCTIONATOR_L_QUANTITY,
     headerParameters = { "quantity" },
     cellTemplate = "AuctionatorStringCellTemplate",
@@ -39,8 +47,6 @@ function AuctionatorPostingHistoryProviderMixin:SetItem(dbKey)
   -- Reset columns
   self.onSearchStarted()
 
-  self.currentDBKey = dbKey
-
   local entries = Auctionator.PostingHistory:GetPriceHistory(dbKey)
   table.sort(entries, function(a, b) return b.rawDay < a.rawDay end)
 
@@ -57,6 +63,7 @@ end
 
 local COMPARATORS = {
   price = Auctionator.Utilities.NumberComparator,
+  bidPrice = Auctionator.Utilities.NumberComparator,
   quantity = Auctionator.Utilities.NumberComparator,
   rawDay = Auctionator.Utilities.StringComparator
 }

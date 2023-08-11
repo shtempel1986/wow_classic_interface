@@ -19,6 +19,11 @@ local CONST_BTALENT_VERSION_COVENANTS = 9
 
 local CONST_SPELLBOOK_CLASSSPELLS_TABID = 2
 local CONST_SPELLBOOK_GENERAL_TABID = 1
+local CONST_ISITEM_BY_TYPEID = {
+    [10] = true, --healing items
+    [11] = true, --attack items
+    [12] = true, --utility items
+}
 
 local GetItemInfo = GetItemInfo
 local GetItemStats = GetItemStats
@@ -296,20 +301,29 @@ end
 --return an integer between zero and one hundret indicating the player gear durability
 function openRaidLib.GearManager.GetPlayerGearDurability()
     local durabilityTotalPercent, totalItems = 0, 0
+    --hold the lowest item durability of all the player gear
+    --this prevent the case where the player has an average of 80% durability but an item with 15% durability
+    local lowestGearDurability = 100
+
     for i = INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED do
         local durability, maxDurability = GetInventoryItemDurability(i)
         if (durability and maxDurability) then
             local itemDurability = durability / maxDurability * 100
+
+            if (itemDurability < lowestGearDurability) then
+                lowestGearDurability = itemDurability
+            end
+
             durabilityTotalPercent = durabilityTotalPercent + itemDurability
             totalItems = totalItems + 1
         end
     end
 
     if (totalItems == 0) then
-        return 100
+        return 100, lowestGearDurability
     end
 
-    return floor(durabilityTotalPercent / totalItems)
+    return floor(durabilityTotalPercent / totalItems), lowestGearDurability
 end
 
 function openRaidLib.GearManager.GetPlayerWeaponEnchant()
@@ -321,7 +335,7 @@ function openRaidLib.GearManager.GetPlayerWeaponEnchant()
     elseif(LIB_OPEN_RAID_WEAPON_ENCHANT_IDS[offHandEnchantId]) then
         weaponEnchant = 1
     end
-    return weaponEnchant
+    return weaponEnchant, mainHandEnchantId or 0, offHandEnchantId or 0
 end
 
 function openRaidLib.GearManager.GetPlayerGemsAndEnchantInfo()
@@ -490,12 +504,30 @@ local getSpellListAsHashTableFromSpellBook = function()
     local tabEnd = offset + numSpells
     for entryOffset = offset, tabEnd - 1 do
         local spellType, spellId = GetSpellBookItemInfo(entryOffset, "player")
-        if (spellId and LIB_OPEN_RAID_COOLDOWNS_INFO[spellId] and LIB_OPEN_RAID_COOLDOWNS_INFO[spellId].raceid == playerRaceId) then
-            spellId = C_SpellBook.GetOverrideSpell(spellId)
-            local spellName = GetSpellInfo(spellId)
-            local bIsPassive = IsPassiveSpell(spellId, "player")
-            if (spellName and not bIsPassive) then
-                completeListOfSpells[spellId] = true
+        local spellData = LIB_OPEN_RAID_COOLDOWNS_INFO[spellId]
+        if (spellData) then
+            local raceId = spellData.raceid
+            if (raceId) then
+                if (type(raceId) == "table") then
+                    if (raceId[playerRaceId]) then
+                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        local spellName = GetSpellInfo(spellId)
+                        local bIsPassive = IsPassiveSpell(spellId, "player")
+                        if (spellName and not bIsPassive) then
+                            completeListOfSpells[spellId] = true
+                        end
+                    end
+
+                elseif (type(raceId) == "number") then
+                    if (raceId == playerRaceId) then
+                        spellId = C_SpellBook.GetOverrideSpell(spellId)
+                        local spellName = GetSpellInfo(spellId)
+                        local bIsPassive = IsPassiveSpell(spellId, "player")
+                        if (spellName and not bIsPassive) then
+                            completeListOfSpells[spellId] = true
+                        end
+                    end
+                end
             end
         end
     end
@@ -537,12 +569,22 @@ local getSpellListAsHashTableFromSpellBook = function()
                 spellId = C_SpellBook.GetOverrideSpell(spellId)
                 local spellName = GetSpellInfo(spellId)
                 local bIsPassive = IsPassiveSpell(spellId, "player")
+
                 if LIB_OPEN_RAID_MULTI_OVERRIDE_SPELLS[spellId] then
                     for _, overrideSpellId in pairs(LIB_OPEN_RAID_MULTI_OVERRIDE_SPELLS[spellId]) do
                         completeListOfSpells[overrideSpellId] = true
                     end
                 elseif (spellName and not bIsPassive) then
                     completeListOfSpells[spellId] = true
+
+                else
+                    if (not spellName) then
+                        --print("no spellname")
+                        --print(GetSpellInfo(spellId))
+                    elseif (bIsPassive) then
+                        --print("is passive")
+                        --print(GetSpellInfo(spellId))
+                    end
                 end
             end
         end
@@ -579,8 +621,25 @@ local updateCooldownAvailableList = function()
 
     --build a list of all spells assigned as cooldowns for the player class
     for spellID, spellData in pairs(LIB_OPEN_RAID_COOLDOWNS_INFO) do
-        if (spellData.class == playerClass or spellData.raceid == playerRaceId) then --need to implement here to get the racial as racial cooldowns does not carry a class
-            if (spellBookSpellList[spellID]) then
+        --type 10 is an item cooldown and does not have a class or race id
+
+        local passRaceId = false
+        local raceId = spellData.raceid
+        if (raceId) then
+            if (type(raceId) == "table") then
+                if (raceId[playerRaceId]) then
+                    passRaceId = true
+                end
+            elseif (type(raceId) == "number") then
+                if (raceId == playerRaceId) then
+                    passRaceId = true
+                end
+            end
+        end
+
+        if (spellData.class == playerClass or passRaceId or CONST_ISITEM_BY_TYPEID[spellData.type]) then --need to implement here to get the racial as racial cooldowns does not carry a class
+            --type 10 is an item cooldown and does not have a spellbook entry
+            if (spellBookSpellList[spellID] or CONST_ISITEM_BY_TYPEID[spellData.type]) then
                 LIB_OPEN_RAID_PLAYERCOOLDOWNS[spellID] = spellData
             end
         end
@@ -598,7 +657,7 @@ function openRaidLib.CooldownManager.GetPlayerCooldownList()
         --get the player specId
         local specId = openRaidLib.GetPlayerSpecId()
         if (specId) then
-            --get the cooldowns for the specialization
+            --get the cooldowns for the specializationid
             local playerCooldowns = LIB_OPEN_RAID_PLAYERCOOLDOWNS
             if (not playerCooldowns) then
                 openRaidLib.DiagnosticError("CooldownManager|GetPlayerCooldownList|LIB_OPEN_RAID_PLAYERCOOLDOWNS is nil")
@@ -644,7 +703,7 @@ function openRaidLib.CooldownManager.GetPlayerCooldownList()
         end
     end
 
-    return {}
+    return {}, {}
 end
 
 --aura frame handles only UNIT_AURA events to grab the duration of the buff placed by the aura
@@ -693,17 +752,24 @@ local getAuraDuration = function(spellId)
     end
 end
 
+---get the duration of a buff placed by a spell
+---@param spellId number
+---@return number duration
 function openRaidLib.CooldownManager.GetSpellBuffDuration(spellId)
     return getAuraDuration(spellId)
 end
 
---check if a player cooldown is ready or if is in cooldown
---@spellId: the spellId to check for cooldown
---return timeLeft, charges, startTimeOffset, duration, buffDuration
+---check if a player cooldown is ready or if is in cooldown
+---@spellId: the spellId to check for cooldown
+---@return number timeLeft
+---@return number charges
+---@return number startTimeOffset
+---@return number duration
+---@return number buffDuration
 function openRaidLib.CooldownManager.GetPlayerCooldownStatus(spellId)
     --check if is a charge spell
-    local cooldownInfo = LIB_OPEN_RAID_COOLDOWNS_INFO[spellId]
-    if (cooldownInfo) then
+    local spellData = LIB_OPEN_RAID_COOLDOWNS_INFO[spellId]
+    if (spellData) then
         local buffDuration = getAuraDuration(spellId)
         local chargesAvailable, chargesTotal, start, duration = GetSpellCharges(spellId)
         if chargesAvailable then
@@ -713,7 +779,7 @@ function openRaidLib.CooldownManager.GetPlayerCooldownStatus(spellId)
                 --return the time to the next charge
                 local timeLeft = start + duration - GetTime()
                 local startTimeOffset = start - GetTime()
-                return ceil(timeLeft), chargesAvailable, startTimeOffset, duration, buffDuration --time left, charges, startTime, duration, buffDuration
+                return ceil(timeLeft), chargesAvailable, startTimeOffset, duration, buffDuration
             end
         else
             local start, duration = GetSpellCooldown(spellId)
@@ -748,7 +814,7 @@ do
         end
     end
 
-	function openRaidLib.AuraTracker.ScanPlayerAuras(unitId)
+	function openRaidLib.AuraTracker.ScanUnitAuras(unitId)
 		local batchCount = nil
 		local usePackedAura = true
         openRaidLib.AuraTracker.CurrentUnitId = unitId
@@ -775,7 +841,7 @@ do
         auraFrameEvent:RegisterUnitEvent("UNIT_AURA", unitId)
 
         auraFrameEvent:SetScript("OnEvent", function()
-            openRaidLib.AuraTracker.ScanPlayerAuras(unitId)
+            openRaidLib.AuraTracker.ScanUnitAuras(unitId)
         end)
     end
 

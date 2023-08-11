@@ -195,7 +195,11 @@ function module.options:Load()
 		{"Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES",0.5,0.73828125,0.5,0.75},
 		{"Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES",0.7421875,0.98828125,0,0.25},
 		{"Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES",0.7421875,0.98828125,0.5,0.75},
+		"interface/icons/classicon_evoker",
 	}
+	if ExRT.isClassic then
+		tremove(icons_list, #icons_list)
+	end
 
 	local IsDotIn
 	local LockedImgHideAll
@@ -385,7 +389,7 @@ function module.options:Load()
 	ELib:Border(self.tool_select_text,2,.24,.25,.30,1)
 	self.tool_select_text.texture:Hide()
 	self.tool_select_text.text = self.tool_select_text:CreateFontString(nil,"ARTWORK","GameFontWhite")
-	self.tool_select_text.text:SetFont(self.tool_select_text.text:GetFont(),10)
+	self.tool_select_text.text:SetFont(self.tool_select_text.text:GetFont(),10,"")
 	self.tool_select_text.text:SetPoint("CENTER")
 	self.tool_select_text.text:SetText("TEXT")
 
@@ -620,10 +624,11 @@ function module.options:Load()
 		end
 	end
 
+	local ICONS_SIZE = 40
 	self.icon_selector = {}
 	for i=1,#icons_list do
 		local t = icons_list[i]
-		self.icon_selector[i] = ELib:Icon(self,type(t)=='table' and t[1] or t,floor(COLOR_SIZE / 2),true):OnClick(function()
+		self.icon_selector[i] = ELib:Icon(self,type(t)=='table' and t[1] or t,floor(ICONS_SIZE / 2),true):OnClick(function()
 			curr_icon = i
 			self.curr_color_texture:SetTexture(icons_list[i])
 		end)
@@ -793,7 +798,7 @@ function module.options:Load()
 		curr_map = arg2
 		curr_data[2] = arg2
 	end
-	self.SelectMapDropDown.Text:SetFont(self.SelectMapDropDown.Text:GetFont(),8)
+	self.SelectMapDropDown.Text:SetFont(self.SelectMapDropDown.Text:GetFont(),8,"")
 
 	local function ZoneNameFromMap(mapID)
 		return (C_Map.GetMapInfo(mapID or 0) or {}).name or ("Map ID "..mapID)
@@ -1023,10 +1028,39 @@ function module.options:Load()
 		{L.S_ZoneT29VotI..": "..L.bossName[2614],{2126,0.51,0.51,1.5}},
 		{L.S_ZoneT29VotI..": "..L.bossName[2605],{2124,0.50,0.50,1.5}},
 		{L.S_ZoneT29VotI..": "..L.bossName[2607],{2125,0.54,0.5,1}},
+		{"Flame Leviathan",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld1"}},
+		{"Razorscale",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld2"}},
+		{"XT-002 Deconstructor",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld3"}},
+		{"Assembly of Iron",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld4"}},
+		{"Kologarn",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld5"}},
+
+		--191-200
+		{"Auriaya",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld6"}},
+		{"Hodir",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld7"}},
+		{"Thorim",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld8"}},
+		{"Freya",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld9"}},
+		{"Mimiron",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld10"}},
+		{"General Vezax",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld11"}},
+		{"Yogg-Saron",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld12"}},
+		{"Yogg-Saron room 1",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld13"}},
+		{"Yogg-Saron room 2",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld14"}},
+		{"Yogg-Saron room 3",{"Interface/AddOns/"..GlobalAddonName.."/mediaclassic/uld15"}},
+
+		--201-210
+		{L.S_ZoneT30..": "..L.bossName[2688],{2166,0.51,0.72,6}},
+		{L.S_ZoneT30..": "..L.bossName[2687],{2167,0.49,0.62,3}},
+		{L.S_ZoneT30..": "..L.bossName[2693],{2166,0.35,0.23,5}},
+		{L.S_ZoneT30..": "..L.bossName[2682],{2168,0.42,0.34,2.5}},
+		{L.S_ZoneT30..": "..L.bossName[2680],{2166,0.67,0.21,6}},
+		{L.S_ZoneT30..": "..L.bossName[2689],{2166,0.51,0.23,6}},
+		{L.S_ZoneT30..": "..L.bossName[2683],{2166,0.51,0.45,6}},
+		{L.S_ZoneT30..": "..L.bossName[2684],{2169,0.51,0.28,2.5}},
+		{L.S_ZoneT30..": "..L.bossName[2685],{2170,0.49,0.71,4}},
 	}
 	local mapsSorted = {
 		1,
 		{L.NoteColor,10,94,95,96,97,98,99},
+		{L.S_ZoneT30,209,208,207,206,205,204,203,202,201},
 		{L.S_ZoneT29VotI,185,184,183,182,181,180,179,178},
 		{L.S_ZoneT28SFO,151,150,149,148,147,146,145,144,143,142,141},
 		{L.S_ZoneT27SoD,114,115,116,124,125,123,122,121,120,119,118,117},
@@ -1048,6 +1082,7 @@ function module.options:Load()
 			{"Icecrown Citadel",160,161,162,163,164,165,166,167},
 			{"Onyxia's Lair",169},
 			{"Trial of the Crusader",158,159},
+			{"Ulduar [visual]",186,187,188,189,190,191,192,193,194,195,196,197,198,199,200},
 			{"Ulduar",152,153,154,155,156,157},
 			{"The Eye of Eternity",170},
 			{"The Obsidian Sanctum",171},
@@ -3369,14 +3404,14 @@ function module:UnpackString(str,sender)
 			if not module.db.await then
 				return
 			end
-			local mapIDstr,restStr = str:match("^..([^"..string.char(254)..string.char(255).."]+)[^"..string.char(255).."]-("..string.char(255)..".-)$")
+			local mapIDstr = str:match("^..([^"..string.char(254)..string.char(255).."]+)")
 			c = 0
 			for i=1,#mapIDstr do
 				c = c * 253 + mapIDstr:sub(i,i):byte() + (i > 1 and -1 or 0)
 				--function Convert(n)local res={} repeat table.insert(res,1,n%253) n=floor(n/253) until n==0 for i=2,#res do res[i]=res[i]+1 end return unpack(res) end
 			end
 			module.db.await[2] = c
-			str = restStr
+			str = str:sub(2+#mapIDstr+1)
 		end
 	end
 	if not module.db.await then
@@ -3610,13 +3645,13 @@ do
 	frame.border = ExRT.lib:Shadow(frame,20)
 
 	frame.label = frame:CreateFontString(nil,"OVERLAY","GameFontWhiteSmall")
-	frame.label:SetFont(frame.label:GetFont(),10)
+	frame.label:SetFont(frame.label:GetFont(),10,"")
 	frame.label:SetPoint("TOP",0,-4)
 	frame.label:SetTextColor(1,1,1,1)
 	frame.label:SetText("MRT: "..L.VisualNote)
 
 	frame.player = frame:CreateFontString(nil,"OVERLAY","GameFontWhiteSmall")
-	frame.player:SetFont(frame.player:GetFont(),10)
+	frame.player:SetFont(frame.player:GetFont(),10,"")
 	frame.player:SetPoint("TOP",0,-16)
 	frame.player:SetTextColor(1,1,1,1)
 	frame.player:SetText("MyName-MyRealm")

@@ -121,7 +121,6 @@ function B:HandleWidgets()
 
 	if E.Retail then
 		B:BuildWidgetHolder('PowerBarContainerHolder', 'PowerBarContainerMover', 'CENTER', L["PowerBarWidget"], _G.UIWidgetPowerBarContainerFrame, 'TOP', E.UIParent, 'TOP', 0, -75, 100, 20, 'ALL,WIDGETS')
-		B:BuildWidgetHolder('MawBuffsBelowMinimapHolder', 'MawBuffsBelowMinimapMover', 'CENTER', L["MawBuffsWidget"], _G.MawBuffsBelowMinimapFrame, 'TOP', _G.Minimap, 'BOTTOM', 0, -25, 250, 50, 'ALL,WIDGETS')
 		B:BuildWidgetHolder('EventToastHolder', 'EventToastMover', 'TOP', L["EventToastWidget"], _G.EventToastManagerFrame, 'TOP', E.UIParent, 'TOP', 0, -150, 200, 20, 'ALL,WIDGETS')
 		B:BuildWidgetHolder('BossBannerHolder', 'BossBannerMover', 'TOP', L["BossBannerWidget"], _G.BossBanner, 'TOP', E.UIParent, 'TOP', 0, -125, 200, 20, 'ALL,WIDGETS')
 
@@ -131,10 +130,12 @@ function B:HandleWidgets()
 		end
 	end
 
-	_G.DurabilityFrame:SetFrameStrata('HIGH')
-	local duraWidth, duraHeight = _G.DurabilityFrame:GetSize()
-	B:BuildWidgetHolder('DurabilityFrameHolder', 'DurabilityFrameMover', 'CENTER', L["Durability Frame"], _G.DurabilityFrame, 'TOPRIGHT', E.UIParent, 'TOPRIGHT', -135, -300, duraWidth, duraHeight, 'ALL,GENERAL')
-	B:UpdateDurabilityScale()
+	if not E.Retail then
+		_G.DurabilityFrame:SetFrameStrata('HIGH')
+		local duraWidth, duraHeight = _G.DurabilityFrame:GetSize()
+		B:BuildWidgetHolder('DurabilityFrameHolder', 'DurabilityFrameMover', 'CENTER', L["Durability Frame"], _G.DurabilityFrame, 'TOPRIGHT', E.UIParent, 'TOPRIGHT', -135, -300, duraWidth, duraHeight, 'ALL,GENERAL')
+		B:UpdateDurabilityScale()
+	end
 
 	-- Credits ShestakUI
 	hooksecurefunc(_G.UIWidgetTemplateStatusBarMixin, 'Setup', B.UIWidgetTemplateStatusBar)

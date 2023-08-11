@@ -27,7 +27,7 @@ local GetQuestDifficultyColor = GetQuestDifficultyColor
 local GetRaidRosterInfo = GetRaidRosterInfo
 local GetRelativeDifficultyColor = GetRelativeDifficultyColor
 local GetRuneCooldown = GetRuneCooldown
-local GetSpecialization = (E.Classic or E.Wrath and LCS.GetSpecialization) or GetSpecialization
+local GetSpecialization = (E.Classic or E.Wrath) and LCS.GetSpecialization or GetSpecialization
 local GetSpecializationInfo = GetSpecializationInfo
 local GetTime = GetTime
 local GetTitleName = GetTitleName
@@ -97,7 +97,7 @@ function E:AddTag(tagName, eventsOrSeconds, func, block)
 	if type(eventsOrSeconds) == 'number' then
 		Tags.OnUpdateThrottle[tagName] = eventsOrSeconds
 	else
-		Tags.Events[tagName] = (E.Retail and gsub(eventsOrSeconds, 'UNIT_HEALTH_FREQUENT', 'UNIT_HEALTH')) or gsub(eventsOrSeconds, 'UNIT_HEALTH([^%s_]?)', 'UNIT_HEALTH_FREQUENT%1')
+		Tags.Events[tagName] = (E.Classic and gsub(eventsOrSeconds, 'UNIT_HEALTH([^%s_]?)', 'UNIT_HEALTH_FREQUENT%1')) or gsub(eventsOrSeconds, 'UNIT_HEALTH_FREQUENT', 'UNIT_HEALTH')
 	end
 
 	Tags.Methods[tagName] = func
@@ -113,6 +113,10 @@ function E:CallTag(tag, ...)
 	if func then
 		return func(...)
 	end
+end
+
+function E:TagUpdateRate(second)
+	Tags:SetEventUpdateTimer(second)
 end
 
 --Expose local functions for plugins onto this table
@@ -235,8 +239,8 @@ local function GetClassPower(Class)
 	end
 
 	-- try additional mana
-	local barIndex = not r and E.Retail and _G.ADDITIONAL_POWER_BAR_INDEX == 0 and _G.ALT_MANA_BAR_PAIR_DISPLAY_INFO[Class]
-	if barIndex and barIndex[UnitPowerType('player')] then
+	local altIndex = not r and E.Retail and _G.ALT_POWER_BAR_PAIR_DISPLAY_INFO[Class]
+	if altIndex and altIndex[UnitPowerType('player')] then
 		min = UnitPower('player', POWERTYPE_MANA)
 		max = UnitPowerMax('player', POWERTYPE_MANA)
 
@@ -296,12 +300,10 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 	end)
 
 	E:AddTag(format('additionalmana:%s', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER', function(unit)
-		local barIndex = _G.ADDITIONAL_POWER_BAR_INDEX == 0 and _G.ALT_MANA_BAR_PAIR_DISPLAY_INFO[E.myclass]
-		if barIndex and barIndex[UnitPowerType(unit)] then
-			local min = UnitPower(unit, POWERTYPE_MANA)
-			if min ~= 0 then
-				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, POWERTYPE_MANA))
-			end
+		local altIndex = _G.ALT_POWER_BAR_PAIR_DISPLAY_INFO[E.myclass]
+		local min = altIndex and altIndex[UnitPowerType(unit)] and UnitPower(unit, POWERTYPE_MANA)
+		if min and min ~= 0 then
+			return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, POWERTYPE_MANA))
 		end
 	end, not E.Retail)
 
@@ -356,12 +358,10 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 		end)
 
 		E:AddTag(format('additionalmana:%s:shortvalue', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER', function(unit)
-			local barIndex = _G.ADDITIONAL_POWER_BAR_INDEX == 0 and _G.ALT_MANA_BAR_PAIR_DISPLAY_INFO[E.myclass]
-			if barIndex and barIndex[UnitPowerType(unit)] then
-				local min = UnitPower(unit, POWERTYPE_MANA)
-				if min ~= 0 and tagFormat ~= 'deficit' then
-					return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, POWERTYPE_MANA), nil, true)
-				end
+			local altIndex = _G.ALT_POWER_BAR_PAIR_DISPLAY_INFO[E.myclass]
+			local min = altIndex and altIndex[UnitPowerType(unit)] and UnitPower(unit, POWERTYPE_MANA)
+			if min and min ~= 0 and tagFormat ~= 'deficit' then
+				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, POWERTYPE_MANA), nil, true)
 			end
 		end, not E.Retail)
 
@@ -655,7 +655,7 @@ end)
 E:AddTag('classpowercolor', 'UNIT_POWER_FREQUENT UNIT_DISPLAYPOWER'..(E.Retail and (E.myclass == 'DEATHKNIGHT' or E.myclass == 'MONK') and ' PLAYER_SPECIALIZATION_CHANGED' or ''), function()
 	local _, _, r, g, b = GetClassPower(E.myclass)
 	return Hex(r, g, b)
-end)
+end, E.Classic)
 
 E:AddTag('manacolor', 'UNIT_POWER_FREQUENT UNIT_DISPLAYPOWER', function()
 	local color = ElvUF.colors.power.MANA
@@ -1232,6 +1232,7 @@ do
 		DEATHKNIGHT = '64:128:128:192',
 		MONK		= '128:192:128:192',
 		DEMONHUNTER = '192:256:128:192',
+		EVOKER		= '0:64:192:256',
 	}
 
 	E:AddTag('class:icon', 'PLAYER_TARGET_CHANGED', function(unit)

@@ -7,7 +7,6 @@
 AuctionatorAHThrottlingFrameMixin = {}
 
 local THROTTLING_EVENTS = {
-  "AUCTION_HOUSE_SHOW",
   "AUCTION_HOUSE_CLOSED",
   "UI_ERROR_MESSAGE",
 }
@@ -37,19 +36,11 @@ function AuctionatorAHThrottlingFrameMixin:OnLoad()
 
   self.oldReady = false
   self:ResetTimeout()
-
-  if AuctionFrame:IsShown() then
-    self:SetScript("OnUpdate", self.OnUpdate)
-  end
 end
 
 function AuctionatorAHThrottlingFrameMixin:OnEvent(eventName, ...)
-  if eventName == "AUCTION_HOUSE_SHOW" then
-    self:SetScript("OnUpdate", self.OnUpdate)
-
-  elseif eventName == "AUCTION_HOUSE_CLOSED" then
+  if eventName == "AUCTION_HOUSE_CLOSED" then
     self:ResetWaiting()
-    self:SetScript("OnUpdate", nil)
 
   elseif eventName == "AUCTION_MULTISELL_START" then
     self:ResetTimeout()
@@ -61,7 +52,7 @@ function AuctionatorAHThrottlingFrameMixin:OnEvent(eventName, ...)
       FrameUtil.UnregisterFrameForEvents(self, NEW_AUCTION_EVENTS)
       FrameUtil.RegisterFrameForEvents(self, AUCTIONS_UPDATED_EVENTS)
       self.waitingForNewAuction = false
-      self.waitingForOwnerUpdate = true
+      self.waitingForStatusMessage = true
     end
 
   elseif eventName == "AUCTION_MULTISELL_UPDATE" then
@@ -83,7 +74,7 @@ function AuctionatorAHThrottlingFrameMixin:OnEvent(eventName, ...)
     if msg == ERR_AUCTION_STARTED or msg == ERR_AUCTION_REMOVED then
       self:ResetTimeout()
       FrameUtil.UnregisterFrameForEvents(self, AUCTIONS_UPDATED_EVENTS)
-      self.waitingForOwnerUpdate = false
+      self.waitingForStatusMessage = false
     end
 
   elseif eventName == "AUCTION_ITEM_LIST_UPDATE" then
@@ -130,7 +121,7 @@ function AuctionatorAHThrottlingFrameMixin:IsReady()
 end
 
 function AuctionatorAHThrottlingFrameMixin:AnyWaiting()
-  return self.waitingForNewAuction or self.multisellInProgress or self.waitingOnBid or self.waitingForOwnerUpdate
+  return self.waitingForNewAuction or self.multisellInProgress or self.waitingOnBid or self.waitingForStatusMessage
 end
 
 function AuctionatorAHThrottlingFrameMixin:ResetTimeout()
@@ -142,10 +133,12 @@ function AuctionatorAHThrottlingFrameMixin:ResetWaiting()
   self.waitingForNewAuction = false
   self.multisellInProgress = false
   self.waitingOnBid = false
-  self.waitingForOwnerUpdate = false
+  self.waitingForStatusMessage = false
   FrameUtil.UnregisterFrameForEvents(self, BID_PLACED_EVENTS)
   FrameUtil.UnregisterFrameForEvents(self, NEW_AUCTION_EVENTS)
   FrameUtil.UnregisterFrameForEvents(self, AUCTIONS_UPDATED_EVENTS)
+
+  Auctionator.EventBus:Fire(self, Auctionator.AH.Events.ThrottleAbort)
 end
 
 function AuctionatorAHThrottlingFrameMixin:AuctionsPosted()
@@ -157,7 +150,7 @@ end
 
 function AuctionatorAHThrottlingFrameMixin:AuctionCancelled()
   self:ResetTimeout()
-  self.waitingForOwnerUpdate = true
+  self.waitingForStatusMessage = true
   self.oldReady = false
   FrameUtil.RegisterFrameForEvents(self, AUCTIONS_UPDATED_EVENTS)
 end

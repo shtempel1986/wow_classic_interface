@@ -523,7 +523,10 @@ local achievements = {
 	[16678] = {}, -- Adventurer of the Azure Span
 	[16679] = {}, -- Adventurer of the Thaldraszus
 	[16424] = {need=EMOTE410_CMD1, completed=DONE}, -- Who's A Good Bakar
+	[16461] = {}, -- Stormed Off
 	[16574] = {need=EMOTE88_CMD1, completed=DONE}, -- Sleeping on the Job
+	[17525] = {}, -- Champion of the Forbidden Reach
+	[17783] = {}, -- Adventurer of Zaralek Cavern
 }
 ns.achievements = achievements
 local mobs_to_achievement = {

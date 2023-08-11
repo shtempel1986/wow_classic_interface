@@ -4,7 +4,6 @@ local ElvUF = E.oUF
 
 local _G = _G
 local tinsert = tinsert
--- GLOBALS: ElvUF_Player
 
 function UF:Construct_PetFrame(frame)
 	frame.Health = UF:Construct_HealthBar(frame, true, true, 'RIGHT')
@@ -29,6 +28,7 @@ function UF:Construct_PetFrame(frame)
 	frame.TargetGlow = UF:Construct_TargetGlow(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.customTexts = {}
 
 	frame:Point('BOTTOM', E.UIParent, 'BOTTOM', -342, 100)
@@ -89,6 +89,7 @@ function UF:Update_PetFrame(frame, db)
 	UF:Configure_RaidIcon(frame)
 	UF:Configure_AuraBars(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_AuraWatch(frame, true)
 	UF:Configure_Castbar(frame)

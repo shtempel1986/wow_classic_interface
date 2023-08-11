@@ -1452,7 +1452,6 @@ function ArkInventory.MenuItemOpen( frame )
 							ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["TYPE"], LIGHTYELLOW_FONT_COLOR_CODE, info.itemtypeid, info.itemtype ) )
 							ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["MENU_ITEM_DEBUG_SUBTYPE"], LIGHTYELLOW_FONT_COLOR_CODE, info.itemsubtypeid, info.itemsubtype ) )
 							
-							
 							if info.equiploc ~= "" then
 								local iloc = _G[info.equiploc] or ArkInventory.Localise["UNKNOWN"]
 								ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["EQUIP"], LIGHTYELLOW_FONT_COLOR_CODE, info.equiploc, iloc ) )
@@ -5447,6 +5446,17 @@ function ArkInventory.MenuRefreshOpen( frame )
 						ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Recalculate )
 					end
 				)
+				
+				if ArkInventory.db.option.newitemglow.enable and loc_id == ArkInventory.Const.Location.Bag and not ArkInventory.Global.Location[loc_id].isOffline then
+					ArkInventory.Lib.Dewdrop:AddLine(
+						"text", string.format( "%s: %s", ArkInventory.Localise["NEW_ITEM_GLOW"], ArkInventory.Localise["CLEAR"] ),
+						--"tooltipTitle", ArkInventory.Localise["CONFIG_DESIGN_ITEM_OVERRIDE_NEW_RESET_DESC"],
+						"closeWhenClicked", true,
+						"func", function( )
+							ArkInventory.ClearNewItemGlow( loc_id )
+						end
+					)
+				end
 				
 				ArkInventory.Lib.Dewdrop:AddLine( )
 				

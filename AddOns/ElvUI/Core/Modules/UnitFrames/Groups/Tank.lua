@@ -21,6 +21,7 @@ function UF:Construct_TankFrames()
 	self.HealthPrediction = UF:Construct_HealComm(self)
 	self.Fader = UF:Construct_Fader()
 	self.Cutaway = UF:Construct_Cutaway(self)
+	self.PrivateAuras = UF:Construct_PrivateAuras(self)
 
 	if not self.isChild then
 		self.Buffs = UF:Construct_Buffs(self)
@@ -28,6 +29,7 @@ function UF:Construct_TankFrames()
 		self.AuraWatch = UF:Construct_AuraWatch(self)
 		self.RaidDebuffs = UF:Construct_RaidDebuffs(self)
 		self.AuraHighlight = UF:Construct_AuraHighlight(self)
+		self.customTexts = {}
 
 		self.unitframeType = 'tank'
 	else
@@ -116,6 +118,7 @@ function UF:Update_TankFrames(frame, db)
 	UF:Configure_Threat(frame)
 	UF:Configure_Fader(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_HealComm(frame)
 	UF:Configure_RaidIcon(frame)
 
@@ -125,6 +128,7 @@ function UF:Update_TankFrames(frame, db)
 		UF:Configure_RaidDebuffs(frame)
 		UF:Configure_AuraHighlight(frame)
 		UF:Configure_AuraWatch(frame)
+		UF:Configure_CustomTexts(frame)
 	end
 
 	UF:HandleRegisterClicks(frame)

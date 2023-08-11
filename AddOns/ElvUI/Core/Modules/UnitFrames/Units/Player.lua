@@ -8,7 +8,6 @@ local tinsert = tinsert
 
 local CreateFrame = CreateFrame
 local MAX_COMBO_POINTS = MAX_COMBO_POINTS
--- GLOBALS: ElvUF_Target
 
 function UF:Construct_PlayerFrame(frame)
 	frame.ThreatIndicator = UF:Construct_Threat(frame)
@@ -44,8 +43,10 @@ function UF:Construct_PlayerFrame(frame)
 	frame.AuraBars = UF:Construct_AuraBarHeader(frame)
 	frame.InfoPanel = UF:Construct_InfoPanel(frame)
 	frame.PvPIndicator = UF:Construct_PvPIcon(frame)
+	frame.AuraWatch = UF:Construct_AuraWatch(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.customTexts = {}
 
 	if not E.Retail and E.myclass ~= 'WARRIOR' then
@@ -120,14 +121,14 @@ function UF:Update_PlayerFrame(frame, db)
 	UF:Configure_AuraBars(frame)
 	UF:Configure_PVPIcon(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_CombatIndicator(frame)
 	UF:Configure_ClassBar(frame)
 	UF:Configure_PVPText(frame)
 	UF:Configure_PartyIndicator(frame)
 	UF:Configure_ResurrectionIcon(frame)
-
-	frame:DisableElement('Castbar')
+	UF:Configure_AuraWatch(frame)
 	UF:Configure_Castbar(frame)
 	UF:Configure_Fader(frame)
 

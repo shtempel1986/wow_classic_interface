@@ -1554,8 +1554,11 @@ function Private.Modernize(data)
         if load[field] and load[field].multi then
           local newData = {}
           for key, value in pairs(load[field].multi) do
-            if value ~= nil and Private.talentInfo[specId] and Private.talentInfo[specId][key] then
-              newData[Private.talentInfo[specId][key][2]] = value
+            if value ~= nil then
+              local talentData = Private.GetTalentData(specId)
+              if type(talentData) == "table" and talentData[key] then
+                newData[talentData[key][2]] = value
+              end
             end
           end
           load[field].multi = newData
@@ -1578,8 +1581,11 @@ function Private.Modernize(data)
         if load[field] and load[field].multi then
           local newData = {}
           for key, value in pairs(load[field].multi) do
-            if value ~= nil and Private.talentInfo[specId] and Private.talentInfo[specId][key] then
-              newData[Private.talentInfo[specId][key][2]] = value
+            if value ~= nil then
+              local talentData = Private.GetTalentData(specId)
+              if type(talentData) == "table" and talentData[key] then
+                newData[talentData[key][2]] = value
+              end
             end
           end
           load[field].multi = newData
@@ -1611,7 +1617,7 @@ function Private.Modernize(data)
         -- Full Rotate is enabled
         data.legacyZoomOut = true
       else
-        -- Discreete Rotation
+        -- Discrete Rotation
         data.rotation = data.discrete_rotation
       end
       data.discrete_rotation = nil
@@ -1628,6 +1634,103 @@ function Private.Modernize(data)
         data.discrete_rotation = data.rotation
       end
       data.legacyZoomOut = nil
+    end
+  end
+
+  -- version 62 became 64 to fix a broken modernize
+
+  if data.internalVersion < 63 then
+    if data.regionType == "texture" then
+      local GetAtlasInfo = C_Texture and C_Texture.GetAtlasInfo or GetAtlasInfo
+      local function IsAtlas(input)
+        return type(input) == "string" and GetAtlasInfo(input) ~= nil
+      end
+
+      if not data.rotate or IsAtlas(data.texture) then
+        data.rotation = data.discrete_rotation
+      end
+    end
+  end
+
+  if data.internalVersion < 64 then
+    if data.regionType == "dynamicgroup" then
+      if data.sort == "custom" and type(data.sortOn) ~= "string" or data.sortOn == "" then
+        data.sortOn = "changed"
+      end
+      if data.grow == "CUSTOM" and type(data.growOn) ~= "string" then
+        data.growOn = "changed"
+      end
+    end
+  end
+
+  if data.internalVersion < 65 then
+    for triggerId, triggerData in ipairs(data.triggers) do
+      if triggerData.trigger.type == "item"
+      and triggerData.trigger.event == "Item Count"
+      and type(triggerData.trigger.itemName) == "number"
+      then
+        triggerData.trigger.use_exact_itemName = true
+      end
+    end
+  end
+
+  local function spellIdToTalent(specId, spellId)
+    local talents = Private.GetTalentData(specId)
+    for _, talent in ipairs(talents) do
+      if talent[2] == spellId then
+        return talent[1]
+      end
+    end
+  end
+
+  if data.internalVersion < 66 then
+    if WeakAuras.IsRetail() then
+      for triggerId, triggerData in ipairs(data.triggers) do
+        if triggerData.trigger.type == "unit"
+          and triggerData.trigger.event == "Talent Known"
+          and triggerData.trigger.talent
+          and triggerData.trigger.talent.multi
+        then
+          local classId
+          for i = 1, GetNumClasses() do
+            if select(2, GetClassInfo(i)) == triggerData.trigger.class then
+              classId = i
+            end
+          end
+          if classId and triggerData.trigger.spec then
+            local specId = GetSpecializationInfoForClassID(classId, triggerData.trigger.spec)
+            if specId then
+              local newMulti = { }
+              for spellId, value in pairs(triggerData.trigger.talent.multi) do
+                local talentId = spellIdToTalent(specId, spellId)
+                if talentId then
+                  newMulti[talentId] = value
+                end
+              end
+              triggerData.trigger.talent.multi = newMulti
+            end
+          end
+        end
+      end
+      local specId = Private.checkForSingleLoadCondition(data.load, "class_and_spec")
+
+
+      if specId then
+        for _, property in ipairs({"talent", "talent2", "talent3"}) do
+          local use = "use_" .. property
+          if data.load[use] ~= nil and data.load[property] and data.load[property].multi then
+            local newMulti = { }
+            for spellId, value in pairs(data.load[property].multi) do
+              local talentId = spellIdToTalent(specId, spellId)
+              if talentId then
+                newMulti[talentId] = value
+              end
+            end
+            data.load[property].multi = newMulti
+          end
+
+        end
+      end
     end
   end
 

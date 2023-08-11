@@ -748,12 +748,37 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		end
 	end
 	
-	-- toy (tooltip)
-	if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ITEM_TOY_ONUSE"], false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_TOY" )
+	-- misc (pets)
+	if ( info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PARENT and info.itemsubtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PET ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Pet" ) then
+		if ArkInventory.IsBound( i.sb ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_COMPANION_BOUND" )
+		else
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_COMPANION_TRADE" )
+		end
 	end
 	
+	-- battle pet as an item
+	if info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.BATTLEPET.PARENT then
+		if ArkInventory.IsBound( i.sb ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_BATTLE_BOUND" )
+		else
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_BATTLE_TRADE" )
+		end
+	end
 	
+	-- misc (mount)
+	if ( info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PARENT and info.itemsubtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.MOUNT ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Mount" ) then
+		if ArkInventory.IsBound( i.sb ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_MOUNT_BOUND" )
+		else
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_MOUNT_TRADE" )
+		end
+	end
+	
+	-- toy
+	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Toy" ) or ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ITEM_TOY_ONUSE"], false, true, false, ArkInventory.Const.Tooltip.Search.Short ) then
+		return ArkInventory.CategoryGetSystemID( "SYSTEM_TOY" )
+	end
 	
 	
 	-- currencies and power
@@ -763,12 +788,12 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		if info.expansion == ArkInventory.ENUM.EXPANSION.LEGION then
 			
 			-- artifact power (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+			if ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ARTIFACT_POWER"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SYSTEM_OLD" )
 			end
 			
 			-- ancient mana (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+			if ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ANCIENT_MANA"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "SYSTEM_CURRENCY" )
 			end
 			
@@ -784,15 +809,15 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 			end
 			
 			-- conduits (tooltip)
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_POTENCY"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+			if ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_POTENCY"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
 			end
 			
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_FINESSE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+			if ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_FINESSE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
 			end
 			
-			if ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_ENDURANCE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
+			if ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_CONDUIT_ENDURANCE"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short ) then
 				return ArkInventory.CategoryGetSystemID( "CONSUMABLE_POWER_SHADOWLANDS_CONDUIT" )
 			end
 			
@@ -826,41 +851,13 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_EQUIPMENT_COSMETIC" )
 	end
 	
-	-- misc (pets)
-	if ( info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PARENT and info.itemsubtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PET ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Pet" ) then
-		if ArkInventory.IsBound( i.sb ) then
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_COMPANION_BOUND" )
-		else
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_COMPANION_TRADE" )
-		end
-	end
 	
-	-- battle pet as an item
-	if info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.BATTLEPET.PARENT then
-		if ArkInventory.IsBound( i.sb ) then
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_BATTLE_BOUND" )
-		else
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_PET_BATTLE_TRADE" )
-		end
-	end
-	
-	-- misc (mount)
-	if ( info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.PARENT and info.itemsubtypeid == ArkInventory.ENUM.ITEM.TYPE.MISC.MOUNT ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Mount" ) then
-		if ArkInventory.IsBound( i.sb ) then
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_MOUNT_BOUND" )
-		else
-			return ArkInventory.CategoryGetSystemID( "SYSTEM_MOUNT_TRADE" )
-		end
-	end
-	
-	-- PT toy
-	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Toy" ) then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_TOY" )
-	end
 	
 	-- junk
 	if info.q == ArkInventory.ENUM.ITEM.QUALITY.POOR or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Junk" ) then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_JUNK" )
+		--if not ArkInventory.ItemTransmogState( i.h, i.sb, i.loc_id ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_JUNK" )
+		--end
 	end
 	
 	-- projectiles
@@ -1046,54 +1043,53 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	-- categorise based off characters primary professions
 	if codex.player.data.tradeskill and codex.player.data.tradeskill.priority > 0 then
 		
-		local ignore, ignore, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short )
+		local req = ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, false, 0, ArkInventory.Const.Tooltip.Search.Short )
 		
-		-- priority profession
+		-- the priority profession
 		for x = 1, ArkInventory.Const.Tradeskill.numPrimary do
-			
-			if codex.player.data.info.tradeskill[x] then
-				
-				local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
-				if skill and codex.player.data.tradeskill.priority == x then
+			if codex.player.data.tradeskill.priority == x then
+				if codex.player.data.info.tradeskill[x] then
 					
-					if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
-						return ArkInventory.CategoryGetSystemID( skill.id )
-					end
-					
-					if req and string.find( req, tostring( skill.text ) ) then
-						return ArkInventory.CategoryGetSystemID( skill.id )
+					local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
+					if skill then
+						
+						if req and string.find( req, tostring( skill.text ) ) then
+							return ArkInventory.CategoryGetSystemID( skill.id )
+						end
+						
+						if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
+							return ArkInventory.CategoryGetSystemID( skill.id )
+						end
+						
 					end
 					
 				end
-				
 			end
-			
 		end
 		
-		-- other profession
+		-- the other profession
 		for x = 1, ArkInventory.Const.Tradeskill.numPrimary do
-			
-			if codex.player.data.info.tradeskill[x] then
-				
-				local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
-				if skill and codex.player.data.tradeskill.priority ~= x then
+			if codex.player.data.tradeskill.priority ~= x then
+				if codex.player.data.info.tradeskill[x] then
 					
-					if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
-						return ArkInventory.CategoryGetSystemID( skill.id )
-					end
-					
-					if req and string.find( req, tostring( skill.text ) ) then
-						return ArkInventory.CategoryGetSystemID( skill.id )
+					local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
+					if skill then
+						
+						if req and string.find( req, tostring( skill.text ) ) then
+							return ArkInventory.CategoryGetSystemID( skill.id )
+						end
+						
+						if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
+							return ArkInventory.CategoryGetSystemID( skill.id )
+						end
+						
 					end
 					
 				end
-				
 			end
-			
 		end
 		
 	end
-	
 	
 	
 	-- tradegoods
@@ -1199,7 +1195,7 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		end
 		
 		-- class requirement (via tooltip)
-		local ignore, ignore, req = ArkInventory.TooltipFind( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_CLASS"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
+		local req = ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_CLASS"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
 		if req and string.find( req, codex.player.data.info.class_local ) then
 			return ArkInventory.CategoryGetSystemID( string.format( "CLASS_%s", codex.player.data.info.class ) )
 		end
@@ -1255,23 +1251,27 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_REPUTATION" )
 	end
 	
-	-- secondary professions
-	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Skill.Fishing" ) then
-		return ArkInventory.CategoryGetSystemID( "SKILL_FISHING" )
+	
+	-- primary professions - non crafting reagents?
+	if not info.craft then
+		for x in pairs( codex.player.data.info.tradeskill ) do
+			local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
+			if skill and skill.primary then
+				if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
+					return ArkInventory.CategoryGetSystemID( skill.id )
+				end
+			end
+		end
 	end
 	
-	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Skill.Cooking" ) then
-		return ArkInventory.CategoryGetSystemID( "SKILL_COOKING" )
-	end
-	
-	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Skill.Archaeology" ) then
-		return ArkInventory.CategoryGetSystemID( "SKILL_ARCHAEOLOGY" )
-	end
-	
-	-- primary professions
-	
-	if ArkInventory.PT_ItemInSets( i.h, "ArkInventory.Skill.Enchanting" ) then
-		return ArkInventory.CategoryGetSystemID( "SKILL_ENCHANTING" )
+	-- secondary professions - all items
+	for x in pairs( codex.player.data.info.tradeskill ) do
+		local skill = ArkInventory.Const.Tradeskill.Data[codex.player.data.info.tradeskill[x]]
+		if skill and not skill.primary then
+			if ArkInventory.PT_ItemInSets( i.h, skill.pt ) then
+				return ArkInventory.CategoryGetSystemID( skill.id )
+			end
+		end
 	end
 	
 	
@@ -1304,9 +1304,6 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	
 	
 	-- left overs
-	
-	
-	
 	
 	-- crafting reagents (after professions so only the leftovers are categorised)
 	if info.craft then

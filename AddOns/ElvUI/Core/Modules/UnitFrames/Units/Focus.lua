@@ -4,7 +4,6 @@ local ElvUF = E.oUF
 
 local _G = _G
 local tinsert = tinsert
--- GLOBALS: ElvUF_Target
 
 function UF:Construct_FocusFrame(frame)
 	frame.Health = UF:Construct_HealthBar(frame, true, true, 'RIGHT')
@@ -31,6 +30,7 @@ function UF:Construct_FocusFrame(frame)
 	frame.AuraWatch = UF:Construct_AuraWatch(frame)
 	frame.Fader = UF:Construct_Fader()
 	frame.Cutaway = UF:Construct_Cutaway(frame)
+	frame.PrivateAuras = UF:Construct_PrivateAuras(frame)
 	frame.CombatIndicator = UF:Construct_CombatIndicator(frame)
 
 	frame.customTexts = {}
@@ -89,6 +89,7 @@ function UF:Update_FocusFrame(frame, db)
 	UF:Configure_RaidIcon(frame)
 	UF:Configure_AuraBars(frame)
 	UF:Configure_Cutaway(frame)
+	UF:Configure_PrivateAuras(frame)
 	UF:Configure_CustomTexts(frame)
 	UF:Configure_CombatIndicator(frame)
 	UF:Configure_AuraWatch(frame)

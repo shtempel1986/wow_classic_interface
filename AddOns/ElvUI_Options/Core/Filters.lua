@@ -143,7 +143,7 @@ local function GetSpellNameRank(id)
 
 	local rank = not E.Retail and GetSpellSubtext(id)
 	if not rank or not strfind(rank, '%d') then
-		return format('%s |cFF888888(%s)|r', name, id)
+		return format('%s |cFF888888[%s]|r', name, id)
 	end
 
 	local selectedTable = GetSelectedFilters()
@@ -153,7 +153,7 @@ local function GetSpellNameRank(id)
 		return format('%s %s[%s]|r', name, E.media.hexvaluecolor, info and info.includeIDs and L["Multiple Ranks"] or rank)
 	end
 
-	return format('%s %s[%s]|r |cFF888888(%s)|r', name, E.media.hexvaluecolor, rank, id)
+	return format('%s %s(%s)|r |cFF888888[%s]|r', name, E.media.hexvaluecolor, rank, id)
 end
 
 local function SetSpellList()
@@ -395,7 +395,7 @@ Filters.mainOptions.args.auraIndicator.args.positionGroup.args.point = ACH:Selec
 Filters.mainOptions.args.auraIndicator.args.positionGroup.args.xOffset = ACH:Range(L["X-Offset"], nil, 6, { min = -75, max = 75, step = 1 })
 Filters.mainOptions.args.auraIndicator.args.positionGroup.args.yOffset = ACH:Range(L["Y-Offset"], nil, 7, { min = -75, max = 75, step = 1 })
 
-Filters.mainOptions.args.auraIndicator.args.countGroup = ACH:Group(L["Count"], nil, 20)
+Filters.mainOptions.args.auraIndicator.args.countGroup = ACH:Group(L["Count Text"], nil, 20)
 Filters.mainOptions.args.auraIndicator.args.countGroup.args.countAnchor = ACH:Select(L["Anchor Point"], nil, 1, C.Values.AllPoints)
 Filters.mainOptions.args.auraIndicator.args.countGroup.args.countX = ACH:Range(L["X-Offset"], nil, 2, { min = -75, max = 75, step = 1 })
 Filters.mainOptions.args.auraIndicator.args.countGroup.args.countY = ACH:Range(L["Y-Offset"], nil, 3, { min = -75, max = 75, step = 1 })

@@ -30,12 +30,8 @@ local time, elapsed = 0, 0;
 local NWBLFrame;
 local GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetContainerNumFreeSlots;
 local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots;
-
---TBC compatibility.
-local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted;
-if (C_QuestLog.IsQuestFlaggedCompleted) then
-	IsQuestFlaggedCompleted = C_QuestLog.IsQuestFlaggedCompleted;
-end
+local GetGossipText = GetGossipText or C_GossipInfo.GetText;
+local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted or C_QuestLog.IsQuestFlaggedCompleted;
 
 function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 	--if (NWB.isDebug) then
@@ -192,7 +188,7 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 			NWB:sendLayerBuffs();
 		end
 	end
-	if (tonumber(remoteVersion) < 2.35) then
+	if (tonumber(remoteVersion) < 2.45) then
 		if (cmd == "requestData" and distribution == "GUILD") then
 			if (not NWB:getGuildDataStatus()) then
 				NWB:sendSettings("GUILD");
@@ -442,7 +438,8 @@ local function getLayerBuffData(zoneID)
 end
 
 function NWB:sendLayerBuffs(zoneID)
-	if (not next(NWB.layerBuffSpells)) then
+	--WG buff seems fixed, partially disabled for now, remove all this code in a future update if it stays fixed.
+	--[[if (not next(NWB.layerBuffSpells)) then
 		return;
 	end
 	if (GetTime() < lastLayerBuffs + 10) then
@@ -461,11 +458,12 @@ function NWB:sendLayerBuffs(zoneID)
 	if (NWB:isClassicCheck()) then
 		lastLayerBuffs = GetTime();
 		NWB:sendComm("GUILD", "lb " .. version .. " " .. self.k() .. " " .. zoneID .. buffString);
-	end
+	end]]
 end
 
 function NWB:receivedLayerBuffs(zoneID, buffs)
-	if (not zoneID or not tonumber(zoneID) or not buffs or not next(NWB.layerBuffSpells)) then
+	--WG buff seems fixed, partially disabled for now, remove all this code in a future update if it stays fixed.
+	--[[if (not zoneID or not tonumber(zoneID) or not buffs or not next(NWB.layerBuffSpells)) then
 		return;
 	end
 	--NWB:debug("received layer buffs 1", zoneID, 2, buffs);
@@ -484,12 +482,13 @@ function NWB:receivedLayerBuffs(zoneID, buffs)
 		if (layerBuffSpells[spellID]) then
 			NWB.data.layerBuffs[zoneID][spellID] = GetServerTime();
 		end
-	end
+	end]]
 end
 
 function NWB:isWintergraspBuffLayer(zoneID)
+	--WG buff seems fixed, partially disabled for now, remove all this code in a future update if it stays fixed.
 	--If timestamp is from current spawn time.
-	if (zoneID and NWB.layerBuffSpells[57940]) then
+	--[[if (zoneID and NWB.layerBuffSpells[57940]) then
 		if (NWB.data.layerBuffs[zoneID]) then
 			local wintergrasp, wintergraspTime = NWB:getWintergraspData();
 			local endTime = NWB:getWintergraspEndTime(wintergrasp, wintergraspTime);
@@ -501,7 +500,7 @@ function NWB:isWintergraspBuffLayer(zoneID)
 				end
 			end
 		end
-	end
+	end]]
 end
 
 function NWB:sendL(l, type)
@@ -1666,7 +1665,7 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 							end
 							--This should have a check added later that the timestamp is newer, if they ever fix the npc from having random 17h timers...
 							if (data.wintergraspTime and data.wintergraspTime > NWB.data.wintergraspTime and v < GetServerTime() + 10800
-									and v > NWB.data[k] - 1800) then
+									and v > NWB.data[k] - 1800 and v > GetServerTime() - NWB.wgExpire) then
 								if (data.wintergraspTime > GetServerTime() - 21700
 										and data.wintergraspTime < GetServerTime() + 21700) then
 									if (data.wintergraspFaction) then
@@ -2978,12 +2977,16 @@ end
 function NWB:resetOldLockouts()
 	for realm, realmData in pairs(NWB.db.global) do
 		if (type(realmData) == "table" and realmData ~= "minimapIcon" and realmData ~= "data") then
-			if (realmData.myChars) then
-				for char, charData in pairs(realmData.myChars) do
-					if (charData.savedInstances) then
-						for k, v in pairs(charData.savedInstances) do
-							if (v.resetTime and v.resetTime < GetServerTime()) then
-								NWB.db.global[realm].myChars[char].savedInstances[k] = nil;
+			for faction, factionData in pairs(realmData) do
+				if (type(factionData) == "table") then
+					if (factionData.myChars) then
+						for char, charData in pairs(factionData.myChars) do
+							if (charData.savedInstances) then
+								for k, v in pairs(charData.savedInstances) do
+									if (v.resetTime and v.resetTime < GetServerTime()) then
+										NWB.db.global[realm][faction].myChars[char].savedInstances[k] = nil;
+									end
+								end
 							end
 						end
 					end

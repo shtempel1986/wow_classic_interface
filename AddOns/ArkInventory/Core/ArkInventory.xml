@@ -1832,14 +1832,21 @@
     </Layers>
     
     <Frames>
-    
-      <ScrollingMessageFrame name="$parentList" enableMouse="true">  <!-- 100000 fade="false"> -->
+      
+      <ScrollingMessageFrame name="$parentList" enableMouse="true">
         <Anchors>
           <Anchor point="TOPLEFT" x="10" y="-10" />
           <Anchor point="BOTTOMRIGHT" x="-40" y="10" />
         </Anchors>
-        <!-- 100000  <FontString inherits="ARKINV_TableRowFont" JustifyH="LEFT" /> -->
         <Scripts>
+          <OnLoad>
+            self:SetMaxLines( 400 )
+            self:SetFading( false )
+            self:SetFontObject( ChatFontNormal )
+            self:SetJustifyH( "LEFT" )
+            self:SetIndentedWordWrap( true )
+            self:SetInsertMode( SCROLLING_MESSAGE_FRAME_INSERT_MODE_BOTTOM )
+          </OnLoad>
           <OnHyperlinkClick>
             SetItemRef( link, text, button, chatFrame )
           </OnHyperlinkClick>
@@ -1848,18 +1855,18 @@
           </OnMouseWheel>
         </Scripts>
       </ScrollingMessageFrame>
-
+      
     </Frames>
-  
+    
   </Frame>
-
+  
   <Frame virtual="true" name="ARKINV_TemplateFrameVaultInfo" inherits="ARKINV_TemplateFrameStandard" hidden="true">
     
     <Anchors>
       <Anchor point="TOPLEFT" relativeTo="$parentScroll" />
       <Anchor point="BOTTOMRIGHT" relativeTo="$parentScroll" />
     </Anchors>
-  
+    
     <Frames>
       
       <ScrollFrame name="$parentScroll" inherits="UIPanelScrollFrameTemplate">
@@ -1958,11 +1965,11 @@
         </Scripts>
         
       </Button>
-
+      
     </Frames>
-  
+    
   </Frame>
-
+  
   <Frame virtual="true" name="ARKINV_TemplateFrameMainScanOnly" parent="UIParent" toplevel="true" movable="true" enableMouse="true" hidden="true">
     <Scripts>
       <OnLoad>
@@ -2140,12 +2147,128 @@
   
 <!-- ADDON FRAME STARTS HERE -->
   
-  <Frame hidden="true">
+  <Frame name="ARKINV_Debug" inherits="ARKINV_TemplateFrameStandard" parent="UIParent" toplevel="true" movable="true" enableMouse="true" hidden="true">
+    
+    <Size x="800" y="400" />
+    
+    <Anchors>
+      <Anchor point="TOPLEFT" x="50" y="-50" />
+    </Anchors>
+    
+    <Frames>
+      
+      <Frame parentKey="Title" name="$parentTitle" >
+        <Size x="1" y="40" />
+        <Anchors>
+          <Anchor point="TOPLEFT" x="10" y="-10" />
+          <Anchor point="RIGHT" x="-10" y="0" />
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString parentKey="Who" name="$parentWho" inherits="ARKINV_GameFontNormalHuge" justifyH="LEFT" text="ArkInventory Debug">
+              <Anchors>
+                <Anchor point="TOPLEFT" x="4" y="-4" />
+                <Anchor point="BOTTOMRIGHT" x="-4" y="4" />
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnLoad>
+            ArkInventory.Frame_AddBorder( self )
+          </OnLoad>
+        </Scripts>
+      </Frame>
+      
+      <Button name="$parentClose" inherits="ARKINV_TemplateButtonClose" hidden="false" >
+        <Size x="20" y="20" />
+        <Anchors>
+          <Anchor point="RIGHT" relativeTo="$parentTitle" x="-4" />
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            ArkInventory.Debug.Frame_Hide( )
+          </OnClick>
+        </Scripts>
+      </Button>
+      
+      <ScrollingMessageFrame parentKey="List" name="$parentList" enableMouse="true">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentTitle" relativePoint="BOTTOMLEFT" x="0" y="-10" />
+          <Anchor point="BOTTOM" y="10" />
+          <Anchor point="RIGHT" relativeTo="$parentTitle" x="-30" />
+        </Anchors>
+        <Frames>
+          <Slider parentKey="ScrollBar" name="$parentScrollBar" obeyStepOnDrag="true" valueStep="1" minValue="0" maxValue="1" alpha="1">
+            <Size x="20" y="1"/>
+            <Anchors>
+              <Anchor point="TOP" />
+              <Anchor point="BOTTOM" />
+              <Anchor point="LEFT" relativePoint="RIGHT" x="10" />
+            </Anchors>
+            <ThumbTexture name="$parentThumbTexture" parentKey="ThumbTexture" atlas="chatframe-scrollbar-knob" useAtlasSize="true"/>
+            <Scripts>
+              <OnLoad>
+                --ArkInventory.Frame_AddBorder( self )
+              </OnLoad>
+              <OnValueChanged>
+                  local min, max = self:GetMinMaxValues( )
+                  self:GetParent( ):SetScrollOffset( max - value )
+              </OnValueChanged>
+            </Scripts>
+          </Slider>
+        </Frames>
+        <Scripts>
+          <OnLoad>
+            self:SetMaxLines( 20 )
+            self:SetFading( false )
+            self:SetFontObject( ChatFontNormal )
+            self:SetInsertMode( SCROLLING_MESSAGE_FRAME_INSERT_MODE_BOTTOM )
+            self:SetJustifyH( "LEFT" )
+            self:SetIndentedWordWrap( true )
+            self:SetTextCopyable( true )
+            --ArkInventory.Frame_AddBorder( self )
+          </OnLoad>
+          <OnMouseWheel>
+            
+            self:ScrollByAmount( delta * 3 )
+            
+            local numMessages = self:GetNumMessages( )
+            self.ScrollBar:SetMinMaxValues( 1, numMessages )
+            self.ScrollBar:SetValue( numMessages - self:GetScrollOffset( ) )
+            
+          </OnMouseWheel>
+        </Scripts>
+      </ScrollingMessageFrame>
+      
+    </Frames>
+    
     <Scripts>
+      
       <OnLoad>
+        
+        ArkInventory.Frame_AddBorder( self )
+        
         ArkInventory.OnLoad( )
+        
+        self:RegisterForDrag( "LeftButton" )
+        
       </OnLoad>
+      
+      <OnShow>
+        ArkInventory.MediaFrameDefaultFontSet( self )
+      </OnShow>
+      
+      <OnDragStart>
+        self:StartMoving( )
+      </OnDragStart>
+      
+      <OnDragStop>
+        self:StopMovingOrSizing( )
+      </OnDragStop>
+      
     </Scripts>
+    
   </Frame>
   
   <Frame name="ARKINV_Frame1" inherits="ARKINV_TemplateFrameMain" id="1" /> <!-- bag -->
@@ -2377,7 +2500,7 @@
   
 <!-- END OF ADD ON FRAME -->
   
-  <GameTooltip name="ARKINV_ScanTooltip" inherits="ArkScanTooltipTemplate" />
+  <GameTooltip name="ARKINV_ScanTooltip" inherits="ArkScanTooltipTemplate" hidden="false"/>
   
   <Frame name="ARKINV_ThreadTimer" hidden="true">
     <Scripts>

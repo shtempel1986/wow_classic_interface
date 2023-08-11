@@ -53,6 +53,12 @@ end
 function S:BlizzardMiscFrames()
 	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.misc) then return end
 
+	local compartment = _G.AddonCompartmentFrame
+	if compartment then
+		compartment:StripTextures()
+		compartment:SetTemplate('Transparent')
+	end
+
 	for _, frame in next, { _G.AutoCompleteBox, _G.QueueStatusFrame } do
 		frame:StripTextures()
 		frame:SetTemplate('Transparent')
@@ -75,52 +81,13 @@ function S:BlizzardMiscFrames()
 	_G.ReadyCheckFrameText:Point('TOP', 0, -15)
 
 	-- Bug fix, don't show it if player is initiator
-	ReadyCheckFrame:HookScript('OnShow', function(self)
-		if self.initiator and UnitIsUnit('player', self.initiator) then
-			self:Hide()
+	ReadyCheckFrame:HookScript('OnShow', function(frame)
+		if frame.initiator and UnitIsUnit('player', frame.initiator) then
+			frame:Hide()
 		end
 	end)
 
 	S:HandleButton(_G.StaticPopup1ExtraButton)
-
-	hooksecurefunc('QueueStatusEntry_SetFullDisplay', function(entry, _, _, _, isTank, isHealer, isDPS)
-		if not entry then return end
-		local nextRoleIcon = 1
-		if isDPS then
-			local icon = entry['RoleIcon'..nextRoleIcon]
-			if icon then
-				icon:SetTexture(E.Media.Textures.RolesHQ)
-				icon:SetTexCoord(_G.LFDQueueFrameRoleButtonDPS.background:GetTexCoord())
-				nextRoleIcon = nextRoleIcon + 1
-			end
-		end
-		if isHealer then
-			local icon = entry['RoleIcon'..nextRoleIcon]
-			if icon then
-				icon:SetTexture(E.Media.Textures.RolesHQ)
-				icon:SetTexCoord(_G.LFDQueueFrameRoleButtonHealer.background:GetTexCoord())
-				nextRoleIcon = nextRoleIcon + 1
-			end
-		end
-		if isTank then
-			local icon = entry['RoleIcon'..nextRoleIcon]
-			if icon then
-				icon:SetTexture(E.Media.Textures.RolesHQ)
-				icon:SetTexCoord(_G.LFDQueueFrameRoleButtonTank.background:GetTexCoord())
-			end
-		end
-	end)
-
-	--[[hooksecurefunc('QueueStatusFrame_Update', function()
-		for frame in _G.QueueStatusFrame.statusEntriesPool:EnumerateActive() do
-			frame.HealersFound.Texture:SetTexture(E.Media.Textures.RolesHQ)
-			frame.TanksFound.Texture:SetTexture(E.Media.Textures.RolesHQ)
-			frame.DamagersFound.Texture:SetTexture(E.Media.Textures.RolesHQ)
-			frame.HealersFound.Texture:SetTexCoord(_G.LFDQueueFrameRoleButtonHealer.background:GetTexCoord())
-			frame.TanksFound.Texture:SetTexCoord(_G.LFDQueueFrameRoleButtonTank.background:GetTexCoord())
-			frame.DamagersFound.Texture:SetTexCoord(_G.LFDQueueFrameRoleButtonDPS.background:GetTexCoord())
-		end
-	end)]] -- DF
 
 	-- reskin all esc/menu buttons
 	if not E:IsAddOnEnabled('ConsolePortUI_Menu') then
@@ -409,6 +376,18 @@ function S:BlizzardMiscFrames()
 
 	--NavBar Buttons (Used in WorldMapFrame, EncounterJournal and HelpFrame)
 	hooksecurefunc('NavBar_AddButton', SkinNavBarButtons)
+
+	-- Basic Message Dialog
+	local MessageDialog = _G.BasicMessageDialog
+	if MessageDialog then
+		S:HandleFrame(MessageDialog)
+		S:HandleButton(_G.BasicMessageDialogButton)
+	end
+
+	-- SplashFrame (Whats New)
+	local SplashFrame = _G.SplashFrame
+	S:HandleCloseButton(SplashFrame.TopCloseButton)
+	S:HandleButton(SplashFrame.BottomCloseButton)
 end
 
 S:AddCallback('BlizzardMiscFrames')

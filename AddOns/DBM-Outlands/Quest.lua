@@ -1,13 +1,14 @@
 local mod	= DBM:NewMod("Quest", "DBM-Outlands")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20221129003558")
+mod:SetRevision("20230727214236")
 mod:AddBoolOption("Timers", true)
 mod:SetModelID(18921)
 
 --------------
 --  Locals  --
 --------------
+local maxQuests = mod:IsClassic() and 25 or 35
 local frame
 local bar
 local questTimers = {
@@ -40,7 +41,7 @@ frame:SetScript("OnEvent", function(self, e, id)
 	elseif e == "QUEST_LOG_UPDATE" then
 		-- check for the user abandoning the quest
 		local quests = {}
-		for i = 1, 25 do
+		for i = 1, maxQuests do
 			local _, _, _, _, _, complete, _, qid = GetQuestLogTitle(i)
 			-- check for completion as the shat escort can complete early if someone elses npc finishes next to you
 			if qid and not complete then

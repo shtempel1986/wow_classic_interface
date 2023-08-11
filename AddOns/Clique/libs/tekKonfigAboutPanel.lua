@@ -2,6 +2,7 @@
 local lib, oldminor = LibStub:NewLibrary("tekKonfig-AboutPanel", 5)
 if not lib then return end
 
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 function lib.new(parent, addonname)
 	local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)

@@ -202,7 +202,7 @@ local function createOptions(id, data)
     },
   };
 
-  if WeakAuras.BuildInfo > 80100 then
+  if not WeakAuras.IsClassic() then
     options.modelDisplayInfo = {
       type = "toggle",
       width = WeakAuras.normalWidth,
@@ -253,7 +253,7 @@ local function createThumbnail()
 
   local model = CreateFrame("PlayerModel", nil, borderframe);
   borderframe.model = model;
-  model.SetTransformFixed = WeakAuras.IsRetail() and ModelSetTransformFixed or model.SetTransform
+  model.SetTransformFixed = model.GetResizeBounds and ModelSetTransformFixed or model.SetTransform -- TODO change test to WeakAuras.IsWrathOrRetail() after 3.4.1 release
   model:SetFrameStrata("FULLSCREEN");
 
   return borderframe;
