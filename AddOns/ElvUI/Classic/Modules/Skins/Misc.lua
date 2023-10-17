@@ -2,35 +2,12 @@ local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule('Skins')
 
 local _G = _G
-local pairs, ipairs, unpack = pairs, ipairs, unpack
+local next, unpack = next, unpack
+local pairs, ipairs = pairs, ipairs
 
 local hooksecurefunc = hooksecurefunc
 local UnitIsUnit = UnitIsUnit
 local CreateFrame = CreateFrame
-
-local function SkinNavBarButtons(self)
-	if (self:GetParent():GetName() == 'EncounterJournal' and not E.private.skins.blizzard.encounterjournal) or (self:GetParent():GetName() == 'WorldMapFrame' and not E.private.skins.blizzard.worldmap) or (self:GetParent():GetName() == 'HelpFrameKnowledgebase' and not E.private.skins.blizzard.help) then
-		return
-	end
-
-	local navButton = self.navList[#self.navList]
-	if navButton and not navButton.isSkinned then
-		S:HandleButton(navButton, true)
-		navButton:GetFontString():SetTextColor(1, 1, 1)
-		if navButton.MenuArrowButton then
-			navButton.MenuArrowButton:StripTextures()
-			if navButton.MenuArrowButton.Art then
-				navButton.MenuArrowButton.Art:SetTexture(E.Media.Textures.ArrowUp)
-				navButton.MenuArrowButton.Art:SetTexCoord(0, 1, 0, 1)
-				navButton.MenuArrowButton.Art:SetRotation(3.14)
-			end
-		end
-
-		navButton.xoffset = 1
-
-		navButton.isSkinned = true
-	end
-end
 
 local function ClearSetTexture(texture, tex)
 	if tex ~= nil then
@@ -38,18 +15,19 @@ local function ClearSetTexture(texture, tex)
 	end
 end
 
+local function FixReadyCheckFrame(frame)
+	if frame.initiator and UnitIsUnit('player', frame.initiator) then
+		frame:Hide() -- bug fix, don't show it if player is initiator
+	end
+end
+
 function S:BlizzardMiscFrames()
 	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.misc) then return end
 
-	-- Blizzard frame we want to reskin
-	local skins = {
-		'AutoCompleteBox',
-		'ReadyCheckFrame'
-	}
 
-	for i = 1, #skins do
-		_G[skins[i]]:StripTextures()
-		_G[skins[i]]:SetTemplate('Transparent')
+	for _, frame in next, { _G.AutoCompleteBox, _G.ReadyCheckFrame } do
+		frame:StripTextures()
+		frame:SetTemplate('Transparent')
 	end
 
 	-- here we reskin all 'normal' buttons
@@ -68,12 +46,7 @@ function S:BlizzardMiscFrames()
 	_G.ReadyCheckFrameText:Point('TOP', 0, -15)
 
 	_G.ReadyCheckListenerFrame:SetAlpha(0)
-	ReadyCheckFrame:HookScript('OnShow', function(self)
-		-- bug fix, don't show it if player is initiator
-		if self.initiator and UnitIsUnit('player', self.initiator) then
-			self:Hide()
-		end
-	end)
+	ReadyCheckFrame:HookScript('OnShow', FixReadyCheckFrame)
 
 	S:HandleButton(_G.StaticPopup1ExtraButton)
 
@@ -231,7 +204,7 @@ function S:BlizzardMiscFrames()
 	end)
 
 	hooksecurefunc('ToggleDropDownMenu', function(level)
-		if ( not level ) then
+		if not level then
 			level = 1
 		end
 
@@ -253,30 +226,28 @@ function S:BlizzardMiscFrames()
 				button:CreateBackdrop()
 			end
 
-			button.backdrop:Hide()
-
 			if not button.notCheckable then
 				S:HandlePointXY(text, 5)
-
 				uncheck:SetTexture()
-				local _, co = check:GetTexCoord()
-				if co == 0 then
-					check:SetTexture([[Interface\Buttons\UI-CheckBox-Check]])
-					check:SetVertexColor(r, g, b, 1)
-					check:Size(20)
-					check:SetDesaturated(true)
-					button.backdrop:SetInside(check, 4, 4)
-				else
+
+				if E.private.skins.checkBoxSkin then
 					check:SetTexture(E.media.normTex)
 					check:SetVertexColor(r, g, b, 1)
 					check:Size(10)
 					check:SetDesaturated(false)
 					button.backdrop:SetOutside(check)
+				else
+					check:SetTexture([[Interface\Buttons\UI-CheckBox-Check]])
+					check:SetVertexColor(r, g, b, 1)
+					check:Size(20)
+					check:SetDesaturated(true)
+					button.backdrop:SetInside(check, 4, 4)
 				end
 
 				button.backdrop:Show()
 				check:SetTexCoord(0, 1, 0, 1)
 			else
+				button.backdrop:Hide()
 				check:Size(16)
 			end
 		end
@@ -323,8 +294,8 @@ function S:BlizzardMiscFrames()
 		end
 	end
 
-	--NavBar Buttons (Used in WorldMapFrame, EncounterJournal and HelpFrame)
-	hooksecurefunc('NavBar_AddButton', SkinNavBarButtons)
+	-- NavBar Buttons (Used in WorldMapFrame, EncounterJournal and HelpFrame)
+	hooksecurefunc('NavBar_AddButton', S.HandleNavBarButtons)
 end
 
 S:AddCallback('BlizzardMiscFrames')

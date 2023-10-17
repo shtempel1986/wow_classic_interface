@@ -83,10 +83,6 @@ function B:ObjectiveTracker_AutoHideOnShow()
 end
 
 function B:ObjectiveTracker_Setup()
-	if E.private.actionbar.enable then -- force this never case, to fix a taint when actionbars in use
-		Tracker.IsInDefaultPosition = E.noop
-	end
-
 	hooksecurefunc(_G.BonusObjectiveRewardsFrameMixin, 'AnimateReward', BonusRewards_SetPosition)
 
 	B:ObjectiveTracker_AutoHide()

@@ -1,13 +1,7 @@
 -- local addonName, addonTbl = ...
 
---[[
+--License: All Rights Reserved, (c) 2006-2023
 
-License: All Rights Reserved, (c) 2006-2020
-
-$Revision: 2963 $
-$Date: 2021-11-24 19:29:01 +1100 (Wed, 24 Nov 2021) $
-
-]]--
 
 local _G = _G
 local select = _G.select
@@ -10919,9 +10913,40 @@ function ArkInventory.MyUnhook(...)
 end
 
 function ArkInventory.MySecureHook(...)
+	
 	if not ArkInventory:IsHooked(...) then
-		ArkInventory:SecureHook(...)
+		
+		local arg1, arg2, arg3 = ...
+		local obj
+		
+		if type( arg1 ) == "string" then
+			obj = _G[arg1]
+		end
+		
+		if obj then
+			
+			if type( arg2 ) == "string" then
+				
+				if obj[arg2] then
+					ArkInventory.OutputDebug( "secure hooking ", arg1, ":", arg2 )
+					ArkInventory:SecureHook( obj, arg2, arg3 )
+				else
+					ArkInventory.OutputDebug( "could not secure hook ", arg1, ":", arg2, " as it does not exist" )
+				end
+				
+			else
+				
+				ArkInventory.OutputDebug( "secure hooking ", arg1 )
+				ArkInventory:SecureHook( arg1, arg2 )
+				
+			end
+			
+		else
+			ArkInventory.OutputDebug( "could not secure hook ", arg1, " as it does not exist" )
+		end
+		
 	end
+	
 end
 
 function ArkInventory.HookOpenBackpack( self, ... )
@@ -11146,13 +11171,9 @@ function ArkInventory.HookOpenAllBags( self, ... )
 				end
 			end
 			
-		elseif whoname == "AzeriteEssenceUI" then
+		elseif whoname == "AzeriteEssenceUI" or whoname == "ItemInteractionFrame" or whoname == "GearManagerDialogPopup" then
 			
-			-- dont care about this opener yet, just here to stop the warning message
-			
-		elseif whoname == "ItemInteractionFrame" then
-			
-			-- dont care about this opener yet, just here to stop the warning message
+			-- dont care about these openers yet, just here to stop the warning message
 			
 		elseif whoname == "MailCommanderFrame" then
 			
@@ -11186,7 +11207,7 @@ function ArkInventory.HookOpenAllBags( self, ... )
 		if not ArkInventory.isLocationControlled( loc_id ) then
 			for x = ArkInventory.Const.BLIZZARD.GLOBAL.CONTAINER.NUM_BAGS + 1, ArkInventory.Const.BLIZZARD.GLOBAL.CONTAINER.NUM_BAGS + ArkInventory.Const.BLIZZARD.GLOBAL.BANK.NUM_BAGS do
 				if ArkInventory.CrossClient.GetContainerNumSlots( x ) > 0 then
---					ArkInventory.Output2( "HookOpenAllBags - closing bag ", x )
+					--ArkInventory.Output2( "HookOpenAllBags - closing bag ", x )
 					CloseBag( x )
 				end
 			end
@@ -11633,47 +11654,38 @@ function ArkInventory.BlizzardAPIHook( disable, reload )
 		end
 		
 		
-		-- bank functions (dragonflight onwards as it now opens via the ui panels)
-		if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.WRATH ) then
+		-- bank functions (now opens via the ui panels in all versions)
+		if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.CLASSIC ) then
 			ArkInventory:RawHook( PlayerInteractionFrameManager, "ShowFrame", ArkInventory.HookPlayerInteractionShow, true )
 			ArkInventory:RawHook( PlayerInteractionFrameManager, "HideFrame", ArkInventory.HookPlayerInteractionHide, true )
 		end
 		
 		
 		-- mailbox fuctions
-		ArkInventory:SecureHook( "SendMail", ArkInventory.HookMailSend )
-		ArkInventory:SecureHook( "ReturnInboxItem", ArkInventory.HookMailReturn )
+		ArkInventory.MySecureHook( "SendMail", ArkInventory.HookMailSend )
+		ArkInventory.MySecureHook( "ReturnInboxItem", ArkInventory.HookMailReturn )
 		
 		
 		-- battlepet functions
-		if C_PetJournal then
-			ArkInventory:SecureHook( C_PetJournal, "SetFavorite", ArkInventory.HookCPetJournalSetFavorite )
-			ArkInventory:SecureHook( C_PetJournal, "SetCustomName", ArkInventory.HookCPetJournalSetCustomName )
-		end
+		ArkInventory.MySecureHook( "C_PetJournal", "SetFavorite", ArkInventory.HookCPetJournalSetFavorite )
+		ArkInventory.MySecureHook( "C_PetJournal", "SetCustomName", ArkInventory.HookCPetJournalSetCustomName )
 		
 		
 		-- toybox functions
-		if C_ToyBox then
-			ArkInventory:SecureHook( C_ToyBox, "SetIsFavorite", ArkInventory.HookCToyboxSetFavorite )
-		end
+		ArkInventory.MySecureHook( "C_ToyBox", "SetIsFavorite", ArkInventory.HookCToyboxSetFavorite )
 		
 		
 		-- battlepet tooltips
-		if C_PetJournal then
-			ArkInventory:SecureHook( "BattlePetToolTip_Show", ArkInventory.HookBattlePetToolTip_Show )
-			ArkInventory:SecureHook( "FloatingBattlePet_Show", ArkInventory.HookFloatingBattlePet_Show )
-		end
+		ArkInventory.MySecureHook( "BattlePetToolTip_Show", ArkInventory.HookBattlePetToolTip_Show )
+		ArkInventory.MySecureHook( "FloatingBattlePet_Show", ArkInventory.HookFloatingBattlePet_Show )
 		
 		
 		-- covenant sanctum, deposit button, mount check (no longer required, you are automatically dismounted now)
-		--if C_CovenantSanctumUI then
-		--	ArkInventory:SecureHook( C_CovenantSanctumUI, "DepositAnima", ArkInventory.HookCovenantSanctumDepositAnima )
-		--end
+		--ArkInventory.MySecureHook( "C_CovenantSanctumUI", "DepositAnima", ArkInventory.HookCovenantSanctumDepositAnima )
 		
---		if C_TradeSkillUI and C_TradeSkillUI.SetTooltipRecipeResultItem then
---			ArkInventory:SecureHook( C_TradeSkillUI, "SetTooltipRecipeResultItem", ArkInventory.HookC_TradeSkillUI_SetTooltipRecipeResultItem )
---		end
 		
+		-- tradeskill tooltips
+		--ArkInventory.MySecureHook( "C_TradeSkillUI", "SetTooltipRecipeResultItem", ArkInventory.HookC_TradeSkillUI_SetTooltipRecipeResultItem )
 		
 		
 		-- tooltips

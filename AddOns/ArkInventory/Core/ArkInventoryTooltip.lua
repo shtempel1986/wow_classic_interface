@@ -553,7 +553,7 @@ function ArkInventory.TooltipSet( tooltip, loc_id, bag_id, slot_id, h, i )
 			
 		end
 		
-		if tooltipInfo.battlePetSpeciesID and tooltipInfo.battlePetSpeciesID > 0 then
+		if tooltipInfo and tooltipInfo.battlePetSpeciesID and tooltipInfo.battlePetSpeciesID > 0 then
 			tooltipInfo.hyperlink = tooltipInfo.hyperlink or ArkInventory.BattlepetBaseHyperlink( tooltipInfo.battlePetSpeciesID, tooltipInfo.battlePetLevel, tooltipInfo.battlePetBreedQuality, tooltipInfo.battlePetMaxHealth, tooltipInfo.battlePetPower, tooltipInfo.battlePetSpeed, tooltipInfo.battlePetName )
 			ArkInventory.TooltipCustomBattlepetBuild( tooltip, tooltipInfo.hyperlink )
 		end

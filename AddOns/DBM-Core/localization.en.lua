@@ -30,6 +30,7 @@ L.LOAD_MOD_DISABLED						= "%s is installed but currently disabled. This mod wil
 L.LOAD_MOD_DISABLED_PLURAL				= "%s are installed but currently disabled. These mods will not be loaded unless you enable them."
 
 L.COPY_URL_DIALOG						= "Copy URL"
+L.COPY_WA_DIALOG						= "Copy WA Key"
 
 --Post Patch 7.1
 L.NO_RANGE								= "Range Radar can not be used in instances. Legacy text range frame used instead"
@@ -73,6 +74,7 @@ L.TRANSCRIPTOR_LOG_START				= "Transcriptor logging started."
 L.TRANSCRIPTOR_LOG_END					= "Transcriptor logging ended."
 
 L.MOVIE_SKIPPED							= L.DBM .. " has attempted to skip a cut scene automatically."
+L.MOVIE_NOTSKIPPED							= L.DBM .. " has detected a skipable cut scene but has NOT skipped it due to a blizzard bug. When this bug is fixed, skipping will be re-enabled"
 L.BONUS_SKIPPED							= L.DBM .. " has automatically closed bonus loot frame. If you need to get this frame back, type /dbmbonusroll within 3 minutes"
 
 L.AFK_WARNING							= "You are AFK and in combat (%d percent health remaining), firing sound alert. If you are not AFK, clear your AFK flag or disable this option in 'extra features'."
@@ -186,7 +188,7 @@ L.WEAKAURA_KEY							= " (|cff308530WA Key:|r %s)"
 
 L.UPDATEREMINDER_HEADER					= "Your version of " .. L.DEADLY_BOSS_MODS.. " is out-of-date.\n Version %s (%s) is available for download through Curse, Wago, WoWI, or from GitHub Releases page"
 L.UPDATEREMINDER_FOOTER					= "Press " .. (IsMacClient() and "Cmd-C" or "Ctrl-C")  ..  " to copy the download link to your clipboard."
-L.UPDATEREMINDER_FOOTER_GENERIC			= "Press " .. (IsMacClient() and "Cmd-C" or "Ctrl-C")  ..  " to copy the link to your clipboard."
+L.UPDATEREMINDER_FOOTER_GENERIC			= "Press " .. (IsMacClient() and "Cmd-C" or "Ctrl-C")  ..  " to copy to your clipboard."
 L.UPDATEREMINDER_DISABLE				= "WARNING: Due to your " .. L.DEADLY_BOSS_MODS.. " being out of date and incompatible with newer versions of DBM, it has been force disabled and cannot be used until updated. This is to ensure incompatible mods do not cause poor play experience for yourself or fellow group members."
 L.UPDATEREMINDER_DISABLETEST			= "WARNING: Due to your " .. L.DEADLY_BOSS_MODS.. " being out of date and this being a test/beta realm, it has been force disabled and cannot be used until updated. This is to ensure out of date mods aren't being used to generate test feedback"
 L.UPDATEREMINDER_HOTFIX					= L.DBM .. " version you are on has known issues during this boss encounter that are corrected if you update to latest release"
@@ -463,16 +465,22 @@ L.AUTO_TIMER_TEXTS = {
 	active								= "%s ends",--Buff/Debuff/event on boss
 	fades								= "%s fades",--Buff/Debuff on players
 	ai									= "%s AI",
-	cd									= "~%s",
-	cdcount								= "~%s (%%s)",
-	cdsource							= "~%s: >%%s<",
-	cdspecial							= "~Special",
+
+	cd									= "%s",--Now same as next, as the ~ was moved to timer number
+	cdcount								= "%s (%%s)",--Now same as next, as the ~ was moved to timer number
+	cdsource							= "%s: >%%s<",--Now same as next, as the ~ was moved to timer number
+	cdspecial							= "Special",--Now same as next, as the ~ was moved to timer number
+
 	next								= "%s",
 	nextcount							= "%s (%%s)",
-	nextsource							= "%s: %%s",
+	nextsource							= "%s: >%%s<",
 	nextspecial							= "Special",
+
 	achievement							= "%s",
 	stage								= "Stage",
+	stagecount							= "Stage (%%s)",
+	Intermission						= "Intermission",
+	Intermissioncount					= "Intermission (%%s)",
 	adds								= "Adds",
 	addscustom							= "Adds (%%s)",
 	roleplay							= GUILD_INTEREST_RP or "Roleplay"
@@ -507,6 +515,9 @@ L.AUTO_TIMER_OPTIONS = {
 	nextspecial							= "Show timer for next special ability",
 	achievement							= "Show timer for %s",
 	stage								= "Show timer for next stage",
+	stagecount							= "Show timer (with count) for next stage",
+	intermission						= "Show timer for next intermission",
+	intermissioncount					= "Show timer (with count) for next intermission",
 	adds								= "Show timer for incoming adds",
 	addscustom							= "Show timer for incoming adds",
 	roleplay							= "Show timer for roleplay duration"--This does need localizing though.

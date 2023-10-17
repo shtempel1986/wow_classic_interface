@@ -1,11 +1,5 @@
---[[
 
-License: All Rights Reserved, (c) 2009-2018
-
-$Revision: 3002 $
-$Date: 2023-01-20 08:12:26 +1100 (Fri, 20 Jan 2023) $
-
-]]--
+--License: All Rights Reserved, (c) 2009-2023
 
 
 local _G = _G
@@ -57,7 +51,7 @@ function ArkInventoryRules.OnInitialize( )
 				ArkInventory.Output( string.format( "%s: Scrap %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )
 			end
 			
-			ArkInventory.MySecureHook( Scrap, "ToggleJunk", ArkInventoryRules.ItemCacheClear )
+			ArkInventory.MySecureHook( "Scrap", "ToggleJunk", ArkInventoryRules.ItemCacheClear )
 			
 		end
 		
@@ -72,8 +66,8 @@ function ArkInventoryRules.OnInitialize( )
 				ArkInventory.Output( string.format( "%s: SellJunk %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )
 			end
 			
-			ArkInventory.MySecureHook( SellJunk, "Add", ArkInventoryRules.ItemCacheClear )
-			ArkInventory.MySecureHook( SellJunk, "Rem", ArkInventoryRules.ItemCacheClear )
+			ArkInventory.MySecureHook( "SellJunk", "Add", ArkInventoryRules.ItemCacheClear )
+			ArkInventory.MySecureHook( "SellJunk", "Rem", ArkInventoryRules.ItemCacheClear )
 			
 		end
 		
@@ -88,8 +82,8 @@ function ArkInventoryRules.OnInitialize( )
 				ArkInventory.Output( string.format( "%s: ReagentRestocker %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )
 			end
 			
-			ArkInventory.MySecureHook( ReagentRestocker, "addItemToSellingList", ArkInventoryRules.ItemCacheClear )
-			ArkInventory.MySecureHook( ReagentRestocker, "deleteItem", ArkInventoryRules.ItemCacheClear )
+			ArkInventory.MySecureHook( "ReagentRestocker", "addItemToSellingList", ArkInventoryRules.ItemCacheClear )
+			ArkInventory.MySecureHook( "ReagentRestocker", "deleteItem", ArkInventoryRules.ItemCacheClear )
 			
 		end
 		
@@ -155,9 +149,9 @@ function ArkInventoryRules.HookItemRack( )
 	
 	if ItemRack.DURABILITY_PATTERN then -- find something to tell if itemrack is actually ready - has run InitCore
 		
-		ArkInventory.MySecureHook( ItemRack, "EquipSet", ArkInventoryRules.ItemCacheClear )
-		ArkInventory.MySecureHook( ItemRack, "ToggleSet", ArkInventoryRules.ItemCacheClear )
-		ArkInventory.MySecureHook( ItemRack, "UnequipSet", ArkInventoryRules.ItemCacheClear )
+		ArkInventory.MySecureHook( "ItemRack", "EquipSet", ArkInventoryRules.ItemCacheClear )
+		ArkInventory.MySecureHook( "ItemRack", "ToggleSet", ArkInventoryRules.ItemCacheClear )
+		ArkInventory.MySecureHook( "ItemRack", "UnequipSet", ArkInventoryRules.ItemCacheClear )
 		
 		if ArkInventory.db.option.message.rules.hooked then
 			ArkInventory.Output( string.format( "%s: ItemRack %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )
@@ -181,14 +175,14 @@ function ArkInventoryRules.HookItemRackOptions( )
 		ArkInventory.Output( string.format( "%s: ItemRackOptions %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )
 	end
 	
-	ArkInventory.MySecureHook( ItemRackOpt, "SaveSet", ArkInventoryRules.ItemCacheClear )
-	ArkInventory.MySecureHook( ItemRackOpt, "DeleteSet", ArkInventoryRules.ItemCacheClear )
+	ArkInventory.MySecureHook( "ItemRackOpt", "SaveSet", ArkInventoryRules.ItemCacheClear )
+	ArkInventory.MySecureHook( "ItemRackOpt", "DeleteSet", ArkInventoryRules.ItemCacheClear )
 	
 end
 
 function ArkInventoryRules.HookGearQuipper( )
 	
-	ArkInventory.MySecureHook( gearquipper, "RefreshSetList", ArkInventoryRules.ItemCacheClear )
+	ArkInventory.MySecureHook( "gearquipper", "RefreshSetList", ArkInventoryRules.ItemCacheClear )
 	
 	if ArkInventory.db.option.message.rules.hooked then
 		ArkInventory.Output( string.format( "%s: GearQuipper %s", ArkInventory.Localise["RULES"], ArkInventory.Localise["ENABLED"] ) )

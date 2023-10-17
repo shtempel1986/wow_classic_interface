@@ -1,11 +1,6 @@
-﻿--[[
+﻿
+--License: All Rights Reserved, (c) 2006-2023
 
-License: All Rights Reserved, (c) 2006-2018
-
-$Revision: 3003 $
-$Date: 2023-01-20 08:12:33 +1100 (Fri, 20 Jan 2023) $
-
-]]--
 
 ArkInventorySearch = LibStub( "AceAddon-3.0" ):NewAddon( "ArkInventorySearch" )
 

@@ -1,7 +1,5 @@
-# 3.10.16 (08-MAY-2023)
- - fixed - https://github.com/arkayenro/arkinventory/issues/1787 - issue handling a null tooltipinfo
- - updated - categorised some items
- - changed - (retail) toc updated to 100100
+# 3.10.18 (11-OCT-2023)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1822 - code issue with secure hooks when they dont exist in the game client
  
 # known issues
  - (dragonflight) reagentbank slots are no longer readable unless the bank is open

@@ -11,17 +11,16 @@ local tinsert, tremove, wipe = tinsert, tremove, wipe
 local type, ipairs, unpack, select = type, ipairs, unpack, select
 local next, max, floor, format, strsub = next, max, floor, format, strsub
 
-local EasyMenu = EasyMenu
 local BreakUpLargeNumbers = BreakUpLargeNumbers
 local CreateFrame = CreateFrame
 local CursorHasItem = CursorHasItem
 local DepositReagentBank = DepositReagentBank
+local EasyMenu = EasyMenu
 local GameTooltip = GameTooltip
 local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
-local GetCVarBool = GetCVarBool
 local GetCursorMoney = GetCursorMoney
-local GetPlayerTradeMoney = GetPlayerTradeMoney
+local GetCVarBool = GetCVarBool
 local GetInventoryItemTexture = GetInventoryItemTexture
 local GetItemInfo = GetItemInfo
 local GetItemQualityColor = GetItemQualityColor
@@ -29,11 +28,12 @@ local GetItemSpell = GetItemSpell
 local GetKeyRingSize = GetKeyRingSize
 local GetMoney = GetMoney
 local GetNumBankSlots = GetNumBankSlots
+local GetPlayerTradeMoney = GetPlayerTradeMoney
 local hooksecurefunc = hooksecurefunc
 local IsInventoryItemProfessionBag = IsInventoryItemProfessionBag
 local IsReagentBankUnlocked = IsReagentBankUnlocked
-local PlaySound = PlaySound
 local PickupBagFromSlot = PickupBagFromSlot
+local PlaySound = PlaySound
 local PutItemInBackpack = PutItemInBackpack
 local PutItemInBag = PutItemInBag
 local PutKeyInKeyRing = PutKeyInKeyRing
@@ -46,6 +46,7 @@ local SetItemButtonTexture = SetItemButtonTexture
 local SetItemButtonTextureVertexColor = SetItemButtonTextureVertexColor
 local StaticPopup_Show = StaticPopup_Show
 local ToggleFrame = ToggleFrame
+local UIParent = UIParent
 local UnitAffectingCombat = UnitAffectingCombat
 
 local IsBagOpen, IsOptionFrameOpen = IsBagOpen, IsOptionFrameOpen
@@ -55,7 +56,7 @@ local CloseBag, CloseBackpack, CloseBankFrame = CloseBag, CloseBackpack, CloseBa
 local EditBox_HighlightText = EditBox_HighlightText
 local BankFrameItemButton_Update = BankFrameItemButton_Update
 local BankFrameItemButton_UpdateLocked = BankFrameItemButton_UpdateLocked
---local SellAllJunkItems = C_MerchantFrame and C_MerchantFrame.SellAllJunkItems
+local SellAllJunkItems = C_MerchantFrame and C_MerchantFrame.SellAllJunkItems
 local C_Texture_GetAtlasInfo = C_Texture and C_Texture.GetAtlasInfo
 local C_TransmogCollection_PlayerHasTransmogByItemInfo = C_TransmogCollection and C_TransmogCollection.PlayerHasTransmogByItemInfo
 local C_TransmogCollection_GetItemInfo = C_TransmogCollection and C_TransmogCollection.GetItemInfo
@@ -550,7 +551,7 @@ function B:GetItemQuestInfo(itemLink, bindType, itemClassID)
 	if bindType == 4 or itemClassID == LE_ITEM_CLASS_QUESTITEM then
 		return true, true
 	else
-		E.ScanTooltip:SetOwner(_G.UIParent, 'ANCHOR_NONE')
+		E.ScanTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
 		E.ScanTooltip:SetHyperlink(itemLink)
 		E.ScanTooltip:Show()
 
@@ -697,6 +698,11 @@ end
 function B:SortingFadeBags(bagFrame, sortingSlots)
 	if not (bagFrame and bagFrame.BagIDs) then return end
 	bagFrame.sortingSlots = sortingSlots
+
+	if bagFrame.spinnerIcon and B.db.spinner.enable then
+		local color = E:UpdateClassColor(B.db.spinner.color)
+		E:StartSpinner(bagFrame.spinnerIcon, nil, nil, nil, nil, B.db.spinner.size, color.r, color.g, color.b)
+	end
 
 	for _, bagID in next, bagFrame.BagIDs do
 		local slotMax = B:GetContainerNumSlots(bagID)
@@ -1281,8 +1287,11 @@ function B:UpdateTokens()
 		button:Hide()
 	end
 
+	local currencyFormat = B.db.currencyFormat
+	local numCurrencies = currencyFormat ~= 'NONE' and MAX_WATCHED_TOKENS or 0
+
 	local numTokens = 0
-	for i = 1, MAX_WATCHED_TOKENS do
+	for i = 1, numCurrencies do
 		local info = B:GetBackpackCurrencyInfo(i)
 		if not (info and info.name) then break end
 
@@ -1383,11 +1392,11 @@ function B:VendorGrays(delete)
 	local npcID = not delete and NP:UnitNPCID('npc')
 	if B.ExcludeVendors[npcID] then return end
 
-	--[[ Blizzards sell grays
+	-- Blizzards sell grays
 	if SellAllJunkItems and B.db.useBlizzardJunk then
 		SellAllJunkItems()
 		return
-	end]]
+	end
 
 	-- our sell grays
 	B:GetGrays(true)
@@ -1413,11 +1422,11 @@ function B:VendorGrays(delete)
 end
 
 function B:VendorGrayCheck()
-	--[[ Blizzards sell grays
+	-- Blizzards sell grays
 	if SellAllJunkItems and B.db.useBlizzardJunk then
 		SellAllJunkItems()
 		return
-	end]]
+	end
 
 	-- our sell grays
 	local value = B:GetGraysValue()
@@ -1707,11 +1716,17 @@ function B:ConstructContainerFrame(name, isBank)
 	f.editBox.Middle:SetTexture()
 	f.editBox.Right:SetTexture()
 	f.editBox:SetAutoFocus(false)
-	f.editBox:SetFrameLevel(f.editBox:GetFrameLevel() + 2)
+	f.editBox:SetFrameLevel(10)
 	f.editBox:SetScript('OnEditFocusGained', EditBox_HighlightText)
 	f.editBox:HookScript('OnTextChanged', B.SearchUpdate)
 	f.editBox:SetScript('OnEscapePressed', B.SearchClear)
 	f.editBox.clearButton:HookScript('OnClick', B.SearchClear)
+
+	--Spinner
+	f.spinnerIcon = CreateFrame('Frame', name..'SpinnerIcon', f.holderFrame)
+	f.spinnerIcon:SetFrameLevel(20)
+	f.spinnerIcon:EnableMouse(false)
+	f.spinnerIcon:Hide()
 
 	if isBank then
 		f.notPurchased = {}
@@ -1745,14 +1760,14 @@ function B:ConstructContainerFrame(name, isBank)
 			f.reagentFrame.cover = CreateFrame('Button', nil, f.reagentFrame)
 			f.reagentFrame.cover:SetAllPoints(f.reagentFrame)
 			f.reagentFrame.cover:SetTemplate(nil, true)
-			f.reagentFrame.cover:SetFrameLevel(f.reagentFrame:GetFrameLevel() + 10)
+			f.reagentFrame.cover:SetFrameLevel(15)
 
 			f.reagentFrame.cover.purchaseButton = CreateFrame('Button', nil, f.reagentFrame.cover)
 			f.reagentFrame.cover.purchaseButton:Height(20)
 			f.reagentFrame.cover.purchaseButton:Width(150)
 			f.reagentFrame.cover.purchaseButton:Point('CENTER', f.reagentFrame.cover, 'CENTER')
 			Skins:HandleButton(f.reagentFrame.cover.purchaseButton)
-			f.reagentFrame.cover.purchaseButton:SetFrameLevel(f.reagentFrame.cover.purchaseButton:GetFrameLevel() + 2)
+			f.reagentFrame.cover.purchaseButton:SetFrameLevel(16)
 			f.reagentFrame.cover.purchaseButton.text = f.reagentFrame.cover.purchaseButton:CreateFontString(nil, 'OVERLAY')
 			f.reagentFrame.cover.purchaseButton.text:FontTemplate()
 			f.reagentFrame.cover.purchaseButton.text:Point('CENTER')
@@ -2050,7 +2065,7 @@ function B:ConstructContainerButton(f, bagID, slotID)
 		slot.isReagent = true
 	end
 
-	slot.searchOverlay:SetColorTexture(0, 0, 0, 0.8)
+	slot.searchOverlay:SetColorTexture(0, 0, 0, 0.6)
 
 	slot.IconBorder:SetAlpha(0)
 	slot.IconOverlay:SetInside()
@@ -2572,7 +2587,7 @@ function B:VendorGrays_OnUpdate(elapsed)
 		B.SellFrame:Hide()
 
 		if not E.Retail and B.SellFrame.Info.goldGained > 0 then
-			E:Print((L["Vendored gray items for: %s"]):format(E:FormatMoney(B.SellFrame.Info.goldGained, B.db.moneyFormat, not B.db.moneyCoins)))
+			E:Print(format(L["Vendored gray items for: %s"], E:FormatMoney(B.SellFrame.Info.goldGained, B.db.moneyFormat, not B.db.moneyCoins)))
 		end
 	end
 end
@@ -2806,7 +2821,7 @@ function B:Initialize()
 	local BagFrameHolder = CreateFrame('Frame', nil, E.UIParent)
 	BagFrameHolder:Width(200)
 	BagFrameHolder:Height(22)
-	BagFrameHolder:SetFrameLevel(BagFrameHolder:GetFrameLevel() + 400)
+	BagFrameHolder:SetFrameLevel(40)
 
 	if not E.private.bags.enable then
 		-- Set a different default anchor
@@ -2830,7 +2845,7 @@ function B:Initialize()
 	BankFrameHolder:Width(200)
 	BankFrameHolder:Height(22)
 	BankFrameHolder:Point('BOTTOMLEFT', _G.LeftChatPanel, 'BOTTOMLEFT', 0, 22 + E.Border*4 - E.Spacing*2)
-	BankFrameHolder:SetFrameLevel(BankFrameHolder:GetFrameLevel() + 400)
+	BankFrameHolder:SetFrameLevel(40)
 	E:CreateMover(BankFrameHolder, 'ElvUIBankMover', L["Bank (Grow Up)"], nil, nil, B.PostBagMove, nil, nil, 'bags,general')
 
 	--Set some variables on movers

@@ -49,12 +49,16 @@ local l10n = QuestieLoader:ImportModule("l10n")
 local QuestLogCache = QuestieLoader:ImportModule("QuestLogCache")
 ---@type ThreadLib
 local ThreadLib = QuestieLoader:ImportModule("ThreadLib")
+---@type WorldMapButton
+local WorldMapButton = QuestieLoader:ImportModule("WorldMapButton")
 
 --We should really try and squeeze out all the performance we can, especially in this.
 local tostring = tostring;
 local tinsert = table.insert;
 local pairs = pairs;
 local ipairs = ipairs;
+local yield = coroutine.yield
+local NewThread = ThreadLib.ThreadSimple
 
 QuestieQuest.availableQuests = {} --Gets populated at PLAYER_ENTERED_WORLD
 
@@ -111,10 +115,7 @@ function QuestieQuest:ToggleNotes(showIcons)
 end
 
 function _QuestieQuest:ShowQuestIcons()
-    -- change map button
-    if Questie.db.char.enabled then
-        Questie_Toggle:SetText(l10n("Hide Questie"));
-    end
+    WorldMapButton.UpdateText()
 
     local trackerHiddenQuests = Questie.db.char.TrackerHiddenQuests
     for questId, frameList in pairs(QuestieMap.questIdFrames) do
@@ -160,9 +161,7 @@ function _QuestieQuest:ShowManualIcons()
 end
 
 function _QuestieQuest:HideQuestIcons()
-    if (not Questie.db.char.enabled) then
-        Questie_Toggle:SetText(l10n("Show Questie"));
-    end
+    WorldMapButton.UpdateText()
 
     for _, frameList in pairs(QuestieMap.questIdFrames) do
         for _, frameName in pairs(frameList) do                                 -- this may seem a bit expensive, but its actually really fast due to the order things are checked
@@ -202,7 +201,7 @@ end
 
 function QuestieQuest:ClearAllNotes()
     for questId in pairs(QuestiePlayer.currentQuestlog) do
-        local quest = QuestieDB:GetQuest(questId)
+        local quest = QuestieDB.GetQuest(questId)
 
         if not quest then
             return
@@ -231,7 +230,7 @@ end
 
 function QuestieQuest:ClearAllToolTips()
     for questId in pairs(QuestiePlayer.currentQuestlog) do
-        local quest = QuestieDB:GetQuest(questId)
+        local quest = QuestieDB.GetQuest(questId)
 
         if not quest then
             return
@@ -281,7 +280,7 @@ end
 -- This is only needed for SmoothReset(), normally special objectives don't need to update
 ---@param questId number
 local function _UpdateSpecials(questId)
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
     if quest and next(quest.SpecialObjectives) then
         for _, objective in pairs(quest.SpecialObjectives) do
             local result, err = xpcall(QuestieQuest.PopulateObjective, ERR_FUNCTION, QuestieQuest, quest, 0, objective, true)
@@ -422,7 +421,7 @@ end
 
 ---@param questId number
 function QuestieQuest:AcceptQuest(questId)
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
     local complete = quest:IsComplete()
 
     if quest then
@@ -484,7 +483,14 @@ end
 
 ---@param questId number
 function QuestieQuest:CompleteQuest(questId)
-    QuestiePlayer.currentQuestlog[questId] = nil;
+    -- Skip quests which are turn in only and are not added to the quest log in the first place
+    if QuestiePlayer.currentQuestlog[questId] then
+        -- Reset quest flags of
+        QuestiePlayer.currentQuestlog[questId].WasComplete = nil
+        QuestiePlayer.currentQuestlog[questId].isComplete = nil
+        QuestiePlayer.currentQuestlog[questId] = nil;
+    end
+
     -- Only quests that are daily quests or aren't repeatable should be marked complete,
     -- otherwise objectives for repeatable quests won't track correctly - #1433
     Questie.db.char.complete[questId] = QuestieDB.IsDailyQuest(questId) or (not QuestieDB.IsRepeatable(questId));
@@ -500,7 +506,7 @@ function QuestieQuest:CompleteQuest(questId)
         QuestieTracker:Update()
     end)
 
-    --This should probably be done first, because DrawAllAvailableQuests looks at QuestieMap.questIdFrames[QuestId] to add available
+    -- TODO: Should this be done first? Because DrawAllAvailableQuests looks at QuestieMap.questIdFrames[QuestId] to add available
     QuestieQuest.CalculateAndDrawAvailableQuestsIterative()
 
     Questie:Debug(Questie.DEBUG_INFO, "[QuestieQuest] Completed Quest:", questId)
@@ -511,7 +517,7 @@ function QuestieQuest:AbandonedQuest(questId)
     if (QuestiePlayer.currentQuestlog[questId]) then
         QuestiePlayer.currentQuestlog[questId] = nil
         QuestieMap:UnloadQuestFrames(questId)
-        local quest = QuestieDB:GetQuest(questId)
+        local quest = QuestieDB.GetQuest(questId)
 
         if quest then
             -- Reset quest objectives
@@ -545,7 +551,7 @@ function QuestieQuest:UpdateQuest(questId)
     Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieQuest:UpdateQuest]", questId)
 
     ---@type Quest
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
 
     if quest and (not Questie.db.char.complete[questId]) then
         QuestieQuest:PopulateQuestLogInfo(quest)
@@ -639,7 +645,7 @@ end
 
 ---@param questId number
 function QuestieQuest:SetObjectivesDirty(questId)
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
 
     if quest then
         for _, objective in pairs(quest.Objectives) do
@@ -662,7 +668,7 @@ function QuestieQuest:GetAllQuestIds()
             end
         else
             --Keep the object in the questlog to save searching
-            local quest = QuestieDB:GetQuest(questId)
+            local quest = QuestieDB.GetQuest(questId)
 
             if quest then
                 local complete = quest:IsComplete()
@@ -724,15 +730,7 @@ local function _AddSourceItemObjective(quest)
             local fakeObjective = {
                 Id = quest.Id,
                 IsSourceItem = true,
-                QuestData = {
-                    FadeIcons = quest.FadeIcons,
-                    HideIcons = quest.HideIcons,
-                    level = quest.level,
-                    requiredLevel = quest.requiredLevel,
-                    IsRepeatable = quest.IsRepeatable,
-                    name = quest.name,
-                    Description = quest.Description,
-                },
+                QuestData = quest,
                 Index = 1,
                 Needed = 1,
                 Collected = 1,
@@ -775,15 +773,7 @@ local function _AddRequiredSourceItemObjective(quest)
                 local fakeObjective = {
                     Id = quest.Id,
                     IsRequiredSourceItem = true,
-                    QuestData = {
-                        FadeIcons = quest.FadeIcons,
-                        HideIcons = quest.HideIcons,
-                        level = quest.level,
-                        requiredLevel = quest.requiredLevel,
-                        IsRepeatable = quest.IsRepeatable,
-                        name = quest.name,
-                        Description = quest.Description,
-                    },
+                    QuestData = quest,
                     Index = index,
                     text = item,
                     Description = item
@@ -807,7 +797,7 @@ function QuestieQuest:GetAllQuestIdsNoObjectives()
             end
         else
             --Keep the object in the questlog to save searching
-            local quest = QuestieDB:GetQuest(questId)
+            local quest = QuestieDB.GetQuest(questId)
             if quest then
                 QuestiePlayer.currentQuestlog[questId] = quest
                 quest.LocalizedName = data.title
@@ -847,11 +837,11 @@ end
 -- A good example for this edge case is [18] The Price of Shoes (118) where upon acceptance, Verner's Note (1283) is given
 -- to the player and the Quest is immediately flagged as Complete. If the note is destroyed then a slightly modified version
 -- of QuestieDB.IsComplete() that uses this function, returns zero allowing the quest updates to properly set the quests state.
----@param questId Number @QuestID
+---@param questId number @QuestID
 ---@param makeObjective boolean @If set to true, then this will create an incomplete objective for the missing quest item
 ---@return boolean @Returns true if quest.sourceItemId matches an item in a players bag
 function QuestieQuest:CheckQuestSourceItem(questId, makeObjective)
-    local quest = QuestieDB:GetQuest(questId)
+    local quest = QuestieDB.GetQuest(questId)
     local sourceItem = true
     if quest.sourceItemId > 0 then
         for bag = -2, 4 do
@@ -957,7 +947,7 @@ function QuestieQuest:AddFinisher(quest)
                 end
             end
 
-            QuestieTooltips:RegisterQuestStartTooltip(questId, finisher)
+            QuestieTooltips:RegisterQuestStartTooltip(questId, finisher, key)
 
             local finisherIcons = {}
             local finisherLocs = {}
@@ -971,15 +961,7 @@ function QuestieQuest:AddFinisher(quest)
                             GetIconScale = _GetIconScaleForAvailable,
                             IconScale = _GetIconScaleForAvailable(),
                             Type = "complete",
-                            QuestData = {
-                                FadeIcons = quest.FadeIcons,
-                                HideIcons = quest.HideIcons,
-                                level = quest.level,
-                                requiredLevel = quest.requiredLevel,
-                                IsRepeatable = quest.IsRepeatable,
-                                name = quest.name,
-                                Description = quest.Description,
-                            },
+                            QuestData = quest,
                             Name = finisher.name,
                             IsObjectiveNote = false,
                         }
@@ -1028,15 +1010,7 @@ function QuestieQuest:AddFinisher(quest)
                                 GetIconScale = _GetIconScaleForAvailable,
                                 IconScale = _GetIconScaleForAvailable(),
                                 Type = "complete",
-                                QuestData = {
-                                    FadeIcons = quest.FadeIcons,
-                                    HideIcons = quest.HideIcons,
-                                    level = quest.level,
-                                    requiredLevel = quest.requiredLevel,
-                                    IsRepeatable = quest.IsRepeatable,
-                                    name = quest.name,
-                                    Description = quest.Description,
-                                },
+                                QuestData = quest,
                                 Name = finisher.name,
                                 IsObjectiveNote = false,
                             }
@@ -1136,21 +1110,23 @@ _RegisterObjectiveTooltips = function(objective, questId, blockItemTooltips)
     Questie:Debug(Questie.DEBUG_INFO, "Registering objective tooltips for", objective.Description)
 
     if objective.spawnList then
-        for id, spawnData in pairs(objective.spawnList) do
-            if spawnData.TooltipKey and (not objective.AlreadySpawned[id]) and (not objective.hasRegisteredTooltips) then
-                QuestieTooltips:RegisterObjectiveTooltip(questId, spawnData.TooltipKey, objective)
+        if (not objective.hasRegisteredTooltips) then
+            for id, spawnData in pairs(objective.spawnList) do
+                if spawnData.TooltipKey and (not objective.AlreadySpawned[id]) then
+                    QuestieTooltips:RegisterObjectiveTooltip(questId, spawnData.TooltipKey, objective)
+                end
             end
-        end
 
-        objective.hasRegisteredTooltips = true
+            objective.hasRegisteredTooltips = true
+        end
     else
         Questie:Error("[QuestieQuest]: [Tooltips] " .. l10n("There was an error populating objectives for %s %s %s %s", objective.Description or "No objective text", questId or "No quest id", 0 or "No objective", "No error"));
     end
 
     if (not objective.registeredItemTooltips) and objective.Type == "item" and (not blockItemTooltips) and objective.Id then
-        local item = QuestieDB.QueryItemSingle(objective.Id, "name")
+        local itemName = QuestieDB.QueryItemSingle(objective.Id, "name")
 
-        if item then
+        if itemName then
             QuestieTooltips:RegisterObjectiveTooltip(questId, "i_" .. objective.Id, objective)
         end
 
@@ -1200,15 +1176,7 @@ _DetermineIconsToDraw = function(quest, objective, objectiveIndex, objectiveCent
             local data = {
                 Id = quest.Id,
                 ObjectiveIndex = objectiveIndex,
-                QuestData = {
-                    FadeIcons = quest.FadeIcons,
-                    HideIcons = quest.HideIcons,
-                    level = quest.level,
-                    requiredLevel = quest.requiredLevel,
-                    IsRepeatable = quest.IsRepeatable,
-                    name = quest.name,
-                    Description = quest.Description,
-                },
+                QuestData = quest,
                 ObjectiveData = objective,
                 Icon = spawnData.Icon,
                 IconColor = quest.Color,
@@ -1566,6 +1534,8 @@ function _QuestieQuest:DrawAvailableQuest(quest) -- prevent recursion
         for i = 1, #gameObjects do
             local obj = QuestieDB:GetObject(gameObjects[i])
             if (obj ~= nil and obj.spawns ~= nil) then
+                QuestieTooltips:RegisterQuestStartTooltip(quest.Id, obj, "o_" .. obj.id)
+
                 for zone, spawns in pairs(obj.spawns) do
                     if (zone ~= nil and spawns ~= nil) then
                         local coords
@@ -1577,15 +1547,7 @@ function _QuestieQuest:DrawAvailableQuest(quest) -- prevent recursion
                                 GetIconScale = _GetIconScaleForAvailable,
                                 IconScale = _GetIconScaleForAvailable(),
                                 Type = "available",
-                                QuestData = {
-                                    FadeIcons = quest.FadeIcons,
-                                    HideIcons = quest.HideIcons,
-                                    level = quest.level,
-                                    requiredLevel = quest.requiredLevel,
-                                    IsRepeatable = quest.IsRepeatable,
-                                    name = quest.name,
-                                    Description = quest.Description,
-                                },
+                                QuestData = quest,
                                 Name = obj.name,
                                 IsObjectiveNote = false,
                             }
@@ -1612,7 +1574,7 @@ function _QuestieQuest:DrawAvailableQuest(quest) -- prevent recursion
             local npc = QuestieDB:GetNPC(npcs[i])
 
             if (npc ~= nil and npc.spawns ~= nil) then
-                QuestieTooltips:RegisterQuestStartTooltip(quest.Id, npc)
+                QuestieTooltips:RegisterQuestStartTooltip(quest.Id, npc, "m_" .. npc.id)
 
                 --Questie:Debug(Questie.DEBUG_DEVELOP, "Adding Quest:", questObject.Id, "StarterNPC:", NPC.Id)
                 local starterIcons = {}
@@ -1628,15 +1590,7 @@ function _QuestieQuest:DrawAvailableQuest(quest) -- prevent recursion
                                 GetIconScale = _GetIconScaleForAvailable,
                                 IconScale = _GetIconScaleForAvailable(),
                                 Type = "available",
-                                QuestData = {
-                                    FadeIcons = quest.FadeIcons,
-                                    HideIcons = quest.HideIcons,
-                                    level = quest.level,
-                                    requiredLevel = quest.requiredLevel,
-                                    IsRepeatable = quest.IsRepeatable,
-                                    name = quest.name,
-                                    Description = quest.Description,
-                                },
+                                QuestData = quest,
                                 Name = npc.name,
                                 IsObjectiveNote = false,
                             }
@@ -1673,15 +1627,7 @@ function _QuestieQuest:DrawAvailableQuest(quest) -- prevent recursion
                                     GetIconScale = _GetIconScaleForAvailable,
                                     IconScale = _GetIconScaleForAvailable(),
                                     Type = "available",
-                                    QuestData = {
-                                        FadeIcons = quest.FadeIcons,
-                                        HideIcons = quest.HideIcons,
-                                        level = quest.level,
-                                        requiredLevel = quest.requiredLevel,
-                                        IsRepeatable = quest.IsRepeatable,
-                                        name = quest.name,
-                                        Description = quest.Description,
-                                    },
+                                    QuestData = quest,
                                     Name = npc.name,
                                     IsObjectiveNote = false,
                                 }
@@ -1752,8 +1698,6 @@ do
         local autoBlacklist = QuestieQuest.autoBlacklist
         local hiddenQuests = QuestieCorrections.hiddenQuests
         local hidden = Questie.db.char.hidden
-        local yield = coroutine.yield
-        local NewThread = ThreadLib.ThreadSimple
 
         local questCount = 0
         for questId in pairs(data) do
@@ -1778,7 +1722,7 @@ do
                             --? This looks expensive, and it kind of is but it offloads the work to a thread, which happens "next frame"
                             NewThread(function()
                                 ---@type Quest
-                                local quest = QuestieDB:GetQuest(questId)
+                                local quest = QuestieDB.GetQuest(questId)
                                 if (not quest.tagInfoWasCached) then
                                     --Questie:Debug(Questie.DEBUG_INFO, "Caching tag info for quest", questId)
                                     QuestieDB.GetQuestTagInfo(questId) -- cache to load in the tooltip
@@ -1838,7 +1782,7 @@ end
 
 function QuestieQuest.DrawDailyQuest(questId)
     if QuestieDB.IsDoable(questId) then
-        local quest = QuestieDB:GetQuest(questId)
+        local quest = QuestieDB.GetQuest(questId)
         _QuestieQuest:DrawAvailableQuest(quest)
     end
 end

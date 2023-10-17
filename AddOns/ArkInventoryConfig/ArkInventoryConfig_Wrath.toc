@@ -1,9 +1,9 @@
-## Interface: 30400
+## Interface: 30402
 
 ## Title: ArkInventory [Wrath] [Configuration]
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31016
+## Version: 31018
 ## X-ReleaseType: 
 
 ## Notes: Configuration options for ArkInventory

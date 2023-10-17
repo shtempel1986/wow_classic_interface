@@ -32,6 +32,13 @@ local GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetCont
 local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots;
 local GetGossipText = GetGossipText or C_GossipInfo.GetText;
 local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted or C_QuestLog.IsQuestFlaggedCompleted;
+local connectedRealms = {};
+if (GetAutoCompleteRealms and next(GetAutoCompleteRealms())) then
+	NWB.isConnectedRealm = true;
+	for k, v in pairs(GetAutoCompleteRealms()) do
+		connectedRealms[v] = true;
+	end
+end
 
 function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 	--if (NWB.isDebug) then
@@ -61,11 +68,12 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 	end
 	local _, realm = strsplit("-", sender, 2);
 	if (not NWB.isClassic) then
-		--Ignore this check on classic era because of connected realms.
-		--It should be ok because of the in bg checks.
-		--If realm found then it's not my realm, but just incase acecomm changes and starts supplying realm also check if realm exists.
-		if (realm ~= nil or (realm and realm ~= GetRealmName() and realm ~= GetNormalizedRealmName())) then
-			--Ignore data from other realms (in bgs).
+		--Ignore this check on classic era, there's no crossrealm (only linked realms) there except in bgs and we ignore bgs already.
+		--If realm found then it's not my realm.
+		--If acecomm changes and starts supplying realm for own realm then this needs to be changed.
+		--if (realm and (realm ~= GetRealmName() and realm ~= GetNormalizedRealmName())) then
+		if (realm and not connectedRealms[realm]) then
+			--Ignore data from other realms (in bgs and lfg now it's been added to wrath).
 			return;
 		end
 	end
@@ -2501,6 +2509,10 @@ function NWB:setLayerFrameTimerLogButtonText()
 	end
 end
 
+--function NWB:isTimerLogEntryValid(entryNum)
+
+--end
+
 function NWB:recalcTimerLogFrame()
 	NWBTimerLogFrame.EditBox:SetText("\n\n\n");
 	if (type(NWB.data.timerLog) ~= "table" or not next(NWB.data.timerLog)) then
@@ -2578,7 +2590,7 @@ function NWB:recalcTimerLogFrame()
 							end
 						end
 						layerText = "|cff00ff00[Layers " .. layerString .. "]|r ";]]
-						layerText = "|cff00ff00[All Layers]|r ";
+						layerText = "|cff00ff00[Unknown Layer]|r ";
 						layers = {};
 					elseif (NWB.isLayered) then
 						layerText = "|cff00ff00[Layer " .. layerNum .. "]|r ";

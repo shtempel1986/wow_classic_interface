@@ -1,8 +1,9 @@
 # TomTom
 
-## [v3.5.1-release](https://github.com/jnwhiteh/TomTom/tree/v3.5.1-release) (2023-07-12)
-[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v3.5.1-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
+## [v3.5.2-release](https://github.com/jnwhiteh/TomTom/tree/v3.5.2-release) (2023-09-08)
+[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v3.5.2-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
 
+- Update TOC for 10.1.7  
 - Fix issue with SetPassThroughButtons  
 - Update Ace3 and HereBeDragons  
 - Fix luacheckrc  
@@ -700,4 +701,3 @@
     * Implemented dragging for coordinate frame  
     * Implemented map coordinates/mouse coordinates  
     * Implemented rudimentary (example) control-rightclick on world map to set point  
-- * Initial working implementation of TomTom:SetWaypoint(c,z,x,y,far,near,arrive,callback) and TomTom:SetCrazyArrow(point, distance)  

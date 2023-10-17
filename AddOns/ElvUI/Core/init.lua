@@ -7,16 +7,18 @@
 local _G, next, strfind = _G, next, strfind
 local gsub, tinsert, type = gsub, tinsert, type
 
+local CreateFrame = CreateFrame
+local DisableAddOn = DisableAddOn
 local GetAddOnEnableState = GetAddOnEnableState
 local GetBuildInfo = GetBuildInfo
 local GetLocale = GetLocale
 local GetTime = GetTime
-local CreateFrame = CreateFrame
-local DisableAddOn = DisableAddOn
 local IsAddOnLoaded = IsAddOnLoaded
 local ReloadUI = ReloadUI
+local UIParent = UIParent
 
 local UIDropDownMenu_SetAnchor = UIDropDownMenu_SetAnchor
+local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 -- GLOBALS: ElvCharacterDB, ElvPrivateDB, ElvDB, ElvCharacterData, ElvPrivateData, ElvData
@@ -74,6 +76,7 @@ E.twoPixelsPlease = false -- changing this option is not supported! :P
 -- Expansions
 E.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 E.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+E.ClassicHC = E.Classic and IsHardcoreActive()
 E.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC -- not used
 E.Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
@@ -304,8 +307,8 @@ function E:OnInitialize()
 		end
 	end
 
-	E.ScanTooltip = CreateFrame('GameTooltip', 'ElvUI_ScanTooltip', _G.UIParent, 'GameTooltipTemplate')
-	E.EasyMenu = CreateFrame('Frame', 'ElvUI_EasyMenu', _G.UIParent, 'UIDropDownMenuTemplate')
+	E.ScanTooltip = CreateFrame('GameTooltip', 'ElvUI_ScanTooltip', UIParent, 'GameTooltipTemplate')
+	E.EasyMenu = CreateFrame('Frame', 'ElvUI_EasyMenu', UIParent, 'UIDropDownMenuTemplate')
 
 	E.PixelMode = E.twoPixelsPlease or E.private.general.pixelPerfect -- keep this over `UIScale`
 	E.Border = (E.PixelMode and not E.twoPixelsPlease) and 1 or 2

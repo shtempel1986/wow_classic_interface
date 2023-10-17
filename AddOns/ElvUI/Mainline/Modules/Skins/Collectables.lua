@@ -452,7 +452,7 @@ local function SkinHeirloomFrame()
 		for i=1, #HeirloomsJournal.heirloomHeaderFrames do
 			local header = HeirloomsJournal.heirloomHeaderFrames[i]
 			header:StripTextures()
-			header.text:FontTemplate(nil, 15, '')
+			header.text:FontTemplate(nil, 15, 'NONE')
 			header.text:SetTextColor(0.9, 0.9, 0.9)
 		end
 	end)
@@ -502,8 +502,8 @@ local function SkinTransmogFrames()
 
 				for _, region in next, { Model:GetRegions() } do
 					if region:IsObjectType('Texture') then -- check for hover glow
-						local texture = region:GetTexture()  -- find transmogrify.blp (sets:1569530 or items:1116940)
-						if texture == 1569530 or (texture == 1116940 and not strfind(region:GetDebugName(), 'DisabledOverlay')) then
+						local texture, regionName = region:GetTexture(), region:GetDebugName() -- find transmogrify.blp (sets:1569530 or items:1116940)
+						if texture == 1569530 or (texture == 1116940 and not strfind(regionName, 'SlotInvalidTexture') and not strfind(regionName, 'DisabledOverlay')) then
 							region:SetColorTexture(1, 1, 1, 0.3)
 							region:SetBlendMode('ADD')
 							region:SetAllPoints(Model)

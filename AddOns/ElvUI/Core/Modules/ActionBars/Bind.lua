@@ -8,19 +8,23 @@ local next, format = next, format
 local hooksecurefunc = hooksecurefunc
 
 local CreateFrame = CreateFrame
-local HideUIPanel = HideUIPanel
+local GameTooltip = GameTooltip
 local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
 local GetCurrentBindingSet = GetCurrentBindingSet
 local GetMacroInfo = GetMacroInfo
 local GetSpellBookItemName = GetSpellBookItemName
+local HideUIPanel = HideUIPanel
 local InCombatLockdown = InCombatLockdown
-local IsAltKeyDown, IsControlKeyDown = IsAltKeyDown, IsControlKeyDown
+local IsAltKeyDown = IsAltKeyDown
+local IsControlKeyDown = IsControlKeyDown
+local IsMetaKeyDown = IsMetaKeyDown
 local IsShiftKeyDown = IsShiftKeyDown
+local SetBinding = SetBinding
+local UIParent = UIParent
+
 local LoadBindings, SaveBindings = LoadBindings, SaveBindings
 local SecureActionButton_OnClick = SecureActionButton_OnClick
-local SetBinding = SetBinding
-local GameTooltip = GameTooltip
 local SpellBook_GetSpellBookSlot = SpellBook_GetSpellBookSlot
 
 local CHARACTER_SPECIFIC_KEYBINDING_TOOLTIP = CHARACTER_SPECIFIC_KEYBINDING_TOOLTIP
@@ -103,64 +107,61 @@ function AB:BindListener(key)
 		local alt = IsAltKeyDown() and 'ALT-' or ''
 		local ctrl = IsControlKeyDown() and 'CTRL-' or ''
 		local shift = IsShiftKeyDown() and 'SHIFT-' or ''
+		local meta = IsMetaKeyDown() and 'META-' or ''
 
-		SetBinding(alt..ctrl..shift..key, bind.button.bindstring)
-		E:Print(alt..ctrl..shift..key..L[" |cff00ff00bound to |r"]..bind.name..'.')
+		SetBinding(alt..ctrl..shift..meta..key, bind.button.bindstring)
+		E:Print(alt..ctrl..shift..meta..key..L[" |cff00ff00bound to |r"]..bind.name..'.')
 	end
 
 	self:BindUpdate(bind.button, bind.spellmacro)
 
-	if bind.spellmacro~='MACRO' and bind.spellmacro~='FLYOUT' and not _G.GameTooltip:IsForbidden() then
+	if bind.spellmacro ~= 'MACRO' and bind.spellmacro ~= 'FLYOUT' and not _G.GameTooltip:IsForbidden() then
 		_G.GameTooltip:Hide()
 	end
 end
 
-function AB:DisplayBindsTooltip()
-	GameTooltip:SetOwner(bind, 'ANCHOR_TOP')
-	GameTooltip:Point('BOTTOM', bind, 'TOP', 0, 1)
-	GameTooltip:AddLine(bind.name, 1, 1, 1)
-end
+function AB:DisplayBindings(tt)
+	tt:SetOwner(bind, 'ANCHOR_TOP')
+	tt:Point('BOTTOM', bind, 'TOP', 0, 1)
+	tt:AddLine(bind.name, 1, 1, 1)
 
-function AB:DisplayBindings()
-	if #bind.button.bindings == 0 then
-		GameTooltip:AddLine(L["No bindings set."], .6, .6, .6)
+	local numBinds = #bind.button.bindings
+	if numBinds == 0 then
+		tt:AddLine(L["No bindings set."], .6, .6, .6)
 	else
-		GameTooltip:AddDoubleLine(L["Binding"], L["Key"], .6, .6, .6, .6, .6, .6)
-		for i = 1, #bind.button.bindings do
-			GameTooltip:AddDoubleLine(L["Binding"]..i, bind.button.bindings[i], 1, 1, 1)
+		tt:AddDoubleLine(L["Binding"], L["Key"], .6, .6, .6, .6, .6, .6)
+
+		for i = 1, numBinds do
+			tt:AddDoubleLine(L["Binding"]..i, bind.button.bindings[i], 1, 1, 1)
 		end
+	end
+
+	tt:Show()
+end
+
+function AB:ShowBinds()
+	if self.handlingBinds and not self:IsForbidden() then
+		AB:DisplayBindings(self)
+
+		self.handlingBinds = nil
 	end
 end
 
-do
-	local function OnHide(tt)
-		AB:DisplayBindsTooltip()
-		AB:DisplayBindings()
+function AB:BindTooltip(trigger)
+	if GameTooltip:IsForbidden() then return end
 
-		tt:Show()
-		tt:SetScript('OnHide', nil)
-	end
-
-	function AB:BindTooltip(triggerTooltip)
-		if GameTooltip:IsForbidden() then return end
-
-		if triggerTooltip then -- this is needed for some tooltip magic, also it helps show a tooltip when a spell isnt there
-			AB:DisplayBindsTooltip()
-			GameTooltip:AddLine(L["Trigger"])
-
-			GameTooltip:Show()
-			GameTooltip:SetScript('OnHide', OnHide)
-		else
-			AB:DisplayBindsTooltip()
-			AB:DisplayBindings()
-			GameTooltip:Show()
-		end
+	if trigger then -- this is needed for some tooltip magic, also it helps show a tooltip when a spell isnt there
+		GameTooltip:AddLine(L["Trigger"])
+		GameTooltip:Show()
+		GameTooltip.handlingBinds = true
+	else
+		AB:DisplayBindings(GameTooltip)
 	end
 end
 
 function AB:BindUpdate(button, spellmacro)
 	if not bind.active or InCombatLockdown() then return end
-	local triggerTooltip = false
+	local trigger = false
 
 	bind.button = button
 	bind.spellmacro = spellmacro
@@ -193,17 +194,17 @@ function AB:BindUpdate(button, spellmacro)
 	elseif spellmacro == 'MICRO' then
 		bind.name = button.tooltipText
 		button.bindstring = button.commandName
-		triggerTooltip = true
+		trigger = true
 	elseif spellmacro == 'BAG' then
 		if button.itemID then
 			bind.name = button.name
 			button.bindstring = 'ITEM item:'..button.itemID
-			triggerTooltip = true
+			trigger = true
 		end
 	else
 		bind.name = button:GetName()
 		if not bind.name then return end
-		triggerTooltip = true
+		trigger = true
 
 		if button.keyBoundTarget then
 			button.bindstring = button.keyBoundTarget
@@ -230,7 +231,7 @@ function AB:BindUpdate(button, spellmacro)
 
 	if button.bindstring then
 		button.bindings = { GetBindingKey(button.bindstring) }
-		AB:BindTooltip(triggerTooltip)
+		AB:BindTooltip(trigger)
 	end
 end
 
@@ -242,15 +243,6 @@ function AB:ChangeBindingProfile()
 		LoadBindings(1)
 		SaveBindings(1)
 	end
-end
-
-local function keybindButtonClick()
-	if InCombatLockdown() then return end
-
-	AB:ActivateBindMode()
-
-	HideUIPanel(_G.KeyBindingFrame)
-	HideUIPanel(_G.GameMenuFrame)
 end
 
 do
@@ -282,6 +274,14 @@ do
 end
 
 do
+	local function keybindButtonClick()
+		if InCombatLockdown() then return end
+
+		AB:ActivateBindMode()
+
+		HideUIPanel(_G.SettingsPanel)
+	end
+
 	local function UpdateScrollBox(scrollBox)
 		for _, element in next, { scrollBox.ScrollTarget:GetChildren() } do
 			local data = element and element.data
@@ -301,6 +301,8 @@ do
 
 		UpdateScrollBox(list.ScrollBox)
 		hooksecurefunc(list.ScrollBox, 'Update', UpdateScrollBox)
+
+		AB:Unhook(_G.SettingsPanel, 'DisplayCategory')
 	end
 end
 
@@ -315,8 +317,10 @@ function AB:LoadKeyBinder()
 	bind.texture:SetColorTexture(0, 0, 0, .25)
 	bind:Hide()
 
+	AB:SecureHook(GameTooltip, 'Hide', AB.ShowBinds) -- helper for BindTooltip
+
 	if E.Retail then
-		hooksecurefunc(_G.SettingsPanel, 'DisplayCategory', AB.SettingsDisplayCategory)
+		AB:SecureHook(_G.SettingsPanel, 'DisplayCategory', AB.SettingsDisplayCategory)
 	end
 
 	bind:SetScript('OnEnter', function(b) local db = b.button:GetParent().db if db and db.mouseover then AB:Button_OnEnter(b.button) end end)
@@ -338,7 +342,7 @@ function AB:LoadKeyBinder()
 	end
 
 	--Special Popup
-	local Popup = CreateFrame('Frame', 'ElvUIBindPopupWindow', _G.UIParent)
+	local Popup = CreateFrame('Frame', 'ElvUIBindPopupWindow', UIParent)
 	Popup:SetFrameStrata('DIALOG')
 	Popup:EnableMouse(true)
 	Popup:SetMovable(true)

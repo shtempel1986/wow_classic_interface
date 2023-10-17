@@ -1,10 +1,10 @@
-## Interface: 11403
+## Interface: 11404
 
 ## Title: ArkInventory [Classic] [Rules]
 ## Notes: Rules for ArkInventory
 ## Author: Arkayenro
 ## Email: arkayenro at gmail dot com
-## Version: 31016
+## Version: 31018
 ## X-ReleaseType: 
 
 ## DefaultState: Enabled

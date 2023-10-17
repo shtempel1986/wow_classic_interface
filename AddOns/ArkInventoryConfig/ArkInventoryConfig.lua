@@ -1,11 +1,5 @@
-﻿	--[[
-
-License: All Rights Reserved, (c) 2006-2018
-
-$Revision: 3001 $
-$Date: 2023-01-20 08:12:19 +1100 (Fri, 20 Jan 2023) $
-
-]]--
+﻿
+--License: All Rights Reserved, (c) 2006-2023
 
 
 if ArkInventory.TOCVersionFail( true ) then return end

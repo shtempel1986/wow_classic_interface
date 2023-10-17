@@ -1238,7 +1238,7 @@ ArkInventory.Const = { -- constants
 		Types = { -- this value is stored in saved variables, do NOT change
 			["l"] = 0x01, -- land
 			["a"] = 0x02, -- air
-	--		["s"] = 0x04, -- water surface
+--			["s"] = 0x04, -- water surface
 			["u"] = 0x08, -- underwater
 			["x"] = 0x00, -- ignored / unknown
 		},

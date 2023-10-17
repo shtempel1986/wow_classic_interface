@@ -1,10 +1,10 @@
-## Interface: 100100
+## Interface: 100105
 
 ## Title: ArkInventory [Rules]
 ## Notes: Rules for ArkInventory
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31016
+## Version: 31018
 ## X-ReleaseType: 
 
 ## DefaultState: Enabled

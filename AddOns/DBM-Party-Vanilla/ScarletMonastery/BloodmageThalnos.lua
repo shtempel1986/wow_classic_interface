@@ -1,7 +1,7 @@
 local mod	= DBM:NewMod("BloodmageThalnos", "DBM-Party-Vanilla", 12)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20230620214231")
+mod:SetRevision("20231010191435")
 mod:SetCreatureID(4543)
 --mod:SetEncounterID(585)
 

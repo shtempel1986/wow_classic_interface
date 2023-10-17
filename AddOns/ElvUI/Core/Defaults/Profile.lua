@@ -79,6 +79,7 @@ P.general = {
 	itemLevel = {
 		displayCharacterInfo = true,
 		displayInspectInfo = true,
+		itemLevelRarity = true,
 		itemLevelFont = 'PT Sans Narrow',
 		itemLevelFontSize = 12,
 		itemLevelFontOutline = 'OUTLINE',
@@ -104,7 +105,7 @@ P.general = {
 		textFormat = 'NAMECURMAX',
 		statusBarColorGradient = false,
 		statusBarColor = { r = 0.2, g = 0.4, b = 0.8 },
-		smoothbars = false,
+		smoothbars = true,
 	},
 	minimap = {
 		size = 175,
@@ -207,7 +208,7 @@ P.general = {
 		hide = false,
 		font = 'Expressway',
 		fontSize = 13,
-		fontOutline = 'NONE',
+		fontOutline = 'SHADOW',
 		frameStrata = 'MEDIUM',
 		frameLevel = 20
 	},
@@ -245,6 +246,26 @@ P.general = {
 		frameStrata = 'MEDIUM',
 		frameLevel = 20
 	},
+	guildBank = {
+		itemQuality = true,
+		itemLevel = true,
+		itemLevelThreshold = 1,
+		itemLevelFont = 'Homespun',
+		itemLevelFontSize = 10,
+		itemLevelFontOutline = 'MONOCHROMEOUTLINE',
+		itemLevelCustomColorEnable = false,
+		itemLevelCustomColor = { r = 1, g = 1, b = 1 },
+		itemLevelPosition = 'BOTTOMRIGHT',
+		itemLevelxOffset = 0,
+		itemLevelyOffset = 2,
+		countFont = 'Homespun',
+		countFontSize = 10,
+		countFontOutline = 'MONOCHROMEOUTLINE',
+		countFontColor = { r = 1, g = 1, b = 1 },
+		countPosition = 'BOTTOMRIGHT',
+		countxOffset = 0,
+		countyOffset = 2,
+	}
 }
 
 P.databars = {
@@ -283,7 +304,7 @@ for _, databar in next, {'experience', 'reputation', 'honor', 'threat', 'azerite
 		textFormat = 'NONE',
 		fontSize = 11,
 		font = 'PT Sans Narrow',
-		fontOutline = 'NONE',
+		fontOutline = 'SHADOW',
 		xOffset = 0,
 		yOffset = 0,
 		displayText = true,
@@ -301,6 +322,7 @@ end
 
 P.databars.threat.hideInCombat = nil -- always on in code
 P.databars.threat.tankStatus = true
+P.databars.threat.smoothbars = true
 
 P.databars.experience.hideAtMaxLevel = true
 P.databars.experience.showLevel = false
@@ -427,6 +449,11 @@ P.bags = {
 		professions = false,
 		guildBank = false,
 		trade = false,
+	},
+	spinner = {
+		enable = true,
+		size = 48,
+		color = { r = 1, g = 0.82, b = 0 }
 	},
 	bagBar = {
 		growthDirection = 'VERTICAL',
@@ -1048,7 +1075,7 @@ P.chat = {
 	fade = true,
 	inactivityTimer = 100,
 	font = 'PT Sans Narrow',
-	fontOutline = 'NONE',
+	fontOutline = 'SHADOW',
 	fontSize = 10,
 	sticky = true,
 	emotionIcons = true,
@@ -1059,6 +1086,7 @@ P.chat = {
 	lfgIcons = true,
 	maxLines = 100,
 	channelAlerts = {
+		CHANNEL = {},
 		GUILD = 'None',
 		OFFICER = 'None',
 		INSTANCE = 'None',
@@ -1115,7 +1143,7 @@ P.chat = {
 	socialQueueMessages = false,
 	tabFont = 'PT Sans Narrow',
 	tabFontSize = 12,
-	tabFontOutline = 'NONE',
+	tabFontOutline = 'SHADOW',
 	copyChatLines = false,
 	useBTagName = false,
 	panelColor = {r = .06, g = .06, b = .06, a = 0.8},
@@ -1130,7 +1158,7 @@ P.chat = {
 P.datatexts = {
 	font = 'PT Sans Narrow',
 	fontSize = 12,
-	fontOutline = 'NONE',
+	fontOutline = 'SHADOW',
 	wordWrap = false,
 	panels = {
 		LeftChatDataPanel = {
@@ -1205,10 +1233,10 @@ P.tooltip = {
 	role = true,
 	gender = false,
 	font = 'PT Sans Narrow',
-	fontOutline = 'NONE',
+	fontOutline = 'SHADOW',
 	textFontSize = 12, -- is fontSize (has old name)
 	headerFont = 'PT Sans Narrow',
-	headerFontOutline = 'NONE',
+	headerFontOutline = 'SHADOW',
 	headerFontSize = 13,
 	smallTextFontSize = 12,
 	colorAlpha = 0.8,
@@ -1221,10 +1249,10 @@ P.tooltip = {
 	},
 	healthBar = {
 		text = true,
-		height = 7,
-		font = 'Homespun',
-		fontSize = 10,
-		fontOutline = 'OUTLINE',
+		height = 12,
+		font = 'PT Sans Narrow',
+		fontSize = 12,
+		fontOutline = 'SHADOW',
 		statusPosition = 'BOTTOM',
 	},
 	useCustomFactionColors = false,
@@ -2649,7 +2677,7 @@ elseif E.Wrath then
 	P.actionbar.barPet.visibility = '[novehicleui,pet,nooverridebar,nopossessbar] show; hide'
 	P.actionbar.stanceBar.visibility = '[vehicleui] hide; show'
 else
-	P.actionbar.barPet.visibility = '[pet,nooverridebar,nopossessbar] show; hide'
+	P.actionbar.barPet.visibility = '[pet,nooverridebar] show; hide'
 	P.actionbar.stanceBar.visibility = 'show'
 end
 

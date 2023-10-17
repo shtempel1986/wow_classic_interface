@@ -9,7 +9,7 @@ end
 local mod	= DBM:NewMod("Ayamiss", "DBM-Raids-Vanilla", catID)
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20230727214236")
+mod:SetRevision("20231010191613")
 mod:SetCreatureID(15369)
 mod:SetEncounterID(722)
 mod:SetModelID(15431)
@@ -37,14 +37,14 @@ function mod:OnCombatEnd()
 end
 
 function mod:SPELL_AURA_APPLIED(args)
-	if args.spellId == 25725 then
+	if args:IsSpell(25725) then
 		warnParalyze:Show(args.destName)
 		timerParalyze:Start(args.destName)
 	end
 end
 
 function mod:SPELL_AURA_REMOVED(args)
-	if args.spellId == 25725 then
+	if args:IsSpell(25725) then
 		timerParalyze:Stop(args.destName)
 	end
 end

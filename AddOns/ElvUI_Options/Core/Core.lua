@@ -4,6 +4,7 @@ local S = E:GetModule('Skins')
 
 local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
+local ACH = E.Libs.ACH
 local L = E.Libs.ACL:GetLocale('ElvUI', E.global.general.locale)
 local C = {
 	version = tonumber(GetAddOnMetadata('ElvUI_Options', 'Version')),
@@ -19,6 +20,13 @@ local sort, strmatch, strsplit = sort, strmatch, strsplit
 local format, gsub, ipairs, pairs = format, gsub, ipairs, pairs
 local tconcat, tinsert, tremove = table.concat, tinsert, tremove
 
+local UnitName = UnitName
+local UnitExists = UnitExists
+local UnitIsUnit = UnitIsUnit
+local UnitIsFriend = UnitIsFriend
+local UnitIsPlayer = UnitIsPlayer
+local GameTooltip_Hide = GameTooltip_Hide
+
 C.Values = {
 	GrowthDirection = {
 		DOWN_RIGHT = format(L["%s and then %s"], L["Down"], L["Right"]),
@@ -30,18 +38,12 @@ C.Values = {
 		LEFT_DOWN = format(L["%s and then %s"], L["Left"], L["Down"]),
 		LEFT_UP = format(L["%s and then %s"], L["Left"], L["Up"]),
 	},
-	FontFlags = {
-		NONE = L["None"],
-		OUTLINE = 'Outline',
-		THICKOUTLINE = 'Thick',
-		MONOCHROME = '|cffaaaaaaMono|r',
-		MONOCHROMEOUTLINE = '|cffaaaaaaMono|r Outline',
-		MONOCHROMETHICKOUTLINE = '|cffaaaaaaMono|r Thick',
-	},
+	FontFlags = ACH.FontValues,
 	FontSize = { min = 8, max = 64, step = 1 },
 	Roman = { 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX' }, -- 1 to 20
 	AllPositions = { LEFT = 'LEFT', RIGHT = 'RIGHT', TOP = 'TOP', BOTTOM = 'BOTTOM', CENTER = 'CENTER' },
-	SidePositions = { LEFT = 'LEFT', RIGHT = 'RIGHT', TOP = 'TOP', BOTTOM = 'BOTTOM' },
+	EdgePositions = { LEFT = 'LEFT', RIGHT = 'RIGHT', TOP = 'TOP', BOTTOM = 'BOTTOM' },
+	SidePositions = { LEFT = 'LEFT', RIGHT = 'RIGHT' },
 	TextPositions = { BOTTOMRIGHT = 'BOTTOMRIGHT', BOTTOMLEFT = 'BOTTOMLEFT', TOPRIGHT = 'TOPRIGHT', TOPLEFT = 'TOPLEFT', BOTTOM = 'BOTTOM', TOP = 'TOP' },
 	AllPoints = { TOPLEFT = 'TOPLEFT', LEFT = 'LEFT', BOTTOMLEFT = 'BOTTOMLEFT', RIGHT = 'RIGHT', TOPRIGHT = 'TOPRIGHT', BOTTOMRIGHT = 'BOTTOMRIGHT', TOP = 'TOP', BOTTOM = 'BOTTOM', CENTER = 'CENTER' },
 	Anchors = { TOPLEFT = 'TOPLEFT', LEFT = 'LEFT', BOTTOMLEFT = 'BOTTOMLEFT', RIGHT = 'RIGHT', TOPRIGHT = 'TOPRIGHT', BOTTOMRIGHT = 'BOTTOMRIGHT', TOP = 'TOP', BOTTOM = 'BOTTOM' },
@@ -123,14 +125,6 @@ end
 if E.private.skins.ace3Enable then
 	S:Ace3_ColorizeEnable(L)
 end
-
-local UnitName = UnitName
-local UnitExists = UnitExists
-local UnitIsUnit = UnitIsUnit
-local UnitIsFriend = UnitIsFriend
-local UnitIsPlayer = UnitIsPlayer
-local GameTooltip_Hide = GameTooltip_Hide
-local ACH = E.Libs.ACH
 
 --Function we can call on profile change to update GUI
 function E:RefreshGUI()

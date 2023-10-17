@@ -21,7 +21,6 @@ addon.activeTimers = activeTimers
 -- upvalues for speed
 local strsplit = _G.string.split
 local gsub = _G.string.gsub
-local strfind = _G.string.find
 local pairs = _G.pairs
 local UnitGUID = _G.UnitGUID
 local UnitAura = _G.UnitAura
@@ -371,6 +370,11 @@ function addon:PLAYER_LOGIN()
     else
         self.db = CopyDefaults(namespace.defaultConfig, ClassicCastbarsDB)
     end
+
+    if self.db.version and tonumber(self.db.version) < 35 then
+        -- Reset npcCastTimeCache when updating from old version as structure changed
+        self.db.npcCastTimeCache = CopyTable(namespace.defaultConfig.npcCastTimeCache)
+    end
     self.db.version = namespace.defaultConfig.version
 
     -- Reset locale specific settings on game locale switched
@@ -500,7 +504,7 @@ local ARCANE_MISSILES = GetSpellInfo(5143)
 local ARCANE_MISSILE = GetSpellInfo(7268)
 
 function addon:COMBAT_LOG_EVENT_UNFILTERED()
-    local _, eventType, _, srcGUID, srcName, srcFlags, _, dstGUID, _, dstFlags, _, _, spellName, _, missType = CombatLogGetCurrentEventInfo()
+    local _, eventType, _, srcGUID, _, srcFlags, _, dstGUID, _, dstFlags, _, _, spellName, _, missType = CombatLogGetCurrentEventInfo()
 
     if eventType == "SPELL_CAST_START" then
         local spellID = castedSpells[spellName]
@@ -520,7 +524,8 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED()
                     castTime = reducedTime
                 end
             else
-                local cachedTime = self.db.npcCastTimeCache[srcName .. spellName]
+                local _, _, _, _, _, npcID = strsplit("-", srcGUID)
+                local cachedTime = npcID and self.db.npcCastTimeCache[npcID .. spellName]
                 if cachedTime then
                     -- Use cached time stored from earlier sightings for NPCs.
                     -- This is because mobs have various cast times, e.g a lvl 20 mob casting Frostbolt might have
@@ -555,8 +560,9 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED()
 
         -- Auto correct cast times for mobs (only non-channels)
         if not isSrcPlayer and not channelCast then
-            if not strfind(srcGUID, "Player-") then -- just incase player is mind controlled by an NPC
-                local cachedTime = self.db.npcCastTimeCache[srcName .. spellName]
+            local unitType, _, _, _, _, srcNpcID = strsplit("-", srcGUID)
+            if srcNpcID and unitType ~= "Player" then
+                local cachedTime = self.db.npcCastTimeCache[srcNpcID .. spellName]
                 if not cachedTime then
                     local cast = activeTimers[srcGUID]
                     if not cast or (cast and not cast.hasCastSlowModified and not next(cast.activeModifiers)) then
@@ -567,8 +573,8 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED()
 
                             -- Whatever time was detected between SPELL_CAST_START and SPELL_CAST_SUCCESS will be the new cast time
                             local castTimeDiff = abs(castTime - origCastTime)
-                            if castTimeDiff <= 5000 and castTimeDiff > 250 then -- take lag into account
-                                self.db.npcCastTimeCache[srcName .. spellName] = castTime
+                            if castTimeDiff <= 4000 and castTimeDiff >= 200 then -- take lag into account
+                                self.db.npcCastTimeCache[srcNpcID .. spellName] = floor(castTime)
                                 npcCastTimeCacheStart[srcGUID] = nil
                             end
                         end
@@ -745,9 +751,9 @@ addon:SetScript("OnUpdate", function(self, elapsed)
                     end
 
                     -- Delete cast incase stop event wasn't detected in CLEU
-                    if castTime <= -0.15 then
+                    if castTime < -0.16 then
                         if not cast.isChanneled then
-                            cast.isFailed = true
+                            cast.isFailed = not cast.isPlayer -- show failed for npcs only
                             self:DeleteCast(cast.unitGUID, false, true, false, false)
                         else
                             self:DeleteCast(cast.unitGUID, false, true, true, false)

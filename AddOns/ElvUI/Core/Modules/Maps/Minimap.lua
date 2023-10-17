@@ -5,8 +5,8 @@ local LSM = E.Libs.LSM
 local _G = _G
 local next = next
 local sort = sort
-local tinsert = tinsert
 local unpack = unpack
+local tinsert = tinsert
 local hooksecurefunc = hooksecurefunc
 local utf8sub = string.utf8sub
 
@@ -22,11 +22,12 @@ local IsShiftKeyDown = IsShiftKeyDown
 local PlaySound = PlaySound
 local ShowUIPanel = ShowUIPanel
 local ToggleFrame = ToggleFrame
+local UIParent = UIParent
 local UIParentLoadAddOn = UIParentLoadAddOn
-local UIDropDownMenu_RefreshAll = UIDropDownMenu_RefreshAll
 
 local MainMenuMicroButton = MainMenuMicroButton
 local MainMenuMicroButton_SetNormal = MainMenuMicroButton_SetNormal
+local UIDropDownMenu_RefreshAll = UIDropDownMenu_RefreshAll
 
 local WorldMapFrame = _G.WorldMapFrame
 local MinimapCluster = _G.MinimapCluster
@@ -48,29 +49,22 @@ local menuList = {
 	{ text = _G.GUILD, func = function() if E.Retail then _G.ToggleGuildFrame() else _G.ToggleFriendsFrame(3) end end },
 }
 
-if E.Retail then
-	tinsert(menuList, { text = _G.LFG_TITLE, func = _G.ToggleLFDParentFrame })
-elseif E.Wrath then
-	tinsert(menuList, { text = _G.LFG_TITLE, func = function() if not IsAddOnLoaded('Blizzard_LookingForGroupUI') then UIParentLoadAddOn('Blizzard_LookingForGroupUI') end _G.ToggleLFGParentFrame() end })
-end
-
-if E.Retail then
-	tinsert(menuList, { text = _G.COLLECTIONS, func = _G.ToggleCollectionsJournal })
-	tinsert(menuList, { text = _G.BLIZZARD_STORE, func = function() _G.StoreMicroButton:Click() end })
-	tinsert(menuList, { text = _G.GARRISON_TYPE_8_0_LANDING_PAGE_TITLE, func = function() _G.ExpansionLandingPageMinimapButton:ToggleLandingPage() end})
-	tinsert(menuList, { text = _G.ENCOUNTER_JOURNAL, func = function() if not IsAddOnLoaded('Blizzard_EncounterJournal') then UIParentLoadAddOn('Blizzard_EncounterJournal') end ToggleFrame(_G.EncounterJournal) end })
-end
-
 if E.Wrath and E.mylevel >= _G.SHOW_PVP_LEVEL then
 	tinsert(menuList, { text = _G.PLAYER_V_PLAYER, func = _G.TogglePVPFrame })
 end
 
 if E.Retail or E.Wrath then
+	tinsert(menuList, { text = _G.COLLECTIONS, func = _G.ToggleCollectionsJournal })
 	tinsert(menuList, { text = _G.ACHIEVEMENT_BUTTON, func = _G.ToggleAchievementFrame })
+	tinsert(menuList, { text = _G.LFG_TITLE, func = E.Retail and _G.ToggleLFDParentFrame or _G.PVEFrame_ToggleFrame })
 	tinsert(menuList, { text = L["Calendar"], func = function() _G.GameTimeFrame:Click() end })
 end
 
-if not E.Retail then
+if E.Retail then
+	tinsert(menuList, { text = _G.BLIZZARD_STORE, func = function() _G.StoreMicroButton:Click() end })
+	tinsert(menuList, { text = _G.GARRISON_TYPE_8_0_LANDING_PAGE_TITLE, func = function() _G.ExpansionLandingPageMinimapButton:ToggleLandingPage() end})
+	tinsert(menuList, { text = _G.ENCOUNTER_JOURNAL, func = function() if not IsAddOnLoaded('Blizzard_EncounterJournal') then UIParentLoadAddOn('Blizzard_EncounterJournal') end ToggleFrame(_G.EncounterJournal) end })
+else
 	tinsert(menuList, { text = _G.QUEST_LOG, func = function() ToggleFrame(_G.QuestLogFrame) end})
 end
 
@@ -202,7 +196,7 @@ function M:ADDON_LOADED(_, addon)
 end
 
 function M:CreateMinimapTrackingDropdown()
-	local dropdown = CreateFrame('Frame', 'ElvUIMiniMapTrackingDropDown', _G.UIParent, 'UIDropDownMenuTemplate')
+	local dropdown = CreateFrame('Frame', 'ElvUIMiniMapTrackingDropDown', UIParent, 'UIDropDownMenuTemplate')
 	dropdown:SetID(1)
 	dropdown:SetClampedToScreen(true)
 	dropdown:Hide()
@@ -226,13 +220,10 @@ function M:Minimap_OnMouseDown(btn)
 		_G.HideDropDownMenu(1, nil, M.TrackingDropdown)
 	end
 
-	local position = self:GetPoint()
+	local position = M.MapHolder.mover:GetPoint()
 	if btn == 'MiddleButton' or (btn == 'RightButton' and IsShiftKeyDown()) then
-		if InCombatLockdown() then _G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT) return end
-		if position:match('LEFT') then
-			E:DropDown(menuList, menuFrame)
-		else
-			E:DropDown(menuList, menuFrame, -160, 0)
+		if not E:AlertCombat() then
+			E:DropDown(menuList, menuFrame, 155, nil, nil, position:match('LEFT') and 0 or -160, 0)
 		end
 	elseif btn == 'RightButton' and M.TrackingDropdown then
 		_G.ToggleDropDownMenu(1, nil, M.TrackingDropdown, 'cursor')
@@ -250,13 +241,10 @@ function M:MapCanvas_OnMouseDown(btn)
 		_G.HideDropDownMenu(1, nil, M.TrackingDropdown)
 	end
 
-	local position = self:GetPoint()
+	local position = M.MapHolder.mover:GetPoint()
 	if btn == 'MiddleButton' or (btn == 'RightButton' and IsShiftKeyDown()) then
-		if InCombatLockdown() then _G.UIErrorsFrame:AddMessage(E.InfoColor.._G.ERR_NOT_IN_COMBAT) return end
-		if position:match('LEFT') then
-			E:DropDown(menuList, menuFrame)
-		else
-			E:DropDown(menuList, menuFrame, -160, 0)
+		if not E:AlertCombat() then
+			E:DropDown(menuList, menuFrame, 155, nil, nil, position:match('LEFT') and 0 or -160, 0)
 		end
 	elseif btn == 'RightButton' and M.TrackingDropdown then
 		_G.ToggleDropDownMenu(1, nil, M.TrackingDropdown, 'cursor')
@@ -541,7 +529,7 @@ end
 
 function M:ClusterPoint(_, anchor)
 	local noCluster = not E.Retail or E.db.general.minimap.clusterDisable
-	local frame = (noCluster and _G.UIParent) or M.ClusterHolder
+	local frame = (noCluster and UIParent) or M.ClusterHolder
 
 	if anchor ~= frame then
 		MinimapCluster:ClearAllPoints()
@@ -632,19 +620,19 @@ function M:Initialize()
 	local killFrames = {
 		_G.MinimapBorder,
 		_G.MinimapBorderTop,
+		_G.MinimapCompassTexture,
+		_G.MiniMapMailBorder,
+		_G.MinimapNorthTag,
+		_G.MiniMapWorldMapButton,
+		_G.MinimapZoneTextButton,
 		_G.MinimapZoomIn,
 		_G.MinimapZoomOut,
-		_G.MinimapNorthTag,
-		_G.MinimapZoneTextButton,
-		_G.MiniMapWorldMapButton,
-		_G.MiniMapMailBorder,
 		E.Retail and _G.MiniMapTracking or _G.MinimapToggleButton
 	}
 
 	if E.Retail then
 		tinsert(killFrames, Minimap.ZoomIn)
 		tinsert(killFrames, Minimap.ZoomOut)
-		tinsert(killFrames, _G.MinimapCompassTexture)
 
 		MinimapCluster.BorderTop:StripTextures()
 		MinimapCluster.Tracking.Background:StripTextures()

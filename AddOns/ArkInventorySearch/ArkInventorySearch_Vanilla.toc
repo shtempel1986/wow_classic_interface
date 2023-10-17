@@ -1,9 +1,9 @@
-## Interface: 11403
+## Interface: 11404
 
 ## Title: ArkInventory [Classic] [Search]
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31016
+## Version: 31018
 ## X-ReleaseType: 
 
 ## Notes: Search for ArkInventory

@@ -1585,7 +1585,7 @@ local buffLag, dl1, dl2 = 15;
 local lastZanBuffGained = 0;
 local lastDmfBuffGained = 0;
 local lastHeraldAlert = 0;
-local speedtest = 0;
+--local speedtest = 0;
 local waitingCombatEnd, hideSummonPopup;
 local lastRendHandIn, lastOnyHandIn, lastNefHandIn, lastZanHandIn = 0, 0, 0, 0;
 local unitDamageFrame = CreateFrame("Frame");
@@ -1885,7 +1885,7 @@ function NWB:combatLogEventUnfiltered(...)
 			if (expirationTime >= 7199) then
 				NWB:trackNewBuff(spellName, "dmf", npcID);
 				lastDmfBuffGained = GetServerTime();
-				NWB:debug(GetTime() - speedtest);
+				--NWB:debug(GetTime() - speedtest);
 				if (NWB.db.global.dmfGotBuffSummon) then
 					if (not InCombatLockdown() and C_SummonInfo.GetSummonConfirmTimeLeft() > 0) then
 						hideSummonPopup = true;
@@ -2756,7 +2756,7 @@ function NWB:printDmfPercent()
 end
 
 --Track our current buff durations across all chars.
-local gotPlayedData;
+local gotPlayedData, reregisterPlayedEvent;
 local chronoRestoreUsed = 0;
 function NWB:trackNewBuff(spellName, type, npcID)
 	if (not NWB.data.myChars[UnitName("player")].buffs[spellName]) then
@@ -2795,7 +2795,10 @@ function NWB:trackNewBuff(spellName, type, npcID)
 		NWB.currentTrackBuff = NWB.data.myChars[UnitName("player")].buffs[spellName];
 		--Hide the msg from chat.
 		if (not gotPlayedData) then
-			DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+			if (DEFAULT_CHAT_FRAME:IsEventRegistered("TIME_PLAYED_MSG")) then
+				reregisterPlayedEvent = true;
+				DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+			end
 			gotPlayedData = true;
 			RequestTimePlayed();
 		end
@@ -3451,7 +3454,9 @@ function NWB:timePlayedMsg(...)
 	end
 	--Reregister the chat frame event after we're done.
 	--C_Timer.After(5, function()
-		DEFAULT_CHAT_FRAME:RegisterEvent("TIME_PLAYED_MSG");
+		if (reregisterPlayedEvent) then
+			DEFAULT_CHAT_FRAME:RegisterEvent("TIME_PLAYED_MSG");
+		end
 	--end)
 	NWB:syncBuffsWithCurrentDuration();
 	NWB:recalcBuffTimers();
@@ -3469,6 +3474,10 @@ function NWB:setLayered()
 	end
 	--Blanket enable season of mastery realms for now.
 	if (C_Seasons and C_Seasons.HasActiveSeason()) then
+		NWB.isLayered = true;
+	end
+	--Blanket enable hardcore realms for now.
+	if (C_GameRules and C_GameRules.IsHardcoreActive()) then
 		NWB.isLayered = true;
 	end
 end
@@ -3833,7 +3842,10 @@ f:SetScript("OnEvent", function(self, event, ...)
 				--Only request played data at logon if we didn't get it already for some reason.
 				if (not gotPlayedData) then
 					gotPlayedData = true;
-					DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+					if (DEFAULT_CHAT_FRAME:IsEventRegistered("TIME_PLAYED_MSG")) then
+						reregisterPlayedEvent = true;
+						DEFAULT_CHAT_FRAME:UnregisterEvent("TIME_PLAYED_MSG");
+					end
 					RequestTimePlayed();
 				end
 			end)
@@ -12555,6 +12567,42 @@ f:RegisterEvent("GOSSIP_SHOW");
 f:SetScript('OnEvent', function(self, event, ...)
 	if (event == "GOSSIP_SHOW") then
 		local g1, type1, g2, type2, g3, type3, g4, type4, g5, type5, g6, type6, g7, type7, g8, type8 = GetGossipOptions();
+		--Fix for for when it was moved to C_GossipInfo and changed to a table instead of strings, but still backwards compatible.
+		if (g1 and type(g1) == "table") then
+			--If there are no gossip options we still get an empty table so set g1 to nil;
+			if (not next(g1)) then
+				g1 = nil;
+			else
+				--Sort by orderIndex so the options line up correctly.
+				table.sort(g1, function(a, b) return a.orderIndex < b.orderIndex end);
+				--Convert locals to original gossip strings given by GetGossipOptions().
+				--g1 must be done last since it holds the table data in the new format.
+				if (g1[2] and g1[2].name) then
+					g2 = g1[2].name;
+				end
+				if (g1[3] and g1[3].name) then
+					g3 = g1[3].name;
+				end
+				if (g1[4] and g1[4].name) then
+					g4 = g1[4].name;
+				end
+				if (g1[5] and g1[5].name) then
+					g5 = g1[5].name;
+				end
+				if (g1[6] and g1[6].name) then
+					g6 = g1[6].name;
+				end
+				if (g1[7] and g1[7].name) then
+					g7 = g1[7].name;
+				end
+				if (g1[8] and g1[8].name) then
+					g8 = g1[8].name;
+				end
+				if (g1[1] and g1[1].name) then
+					g1 = g1[1].name;
+				end
+			end
+		end
 		local npcGUID = UnitGUID("npc");
 		local npcID;
 		if (npcGUID) then
@@ -12585,6 +12633,7 @@ f:SetScript('OnEvent', function(self, event, ...)
 				if (g1 and not g2) then
 					--Pages with only 1 option.
 					SelectGossipOption(1);
+					return;
 				end
 				if (buffType == "Damage") then
 					NWB:fastDmfDamageBuff();
@@ -12798,7 +12847,7 @@ function NWB:fastDmfDamageBuff()
 	if ((GetServerTime() - fastBuffRunning) < (count * delay)) then
 		return;
 	end
-	speedtest = GetTime();
+	--speedtest = GetTime();
 	SelectGossipOption(1);
 	fastBuffRunning = GetServerTime();
 	for i = 1, count do
@@ -12824,7 +12873,21 @@ f:SetScript("OnEvent", function(self, event, ...)
 	elseif (event == "TAXIMAP_CLOSED") then
 		isTaxiMapOpened = nil;
 	elseif (event == "GOSSIP_SHOW") then
-		local g1, type1, g2, type2, g3, type3, g4, type4, g5, type5, g6, type6, g7, type7, g8, type8 = GetGossipOptions();
+		local g1 = GetGossipOptions();
+		--Fix for for when it was moved to C_GossipInfo and changed to a table instead of strings, but still backwards compatible.
+		if (g1 and type(g1) == "table") then
+			--If there are no gossip options we still get an empty table so set g1 to nil;
+			if (not next(g1)) then
+				g1 = nil;
+			else
+				--Sort by orderIndex so the options line up correctly.
+				table.sort(g1, function(a, b) return a.orderIndex < b.orderIndex end);
+				--Convert locals to original gossip strings given by GetGossipOptions().
+				if (g1[1] and g1[1].name) then
+					g1 = g1[1].name;
+				end
+			end
+		end
 		local npcGUID = UnitGUID("npc");
 		local npcID;
 		if (npcGUID) then
@@ -12840,16 +12903,31 @@ f:SetScript("OnEvent", function(self, event, ...)
 	end
 end)
 
-function NWB:buffDroppedTaxiNode(type, skipCheck)
+function NWB:buffDroppedTaxiNode(buffType, skipCheck)
 	local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
-	if (type == "zg") then
+	if (buffType == "zg") then
+		local g1 = GetGossipOptions();
+		--Fix for for when it was moved to C_GossipInfo and changed to a table instead of strings, but still backwards compatible.
+		if (g1 and type(g1) == "table") then
+			--If there are no gossip options we still get an empty table so set g1 to nil;
+			if (not next(g1)) then
+				g1 = nil;
+			else
+				--Sort by orderIndex so the options line up correctly.
+				table.sort(g1, function(a, b) return a.orderIndex < b.orderIndex end);
+				--Convert locals to original gossip strings given by GetGossipOptions().
+				if (g1[1] and g1[1].name) then
+					g1 = g1[1].name;
+				end
+			end
+		end
 		local npcGUID = UnitGUID("npc");
 		local npcID;
 		if (npcGUID) then
 			_, _, _, _, _, npcID = strsplit("-", npcGUID);
 		end
 		--If we have npc chat open but didn't click to get to the fp map then do it.
-		if ((npcID == "2858" or npcID == "2859") and GetGossipOptions()) then
+		if ((npcID == "2858" or npcID == "2859") and g1) then
 			SelectGossipOption(1);
 		end
 		if (NWB.db.global.takeTaxiZG and (isTaxiMapOpened or skipCheck) and zone == 1434) then

@@ -5,7 +5,7 @@
 ## Title: ArkInventory [Rules] Example
 ## Notes: Example rule for ArkInventory
 ## Author: Arkayenro
-## Version: 3.10.16
+## Version: 3.10.18
 
 ## DefaultState: Disabled
 ## LoadOnDemand: 0
