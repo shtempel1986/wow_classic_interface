@@ -103,7 +103,7 @@ function QuestieWotlkNpcFixes:Load()
                 [zoneIDs.IRONFORGE]={{70.41,91.10}},
                 [zoneIDs.SHATTRATH_CITY]={{67.41,33.86}},
                 [zoneIDs.DARNASSUS]={{58.02,34.52}},
-                [zoneIDs.THE_EXODAR]={{24.55,55.42}},
+                [zoneIDs.THE_EXODAR]={{26.6,50.06}},
                 [zoneIDs.STORMWIND_CITY]={{83.47,33.66},{75.67,66.54}},
                 [zoneIDs.DALARAN]={{29.79,75.78}},
                 [zoneIDs.WINTERGRASP]={{50.02,15.16}},
@@ -1370,6 +1370,10 @@ function QuestieWotlkNpcFixes:Load()
             [npcKeys.spawns] = {[zoneIDs.ICECROWN]={{44.2,32.4},{44.2,32.6},{44.2,33.6},{44.4,31.4},{44.6,32},{44.6,34.2},{44.8,31.4},{45.6,32},{46.6,32.4},{46.8,32.6},{46.8,33.6}}},
             [npcKeys.zoneID] = zoneIDs.ICECROWN,
         },
+        [33707] = {
+            [npcKeys.spawns] = {[zoneIDs.ICECROWN]={{68.79,20.87}}},
+            [npcKeys.zoneID] = zoneIDs.ICECROWN,
+        },
         [33956] = {
             [npcKeys.spawns] = {[zoneIDs.THE_ARCHIVUM]={{15.6,89.5}},[zoneIDs.ULDUAR]={{-1,-1}}},
             [npcKeys.zoneID] = zoneIDs.THE_ARCHIVUM,
@@ -1419,6 +1423,12 @@ function QuestieWotlkNpcFixes:Load()
         },
         [35451] = {
             [npcKeys.spawns] = {[zoneIDs.TRIAL_OF_THE_CHAMPION]={{51,52.4},{-1,-1}}},
+        },
+        [36626] = {
+            [npcKeys.spawns] = {[zoneIDs.ICECROWN_CITADEL_UPPER_SPIRE]={{19.8,65.4}}},
+        },
+        [36627] = {
+            [npcKeys.spawns] = {[zoneIDs.ICECROWN_CITADEL_UPPER_SPIRE]={{19.8,41.8}}},
         },
         [37172] = {
             [npcKeys.spawns] = {[zoneIDs.ORGRIMMAR]={{50.7,65.8}}},

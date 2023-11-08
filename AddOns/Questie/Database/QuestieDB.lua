@@ -43,8 +43,10 @@ local bitband = bit.band
 
 -- questFlags https://github.com/cmangos/issues/wiki/Quest_template#questflags
 local QUEST_FLAGS_DAILY = 4096
--- Pre calculated 2 * QUEST_FLAGS_DAILY, for testing a bit flag
+local QUEST_FLAGS_WEEKLY = 32768
+-- Pre calculated 2 * QUEST_FLAGS, for testing a bit flag
 local QUEST_FLAGS_DAILY_X2 = 2 * QUEST_FLAGS_DAILY
+local QUEST_FLAGS_WEEKLY_X2 = 2 * QUEST_FLAGS_WEEKLY
 
 --- Tag corrections for quests for which the API returns the wrong values.
 --- Strucute: [questId] = {tagId, "questType"}
@@ -136,6 +138,8 @@ QuestieDB.itemDataOverrides = {}
 QuestieDB.npcDataOverrides = {}
 QuestieDB.objectDataOverrides = {}
 QuestieDB.questDataOverrides = {}
+
+QuestieDB.activeChildQuests = {}
 
 
 function QuestieDB:Initialize()
@@ -307,6 +311,14 @@ end
 
 ---@param questId number
 ---@return boolean
+function QuestieDB.IsWeeklyQuest(questId)
+    local flags = QuestieDB.QueryQuestSingle(questId, "questFlags")
+    -- test a bit flag: (value % (2*flag) >= flag)
+    return flags and (flags % QUEST_FLAGS_WEEKLY_X2) >= QUEST_FLAGS_WEEKLY
+end
+
+---@param questId number
+---@return boolean
 function QuestieDB.IsDungeonQuest(questId)
     local questType, _ = QuestieDB.GetQuestTagInfo(questId)
     return questType == 81
@@ -466,24 +478,13 @@ end
 ---@param preQuestSingle number[]
 ---@return boolean
 function QuestieDB:IsPreQuestSingleFulfilled(preQuestSingle)
-    if not preQuestSingle then
+    if (not preQuestSingle) then
         return true
     end
     for preQuestIndex=1, #preQuestSingle do
-    -- for _, preQuestId in pairs(preQuestSingle) do
         -- If a quest is complete the requirement is fulfilled
         if Questie.db.char.complete[preQuestSingle[preQuestIndex]] then
             return true
-        -- If one of the quests in the exclusive group is complete the requirement is fulfilled
-        else
-            local preQuestExclusiveQuestGroup = QuestieDB.QueryQuestSingle(preQuestSingle[preQuestIndex], "exclusiveTo")
-            if preQuestExclusiveQuestGroup then
-                for i=1, #preQuestExclusiveQuestGroup do
-                    if Questie.db.char.complete[preQuestExclusiveQuestGroup[i]] then
-                        return true
-                    end
-                end
-            end
         end
     end
     -- No preQuest is complete
@@ -504,6 +505,12 @@ function QuestieDB.IsDoable(questId, debugPrint)
     if Questiedbcharhidden[questId] then
         if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is hidden manually!") end
         return false
+    end
+
+    if QuestieDB.activeChildQuests[questId] then
+        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is a child quest and the parent is active!") end
+        -- The parent quest is active, so this quest is doable
+        return true
     end
 
     local requiredRaces = QuestieDB.QueryQuestSingle(questId, "requiredRaces")
@@ -577,11 +584,8 @@ function QuestieDB.IsDoable(questId, debugPrint)
 
     local parentQuest = QuestieDB.QueryQuestSingle(questId, "parentQuest")
     if parentQuest and parentQuest ~= 0 then
-        local isParentQuestActive = QuestieDB.IsParentQuestActive(parentQuest)
-        -- If the quest has a parent quest then only show it if the
-        -- parent quest is in the quest log
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] isParentQuestActive:", isParentQuestActive) end
-        return isParentQuestActive
+        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest has an inactive parent quest") end
+        return false
     end
 
     local nextQuestInChain = QuestieDB.QueryQuestSingle(questId, "nextQuestInChain")

@@ -218,6 +218,8 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["and rotated right"] = "e girado para a direita"
 	L["and with width |cFFFF0000%s|r and %s"] = "e com largura |cFFFF0000%s|r e %s"
 	L["Angle"] = "Ângulo"
+	--[[Translation missing --]]
+	L["Angle Between Auras"] = "Angle Between Auras"
 	L["Animate"] = "Animar"
 	L["Animated Expand and Collapse"] = "Animação expande e esvai"
 	L["Animates progress changes"] = "Anima mudanças no progresso"
@@ -575,7 +577,7 @@ Off Screen]=] ] = "Aura está fora da tela"
 	--[[Translation missing --]]
 	L["False"] = "False"
 	--[[Translation missing --]]
-	L["Fetch Affected/Unaffected Names"] = "Fetch Affected/Unaffected Names"
+	L["Fetch Affected/Unaffected Names and Units"] = "Fetch Affected/Unaffected Names and Units"
 	--[[Translation missing --]]
 	L["Fetch Raid Mark Information"] = "Fetch Raid Mark Information"
 	--[[Translation missing --]]
@@ -1303,6 +1305,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Sub Elements"] = "Sub Elements"
 	--[[Translation missing --]]
 	L["Sub Option %i"] = "Sub Option %i"
+	--[[Translation missing --]]
+	L["Supports multiple entries, separated by commas"] = "Supports multiple entries, separated by commas"
 	--[[Translation missing --]]
 	L["Swipe Overlay Settings"] = "Swipe Overlay Settings"
 	--[[Translation missing --]]

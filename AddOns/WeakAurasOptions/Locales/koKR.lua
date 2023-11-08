@@ -197,6 +197,8 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["and rotated right"] = ", 오른쪽으로 회전"
 	L["and with width |cFFFF0000%s|r and %s"] = ", 너비 |cFFFF0000%s|r, %s"
 	L["Angle"] = "각도"
+	--[[Translation missing --]]
+	L["Angle Between Auras"] = "Angle Between Auras"
 	L["Animate"] = "애니메이션"
 	L["Animated Expand and Collapse"] = "확장 / 접기 애니메이션"
 	L["Animates progress changes"] = "진행 변화 애니메이션"
@@ -501,7 +503,7 @@ UNIT_POWER_UPDATE, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Fallback Icon"] = "Fallback Icon"
 	L["False"] = "거짓"
 	--[[Translation missing --]]
-	L["Fetch Affected/Unaffected Names"] = "Fetch Affected/Unaffected Names"
+	L["Fetch Affected/Unaffected Names and Units"] = "Fetch Affected/Unaffected Names and Units"
 	--[[Translation missing --]]
 	L["Fetch Raid Mark Information"] = "Fetch Raid Mark Information"
 	L["Fetch Role Information"] = "역할 정보 가져오기"
@@ -1026,6 +1028,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=]
 	L["Stop Sound"] = "소리 중지"
 	L["Sub Elements"] = "하위 요소"
 	L["Sub Option %i"] = "하위 옵션 %i"
+	--[[Translation missing --]]
+	L["Supports multiple entries, separated by commas"] = "Supports multiple entries, separated by commas"
 	--[[Translation missing --]]
 	L["Swipe Overlay Settings"] = "Swipe Overlay Settings"
 	L["Templates could not be loaded, the addon is %s"] = "템플릿을 불러올 수 없습니다. 애드온은 %s입니다."

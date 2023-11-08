@@ -85,7 +85,8 @@ L.Editbox_WindowWidth				= "GUI window width"
 L.Editbox_WindowHeight				= "GUI window height"
 
 L.UIGroupingOptions					= "UI Grouping Options (changing these require UI reload for any mod that's already loaded)"
-L.GroupOptionsExcludeIcon			= "Exclude 'Set Icon on' options from getting grouped by spell (they will be grouped together in 'icons' category like before)"
+L.GroupOptionsExcludeIcon			= "Exclude 'Set Icon on' options from getting grouped by spell (they will be grouped together in their own 'Icons' category instead)"
+L.GroupOptionsExcludePAura			= "Exclude 'Play Private Aura Sound' options from getting grouped by spell (they will be grouped together in their own 'Private Auras' category instead)"
 L.AutoExpandSpellGroups				= "Auto expand options that are grouped by spell"
 L.ShowWAKeys						= "Show WeakAuras keys next to spell names to assist in writing WeakAuras using Boss Mod triggers."
 --L.ShowSpellDescWhenExpanded	= "Continue showing spell description when groups are expanded"--Might not be used
@@ -106,6 +107,7 @@ L.TimerGeneral 						= "Timer Options"
 L.SKT_Enabled						= "Show record victory timer for current fight if available"
 L.ShowRespawn						= "Show boss respawn timer after a wipe"
 L.ShowQueuePop						= "Show time remaining to accept a queue pop (LFG,BG,etc)"
+L.ShowBerserkWarnings				= "Show announcements at 10/5/3/1 minutes and at 30/10 seconds remaining on $spell:26662 timer"
 --
 --Auto Logging: Logging toggles/types
 L.Area_AutoLogging					= "Auto Logging Toggles"
@@ -393,6 +395,7 @@ L.SpamBlockNoSpecWarnText			= "Do not show special announce text"
 L.SpamBlockNoSpecWarnFlash			= "Do not show special announce screen flash"
 L.SpamBlockNoSpecWarnVibrate		= "Do not vibrate controller on special announce"
 L.SpamBlockNoSpecWarnSound			= "Do not play special announce sounds (still permits voice packs, if one is enabled in Spoken Alerts panel)"
+L.SpamBlockNoPrivateAuraSound		= "Do not register private aura sounds"
 
 L.Area_SpamFilter_Timers			= "Timer Global Disable & Filter Options"
 L.SpamBlockNoShowBossTimers			= "Do not show timers for dungeon/raid bosses"
@@ -402,10 +405,9 @@ L.SpamBlockNoShowUTimers			= "Do not show user sent timers (Custom/Pull/Break)"
 L.SpamBlockNoCountdowns				= "Do not play countdown sounds"
 
 L.Area_SpamFilter_Nameplates		= "Nameplate Global Disable & Filter Options"
-L.SpamBlockNoNameplate				= "Do not show Nameplate Auras"
-L.SpamBlockNoBossGUIDs				= "Do not show main boss (boss1) timers on Plater nameplates as Nameplate Auras\n(you will still see trash/boss adds timers if feature is enabled in Plater)"
-L.SpamBlockTimersWithNameplates		= "Do not show timer bars for trash mods if Plater Nameplate Aura CDs are enabled in Plater options (does not apply to boss fights, which will always show timer bars)"
-L.NameplateFooter					= "Additional features available here if Plater Nameplates is enabled"
+L.SpamBlockNoNameplate				= "Do not show nameplate icons for special boss mechanics"
+L.SpamBlockNoNameplateCD			= "Do not show nameplate icons for ability cooldown timers"
+L.SpamBlockNoBossGUIDs				= "Do not show nameplate icons for ability cooldowns for one enemy bosses\n(you will still see icons for trash or multi target bosses if this checkbox is enabled)"
 
 L.Area_SpamFilter_Misc				= "Misc Global Disable & Filter Options"
 L.SpamBlockNoSetIcon				= "Do not set icons on targets"
@@ -535,9 +537,13 @@ L.Panel_Range						= "Rangeframe"
 
 -- Panel: Nameplate
 L.Panel_Nameplates					= "Nameplates"
-L.UseNameplateHandoff				= "Hand off nameplate aura requests to supported nameplate addons (KuiNameplates, Threat Plates, Plater) instead of handling internally. This is recommended option as it allows more advanced features and configuration to be done via nameplate addon"
 L.Area_NPStyle						= "Style (Note: Only configures style when DBM is handling nameplates.)"
-L.NPAuraSize						= "Aura Pixel size (squared): %d"
+L.NPAuraText						= "Show timer text on nameplate icons"
+L.NPAuraSize						= "Icon Pixel size (squared): %d"
+L.NPIcon_BarOffSetX 				= "Icon Offset X: %d"
+L.NPIcon_BarOffSetY 				= "Icon Offset Y: %d"
+L.NPIcon_GrowthDirection 			= "Icon Growth Direction"
+L.NPDemo							= "Test (Be near nameplates)"
 
 -- Misc
 L.Area_General						= "General"

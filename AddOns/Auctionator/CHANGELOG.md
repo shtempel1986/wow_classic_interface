@@ -1,8 +1,7 @@
 # Auctionator
 
-## [10.1.25](https://github.com/Auctionator/Auctionator/tree/10.1.25) (2023-10-12)
-[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.1.24...10.1.25) 
+## [10.1.35](https://github.com/Auctionator/Auctionator/tree/10.1.35) (2023-11-08)
+[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.1.34...10.1.35) 
 
-- Mainline: Selling: Fix wrong deposit for gear  
-- Classic: Buy: Fix row selection after stopping extended results loading  
-- Classic: Stop chain buy when reaching own auctions  
+- Update toc for 10.2  
+- Shopping: Lists: Fix import erroring from taking too long in some cases  

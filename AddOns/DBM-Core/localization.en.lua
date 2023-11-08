@@ -156,6 +156,7 @@ L.OPTION_CATEGORY_DROPDOWNS				= "Dropdowns"--Still put in MISC sub grooup, just
 L.OPTION_CATEGORY_YELLS					= "Yells"
 L.OPTION_CATEGORY_NAMEPLATES			= "Nameplates"
 L.OPTION_CATEGORY_ICONS					= "Icons"
+L.OPTION_CATEGORY_PAURAS				= "Private Auras"
 
 L.AUTO_RESPONDED						= "Auto-responded."
 L.STATUS_WHISPER						= "%s: %s, %d/%d people alive"
@@ -204,6 +205,7 @@ L.DBMLDB								= "WARNING: DBM-LDB is now built into DBM-Core. While it won't d
 L.DBMLOOTREMINDER						= "WARNING: 3rd party mod DBM-LootReminder is installed. This addon is no longer compatible with Retail WoW client and will cause " .. L.DBM .. " to break and not be able to send pull timers. Uninstall of this addon recommended"
 L.UPDATE_REQUIRES_RELAUNCH				= "WARNING: This " .. L.DBM .. " update will not work correctly if you don't fully restart your game client. This update contains new files or .toc file changes that cannot be loaded via ReloadUI. You may encounter broken functionality or errors if you continue without a client restart."
 L.OUT_OF_DATE_NAG						= "Your version of " .. L.DBM.. " is out-of-date and this specific fight mod has newer features or bug fixes. It is recommended you update for this fight to improve your experience."
+L.PLATER_NP_AURAS_MSG					= "DBM includes an advanced feature to show enemy cooldown timers using icons on nameplates. This is on by default for most users, but for Plater users it is off by default in Plater options unless you enable it. To get the most out of DBM (and Plater) it's recommended you enable this feature in Plater under 'Buff Special' section. If you don't want to see this message again, you can also just entirely disable 'Cooldown icons on nameplates' option in DBM global disable or nameplate options panels"
 
 L.MOVABLE_BAR							= "Drag me!"
 
@@ -478,9 +480,12 @@ L.AUTO_TIMER_TEXTS = {
 
 	achievement							= "%s",
 	stage								= "Stage",
-	stagecount							= "Stage (%%s)",
+	stagecount							= "Stage %%s",
+	stagecountcycle						= "Stage %%s (%%s)",--Example: Stage 2 (3) for a fight that alternates stage 1 and stage 2, but also tracks total cycles
+	stagecontext						= "%s",
+	stagecontextcount					= "%s (%%s)",
 	Intermission						= "Intermission",
-	Intermissioncount					= "Intermission (%%s)",
+	Intermissioncount					= "Intermission %%s",
 	adds								= "Adds",
 	addscustom							= "Adds (%%s)",
 	roleplay							= GUILD_INTEREST_RP or "Roleplay"
@@ -516,6 +521,9 @@ L.AUTO_TIMER_OPTIONS = {
 	achievement							= "Show timer for %s",
 	stage								= "Show timer for next stage",
 	stagecount							= "Show timer (with count) for next stage",
+	stagecountcycle						= "Show timer (with stage count and cycle count) for next stage",
+	stagecontext						= "Show timer for next $spell:%s stage",
+	stagecontextcount					= "Show timer (with count) for next $spell:%s stage",
 	intermission						= "Show timer for next intermission",
 	intermissioncount					= "Show timer (with count) for next intermission",
 	adds								= "Show timer for incoming adds",

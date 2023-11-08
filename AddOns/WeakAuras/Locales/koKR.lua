@@ -22,6 +22,8 @@ L["|cffeda55fMiddle-Click|r to toggle the minimap icon on or off."] = "|cffeda55
 L["|cffeda55fRight-Click|r to toggle performance profiling window."] = "|cffeda55f우-클릭|r 으로 성능 프로파일링 창을 켜고 끕니다."
 L["|cffeda55fShift-Click|r to pause addon execution."] = "|cffeda55f쉬프트-클릭|r 으로 애드온 실행을 일시 중지합니다."
 L["|cFFFF0000Not|r Item Bonus Id Equipped"] = "|cFFFF0000착용하지 않은|r 아이템 보너스 ID"
+--[[Translation missing --]]
+L["|cFFFF0000Not|r Item Equipped"] = "|cFFFF0000Not|r Item Equipped"
 L["|cFFFF0000Not|r Player Name/Realm"] = "플레이어 이름/서버 |cFFFF0000불일치|r"
 --[[Translation missing --]]
 L["|cFFFF0000Not|r Spell Known"] = "|cFFFF0000Not|r Spell Known"
@@ -126,6 +128,8 @@ L["Amount"] = "수량"
 --[[Translation missing --]]
 L["Anchoring"] = "Anchoring"
 L["And Talent"] = "및 특성"
+--[[Translation missing --]]
+L["Angle and Radius"] = "Angle and Radius"
 L["Animations"] = "애니메이션"
 L["Anticlockwise"] = "반시계 방향"
 L["Anub'arak"] = "아눕아락"
@@ -533,6 +537,8 @@ L["Encounter ID(s)"] = "교전 ID(s)"
 L["Energize"] = "마력 얻음"
 L["Enrage"] = "격노"
 --[[Translation missing --]]
+L["Enter a name or a spellId"] = "Enter a name or a spellId"
+--[[Translation missing --]]
 L["Enter static or relative values with %"] = "Enter static or relative values with %"
 L["Entering"] = "시작"
 L["Entering/Leaving Combat"] = "전투 시작/종료"
@@ -711,6 +717,8 @@ L["Group Finder Poke End"] = "Group Finder Poke End"
 L["Group Finder Poke Initial"] = "Group Finder Poke Initial"
 --[[Translation missing --]]
 L["Group Leader/Assist"] = "Group Leader/Assist"
+--[[Translation missing --]]
+L["Group Size"] = "Group Size"
 L["Group Type"] = "그룹 유형"
 L["Grow"] = "성장"
 L["GTFO Alert"] = "GTFO 경보"
@@ -1616,6 +1624,10 @@ L["Unit is Unit"] = "유닛 = 유닛"
 L["Unit Name"] = "유닛 이름"
 L["Unit Name/Realm"] = "유닛 이름/서버"
 L["Units Affected"] = "영향 받은 유닛"
+--[[Translation missing --]]
+L["Units of affected Players in a table format"] = "Units of affected Players in a table format"
+--[[Translation missing --]]
+L["Units of unaffected Players in a table format"] = "Units of unaffected Players in a table format"
 L["unknown location"] = "알 수 없는 위치"
 L["Unlimited"] = "무제한"
 --[[Translation missing --]]

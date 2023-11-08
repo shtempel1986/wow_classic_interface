@@ -205,9 +205,20 @@ function AuctionatorGroupsViewMixin:UpdateFromExisting()
         end
       end
       if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_FAVOURITES_SORT_OWNED) then
-        table.sort(infos, function(a, b) return (#a.locations > 0 and #b.locations == 0) or a.sortKey < b.sortKey end)
+        table.sort(infos, function(a, b)
+          if #a.locations > 0 and #b.locations == 0 then
+            return true
+          elseif #b.locations > 0 and #a.locations == 0 then
+            return false
+          else
+            return a.sortKey < b.sortKey
+          end
+        end)
       else
         table.sort(infos, function(a, b) return a.sortKey < b.sortKey end)
+      end
+      if not Auctionator.Config.Get(Auctionator.Config.Options.SELLING_MISSING_FAVOURITES) then
+        infos = tFilter(infos, function(a) return #a.locations > 0 end, true)
       end
       local keyName = GetKeyName(groupDetails.name, isCustom)
       for _, info in ipairs(infos) do
