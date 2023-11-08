@@ -1,6 +1,6 @@
 local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule('Skins')
-local B = E:GetModule('Blizzard')
+local BL = E:GetModule('Blizzard')
 
 local _G = _G
 local pairs = pairs
@@ -46,8 +46,8 @@ local function ReskinSpellWidget(spell)
 		spell.Border:SetAlpha(0)
 	end
 
-	if spell.Text then
-		spell.Text:SetTextColor(1, .8, 0)
+	if spell.Text and E.private.skins.parchmentRemoverEnable then
+		spell.Text:SetTextColor(1, 0.8, 0)
 	end
 end
 
@@ -64,7 +64,7 @@ function S:PlayerChoice_SetupOptions()
 		self.NineSlice:SetAlpha(0)
 
 		self.Title:DisableDrawLayer('BACKGROUND')
-		self.Title.Text:SetTextColor(1, .8, 0)
+		self.Title.Text:SetTextColor(1, 0.8, 0)
 
 		S:HandleCloseButton(self.CloseButton)
 
@@ -87,8 +87,8 @@ function S:PlayerChoice_SetupOptions()
 			local contents = header and header.Contents
 
 			if parchmentRemover then
-				if contents and contents.Text then contents.Text:SetTextColor(1, .8, 0) end -- Normal Header Text
-				if header and header.Text then header.Text:SetTextColor(1, .8, 0) end -- Torghast Header Text
+				if contents and contents.Text then contents.Text:SetTextColor(1, 0.8, 0) end -- Normal Header Text
+				if header and header.Text then header.Text:SetTextColor(1, 0.8, 0) end -- Torghast Header Text
 				if option.OptionText then option.OptionText:SetTextColor(1, 1, 1) end -- description text
 			end
 
@@ -128,7 +128,7 @@ function S:TorghastButton_StartEffect(effectID)
 end
 
 local function SetupTorghastMover()
-	B:BuildWidgetHolder('TorghastChoiceToggleHolder', 'TorghastChoiceToggle', 'CENTER', L["Torghast Choice Toggle"], _G.TorghastPlayerChoiceToggleButton, 'CENTER', E.UIParent, 'CENTER', 0, -200, 300, 40, 'ALL,GENERAL')
+	BL:BuildWidgetHolder('TorghastChoiceToggleHolder', 'TorghastChoiceToggle', 'CENTER', L["Torghast Choice Toggle"], _G.TorghastPlayerChoiceToggleButton, 'CENTER', E.UIParent, 'CENTER', 0, -200, 300, 40, 'ALL,GENERAL')
 
 	-- whole area is clickable which is pretty big; keep an eye on this
 	_G.TorghastPlayerChoiceToggleButton:SetHitRectInsets(70, 70, 40, 40)

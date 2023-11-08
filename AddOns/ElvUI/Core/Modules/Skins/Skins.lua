@@ -437,6 +437,47 @@ function S:SkinTalentListButtons(frame)
 	end
 end
 
+function S:SkinReadyDialog(dialog, bottom)
+	local background = dialog.background
+	if background then
+		background:ClearAllPoints()
+		background:Point('TOPLEFT', E.Border, -E.Border)
+		background:Point('BOTTOMRIGHT', -E.Border, bottom or 50)
+
+		dialog:CreateBackdrop('Transparent', nil, nil, true) -- just for art so pixel mode it
+		dialog.backdrop:SetOutside(background)
+		dialog.backdrop.Center:Hide()
+	end
+
+	if dialog.bottomArt then
+		dialog.bottomArt:SetAlpha(0)
+	end
+
+	if dialog.Border then -- use backdrop cause we need it a level behind
+		dialog.Border:StripTextures()
+		dialog.Border:CreateBackdrop('Transparent', nil, nil, nil, nil, nil, nil, true)
+	end
+
+	local instance = dialog.instanceInfo
+	if instance and instance.underline then
+		instance.underline:SetAlpha(0)
+	end
+
+	if dialog.enterButton then
+		S:HandleButton(dialog.enterButton)
+
+		dialog.enterButton:ClearAllPoints()
+		dialog.enterButton:Point('BOTTOMRIGHT', dialog, 'BOTTOM', -10, 15)
+	end
+
+	if dialog.leaveButton then
+		S:HandleButton(dialog.leaveButton)
+
+		dialog.leaveButton:ClearAllPoints()
+		dialog.leaveButton:Point('BOTTOMLEFT', dialog, 'BOTTOM', 10, 15)
+	end
+end
+
 do
 	local quality = Enum.ItemQuality
 	local iconColors = {
@@ -529,6 +570,52 @@ do
 			hooksecurefunc(border, 'SetShown', borderShown)
 			hooksecurefunc(border, 'Show', borderShow)
 			hooksecurefunc(border, 'Hide', borderHide)
+		end
+	end
+end
+
+do
+	local keys = {
+		'zoomInButton',
+		'zoomOutButton',
+		'rotateLeftButton',
+		'rotateRightButton',
+		'resetButton',
+	}
+
+	local function UpdateLayout(frame)
+		local last
+		for _, name in next, keys do
+			local button = frame[name]
+			if button then
+				if not button.isSkinned then
+					S:HandleButton(button)
+					button:Size(22)
+
+					if button.Icon then
+						button.Icon:SetInside(nil, 2, 2)
+					end
+				end
+
+				if button:IsShown() then
+					button:ClearAllPoints()
+
+					if last then
+						button:Point('LEFT', last, 'RIGHT', 1, 0)
+					else
+						button:Point('LEFT', 6, 0)
+					end
+
+					last = button
+				end
+			end
+		end
+	end
+
+	function S:HandleModelSceneControlButtons(frame)
+		if not frame.isSkinned then
+			frame.isSkinned = true
+			hooksecurefunc(frame, 'UpdateLayout', UpdateLayout)
 		end
 	end
 end
