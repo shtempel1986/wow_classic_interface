@@ -1,4 +1,39 @@
-﻿# 3.10.18 (11-OCT-2023)
+﻿# 3.10.22 (31-DEC-2023)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1848 - issue with caged battlepets not getting the default tooltip when the custom tooltip is disabled
+ - fixed - issues with reputation data storage - all repuation data has been erased.  please login to each character to update its data
+ - fixed - reputation menu generation now creates entries for headers that have rep (eg valdrakken accord)
+ - updated - code for currency ldb object, and menu, generation
+ - updated - code for reputation tooltip, ldb object, and menu, generation
+
+# 3.10.21 (17-DEC-2023)
+ - updated - libperiodictable was updated to resolve an issue in wrath and classic
+
+# 3.10.20 (15-DEC-2023)
+ - updated - moved the automatic mail send action to the non bucket event so it runs just after the mailbox opens, not 2 seconds after
+ - updated - category for some items
+ - updated - (wrath) currency window should now work properly
+ - fixed - issue with mount selection in non dragonriding zones
+ - updated - (classic) toc updated to 11500
+ - workaround - added weakauras as an optional dependency to force it to load before arkinventory so it doesnt take an extra 1-3 seconds to load
+ - fixed - (classic) https://github.com/arkayenro/arkinventory/issues/1841 - added support for EngravingFrame, and auto open/close config options
+ - fixed - (wrath) enabled mount location for testing and forgot to remove it.
+
+# 3.10.19 (25-NOV-2023)
+ - changed - (retail) toc updated to 100200
+ - fixed - issue with dropdown for ldb reputation object (its seeing a reputation header with no name - so is the blizzard character reputation tab)
+ - workaround - https://github.com/arkayenro/arkinventory/issues/1833 - issue enabling another currency on the backpack (should now allow up to 10)
+ - changed - cosmetic items you already know will now be seen as junk
+ - updated - mountTypeID values for dragonriding mounts
+ - updated - mount code due to dragon isles and emerald dream now being marked as flyable
+ - changed - the dragonriding option in the mount config is now used to determine if you want dragonriding or normal mounts in dragonriding areas or not.
+ - changed - holding the CTRL key when using the mount summon macro, or clicking on the mount icon, allows you to use the other type of mount
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1832 - issue with tooltip code when its not meant to be processed
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1831 - issue with automatic mail send action
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1813 - currency will no longer be scanned while mounted (to help with dragriding races).  will be scanned (up to) five seconds after dismounting (if there was an update while you were mounted)
+ - added - addon icons
+ - updated - category for some items
+
+# 3.10.18 (11-OCT-2023)
  - fixed - https://github.com/arkayenro/arkinventory/issues/1822 - code issue with secure hooks when they dont exist in the game client
 
 # 3.10.17 (02-SEP-2023)

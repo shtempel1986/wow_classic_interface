@@ -28,7 +28,6 @@ local collection = {
 		expanded = { },
 		backup = false,
 	},
-	
 }
 
 local ImportCrossRefTable = true
@@ -159,15 +158,14 @@ function ArkInventory.Collection.Currency.GetByIndex( index )
 	end
 end
 
-function ArkInventory.Collection.Currency.GetByName( name )
-	if type( name ) == "string" and name ~= "" then
-		for _, obj in ArkInventory.Collection.Currency.Iterate( ) do
-			if obj.name == name then
-				return obj.id, obj
-			end
-		end
-	end
-end
+--function ArkInventory.Collection.Currency.GetByName( name )
+--	if type( name ) == "string" and name ~= "" then
+--		local obj = ArkInventory.Collection.Currency.GetByID( collection.namecache[name] )
+--		if obj then
+--			return obj.id, obj
+--		end 
+--	end
+--end
 
 function ArkInventory.Collection.Currency.ListSetActive( index, state, bulk )
 	
@@ -249,10 +247,12 @@ local function ScanBase( id )
 			
 		else
 			
+			local name = string.format( "Header %s", math.abs( id ) )
+			
 			cache[id] = {
 				id = id,
 				link = "",
-				name = string.format( "Header %s", math.abs( id ) ),
+				name = name,
 				iconFileID = "",
 				maxWeeklyQuantity = 0,
 				maxQuantity = 0,
@@ -317,111 +317,120 @@ local function Scan_Threaded( thread_id )
 			--return
 		end
 		
-		local info = ArkInventory.CrossClient.GetCurrencyListInfo( index )
-		--ArkInventory.OutputDebug( "CURRENCY: ", index, " = ", info )
-		
-		local isChild = false
-		
-		local CurrencyID = ArkInventory.Collection.Currency.GetByName( info.name )
-		if not CurrencyID then
-			-- cater for list headers like other and inactive that dont have a faction id assigned to them
-			fakeID = fakeID - 1
-			CurrencyID = fakeID
-			--ArkInventory.OutputDebug( "CURRENCY: used a fake id: ", CurrencyID, " / ", index, " / ", info.name  )
-		end
-		
-		if not list[index] then
-			list[index] = {
-				index = index,
-				id = CurrencyID,
-				name = info.name,
-				isHeader = info.isHeader,
-				isChild = isChild,
-				parentIndex = nil,
-				data = nil, -- will eventually point to a cache entry
-			}
-		end
-		
-		if info.isHeader then
+		local currencyInfo = ArkInventory.CrossClient.GetCurrencyListInfo( index )
+		if currencyInfo then
 			
-			childIndex = index
+			--ArkInventory.OutputDebug( "CURRENCY: ", index, " = ", currencyInfo )
 			
-			if isChild then
-				
-				list[index].parentIndex = parentIndex
-				
+			if currencyInfo.currencyID then
+				currencyID = currencyInfo.currencyID
 			else
+				-- cater for list headers like other and inactive that dont have a faction id assigned to them
+				fakeID = fakeID - 1
+				currencyID = fakeID
+			end
+			
+			if not list[index] then
+				list[index] = {
+					index = index,
+					id = currencyID,
+					name = currencyInfo.name,
+					description = currencyInfo.description,
+					isHeader = currencyInfo.isHeader,
+					hasCurrency = currencyInfo.hasCurrency,
+					isChild = currencyInfo.isChild,
+					parentIndex = nil,
+					data = nil, -- will eventually point to a cache entry
+				}
+			end
+			
+			if currencyInfo.isHeader then
 				
-				if info.name == ArkInventory.Localise["UNUSED"] then
-					--ArkInventory.OutputDebug( "CURRENCY: unused header at ", index, " = ", info )
-					active = false
+				childIndex = index
+				
+				if currencyInfo.isChild then
+					
+					list[index].parentIndex = parentIndex
+					
+				else
+					
+					if currencyInfo.name == ArkInventory.Localise["UNUSED"] then
+						--ArkInventory.OutputDebug( "CURRENCY: unused header at ", index, " = ", currencyInfo )
+						active = false
+					end
+					
+					parentIndex = index
+					
+					--ArkInventory.OutputDebug( "CURRENCY: header at ", index, " = ", currencyInfo )
+					
 				end
-				
-				parentIndex = index
 				
 			end
 			
-		else
-			
-			local id = info.name and info.name ~= "" and CurrencyID
-			if id then
+			if (not currencyInfo.isHeader) or currencyInfo.hasCurrency then
 				
-				numOwned = numOwned + 1
-				
-				if not cache[id] then
-					ScanBase( id )
-					update = true
+				local id = currencyInfo.name and currencyInfo.name ~= "" and currencyID
+				if id then
+					
+					numOwned = numOwned + 1
+					
+					if not cache[id] then
+						ScanBase( id )
+						update = true
+					end
+					
+					list[index].data = cache[id]
+					
+					if not currencyInfo.isHeader then
+						list[index].parentIndex = childIndex
+					end
+					
+					-- update cached data if changed
+					
+					if cache[id].index ~= index then
+						cache[id].index = index
+						update = true
+					end
+					
+					if cache[id].name ~= currencyInfo.name then
+						cache[id].name = currencyInfo.name
+						update = true
+					end
+					
+					if cache[id].owned ~= true then
+						cache[id].owned = true
+						update = true
+					end
+					
+					if cache[id].isShowInBackpack ~= currencyInfo.isShowInBackpack then
+						cache[id].isShowInBackpack = currencyInfo.isShowInBackpack
+						update = true
+					end
+					
+					if cache[id].quantity ~= currencyInfo.quantity then
+						cache[id].quantity = currencyInfo.quantity
+						update = true
+					end
+					
+					if cache[id].quantityEarnedThisWeek ~= currencyInfo.quantityEarnedThisWeek then
+						cache[id].quantityEarnedThisWeek = currencyInfo.quantityEarnedThisWeek
+						update = true
+					end
+					
+					if cache[id].discovered ~= discovered then
+						cache[id].discovered = discovered
+						update = true
+					end
+					
+				else
+					ArkInventory.OutputWarning( "unable to find cached data @ ", index, " - ", currencyInfo )
 				end
 				
-				list[index].data = cache[id]
-				list[index].parentIndex = childIndex
-				
-				-- update cached data if changed
-				
-				if cache[id].index ~= index then
-					cache[id].index = index
-					update = true
-				end
-				
-				if cache[id].name ~= info.name then
-					cache[id].name = info.name
-					update = true
-				end
-				
-				if cache[id].owned ~= true then
-					cache[id].owned = true
-					update = true
-				end
-				
-				if cache[id].isShowInBackpack ~= info.isShowInBackpack then
-					cache[id].isShowInBackpack = info.isShowInBackpack
-					update = true
-				end
-				
-				local info = ArkInventory.CrossClient.GetCurrencyInfo( id )
-				
-				if cache[id].quantity ~= info.quantity then
-					cache[id].quantity = info.quantity
-					update = true
-				end
-				
-				if cache[id].quantityEarnedThisWeek ~= info.quantityEarnedThisWeek then
-					cache[id].quantityEarnedThisWeek = info.quantityEarnedThisWeek
-					update = true
-				end
-				
-				if cache[id].discovered ~= discovered then
-					cache[id].discovered = discovered
-					update = true
-				end
-				
-			else
-				ArkInventory.OutputWarning( "unable to find cached data @ ", index, " - ", name )
 			end
 			
+			list[index].active = active
+			
 		end
-		
-		list[index].active = active
 		
 		if YieldCount % ArkInventory.Const.YieldAfter == 0 then
 			ArkInventory.ThreadYield_Scan( thread_id )
@@ -480,7 +489,7 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE_BUCKET( events )
 	
 	if ArkInventory.Global.Mode.Combat then
 		-- set to scan when leaving combat
-		ArkInventory.Global.LeaveCombatRun[loc_id] = true
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
 		return
 	end
 	
@@ -491,6 +500,12 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_CURRENCY_UPDATE_BUCKET( events )
 	
 	if TokenFrame:IsVisible( ) then
 		--ArkInventory.Output( "IGNORED (CURRENCY FRAME IS OPEN)" )
+		return
+	end
+	
+	if IsMounted( ) then
+		-- set to scan after dismounting
+		ArkInventory.Global.ScanAfterDismount[loc_id] = true
 		return
 	end
 	

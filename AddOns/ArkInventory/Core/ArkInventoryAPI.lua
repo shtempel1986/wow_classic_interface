@@ -55,7 +55,7 @@ function ArkInventory.API.CustomReputationTooltipReady( ... )
 		
 	args
 		[1] tooltip
-		[2] custom "hyperlink" string - reputation:factionId:standingText:barValue:barMax:isCapped:paragonLevel:hasParagonReward
+		[2] custom "hyperlink" string - reputation:factionID:standingText:barValue:barMin:barMax:isCapped:paragonLevel:paragonRewardPending:rankValue:rankMax
 	
 ]]--
 end

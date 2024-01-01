@@ -895,7 +895,7 @@ function QuestieDBCompiler:CompileTableCoroutine(tbl, types, order, lookup, data
     local index = 0
 
     local pointerMap = {}
-    local stream = Questie.db.global.debugEnabled and QuestieStream:GetStream("raw_assert") or QuestieStream:GetStream("raw")
+    local stream = Questie.db.profile.debugEnabled and QuestieStream:GetStream("raw_assert") or QuestieStream:GetStream("raw")
 
     -- Localize functions
     local pcall, type = pcall, type
@@ -904,11 +904,16 @@ function QuestieDBCompiler:CompileTableCoroutine(tbl, types, order, lookup, data
 
     while true do
         coroutine.yield()
-        for _=0,Questie.db.global.debugEnabled and TICKS_PER_YIELD_DEBUG or (entriesPerTick or TICKS_PER_YIELD) do
+        for _=0,Questie.db.profile.debugEnabled and TICKS_PER_YIELD_DEBUG or (entriesPerTick or TICKS_PER_YIELD) do
             index = index + 1
             if index == count then
-                Questie.db.global[databaseKey.."Bin"] = stream:Save()
-                Questie.db.global[databaseKey.."Ptrs"] = QuestieDBCompiler:EncodePointerMap(stream, pointerMap)
+                if Questie.IsSoD then
+                    Questie.db.global.sod[databaseKey.."Bin"] = stream:Save()
+                    Questie.db.global.sod[databaseKey.."Ptrs"] = QuestieDBCompiler:EncodePointerMap(stream, pointerMap)
+                else
+                    Questie.db.global[databaseKey.."Bin"] = stream:Save()
+                    Questie.db.global[databaseKey.."Ptrs"] = QuestieDBCompiler:EncodePointerMap(stream, pointerMap)
+                end
                 stream:finished() -- relief memory pressure
                 return
             end
@@ -997,10 +1002,19 @@ function QuestieDBCompiler:Compile()
     QuestieDBCompiler:CompileItems()
     print("\124cFFAAEEFF"..l10n("Questie DB update complete!"))
 
-    Questie.db.global.dbCompiledOnVersion = QuestieLib:GetAddonVersionString()
-    Questie.db.global.dbCompiledLang = (Questie.db.global.questieLocaleDiff and Questie.db.global.questieLocale or GetLocale())
-    Questie.db.global.dbIsCompiled = true
-    Questie.db.global.dbCompiledCount = (Questie.db.global.dbCompiledCount or 0) + 1
+    Questie.db.global.dbCompiledExpansion = WOW_PROJECT_ID
+
+    if Questie.IsSoD then
+        Questie.db.global.sod.dbCompiledOnVersion = QuestieLib:GetAddonVersionString()
+        Questie.db.global.sod.dbCompiledLang = l10n:GetUILocale()
+        Questie.db.global.sod.dbIsCompiled = true
+        Questie.db.global.sod.dbCompiledCount = (Questie.db.global.sod.dbCompiledCount or 0) + 1
+    else
+        Questie.db.global.dbCompiledOnVersion = QuestieLib:GetAddonVersionString()
+        Questie.db.global.dbCompiledLang = l10n:GetUILocale()
+        Questie.db.global.dbIsCompiled = true
+        Questie.db.global.dbCompiledCount = (Questie.db.global.dbCompiledCount or 0) + 1
+    end
 end
 
 function QuestieDBCompiler:ValidateNPCs()
@@ -1040,7 +1054,7 @@ function QuestieDBCompiler:ValidateNPCs()
     end
 
     validator.stream:finished()
-    print(Questie.DEBUG_INFO, "Finished NPCs validation without issues!")
+    Questie:Debug(Questie.DEBUG_INFO, "Finished NPCs validation without issues!")
 end
 
 function QuestieDBCompiler:ValidateObjects()
@@ -1080,7 +1094,7 @@ function QuestieDBCompiler:ValidateObjects()
     end
 
     validator.stream:finished()
-    print(Questie.DEBUG_INFO, "Finished objects validation without issues!")
+    Questie:Debug(Questie.DEBUG_INFO, "Finished objects validation without issues!")
 end
 
 
@@ -1182,7 +1196,7 @@ function QuestieDBCompiler:ValidateItems()
     validator.stream:finished()
     obj.stream:finished()
     npc.stream:finished()
-    print(Questie.DEBUG_INFO, "Finished items validation without issues!")
+    Questie:Debug(Questie.DEBUG_INFO, "Finished items validation without issues!")
 end
 
 function QuestieDBCompiler:ValidateQuests()
@@ -1269,7 +1283,7 @@ function QuestieDBCompiler:ValidateQuests()
     end
 
     validator.stream:finished()
-    print(Questie.DEBUG_INFO, "Finished quests validation without issues!")
+    Questie:Debug(Questie.DEBUG_INFO, "Finished quests validation without issues!")
 end
 
 function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, overrides)
@@ -1287,7 +1301,7 @@ function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, 
     handle.stream = stream
 
     if overrides then
-        ---@param id QuestId|ObjectId|ItemId|NpcId
+        ---@param id QuestId|ObjectId|ItemId|NpcId|SpellId
         ---@param key string
         ---@return any
         handle.QuerySingle = function(id, key)
@@ -1317,7 +1331,7 @@ function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, 
             end
             return readers[types[key]](stream)
         end
-        ---@param id QuestId|ObjectId|ItemId|NpcId
+        ---@param id QuestId|ObjectId|ItemId|NpcId|SpellId
         ---@param keys string[]
         ---@return table|nil
         handle.Query = function(id, keys)
@@ -1371,7 +1385,7 @@ function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, 
             end
             return ret -- do not unpack the returned table
         end
-        ---@param id QuestId|ObjectId|ItemId|NpcId
+        ---@param id QuestId|ObjectId|ItemId|NpcId|SpellId
         ---@param keys string[]
         ---@return table|nil
         handle.QueryValidator = function(id, keys)
@@ -1447,7 +1461,7 @@ function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, 
             end
             return readers[types[key]](stream)
         end
-        ---@param id QuestId|ObjectId|ItemId|NpcId
+        ---@param id QuestId|ObjectId|ItemId|NpcId|SpellId
         ---@param keys string[]
         ---@return table|nil
         handle.Query = function(id, keys)
@@ -1476,7 +1490,7 @@ function QuestieDBCompiler:GetDBHandle(data, pointers, skipMap, keyToRootIndex, 
             end
             return ret -- do not unpack the returned table
         end
-        ---@param id QuestId|ObjectId|ItemId|NpcId
+        ---@param id QuestId|ObjectId|ItemId|NpcId|SpellId
         ---@param keys string[]
         ---@return table|nil
         handle.QueryValidator = function(id, keys)

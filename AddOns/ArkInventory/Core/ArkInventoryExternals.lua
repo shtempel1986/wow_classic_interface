@@ -1,10 +1,12 @@
-﻿-- forcibly load required libraries if not already loaded - required when running disembedded (some curse users)
+﻿
+-- forcibly load required libraries if not already loaded - required when running disembedded (some curse users)
 
-local function loadExternal( addonname )
-	if not IsAddOnLoaded( addonname ) then
-		LoadAddOn( addonname )
+local function loadExternal( ... )
+	if not IsAddOnLoaded( ... ) then
+		LoadAddOn( ... )
 	end
 end
+
 
 loadExternal( "Ace3" ) -- loads LibStub and CallBackHandler
 loadExternal( "AceGUI-3.0-SharedMediaWidgets" )
@@ -13,8 +15,6 @@ loadExternal( "LibSharedMedia-3.0" )
 loadExternal( "LibDataBroker-1.1" )
 loadExternal( "LibDialog-1.0" )
 loadExternal( "BattlePetBreedID" )
-
-
 
 
 

@@ -95,7 +95,7 @@ function AuctionatorGroupsViewMixin:RefreshHiddenItems()
   if self.hideHiddenItems then
     for _, link in ipairs(AUCTIONATOR_SELLING_GROUPS.HiddenItems) do
       local info = AuctionatorBagCacheFrame:GetByLinkInstant(link, true)
-      self.hiddenItems[info.sortKey] = true
+      self.hiddenItems[info.sortKey] = link
     end
   end
 end
@@ -163,11 +163,7 @@ function AuctionatorGroupsViewMixin:Update(cache)
   self.cacheUpdated = true
   self.rawItems = cache:GetAllContents()
   table.sort(self.rawItems, function(a, b)
-    if a.itemName == b.itemName then
-      return a.sortKey < b.sortKey
-    else
-      return a.itemName < b.itemName
-    end
+    return a.sortKey < b.sortKey
   end)
   self:UpdateFromExisting()
 end

@@ -253,9 +253,9 @@ function ArkInventory.ConfigInternal( )
 			cmdHidden = true,
 			order = 200,
 			name = function( ) 
-				local t = GetAddOnMetadata( ArkInventory.Const.Program.Name, string.format( "Notes-%s", GetLocale( ) ) ) or ""
+				local t = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, string.format( "Notes-%s", GetLocale( ) ) ) or ""
 				if t == "" then
-					t = GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes" ) or ""
+					t = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes" ) or ""
 				end
 				return t or ""
 			end,
@@ -439,7 +439,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								vault = {
-									order = 200,
+									order = 100,
 									name = ArkInventory.Localise["VAULT"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj ),
 									type = "select",
@@ -457,7 +457,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								mail = {
-									order = 300,
+									order = 100,
 									name = ArkInventory.Localise["MAILBOX"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN_DESC"], ArkInventory.Localise["MAILBOX"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
@@ -474,7 +474,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								merchant = {
-									order = 400,
+									order = 100,
 									name = ArkInventory.Localise["MERCHANT"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN_DESC"], ArkInventory.Localise["MERCHANT"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
@@ -491,7 +491,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								trade = {
-									order = 500,
+									order = 100,
 									name = ArkInventory.Localise["TRADE"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN_DESC"], ArkInventory.Localise["TRADE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
@@ -508,7 +508,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								auction = {
-									order = 600,
+									order = 100,
 									name = ArkInventory.Localise["AUCTION_HOUSE"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN_DESC"], ArkInventory.Localise["AUCTION_HOUSE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
@@ -525,7 +525,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								void = {
-									order = 700,
+									order = 100,
 									name = ArkInventory.Localise["VOID_STORAGE"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj ),
 									type = "select",
@@ -543,7 +543,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								obliterum = {
-									order = 750,
+									order = 100,
 									name = ArkInventory.Localise["OBLITERUM_FORGE"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.LEGION ),
 									type = "select",
@@ -561,7 +561,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								scrap = {
-									order = 800,
+									order = 100,
 									name = ArkInventory.Localise["CONFIG_AUTO_SCRAP"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.BFA ),
 									type = "select",
@@ -579,7 +579,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								transmog = {
-									order = 900,
+									order = 100,
 									name = ArkInventory.Localise["TRANSMOGRIFIER"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.CATACLYSM ),
 									type = "select",
@@ -593,6 +593,24 @@ function ArkInventory.ConfigInternal( )
 									end,
 									set = function( info, v )
 										ArkInventory.db.option.auto.open.transmog = v
+										ArkInventory.BlizzardAPIHook( false, true )
+									end,
+								},
+								rune = {
+									order = 100,
+									name = ArkInventory.Localise["ENGRAVE"],
+									disabled = not ArkInventory.ClientCheck( nil, ArkInventory.ENUM.EXPANSION.CLASSIC ),
+									type = "select",
+									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_OPEN_DESC"], ArkInventory.Localise["ENGRAVE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
+									values = function( )
+										local t = { [ArkInventory.ENUM.BAG.OPENCLOSE.NO] = ArkInventory.Localise["NO"], [ArkInventory.ENUM.BAG.OPENCLOSE.YES] = ArkInventory.Localise["YES"] }
+										return t
+									end,
+									get = function( info )
+										return ArkInventory.db.option.auto.open.rune
+									end,
+									set = function( info, v )
+										ArkInventory.db.option.auto.open.rune = v
 										ArkInventory.BlizzardAPIHook( false, true )
 									end,
 								},
@@ -628,7 +646,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								vault = {
-									order = 200,
+									order = 100,
 									name = ArkInventory.Localise["VAULT"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].proj ),
 									type = "select",
@@ -646,7 +664,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								mail = {
-									order = 300,
+									order = 100,
 									name = ArkInventory.Localise["MAILBOX"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_DESC"], ArkInventory.Localise["MAILBOX"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"], ArkInventory.Localise["ALWAYS"] ),
@@ -663,7 +681,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								merchant = {
-									order = 400,
+									order = 100,
 									name = ArkInventory.Localise["MERCHANT"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_DESC"], ArkInventory.Localise["MERCHANT"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"], ArkInventory.Localise["ALWAYS"] ),
@@ -680,7 +698,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								trade = {
-									order = 500,
+									order = 100,
 									name = ArkInventory.Localise["TRADE"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_DESC"], ArkInventory.Localise["TRADE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"], ArkInventory.Localise["ALWAYS"] ),
@@ -697,7 +715,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								auction = {
-									order = 600,
+									order = 100,
 									name = ArkInventory.Localise["AUCTION_HOUSE"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_DESC"], ArkInventory.Localise["AUCTION_HOUSE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"], ArkInventory.Localise["ALWAYS"] ),
@@ -714,7 +732,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								void = {
-									order = 700,
+									order = 100,
 									name = ArkInventory.Localise["VOID_STORAGE"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.Global.Location[ArkInventory.Const.Location.Void].proj ),
 									type = "select",
@@ -732,7 +750,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								obliterum = {
-									order = 750,
+									order = 100,
 									name = ArkInventory.Localise["OBLITERUM_FORGE"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.LEGION ),
 									type = "select",
@@ -750,7 +768,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								scrap = {
-									order = 800,
+									order = 100,
 									name = ArkInventory.Localise["CONFIG_AUTO_SCRAP"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.BFA ),
 									type = "select",
@@ -768,7 +786,7 @@ function ArkInventory.ConfigInternal( )
 									end,
 								},
 								transmog = {
-									order = 900,
+									order = 100,
 									name = ArkInventory.Localise["TRANSMOGRIFIER"],
 									disabled = not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.CATACLYSM ),
 									type = "select",
@@ -785,8 +803,26 @@ function ArkInventory.ConfigInternal( )
 										ArkInventory.BlizzardAPIHook( false, true )
 									end,
 								},
+								rune = {
+									order = 100,
+									name = ArkInventory.Localise["ENGRAVE"],
+									disabled = not ArkInventory.ClientCheck( nil, ArkInventory.ENUM.EXPANSION.CLASSIC ),
+									type = "select",
+									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_DESC"], ArkInventory.Localise["ENGRAVE"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"], ArkInventory.Localise["ALWAYS"] ),
+									values = function( )
+										local t = { [ArkInventory.ENUM.BAG.OPENCLOSE.NO] = ArkInventory.Localise["NO"], [ArkInventory.ENUM.BAG.OPENCLOSE.YES] = ArkInventory.Localise["YES"], [ArkInventory.ENUM.BAG.OPENCLOSE.ALWAYS] = ArkInventory.Localise["ALWAYS"] }
+										return t
+									end,
+									get = function( info )
+										return ArkInventory.db.option.auto.close.rune
+									end,
+									set = function( info, v )
+										ArkInventory.db.option.auto.close.rune = v
+										ArkInventory.BlizzardAPIHook( false, true )
+									end,
+								},
 								combat = {
-									order = 8000,
+									order = 999,
 									name = ArkInventory.Localise["CONFIG_AUTO_COMBAT"],
 									type = "select",
 									desc = string.format( ArkInventory.Localise["CONFIG_AUTO_CLOSE_COMBAT_DESC"], ArkInventory.Localise["CONFIG_AUTO_COMBAT"], ArkInventory.Localise["BACKPACK"], ArkInventory.Localise["NO"], ArkInventory.Localise["YES"] ),
@@ -11407,7 +11443,7 @@ function ArkInventory.ConfigInternalLDBMounts( )
 	
 	local args3 = { }
 	
-	args3["mt"] = {
+	args3["mounttype"] = {
 		order = 1,
 		name = ArkInventory.Localise["TYPE"],
 		type = "select",
@@ -11453,7 +11489,7 @@ function ArkInventory.ConfigInternalLDBMounts( )
 			
 		end,
 	}
-	args3["selected"] = {
+	args3["status"] = {
 		order = 2,
 		type = "select",
 		name = ArkInventory.Localise["STATUS"],
@@ -11509,6 +11545,18 @@ function ArkInventory.ConfigInternalLDBMounts( )
 			ArkInventory.Collection.Mount.Summon( index )
 		end,
 	}
+	args3["description"] = {
+		order = 999,
+		name = function( info )
+			local index = ConfigGetNodeArg( info, #info - 2 )
+			local md = ArkInventory.Collection.Mount.GetMount( index )
+			return "\n" .. md.description
+		end,
+		type = "description",
+		fontSize = "medium",
+		width = "full",
+	}
+	
 	
 	
 	local args2 = { }
@@ -11653,7 +11701,7 @@ function ArkInventory.ConfigInternalLDBMountsUpdate( path, args2 )
 				end,
 				set = function( info )
 					config.me.player.data.ldb.mounts.dragonriding = not config.me.player.data.ldb.mounts.dragonriding
-					ArkInventory.SetMountMacro( )
+					--ArkInventory.SetMountMacro( )
 				end,
 			}
 			

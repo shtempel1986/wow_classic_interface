@@ -6,7 +6,6 @@ local string = _G.string
 local type = _G.type
 local error = _G.error
 local table = _G.table
-local C_Reputation = _G.C_Reputation
 
 local loc_id = ArkInventory.Const.Location.Reputation
 
@@ -85,18 +84,17 @@ local function FilterActionBackup( )
 	repeat
 		
 		p = p + 1
-		n = GetNumFactions( )
+		n = ArkInventory.CrossClient.GetNumFactions( )
 		--ArkInventory.Output( "pass=", p, " num=", n )
 		e = true
 		
 		for index = 1, n do
 			
-			local name, description, standingID, barMin, barMax, barValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus = GetFactionInfo( index )
-			
-			if isHeader and isCollapsed then
-				--ArkInventory.Output( "expanding ", index, " / ", name )
-				collection.filter.expanded[name] = true
-				ExpandFactionHeader( index )
+			local factionInfo = ArkInventory.CrossClient.GetFactionInfo( index )
+			if factionInfo and factionInfo.isHeader and factionInfo.isCollapsed then
+				--ArkInventory.Output( "expanding ", index, " / ", factionInfo.name )
+				collection.filter.expanded[factionInfo.name] = true
+				ArkInventory.CrossClient.ExpandFactionHeader( index )
 				e = false
 				break
 			end
@@ -123,18 +121,17 @@ local function FilterActionRestore( )
 	repeat
 		
 		p = p + 1
-		n = GetNumFactions( )
+		n = ArkInventory.CrossClient.GetNumFactions( )
 		--ArkInventory.Output( "pass=", p, " num=", n )
 		e = true
 		
 		for index = 1, n do
 			
-			local name, description, standingID, barMin, barMax, barValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus = GetFactionInfo( index )
-			
-			if isHeader and not isCollapsed and collection.filter.expanded[name] then
-				--ArkInventory.Output( "collapsing ", index, " / ", name )
-				collection.filter.expanded[name] = nil
-				CollapseFactionHeader( index )
+			local factionInfo = ArkInventory.CrossClient.GetFactionInfo( index )
+			if factionInfo and factionInfo.isHeader and not factionInfo.isCollapsed and collection.filter.expanded[factionInfo.name] then
+				--ArkInventory.Output( "collapsing ", index, " / ", factionInfo.name )
+				collection.filter.expanded[factionInfo.name] = nil
+				ArkInventory.CrossClient.CollapseFactionHeader( index )
 				e = false
 				break
 			end
@@ -176,27 +173,31 @@ end
 function ArkInventory.Collection.Reputation.LevelText( ... )
 	
 	if not ArkInventory.Collection.Reputation.IsReady( ) then
-		return "data not ready yet"  -- !!!fix me
+		return "data not ready"  -- !!!fix me
 	end
 	
-	local id, style, standingText, barValue, barMax, isCapped, paragonLevel, hasReward = ...
+	local id, style, standingText, barValue, barMin, barMax, isCapped, paragonLevel, hasReward, rankValue, rankMax = ...
+	
+	--ArkInventory.OutputDebug( { ... } )
 	
 	local n = select( '#', ... )
 	
 	if n == 0 then
-		return "no repuation data"  -- !!!fix me
+		return "empty request for data"  -- !!!fix me
 	end
 	
 --[[
-	*nn* = faction name
+	*nn* = name
 	*st* = standing text
+	*bv* = bar value
+	*bn* = bar min
+	*bm* = bar max
+	*bp[n]* = bar percent [n=decimal places (0-2)]
+	*br* = bar remaining
+	*rv* = rank value
+	*rm* = rank max
 	*pv* = paragon value (+N)
 	*pr* = paragon reward icon
-	*bv* = bar value
-	*bm* = bar max
-	*bc* = bar value / bar max
-	*bp* = bar percent
-	*br* = bar remaining
 ]]--
 	
 	local object = ArkInventory.Collection.Reputation.GetByID( id )
@@ -204,56 +205,48 @@ function ArkInventory.Collection.Reputation.LevelText( ... )
 		return "repuation not found"  -- !!!fix me
 	end
 	
-	local name = object.name or ArkInventory.Localise["UNKNOWN"]
-	local barRemaining = 0
-	--local rewardIcon = string.format( "|T%s:0|t", [[Interface\MINIMAP\TRACKING\Banker]] )
-	local rewardIcon = string.format( "|T%s:0|t", [[Interface\ICONS\INV_Misc_Coin_01]] )
+	--ArkInventory.OutputDebug( object )
 	
+	standingText = standingText or object.standingText or ArkInventory.Localise["UNKNOWN"]
+	barValue = barValue or object.barValue or 0
+	barMin = barMin or object.barMin or 0
+	barMax = barMax or object.barMax or 0
+	isCapped = isCapped or object.isCapped or 0
+	paragonLevel = paragonLevel or object.paragonLevel or 0
+	hasReward = hasReward or object.hasReward or 0
+	rankValue = rankValue or object.rankValue or 0
+	rankMax = rankMax or object.rankMax or 0
+	
+	local name = object.name or ArkInventory.Localise["UNKNOWN"]
+	local rewardIcon = string.format( "|T%s:0|t", [[Interface\ICONS\INV_Misc_Coin_01]] ) -- [[Interface\MINIMAP\TRACKING\Banker]]
 	local result = string.lower( style or ArkInventory.Const.Reputation.Style.OneLine )
 	
-	
-	if n <= 2 then
+	if barValue > 0 then
 		
-		standingText = object.standingText
-		barMax = object.barMax
-		barValue = object.barValue
+		result = string.gsub( result, "%*bv%*", FormatLargeNumber( barValue ) )
 		
-		isCapped = object.isCapped
-		paragonLevel = object.paragonLevel
-		hasReward = object.hasReward
+		if barMax > 0 then
+			
+			result = string.gsub( result, "%*bm%*", FormatLargeNumber( barMax ) )
+			
+			if barValue < barMax then
+				result = string.gsub( result, "%*bp1%*", string.format( "%.1f", barValue / barMax * 100 ) .. "%%" )
+				result = string.gsub( result, "%*bp2%*", string.format( "%.2f", barValue / barMax * 100 ) .. "%%" )
+				result = string.gsub( result, "%*bp%d*%*", string.format( "%.0f", barValue / barMax * 100 ) .. "%%" )
+				result = string.gsub( result, "%*br%*", FormatLargeNumber( barMax - barValue ) )
+			end
+			
+		end
 		
 	end
 	
-	
-	standingText = standingText or ArkInventory.Localise["UNKNOWN"]
-	barMax = barMax or 0
-	barValue = barValue or 0
-	
-	isCapped = isCapped or 0
-	paragonLevel = paragonLevel or 0
-	hasReward = hasReward or 0
-	
-	
-	if barValue == 0 then
+	if rankValue > 0 and rankValue ~= rankMax then
 		
-		-- hit rep limit so clear all tokens
-		result = string.gsub( result, "%*bv%*", "" )
-		result = string.gsub( result, "%*bm%*", "" )
-		result = string.gsub( result, "%*bc%*", "" )
-		result = string.gsub( result, "%*bp%d?%*", "" )
-		result = string.gsub( result, "%*br%*", "" )
+		result = string.gsub( result, "%*rv%*", FormatLargeNumber( rankValue ) )
 		
-	else
-		
-		result = string.gsub( result, "%*bv%*", FormatLargeNumber( barValue ) )
-		result = string.gsub( result, "%*bm%*", FormatLargeNumber( barMax ) )
-		result = string.gsub( result, "%*bc%*", string.format( "%s / %s", FormatLargeNumber( barValue ), FormatLargeNumber( barMax ) ) )
-		
-		result = string.gsub( result, "%*bp1%*", string.format( "%.1f", barValue / barMax * 100 ) .. "%%" )
-		result = string.gsub( result, "%*bp2%*", string.format( "%.2f", barValue / barMax * 100 ) .. "%%" )
-		result = string.gsub( result, "%*bp%d?%*", string.format( "%.0f", barValue / barMax * 100 ) .. "%%" )
-		
-		result = string.gsub( result, "%*br%*", FormatLargeNumber( barMax - barValue ) )
+		if rankMax > 0 then
+			result = string.gsub( result, "%*rm%*", FormatLargeNumber( rankMax ) )
+		end
 		
 	end
 	
@@ -263,39 +256,42 @@ function ArkInventory.Collection.Reputation.LevelText( ... )
 			
 			paragonLevel = paragonLevel - 1
 			
-			if paragonLevel == 0 then
-				result = string.gsub( result, "%*pv%*", "" )
-			else
+			if paragonLevel > 0 then
 				result = string.gsub( result, "%*pv%*", "+" .. FormatLargeNumber( paragonLevel ) )
 			end
 			
 			if hasReward == 1 then
 				result = string.gsub( result, "%*pr%*", rewardIcon )
-			else
-				result = string.gsub( result, "%*pr%*", "" )
 			end
 			
-		else
-			
-			result = string.gsub( result, "%*pv%*", "" )
-			result = string.gsub( result, "%*pr%*", "" )
-			
 		end
-			
-	else
-		
-		result = string.gsub( result, "%*pv%*", "" )
-		result = string.gsub( result, "%*pr%*", "" )
-		
 	end
 	
 	result = string.gsub( result, "%*nn%*", name )
 	result = string.gsub( result, "%*st%*", standingText )
 	
+	-- remove any left over tokens
+	result = string.gsub( result, "%*bv%*", "" )
+	result = string.gsub( result, "%*bm%*", "" )
+	result = string.gsub( result, "%*bc%*", "" )
+	result = string.gsub( result, "%*bp%d?%*", "" )
+	result = string.gsub( result, "%*br%*", "" )
+	result = string.gsub( result, "%*rv%*", "" )
+	result = string.gsub( result, "%*rm%*", "" )
+	result = string.gsub( result, "%*rc%*", "" )
+	result = string.gsub( result, "%*pv%*", "" )
+	result = string.gsub( result, "%*pr%*", "" )
+	
+	-- clean up
+	result = string.gsub( result, "%(%s*/%s*%)", "" )
+	result = string.gsub( result, "%[%s*/%s*%]", "" )
 	result = string.gsub( result, "%(%s*%)", "" )
+	result = string.gsub( result, "%[%s*%]", "" )
 	result = string.gsub( result, "\n$", "" )
 	result = string.gsub( result, "|n$", "" )
-	result = string.gsub( result, "  ", " " )
+	result = string.gsub( result, "%s%s", " " )
+	result = string.gsub( result, ",%s*,", "," )
+	result = string.gsub( result, ",*$", "" )
 	result = string.trim( result )
 	
 	return result
@@ -343,15 +339,13 @@ function ArkInventory.Collection.Reputation.ListSetActive( index, state, bulk )
 	local entry = ArkInventory.Collection.Reputation.GetByIndex( index )
 	if entry then
 		
-		--ArkInventory.Output( state, " / ", entry.active )
-		
 		if state and not entry.active then
-			--ArkInventory.Output2( "Active: INDEX[=", entry.index, "] NAME=[", entry.name, "]" )
+			--ArkInventory.Output( "Active: INDEX[=", entry.index, "] NAME=[", entry.name, "]" )
 			SetFactionActive( entry.index )
 		end
 		
 		if not state and entry.active then
-			--ArkInventory.Output2( "Inactive: INDEX[=", entry.index, "] NAME=[", entry.name, "]" )
+			--ArkInventory.Output( "Inactive: INDEX[=", entry.index, "] NAME=[", entry.name, "]" )
 			SetFactionInactive( entry.index )
 		end
 		
@@ -417,41 +411,44 @@ local function ScanBase( id )
 		
 		if id > 0 then
 			
-			local name, description, standingID, barMin, barMax, repValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus = GetFactionInfoByID( id )
+			local factionInfo = ArkInventory.CrossClient.GetFactionInfo( id )
+			if factionInfo then
 			
-			if name and name ~= "" then
-				
-				cache[id] = {
-					id = id,
-					link = string.format( "reputation:%s", id ),
-					name = name,
-					description = description,
-					canToggleAtWar = canToggleAtWar,
-					hasRep = hasRep,
-				}
-				
-				collection.numTotal = collection.numTotal + 1
-				
-				ArkInventory.db.cache.reputation[id] = {
-					n = name,
-					d = description,
-					w = canToggleAtWar,
-					r = hasRep,
-				}
-				
-			else
-				
-				local cr = ArkInventory.db.cache.reputation[id]
-				if cr then
+				if factionInfo.name and factionInfoname ~= "" then
+					
 					cache[id] = {
 						id = id,
 						link = string.format( "reputation:%s", id ),
-						name = cr.n,
-						description = cr.d,
-						canToggleAtWar = cr.w,
-						hasRep = cr.r,
-						icon = ArkInventory.Global.Location[ArkInventory.Const.Location.Reputation].Texture
+						name = factionInfo.name,
+						description = factionInfo.description,
+						canToggleAtWar = factionInfo.canToggleAtWar,
+						hasRep = factionInfo.hasRep,
 					}
+					
+					collection.numTotal = collection.numTotal + 1
+					
+					ArkInventory.db.cache.reputation[id] = {
+						n = factionInfo.name,
+						d = factionInfo.description,
+						w = factionInfo.canToggleAtWar,
+						r = factionInfo.hasRep,
+					}
+					
+				else
+					
+					local cr = ArkInventory.db.cache.reputation[id]
+					if cr then
+						cache[id] = {
+							id = id,
+							link = string.format( "reputation:%s", id ),
+							name = cr.n,
+							description = cr.d,
+							canToggleAtWar = cr.w,
+							hasRep = cr.r,
+							icon = ArkInventory.Global.Location[ArkInventory.Const.Location.Reputation].Texture
+						}
+					end
+					
 				end
 				
 			end
@@ -515,265 +512,295 @@ local function Scan_Threaded( thread_id )
 	local parentIndex
 	local childIndex
 	
-	for index = 1, GetNumFactions( ) do
+	for index = 1, ArkInventory.CrossClient.GetNumFactions( ) do
 		
 		YieldCount = YieldCount + 1
 		
 		if ReputationFrame:IsVisible( ) then
-			--ArkInventory.Output( "ABORTED (REPUTATION FRAME WAS OPENED)" )
+			ArkInventory.OutputDebug( "ABORTED (REPUTATION FRAME WAS OPENED)" )
 			--FilterActionRestore( )
 			--return
 		end
 		
-		local name, description, standingID, barMin, barMax, repValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canBeLFGBonus = GetFactionInfo( index )
-		--ArkInventory.Output2( index, " = ", name )
-		
-		if not factionID then
-			-- cater for list headers like other and inactive that dont have a faction id assigned to them
-			fakeID = fakeID - 1
-			factionID = fakeID
-		end
-		
-		if not list[index] then
-			list[index] = {
-				index = index,
-				id = factionID,
-				name = name,
-				isHeader = isHeader,
-				isChild = isChild,
-				parentIndex = nil,
-				data = nil, -- will eventually point to a cache entry
-			}
-		end
-		
-		if isHeader then
+		local factionInfo = ArkInventory.CrossClient.GetFactionInfo( index )
+		if factionInfo then
 			
-			childIndex = index
+			--ArkInventory.OutputDebug( index, " = ", factionInfo )
 			
-			if isChild then
-				
-				list[index].parentIndex = parentIndex
-				
+			if factionInfo.factionID then
+				factionID = factionInfo.factionID
 			else
-				
-				if name == ArkInventory.Localise["FACTION_INACTIVE"] then
-					--ArkInventory.Output2( "inactive reputation header at ", index, " = ", name )
-					active = false
-				end
-				
-				parentIndex = index
-				
+				-- cater for list headers like other and inactive that dont have a faction id assigned to them
+				fakeID = fakeID - 1
+				factionID = fakeID
 			end
 			
-		else
+			if not list[index] then
+				list[index] = {
+					index = index,
+					id = factionID,
+					name = factionInfo.name,
+					description = factionInfo.description,
+					isHeader = factionInfo.isHeader,
+					hasRep = factionInfo.hasRep,
+					isChild = factionInfo.isChild,
+					parentIndex = nil,
+					data = nil, -- will eventually point to a cache entry
+				}
+			end
 			
-			local id = name and name ~= "" and factionID
-			if id then
+			if factionInfo.isHeader then
 				
-				numOwned = numOwned + 1
+				childIndex = index
 				
-				if not cache[id] then
-					ScanBase( id )
-					update = true
-				end
-				
-				list[index].data = cache[id]
-				list[index].parentIndex = childIndex
-				
-				
-				-- update cached data if changed
-				
-				if cache[id].index ~= index then
-					cache[id].index = index
-					update = true
-				end
-				
-				if cache[id].name ~= name then
-					cache[id].name = name
-					update = true
-				end
-				
-				if cache[id].owned ~= true then
-					cache[id].owned = true
-					update = true
-				end
-				
-				if cache[id].atWarWith ~= atWarWith then
-					cache[id].atWarWith = atWarWith
-					update = true
-				end
-				
-				if cache[id].isWatched ~= isWatched then
-					cache[id].isWatched = isWatched
-					update = true
-				end
-				
-				if cache[id].hasRep ~= hasRep then
-					cache[id].hasRep = hasRep
-					update = true
-				end
-				
-				local icon = ArkInventory.Global.Location[ArkInventory.Const.Location.Reputation].Texture
-				local barValue = 0
-				local standingMax = 0
-				local standingText = ""
-				local isCapped = 0
-				local paragonLevel = 0
-				local hasParagonReward = 0
-				
-				local friendID, friendRep, friendMaxRep, friendName, friendText, friendTexture, friendTextLevel, friendBarMin, friendBarMax = ArkInventory.CrossClient.GetFriendshipReputation( id )
-				if friendID then
+				if factionInfo.isChild then
 					
-					cache[id].friendID = friendID
-					
-					local currentFriendRank, maxFriendRank = GetFriendshipReputationRanks( friendID )
-					
-					if not friendTexture then
-						friendTexture = [[Interface\Challenges\challenges-copper]]
-					end
-					
-					icon = friendTexture
-					standingID = currentFriendRank
-					standingMax = maxFriendRank
-					standingText = friendTextLevel
-					repValue = friendRep
-					
-					if friendBarMax then
-						barMin = friendBarMin
-						barMax = friendBarMax
-					else
-						barMin = repValue
-						barMax = repValue
-					end
+					list[index].parentIndex = parentIndex
 					
 				else
 					
-					local isMajorFaction = factionID and C_Reputation and C_Reputation.IsMajorFaction and C_Reputation.IsMajorFaction( factionID )
-					local factionData = factionID and C_GossipInfo and C_GossipInfo.GetFriendshipReputation and C_GossipInfo.GetFriendshipReputation( factionID )
-					if factionData and factionData.friendshipFactionID > 0 then
-						
-						cache[id].friendID = factionData.friendshipFactionID
-						
-						standingText = factionData.reaction
-						
-						if factionData.nextThreshold then
-							barMin = factionData.reactionThreshold
-							barMax = factionData.nextThreshold
-							repValue = factionData.standing
-						else
-							barMin = 0
-							barMax = 1
-							repValue = 1
-							isCapped = 1
-						end
-						
-					elseif isMajorFaction then
-						
-						factionData = C_MajorFactions.GetMajorFactionData( factionID )
-						barMin = 0
-						barMax = factionData.renownLevelThreshold
-						isCapped = C_MajorFactions.HasMaximumRenown( factionID )
-						repValue = isCapped and factionData.renownLevelThreshold or factionData.renownReputationEarned or 0
-						standingText = RENOWN_LEVEL_LABEL .. factionData.renownLevel
-						isCapped = isCapped and 1 or 0
-						
-					else
-						
-						standingMax = MAX_REPUTATION_REACTION
-						standingText = _G["FACTION_STANDING_LABEL" .. standingID] or ArkInventory.Localise["UNKNOWN"]
-						
+					if factionInfo.name == ArkInventory.Localise["FACTION_INACTIVE"] then
+						--ArkInventory.OutputDebug( "REPUTATION: inactive header at ", index, " = ", factionInfo )
+						active = false
 					end
 					
+					parentIndex = index
+					
 				end
 				
-				if atWarWith then
-					icon = [[Interface\Calendar\UI-Calendar-Event-PVP]]
-				end
+			end
+			
+			if (not factionInfo.isHeader) or factionInfo.hasRep then
 				
-				
-				if standingID == standingMax then
-					if false then -- fix me
-						-- dont care if youre 1/1000 or 1000/1000 in the last rank
-						-- its really only important for the paragon reps as you have to get to the end to start the paragon stage (unless thats changed)
-						isCapped = 1
-					else
-						if repValue == barMax and barMax == barMin then
-							isCapped = 1
-						end
+				local id = factionInfo.name and factionInfo.name ~= "" and factionID
+				if id then
+					
+					numOwned = numOwned + 1
+					
+					if not cache[id] then
+						ScanBase( id )
+						update = true
 					end
-				end
-				
-				local isParagon = ArkInventory.CrossClient.IsFactionParagon( id )
-				if isParagon then
 					
-					-- reputation level stops at exalted 42,000 - paragon values take over from there
+					list[index].data = cache[id]
 					
-					-- highmountain
-					-- /dump GetFactionInfoByID( 1828 )
-					-- /dump C_Reputation.GetFactionParagonInfo( 1828 ) 
+					if not factionInfo.isHeader then
+						list[index].parentIndex = childIndex
+					end
 					
-					local paragonValue, paragonThreshold, paragonRewardQuestID, hasParagonRewardPending, tooLowLevelForParagon = C_Reputation.GetFactionParagonInfo( id )
+					-- update cached data if changed
 					
-					if paragonValue and paragonThreshold and not tooLowLevelForParagon then
+					if cache[id].index ~= index then
+						cache[id].index = index
+						update = true
+					end
+					
+					if cache[id].name ~= factionInfo.name then
+						cache[id].name = factionInfo.name
+						update = true
+					end
+					
+					if cache[id].owned ~= true then
+						cache[id].owned = true
+						update = true
+					end
+					
+					if cache[id].atWarWith ~= factionInfo.atWarWith then
+						cache[id].atWarWith = factionInfo.atWarWith
+						update = true
+					end
+					
+					if cache[id].isWatched ~= factionInfo.isWatched then
+						cache[id].isWatched = factionInfo.isWatched
+						update = true
+					end
+					
+					if cache[id].hasRep ~= factionInfo.hasRep then
+						cache[id].hasRep = factionInfo.hasRep
+						update = true
+					end
+					
+					
+					
+					local friendID = 0
+					local icon = ArkInventory.Global.Location[ArkInventory.Const.Location.Reputation].Texture
+					local standingText = ""
+					local barValue = 0
+					local barMin = 0
+					local barMax = 0
+					local rankValue = 0
+					local rankMax = MAX_REPUTATION_REACTION
+					local isCapped = 0
+					local paragonLevel = 0
+					local paragonRewardPending = 0
+					
+					local isMajorFaction = ArkInventory.CrossClient.IsMajorFaction( id )
+					
+					local isMajorFaction = ArkInventory.CrossClient.IsMajorFaction( id )
+					if isMajorFaction then
 						
-						standingText = ArkInventory.Localise["PARAGON"]
-						paragonLevel = math.floor( paragonValue / paragonThreshold ) + 1
-						barMin = 0
-						barMax = paragonThreshold
-						hasParagonReward = hasParagonRewardPending and 1 or 0
-						repValue = paragonValue % paragonThreshold
+						-- renown factions (numeric based rank levels)
 						
-						if hasParagonRewardPending then
-							icon = [[Interface\ICONS\INV_Misc_Coin_01]]
+						--ArkInventory.OutputDebug( id, " = ", factionInfo.name, " = renown" )
+						
+						local factionInfo = ArkInventory.CrossClient.GetMajorFactionData( id )
+						if factionInfo then
 							
-							if not cache[id].notify then
-								ArkInventory.Output( GREEN_FONT_COLOR_CODE, "ALERT> A paragon reward for ", cache[id].name, " is ready for collection" )
-								cache[id].notify = true
+							barMax = factionInfo.renownLevelThreshold
+							isCapped = ArkInventory.CrossClient.HasMaximumRenown( id )
+							barValue = isCapped and factionInfo.renownLevelThreshold or factionInfo.renownReputationEarned or 0
+							standingText = string.format( "%s%s", RENOWN_LEVEL_LABEL, factionInfo.renownLevel )
+							isCapped = isCapped and 1 or 0
+							rankValue = factionInfo.renownLevel
+							rankMax = #ArkInventory.CrossClient.GetRenownLevels( id )
+						end
+						
+					else
+						
+						-- 2526 winterpelt
+						
+						local friendInfo = ArkInventory.CrossClient.GetFriendshipReputation( id )
+						if friendInfo then
+							
+							-- friendship based faction (customised rank levels)
+							
+							--ArkInventory.OutputDebug( id, " = ", factionInfo.name, " = friend" )
+							
+							friendID = friendInfo.friendshipFactionID
+							icon = friendInfo.texture or icon --[[Interface\Challenges\challenges-copper]]
+							standingText = friendInfo.reaction
+							
+							local rankInfo = ArkInventory.CrossClient.GetFriendshipReputationRanks( friendID )
+							if rankInfo then
+								rankValue = rankInfo.currentLevel
+								rankMax = rankInfo.maxLevel
+							end
+							
+							if friendInfo.nextThreshold then
+								barMin = friendInfo.reactionThreshold
+								barMax = friendInfo.nextThreshold
+								barValue = friendInfo.standing
+							else
+								barMin = 0
+								barMax = 0
+								barValue = 0
+								isCapped = 1
+							end
+							
+						else
+							
+							-- original rank levels (hated to exalted)
+							
+							--ArkInventory.OutputDebug( id, " = ", factionInfo.name, " = normal" )
+							
+							barValue = factionInfo.barValue
+							barMin = factionInfo.barMin
+							barMax = factionInfo.barMax
+							
+							rankValue = factionInfo.standingID
+							rankMax = MAX_REPUTATION_REACTION or 8
+							
+							standingText = _G["FACTION_STANDING_LABEL" .. rankValue] or ArkInventory.Localise["UNKNOWN"]
+							
+						end
+						
+					end
+					
+					
+					
+					if factionInfo.atWarWith then
+						icon = [[Interface\Calendar\UI-Calendar-Event-PVP]]
+					end
+					
+					
+					if rankValue == rankMax then
+						
+						if barValue == barMax and barMax == barMin then
+							isCapped = 1
+						end
+						
+						rankValue = 0
+						rankMax = 0
+						
+					end
+					
+					local isParagon = ArkInventory.CrossClient.IsFactionParagon( id )
+					if isParagon then
+						
+						-- reputation level stops at exalted 42,000 - paragon values take over from there
+						
+						-- highmountain
+						-- /dump GetFactionInfoByID( 1828 )
+						-- /dump C_Reputation.GetFactionParagonInfo( 1828 )
+						
+						-- 2510 = valdrakken accord C_Reputation.GetFactionParagonInfo(2510)
+						-- artisans consortium
+						-- /dump C_Reputation.GetFactionParagonInfo( 2544 )
+						
+						local paragonInfo = ArkInventory.CrossClient.GetFactionParagonInfo( id )
+						
+						if paragonInfo and paragonInfo.value and paragonInfo.threshold and not paragonInfo.tooLowLevel then
+							
+							standingText = ArkInventory.Localise["PARAGON"]
+							paragonLevel = math.floor( paragonInfo.value / paragonInfo.threshold ) + 1
+							barMin = 0
+							barMax = paragonInfo.threshold
+							barValue = paragonInfo.value % paragonInfo.threshold
+							
+							paragonRewardPending = paragonInfo.rewardPending and 1 or 0
+							if paragonRewardPending == 1 then
+								
+								icon = [[Interface\ICONS\INV_Misc_Coin_01]]
+								
+								if not cache[id].notify then
+									ArkInventory.Output( GREEN_FONT_COLOR_CODE, "ALERT> A paragon reward for ", cache[id].name, " is ready for collection" )
+									cache[id].notify = true
+								end
+								
 							end
 							
 						end
 						
 					end
 					
-				end
-				
-				barMax = barMax - barMin
-				barValue = repValue - barMin
-				
-				
-				if cache[id].isCapped ~= isCapped then
-					cache[id].isCapped = isCapped
-					update = true
-				end
-				
-				if cache[id].barValue ~= barValue then
 					
-					cache[id].repValue = repValue
-					cache[id].standingText = standingText
-					cache[id].barMin = barMin
-					cache[id].barMax = barMax
-					cache[id].barValue = barValue
-					cache[id].paragonLevel = paragonLevel
-					cache[id].hasParagonReward = paragonLevel > 0 and hasParagonReward
+					cache[id].friendID = friendID
 					
-					cache[id].icon = icon or ""
+					if cache[id].isCapped ~= isCapped then
+						cache[id].isCapped = isCapped
+						update = true
+					end
 					
-					-- custom itemlink, not blizzard supported
-					--ArkInventory.Output( { id, standingText, barValue, barMax, isCapped, paragonLevel, hasParagonReward } )
-					cache[id].link = string.format( "reputation:%s:%s:%s:%s:%s:%s:%s", id, standingText, barValue, barMax, isCapped, paragonLevel, hasParagonReward )
+					barMax = barMax - barMin
+					barValue = barValue - barMin
 					
-					update = true
+					if cache[id].barValue ~= barValue then
+						
+						cache[id].icon = icon or ""
+						cache[id].standingText = standingText
+						cache[id].barValue = barValue
+						cache[id].barMin = barMin
+						cache[id].barMax = barMax
+						cache[id].paragonLevel = paragonLevel
+						cache[id].paragonRewardPending = paragonLevel > 0 and paragonRewardPending
+						cache[id].rankMax = rankMax
+						cache[id].rankValue = rankValue
+						
+						-- custom itemlink, not blizzard supported
+						--ArkInventory.Output( { id, standingText, barValue, barMax, isCapped, paragonLevel, paragonRewardPending, rankValue, rankMax } )
+						cache[id].link = string.format( "reputation:%s:%s:%s:%s:%s:%s:%s:%s:%s:%s", id or 0, standingText or "", barValue or 0, barMin or 0, barMax or 0, isCapped or 0, paragonLevel or 0, paragonRewardPending or 0, rankValue or 0, rankMax or 0)
+						
+						update = true
+						
+					end
 					
 				end
 				
 			end
 			
-		end
-		
-		list[index].active = active
-		
-		if isHeader then
-			--ArkInventory.Output2( list[index] )
+			list[index].active = active
+			--ArkInventory.Output( list[index].name, " = ", list[index].active )
+			
 		end
 		
 		if YieldCount % ArkInventory.Const.YieldAfter == 0 then
@@ -842,7 +869,7 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_REPUTATION_UPDATE_BUCKET( events )
 	if ArkInventory.Global.Mode.Combat then
 		-- set to scan when leaving combat
 		--ArkInventory.Output( "IGNORED (YOU ARE IN COMBAT - WILL SCAN WHEN OUT OF COMBAT)" )
-		ArkInventory.Global.LeaveCombatRun[loc_id] = true
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
 		return
 	end
 	

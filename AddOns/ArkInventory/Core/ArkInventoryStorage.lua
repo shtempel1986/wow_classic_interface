@@ -360,9 +360,9 @@ function ArkInventory:EVENT_ARKINV_COMBAT_LEAVE( ... )
 	
 	ArkInventory.Global.Mode.Combat = false
 	
-	for loc_id in pairs( ArkInventory.Global.LeaveCombatRun ) do
+	for loc_id in pairs( ArkInventory.Global.ScanAfterCombat ) do
 		
-		ArkInventory.Global.LeaveCombatRun[loc_id] = nil
+		ArkInventory.Global.ScanAfterCombat[loc_id] = nil
 		
 		if loc_id == ArkInventory.Const.Location.Pet then
 			ArkInventory:SendMessage( "EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET", "EXIT_COMBAT" )
@@ -466,7 +466,7 @@ function ArkInventory:EVENT_ARKINV_BAG_UPDATE_BUCKET( bucket )
 			local bt = ArkInventory.BagType( blizzard_id )
 			if bt == ArkInventory.Const.Slot.Type.Projectile then
 				ArkInventory.OutputDebug( "IGNORED - IN COMBAT - PROJECTILE BAG [", blizzard_id, "]" )
-				ArkInventory.Global.LeaveCombatRun[ArkInventory.Const.Location.Bag] = true
+				ArkInventory.Global.ScanAfterCombat[ArkInventory.Const.Location.Bag] = true
 				bucket[blizzard_id] = nil
 			end
 		end
@@ -1156,7 +1156,8 @@ function ArkInventory:EVENT_ARKINV_MAIL_ENTER( ... )
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	end
 	
-	ArkInventory.Action.Mail.Send( )
+	ArkInventory.Global.Action.Mail.process = true
+	--ArkInventory.Action.Mail.Send( )
 	
 end
 
@@ -1166,6 +1167,7 @@ function ArkInventory:EVENT_ARKINV_MAIL_LEAVE_BUCKET( ... )
 	ArkInventory.OutputDebug( "EVENT: MAIL_LEAVE - ", event )
 	
 	ArkInventory.Global.Mode.Mailbox = false
+	ArkInventory.Global.Action.Mail.process = false
 	ArkInventory.Global.Action.Mail.running = false
 	
 	local loc_id = ArkInventory.Const.Location.Mailbox
@@ -1198,15 +1200,6 @@ function ArkInventory:EVENT_ARKINV_MAIL_LEAVE( ... )
 	ArkInventory:SendMessage( "EVENT_ARKINV_MAIL_LEAVE_BUCKET", event )
 end
 
-function ArkInventory:EVENT_ARKINV_MAIL_UPDATE_BUCKET( ... )
-	
-	local event = ...
-	ArkInventory.OutputDebug( "EVENT: ", event )
-	
-	ArkInventory.ScanMailbox( )
-	
-end
-
 function ArkInventory:EVENT_ARKINV_MAIL_UPDATE_MASSIVE_BUCKET( )
 	
 	local event = "MAIL_UPDATE_MASSIVE"
@@ -1216,9 +1209,22 @@ function ArkInventory:EVENT_ARKINV_MAIL_UPDATE_MASSIVE_BUCKET( )
 	
 end
 
+function ArkInventory:EVENT_ARKINV_MAIL_UPDATE_BUCKET( ... )
+	
+	local event = ...
+	ArkInventory.OutputDebug( "EVENT: ", event )
+	
+	ArkInventory.ScanMailbox( )
+	
+end
+
 function ArkInventory:EVENT_ARKINV_MAIL_UPDATE( ... )
+	
+	ArkInventory.Action.Mail.Send( )
+	
 	local event = ...
 	ArkInventory:SendMessage( "EVENT_ARKINV_MAIL_UPDATE_BUCKET", event )
+	
 end
 
 
@@ -1638,25 +1644,6 @@ end
 function ArkInventory:EVENT_ARKINV_ZONE_CHANGED( ... )
 	local event = ...
 	ArkInventory:SendMessage( "EVENT_ARKINV_ZONE_CHANGED_BUCKET", event )
-end
-
-function ArkInventory:EVENT_ARKINV_PLAYER_INTERACTION_SHOW( ... )
-	local event, index = ...
-	ArkInventory.OutputDebug( "EVENT: ", event, ", ", index )
-	ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.SHOW, event )
-end
-
-function ArkInventory:EVENT_ARKINV_PLAYER_INTERACTION_HIDE( ... )
-	local event, index = ...
-	ArkInventory.OutputDebug( "EVENT: ", event, ", ", index )
-	ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.HIDE, event )
-end
-
-function ArkInventory.HookCovenantSanctumDepositAnima( )
---	if not ArkInventory:IsEnabled( ) then return end
---	if IsMounted( ) then
---		ArkInventory.OutputError( ERR_NOT_WHILE_MOUNTED )
---	end
 end
 
 function ArkInventory.HookC_TradeSkillUI_SetTooltipRecipeResultItem( ... )
@@ -4271,7 +4258,7 @@ function ArkInventory.ScanCollectionReputation_Threaded( blizzard_id, loc_id, ba
 			
 			local h = object.link
 			local sb = ArkInventory.ENUM.BIND.PICKUP
-			local count = object.repValue
+			local count = object.barValue
 			
 			local changed_item = ArkInventory.ScanChanged( i, h, sb, count )
 			

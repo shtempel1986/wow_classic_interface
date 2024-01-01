@@ -1,13 +1,13 @@
-## Interface: 11404
+## Interface: 11500
 
 ## Title: ArkInventory [Classic]
+## Notes: Allows you to view all items from all your characters on the same account, when ever and where ever you want.
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31018
+## Version: 31022
 ## X-ReleaseType: 
 ## SavedVariables: ARKINVDB
-
-## Notes: Allows you to view all items from all your characters on the same account, when ever and where ever you want.
+## IconTexture: Interface\Icons\INV_Misc_Bag_07_Green
 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
@@ -15,7 +15,7 @@
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Always: delayed
 
-## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0, BattlePetBreedID, Outfitter, ItemRack, GearQuipper, GearQuipper-TBC, ClosetGnome, SellJunk, Scrap, ReagentRestocker, TradeSkillMaster, Skillet, Peddler
+## OptionalDeps: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0, BattlePetBreedID, Outfitter, ItemRack, GearQuipper, GearQuipper-TBC, ClosetGnome, SellJunk, Scrap, ReagentRestocker, TradeSkillMaster, Skillet, Peddler, WeakAuras
 ## X-Embeds: Ace3, AceGUI-3.0-SharedMediaWidgets, LibPeriodicTable-3.1, LibSharedMedia-3.0, LibDataBroker-1.1, LibDialog-1.0
 
 ## X-Category: Inventory

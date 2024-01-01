@@ -843,11 +843,16 @@ function ArkInventory.ItemCategoryGetDefaultActual( i )
 	
 	-- quest items (some are grey)
 	if info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.QUEST.PARENT or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Quest" ) then
-		return ArkInventory.CategoryGetSystemID( "SYSTEM_QUEST" )
+		if not ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Junk.Quest" ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_QUEST" )
+		end
 	end
 	
 	-- cosmetic items (tooltip check is further down)
 	if ( info.itemtypeid == ArkInventory.ENUM.ITEM.TYPE.ARMOR.PARENT and info.itemsubtypeid == ArkInventory.ENUM.ITEM.TYPE.ARMOR.COSMETIC ) or ArkInventory.CrossClient.IsItemCosmetic( i.h ) or ArkInventory.PT_ItemInSets( i.h, "ArkInventory.System.Equipment.Cosmetic" ) then
+		if ArkInventory.TooltipContains( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["ALREADY_KNOWN"], false, true, false, ArkInventory.Const.Tooltip.Search.Base ) then
+			return ArkInventory.CategoryGetSystemID( "SYSTEM_JUNK" )
+		end
 		return ArkInventory.CategoryGetSystemID( "SYSTEM_EQUIPMENT_COSMETIC" )
 	end
 	

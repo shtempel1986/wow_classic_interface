@@ -29,7 +29,7 @@ function ArkInventory.Mailbox.Scan( )
 	
 	if ArkInventory.Global.Mode.Combat then
 		-- set to scan when leaving combat
-		ArkInventory.Global.LeaveCombatRun[loc_id] = true
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
 		return
 	end
 	

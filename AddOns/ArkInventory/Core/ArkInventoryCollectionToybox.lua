@@ -336,7 +336,7 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_TOYBOX_UPDATE_BUCKET( events )
 	if not ArkInventory:IsEnabled( ) then return end
 	
 	if ArkInventory.Global.Mode.Combat then
-		ArkInventory.Global.LeaveCombatRun[loc_id] = true
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
 		return
 	end
 	

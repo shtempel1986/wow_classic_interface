@@ -10,7 +10,7 @@ local C_PetJournal = _G.C_PetJournal
 local C_PetBattles = _G.C_PetBattles
 
 local loc_id = ArkInventory.Const.Location.Pet
-local BreedAvailable = IsAddOnLoaded( "BattlePetBreedID" )
+local BreedAvailable = ArkInventory.CrossClient.IsAddOnLoaded( "BattlePetBreedID" )
 
 ArkInventory.Collection.Pet = { }
 
@@ -1997,7 +1997,7 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET( events )
 	
 	if ArkInventory.Global.Mode.Combat then
 		-- set to scan when leaving combat
-		ArkInventory.Global.LeaveCombatRun[loc_id] = true
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
 		return
 	end
 	

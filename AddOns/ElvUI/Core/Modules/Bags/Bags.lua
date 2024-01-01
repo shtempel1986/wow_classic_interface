@@ -20,7 +20,6 @@ local GameTooltip = GameTooltip
 local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
 local GetCursorMoney = GetCursorMoney
-local GetCVarBool = GetCVarBool
 local GetInventoryItemTexture = GetInventoryItemTexture
 local GetItemInfo = GetItemInfo
 local GetItemQualityColor = GetItemQualityColor
@@ -52,6 +51,7 @@ local IsBagOpen, IsOptionFrameOpen = IsBagOpen, IsOptionFrameOpen
 local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
 local CloseBag, CloseBackpack, CloseBankFrame = CloseBag, CloseBackpack, CloseBankFrame
 
+local TokenFrame_Update = TokenFrame_Update
 local EditBox_HighlightText = EditBox_HighlightText
 local BankFrameItemButton_Update = BankFrameItemButton_Update
 local BankFrameItemButton_UpdateLocked = BankFrameItemButton_UpdateLocked
@@ -66,6 +66,8 @@ local C_NewItems_IsNewItem = C_NewItems.IsNewItem
 local C_NewItems_RemoveNewItem = C_NewItems.RemoveNewItem
 local C_Item_IsBound = C_Item.IsBound
 
+local GetCVarBool = C_CVar.GetCVarBool
+local SetCurrencyBackpack = SetCurrencyBackpack or (C_CurrencyInfo and C_CurrencyInfo.SetCurrencyBackpack)
 local SortBags = SortBags or (C_Container and C_Container.SortBags)
 local SortBankBags = SortBankBags or (C_Container and C_Container.SortBankBags)
 local SortReagentBankBags = SortReagentBankBags or (C_Container and C_Container.SortReagentBankBags)
@@ -96,15 +98,16 @@ local LE_ITEM_CLASS_QUESTITEM = LE_ITEM_CLASS_QUESTITEM
 local REAGENTBANK_PURCHASE_TEXT = REAGENTBANK_PURCHASE_TEXT
 local BINDING_NAME_TOGGLEKEYRING = BINDING_NAME_TOGGLEKEYRING
 
-local BANK_CONTAINER = BANK_CONTAINER
-local BACKPACK_CONTAINER = BACKPACK_CONTAINER
-local REAGENTBANK_CONTAINER = REAGENTBANK_CONTAINER
-local KEYRING_CONTAINER = KEYRING_CONTAINER
-local REAGENT_CONTAINER = E.Retail and 5 or math.huge -- impossible id to prevent code on classic
+local BANK_CONTAINER = Enum.BagIndex.Bank
+local BACKPACK_CONTAINER = Enum.BagIndex.Backpack
+local REAGENTBANK_CONTAINER = Enum.BagIndex.Reagentbank
+local KEYRING_CONTAINER = Enum.BagIndex.Keyring
+local REAGENT_CONTAINER = Enum.BagIndex.ReagentBag
 
 local BAG_FILTER_ASSIGN_TO = BAG_FILTER_ASSIGN_TO
 local BAG_FILTER_CLEANUP = BAG_FILTER_CLEANUP
 local BAG_FILTER_IGNORE = BAG_FILTER_IGNORE
+local SELL_ALL_JUNK_ITEMS = SELL_ALL_JUNK_ITEMS_EXCLUDE_FLAG
 
 local BagSlotFlags = Enum.BagSlotFlags
 local FILTER_FLAG_TRADE_GOODS = (BagSlotFlags and BagSlotFlags.PriorityTradeGoods) or LE_BAG_FILTER_FLAG_TRADE_GOODS
@@ -113,6 +116,7 @@ local FILTER_FLAG_EQUIPMENT = (BagSlotFlags and BagSlotFlags.PriorityEquipment) 
 local FILTER_FLAG_IGNORE = (BagSlotFlags and BagSlotFlags.DisableAutoSort) or LE_BAG_FILTER_FLAG_IGNORE_CLEANUP
 local FILTER_FLAG_JUNK = (BagSlotFlags and BagSlotFlags.PriorityJunk) or LE_BAG_FILTER_FLAG_JUNK
 local FILTER_FLAG_QUEST = (BagSlotFlags and BagSlotFlags.PriorityQuestItems) or 32 -- didnt exist
+local FILTER_FLAG_JUNKSELL = (BagSlotFlags and BagSlotFlags.ExcludeJunkSell) or 64 -- didnt exist
 
 local READY_TEX = [[Interface\RaidFrame\ReadyCheck-Ready]]
 local NOT_READY_TEX = [[Interface\RaidFrame\ReadyCheck-NotReady]]
@@ -134,6 +138,7 @@ B.GearFilters = {
 }
 
 if not E.Classic then
+	tinsert(B.GearFilters, FILTER_FLAG_JUNKSELL)
 	tinsert(B.GearFilters, FILTER_FLAG_QUEST)
 end
 
@@ -887,7 +892,7 @@ end
 function B:GetBagAssignedInfo(holder, isBank)
 	local active, icon, color = B:GetFilterFlagInfo(holder.BagID, isBank)
 
-	if holder.filterIcon then
+	if holder.filterIcon and icon then
 		holder.filterIcon:SetTexture(icon)
 		holder.filterIcon:SetShown(active and B.db.showAssignedIcon)
 	end
@@ -1812,6 +1817,7 @@ function B:ConstructContainerFrame(name, isBank)
 			f.reagentToggle:SetScript('OnClick', function()
 				PlaySound(841) --IG_CHARACTER_INFO_TAB
 				B:ShowBankTab(f, f.holderFrame:IsShown())
+				B:SetBankSelectedTab() -- the hook doesnt trigger by this button
 			end)
 
 			--Deposite Reagents Button
@@ -2180,7 +2186,9 @@ function B:ToggleSortButtonState(isBank)
 end
 
 function B:ContainerOnShow()
-	B:SetListeners(self)
+	if not self.sortingSlots then
+		B:SetListeners(self)
+	end
 end
 
 function B:ContainerOnHide()
@@ -2245,11 +2253,15 @@ function B:CloseBags()
 	TT:GameTooltip_SetDefaultAnchor(GameTooltip)
 end
 
+function B:SetBankSelectedTab()
+	_G.BankFrame.selectedTab = B.BankTab or 1
+end
+
 function B:ShowBankTab(f, showReagent)
-	local previousTab = _G.BankFrame.selectedTab
+	local previousTab = B.BankTab
 
 	if showReagent then
-		_G.BankFrame.selectedTab = 2
+		B.BankTab = 2
 
 		if E.Retail then
 			f.reagentFrame:Show()
@@ -2260,7 +2272,7 @@ function B:ShowBankTab(f, showReagent)
 		f.holderFrame:Hide()
 		f.editBox:Point('RIGHT', f.sortButton, 'LEFT', -5, 0)
 	else
-		_G.BankFrame.selectedTab = 1
+		B.BankTab = 1
 
 		if E.Retail then
 			f.reagentFrame:Hide()
@@ -2272,7 +2284,7 @@ function B:ShowBankTab(f, showReagent)
 		f.editBox:Point('RIGHT', f.fullBank and f.bagsButton or f.purchaseBagButton, 'LEFT', -5, 0)
 	end
 
-	if previousTab ~= _G.BankFrame.selectedTab then
+	if previousTab ~= B.BankTab then
 		B:Layout(true)
 	else
 		B:UpdateLayout(f)
@@ -2324,7 +2336,7 @@ function B:OpenBank()
 
 	-- allow opening reagent tab directly by holding Shift
 	-- keep this over update slots for bank slot assignments
-	B:ShowBankTab(B.BankFrame, IsShiftKeyDown())
+	B:ShowBankTab(B.BankFrame, E.Retail and IsShiftKeyDown())
 
 	if B.BankFrame.firstOpen then
 		B:UpdateAllSlots(B.BankFrame)
@@ -2733,6 +2745,33 @@ function B:UpdateBindLines(_, cvar)
 	end
 end
 
+function B:TokenFrame_SetTokenWatched(id, watched)
+	SetCurrencyBackpack(id, watched)
+	TokenFrame_Update()
+
+	B:UpdateTokensIfVisible()
+end
+
+function B:GetBagFlagMenu(flag, text)
+	local menu = { text = text }
+
+	menu.checked = function()
+		local holder = B.AssignBagDropdown.holder
+		if holder then
+			return B:GetFilterFlagInfo(holder.BagID, holder.isBank) == flag
+		end
+	end
+
+	menu.func = function(_, _, _, value)
+		local holder = B.AssignBagDropdown.holder
+		if holder then
+			return B:SetFilterFlag(holder.BagID, flag, not value)
+		end
+	end
+
+	return menu
+end
+
 function B:Initialize()
 	B.db = E.db.bags
 
@@ -2756,8 +2795,8 @@ function B:Initialize()
 	}
 
 	local FILTER_ASSIGN = { text = BAG_FILTER_ASSIGN_TO, isTitle = true, notCheckable = true }
-	local FILTER_CLEANUP = { text = BAG_FILTER_CLEANUP, isTitle = true, notCheckable = true }
-	local FILTER_IGNORE = { text = BAG_FILTER_IGNORE,
+	local FILTER_CLEANUP = { text = BAG_FILTER_IGNORE, isTitle = true, notCheckable = true }
+	local FILTER_IGNORE = { text = BAG_FILTER_CLEANUP,
 		checked = function()
 			local holder = B.AssignBagDropdown.holder
 			if holder then
@@ -2780,26 +2819,14 @@ function B:Initialize()
 		end
 	}
 
-	B.AssignMain = { FILTER_CLEANUP, FILTER_IGNORE }
-	B.AssignMenu = { FILTER_ASSIGN, FILTER_CLEANUP, FILTER_IGNORE }
+	local FILTER_JUNKSELL = E.Retail and B:GetBagFlagMenu(FILTER_FLAG_JUNKSELL, SELL_ALL_JUNK_ITEMS)
+
+	B.AssignMain = { FILTER_CLEANUP, FILTER_IGNORE, FILTER_JUNKSELL or nil }
+	B.AssignMenu = { FILTER_ASSIGN, FILTER_CLEANUP, FILTER_IGNORE, FILTER_JUNKSELL or nil }
 
 	for i, flag in next, B.GearFilters do
-		if i ~= FILTER_FLAG_IGNORE then
-			tinsert(B.AssignMenu, i, {
-				text = BAG_FILTER_LABELS[flag],
-				checked = function()
-					local holder = B.AssignBagDropdown.holder
-					if holder then
-						return B:GetFilterFlagInfo(holder.BagID, holder.isBank) == flag
-					end
-				end,
-				func = function(_, _, _, value)
-					local holder = B.AssignBagDropdown.holder
-					if holder then
-						return B:SetFilterFlag(holder.BagID, flag, not value)
-					end
-				end
-			})
+		if i ~= FILTER_FLAG_IGNORE and i ~= FILTER_FLAG_JUNKSELL then
+			tinsert(B.AssignMenu, i, B:GetBagFlagMenu(flag, BAG_FILTER_LABELS[flag]))
 		end
 	end
 
@@ -2880,9 +2907,7 @@ function B:Initialize()
 	if E.Wrath then
 		B:SecureHook('BackpackTokenFrame_Update', 'UpdateTokens')
 	elseif E.Retail then
-		B:SecureHook(_G.BackpackTokenFrame, 'Update', 'UpdateTokensIfVisible')
-		B:SecureHook(_G.BackpackTokenFrame, 'UpdateIfVisible', 'UpdateTokensIfVisible')
-		B:SecureHook(_G.TokenFramePopup.BackpackCheckBox, 'OnClick', 'UpdateTokensIfVisible')
+		B:RawHook('TokenFrame_SetTokenWatched', 'TokenFrame_SetTokenWatched', true)
 	end
 
 	if E.Retail then
@@ -2895,6 +2920,7 @@ function B:Initialize()
 	B:SecureHook('ToggleBag', 'ToggleBags')
 	B:SecureHook('ToggleAllBags', 'ToggleBackpack')
 	B:SecureHook('ToggleBackpack')
+	B:SecureHook('BankFrame_ShowPanel', 'SetBankSelectedTab')
 
 	B:DisableBlizzard()
 	B:UpdateGoldText()

@@ -3615,9 +3615,9 @@ function ArkInventory.MenuLDBTrackingCurrencyListHeaders( offset, level, value )
 		
 		for _, entry in ArkInventory.Collection.Currency.ListIterate( ) do
 			
-			if entry.parentIndex == nil then
+			if entry.parentIndex == nil and entry.name then
 				
-				--ArkInventory.Output2( "HEADER: ", entry )
+				--ArkInventory.OutputDebug( "HEADER: ", entry )
 				
 				local expand = codex.player.data.ldb.tracking.currency.expand[entry.id]
 				local value = string.format( "HEADER_%s", entry.index )
@@ -3697,22 +3697,25 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 		end
 		
 		--ArkInventory.Output2( "" )
-		--ArkInventory.Output2( "HEADER: ", parent.index, " = ", parent.name )
+		--ArkInventory.OutputDebug( "HEADER: ", parent.index, " = ", parent.name )
 		
 		for _, entry in ArkInventory.Collection.Currency.ListIterate( ) do
 			
 			--ArkInventory.Output2( "ENTRY: ", entry.index, " / ", entry.parentIndex, " / ", entry.name, " / ", entry.isHeader )
 			
+			local currencyHeader = entry.isHeader and entry.hasCurrency
+			
 			if entry.parentIndex == parent.index then
 				
 				local data = entry.data
 				
-				if entry.isHeader then
+				if entry.isHeader and entry.index ~= parent.index then
+					
+					currencyHeader = false
 					
 					local expand = codex.player.data.ldb.tracking.currency.expand[entry.id]
 					local value = string.format( "HEADER_%s", entry.index )
-					
-					local text = string.format( "%s%s", ORANGE_FONT_COLOR_CODE, entry.name )
+					local text1 = string.format( "%s%s", ORANGE_FONT_COLOR_CODE, entry.name )
 					local desc = ""
 					
 					if expand then
@@ -3722,8 +3725,8 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 					end
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
-						"text", text,
-						"tooltipTitle", text,
+						"text", text1,
+						"tooltipTitle", text1,
 						"tooltipText", desc,
 						"hasArrow", not expand,
 						"value", value,
@@ -3736,18 +3739,20 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 						ArkInventory.MenuLDBTrackingCurrencyListEntries( value, false, codex )
 					end
 					
-				else
+				end
+				
+				if currencyHeader or not entry.isHeader then
 					
 					local checked = codex.player.data.ldb.tracking.currency.watched[data.id]
-					local text = entry.name
+					local text1 = entry.name
 					
 					if checked then
-						text = string.format( "%s%s", GREEN_FONT_COLOR_CODE, text )
+						text1 = string.format( "%s%s", GREEN_FONT_COLOR_CODE, text1 )
 					end
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
 						"icon", data.icon or "",
-						"text", text,
+						"text", text1,
 						"tooltipTitle", string.format( ArkInventory.Const.Tooltip.customHyperlinkFormat, data.link ),
 						"hasArrow", true,
 						"func", function( )
@@ -3786,7 +3791,6 @@ function ArkInventory.MenuLDBTrackingCurrencyListEntries( value, showTitle, code
 			
 		end
 		
-		
 	end
 	
 end
@@ -3807,6 +3811,8 @@ function ArkInventory.MenuLDBTrackingCurrencyListOptions( value, codex )
 			"text", entry.name,
 			"isTitle", true
 		)
+		
+		ArkInventory.Lib.Dewdrop:AddLine( )
 		
 		-- inactivate / active
 		
@@ -3937,6 +3943,8 @@ function ArkInventory.MenuLDBTrackingReputationListHeaders( offset, level, value
 		
 		if not ArkInventory.isLocationMonitored( loc_id ) then
 			
+			ArkInventory.Lib.Dewdrop:AddLine( )
+			
 			ArkInventory.Lib.Dewdrop:AddLine(
 				self:AddLine( string.format( ArkInventory.Localise["LDB_LOCATION_NOT_MONITORED"], ArkInventory.Global.Location[loc_id].Name ), 1, 0, 0 )
 				"notClickable", true
@@ -3962,7 +3970,7 @@ function ArkInventory.MenuLDBTrackingReputationListHeaders( offset, level, value
 		
 		for _, entry in ArkInventory.Collection.Reputation.ListIterate( ) do
 			
-			if entry.parentIndex == nil then
+			if entry.parentIndex == nil and entry.name then
 				
 				--ArkInventory.Output2( "HEADER: ", entry )
 				
@@ -4044,22 +4052,25 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 		end
 		
 		--ArkInventory.Output2( "" )
-		--ArkInventory.Output2( "HEADER: ", parent.index, " = ", parent.name )
+		--ArkInventory.OutputDebug( "HEADER: ", parent.index, " = ", parent.name )
 		
 		for _, entry in ArkInventory.Collection.Reputation.ListIterate( ) do
 			
-			--ArkInventory.Output2( "ENTRY: ", entry.index, " / ", entry.parentIndex, " / ", entry.name, " / ", entry.isHeader )
+			--ArkInventory.OutputDebug( "ENTRY: ", entry.index, " / ", entry.parentIndex, " / ", entry.name, " / ", entry.isHeader )
 			
-			if entry.parentIndex == parent.index then
+			local repHeader = entry.isHeader and entry.hasRep
+			
+			if entry.parentIndex == parent.index or entry.index == parent.index then
 				
 				local data = entry.data
 				
-				if entry.isHeader then
+				if entry.isHeader and entry.index ~= parent.index then
+					
+					repHeader = false
 					
 					local expand = codex.player.data.ldb.tracking.reputation.expand[entry.id]
 					local value = string.format( "HEADER_%s", entry.index )
-					
-					local text = string.format( "%s%s", ORANGE_FONT_COLOR_CODE, entry.name )
+					local text1 = string.format( "%s%s", ORANGE_FONT_COLOR_CODE, entry.name )
 					local desc = ""
 					
 					if expand then
@@ -4069,8 +4080,8 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 					end
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
-						"text", text,
-						"tooltipTitle", text,
+						"text", text1,
+						"tooltipTitle", text1,
 						"tooltipText", desc,
 						"hasArrow", not expand,
 						"value", value,
@@ -4083,7 +4094,9 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 						ArkInventory.MenuLDBTrackingReputationListEntries( value, false, codex )
 					end
 					
-				else
+				end
+				
+				if repHeader or not entry.isHeader then
 					
 					local checked = codex.player.data.ldb.tracking.reputation.tracked[data.id]
 					local text1 = entry.name
@@ -4092,11 +4105,11 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 						text1 = string.format( "%s%s", GREEN_FONT_COLOR_CODE, text1 )
 					end
 					
-					local text2 = ArkInventory.Collection.Reputation.LevelText( data.id, "*st*" )
+					local text2 = ArkInventory.Collection.Reputation.LevelText( data.id, "*st**pv*" )
 					
 					ArkInventory.Lib.Dewdrop:AddLine(
 						"icon", data.icon or "",
-						"text", string.format( "%s   |cff7f7f7f(%s)|r", text1, text2 ),
+						"text", string.format( "%s |cff7f7f7f(%s)|r", text1, text2 ),
 						"tooltipTitle", string.format( ArkInventory.Const.Tooltip.customHyperlinkFormat, data.link ),
 						"hasArrow", true,
 						"func", function( )
@@ -4136,7 +4149,6 @@ function ArkInventory.MenuLDBTrackingReputationListEntries( value, showTitle, co
 				end
 			)
 			
-			
 		end
 		
 	end
@@ -4154,13 +4166,14 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 		
 		local entry = ArkInventory.Collection.Reputation.GetByIndex( index )
 		local data = entry.data
+		local name = entry.name
 		
 		ArkInventory.Lib.Dewdrop:AddLine(
-			"text", entry.name,
+			"text", name,
 			"isTitle", true
 		)
 		
-		
+		ArkInventory.Lib.Dewdrop:AddLine( )
 		
 		-- at war
 		
@@ -4169,7 +4182,6 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 		local checked = data.atWarWith
 		
 		if checked then
-			--text = string.format( "%s%s", GREEN_FONT_COLOR_CODE, text )
 			desc = string.format( ArkInventory.Localise["ADD_CLICK_TO_ACTION"], desc, ArkInventory.Localise["ENABLE"] )
 		else
 			desc = string.format( ArkInventory.Localise["ADD_CLICK_TO_ACTION"], desc, ArkInventory.Localise["DISABLE"] )
@@ -4216,14 +4228,14 @@ function ArkInventory.MenuLDBTrackingReputationListOptions( value, codex )
 		)
 		
 		
-		-- move to inactivate
+		-- move to inactivate, or restore
 		
-		local text = ArkInventory.Localise["MOVE_TO_INACTIVE"]
+		local text = ArkInventory.Localise["INACTIVE"]
 		local desc = ArkInventory.Localise["REPUTATION_MOVE_TO_INACTIVE"]
 		local checked = not entry.active
 		
 		if checked then
-			--text = string.format( "%s%s", GREEN_FONT_COLOR_CODE, text )
+			text = string.format( "%s%s", RED_FONT_COLOR_CODE, text )
 			desc = string.format( ArkInventory.Localise["ADD_CLICK_TO_ACTION"], desc, ArkInventory.Localise["RESTORE"] )
 		else
 			desc = string.format( ArkInventory.Localise["ADD_CLICK_TO_ACTION"], desc, ArkInventory.Localise["MOVE"] )

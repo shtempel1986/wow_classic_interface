@@ -1246,7 +1246,9 @@ ArkInventory.Const = { -- constants
 			[242] = "a", -- flying, swift spectral
 			[247] = "a", -- flying, cloud
 			[248] = "a", -- flying
-			[402] = "a", -- dragonriding
+			[402] = "a", -- flying, dragonriding
+			[424] = "a", -- flying, dragonriding (has animations)
+			[426] = "a", -- flying, dragonriding
 			
 			[230] = "l", -- land
 			[241] = "l", -- qiraji battletank
@@ -1274,7 +1276,7 @@ ArkInventory.Const = { -- constants
 			-- /dump C_Map.GetBestMapForUnit( "player" )
 			AhnQiraj = { 247,320 },
 			Vashjir = { 201,204,205 },
-			DragonIsles = { },
+			DragonIsles = { }, -- doesnt need to have anything in it as we just need to lock out all the normal flying mounts
 		},
 	},
 	
@@ -1289,10 +1291,10 @@ ArkInventory.Const = { -- constants
 		},
 		Style = {
 			TooltipNormal = "*st**pv**pr* (*br*)", -- rep tooltip
-			TooltipItemCount = "*st**pv**pr* (*br*)", -- itemcount tooltip
-			TwoLines = "*st**pv**pr*\n*bc*", -- List view
-			OneLine = "*st**pv**pr* *bc*", -- LDB tooltip
-			OneLineWithName = "*nn*: *st**pv**pr* *bc*", -- LDB text
+			TooltipItemCount = "*st**pv**pr*", -- itemcount tooltip
+			TwoLines = "*st**pv**pr* (*bv*/*bm*)\n(*br*)", -- List view
+			OneLine = "*st**pv**pr* (*bv*/*bm*)", -- LDB tooltip
+			OneLineWithName = "*nn*: *st**pv**pr* (*bv*/*bm*)", -- LDB text
 		},
 	},
 	
@@ -1406,9 +1408,7 @@ ArkInventory.Const = { -- constants
 --			[0000] = 13250, -- Rustbucket / Battle for Azeroth Pathfinder Part 2
 			[2374] = 15514, -- Shadowlands / Zereth Mortis
 		},
-		Spell = {
-			
-		},
+		Spell = { },
 		Quest = {
 			[2222] = 63893, -- Shadowlands Flying
 		},
@@ -1420,12 +1420,7 @@ ArkInventory.Const = { -- constants
 			[730] = true, -- Maelstrom (Deepholm)
 --			[870] = true, -- Pandaria (appears to be working now)
 		},
-		Dragonriding = { -- mount spells to check via IsUsableSpell()
-			368901, -- cliffside
-			368896, -- renewed
-			360954, -- highland
-			368899, -- windborne
-		},
+		Dragonriding = { }, -- list of mount spells populated via mount scan
 	},
 	
 	YieldAfter = 25,

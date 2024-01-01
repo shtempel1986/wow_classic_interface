@@ -92,6 +92,19 @@ function S:CharacterFrame()
 		S:HandleTab(_G['CharacterFrameTab'..i])
 	end
 
+	-- Seasonal
+	local runeButton = E.ClassicSOD and _G.RuneFrameControlButton
+	if runeButton then
+		S:HandleButton(runeButton, true)
+
+		if not runeButton.runeIcon then -- make then icon
+			runeButton.runeIcon = runeButton:CreateTexture(nil, 'ARTWORK')
+			runeButton.runeIcon:SetTexture(134419) -- Interface\Icons\INV_Misc_Rune_06
+			runeButton.runeIcon:SetTexCoord(unpack(E.TexCoords))
+			runeButton.runeIcon:SetInside(runeButton)
+		end
+	end
+
 	-- Reposition Tabs
 	hooksecurefunc('PetTab_Update', HandleTabs)
 	HandleTabs()
@@ -106,7 +119,7 @@ function S:CharacterFrame()
 	HandleResistanceFrame('MagicResFrame')
 
 	for _, slot in pairs({ _G.PaperDollItemsFrame:GetChildren() }) do
-		if slot:IsObjectType('Button') then
+		if slot:IsObjectType('Button') and slot.Count then
 			local name = slot:GetName()
 			local icon = _G[name..'IconTexture']
 			local cooldown = _G[name..'Cooldown']

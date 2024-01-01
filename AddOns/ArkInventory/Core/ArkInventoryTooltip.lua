@@ -259,7 +259,8 @@ local function helper_TooltipSetHyperlink( tooltip, h )
 		elseif osd.class == "currency" then
 			
 			if tooltip then
-				tooltip:SetCurrencyByID( osd.id, osd.amount )
+				--tooltip:SetCurrencyByID( osd.id, osd.amount )
+				ArkInventory.CrossClient.TooltipSetCurrencyByID( tooltip, osd.id, osd.amount )
 			end
 			
 		elseif osd.class == "copper" then
@@ -979,7 +980,7 @@ function ArkInventory.TooltipCustomBattlepetShow( tooltip, h, i )
 	
 	if not h then return end
 	
-	--ArkInventory.Output2( "TooltipCustomBattlepetShow" )
+	--ArkInventory.Output( "TooltipCustomBattlepetShow" )
 	
 	ArkInventory.TooltipMyDataClear( tooltip )
 	
@@ -990,11 +991,10 @@ function ArkInventory.TooltipCustomBattlepetShow( tooltip, h, i )
 	
 	if osd.class ~= "battlepet" then return end
 	
-	--ArkInventory.Output2( "[", osd.class, " : ", osd.id, " : ", osd.level, " : ", osd.q, " : ", osd.health, " : ", osd.power, " : ", osd.speed, "]" )
+	--ArkInventory.Output( "[", osd.class, " : ", osd.id, " : ", osd.level, " : ", osd.q, " : ", osd.health, " : ", osd.power, " : ", osd.speed, "]" )
 	
 	if not ArkInventory.db.option.tooltip.battlepet.enable then
-		BattlePetToolTip_Show( osd.id, osd.level, osd.q, osd.health, osd.power, osd.speed, osd.cn )
-		return
+		return BattlePetToolTip_Show( osd.id, osd.level, osd.q, osd.health, osd.power, osd.speed, osd.cn )
 	end
 	
 	local sd = ArkInventory.Collection.Pet.GetSpeciesInfo( osd.id )
@@ -2036,6 +2036,16 @@ end
 
 function ArkInventory.HookTooltipSetGeneric( fn, tooltip, ... )
 	
+	if not fn then return end
+	
+	if not tooltip then return end
+	
+	-- not one of the tooltips im checking
+	if not tooltip.ARKTTD then
+		--ArkInventory.Output( "ignoring - unknown - ", tooltip:GetName( ) )
+		return
+	end
+	
 	if not tooltip:IsShown( ) then
 		
 		-- caters for the game closing the tooltip when opening the same link again.
@@ -2050,16 +2060,8 @@ function ArkInventory.HookTooltipSetGeneric( fn, tooltip, ... )
 		
 	end
 	
-	if not fn then return end
-	
 	if checkAbortItemCount( tooltip ) then return end
 	
-	
-	-- not one of the tooltips im checking
-	if not tooltip.ARKTTD then
-		--ArkInventory.Output( "ignoring - unknown - ", tooltip:GetName( ) )
-		return
-	end
 	
 	-- dont play with any of the scan tooltips (they arent hooked so should not get here)
 	if tooltip.ARKTTD.scan then
@@ -2187,16 +2189,13 @@ end
 
 function ArkInventory.HookTooltipOnUpdate( tooltip, elapsed )
 	
-	if not tooltip then return end
+	if checkAbortItemCount( tooltip ) then return end
 	
 	if not tooltip.ARKTTD or not tooltip.ARKTTD.onupdate.timer or not tooltip.ARKTTD.onupdate.fn then return end
 	tooltip.ARKTTD.onupdate.timer = tooltip.ARKTTD.onupdate.timer - elapsed
 	if tooltip.ARKTTD.onupdate.timer > 0 then return end
 	
 	tooltip.ARKTTD.onupdate.timer = ArkInventory.Const.BLIZZARD.GLOBAL.TOOLTIP.UPDATETIMER
-	
-	if checkAbortItemCount( tooltip ) then return end
-	
 	
 	if tooltip == ItemRefTooltip then
 		
@@ -2663,7 +2662,7 @@ function ArkInventory.TooltipObjectCountGet( search_id, thread_id )
 									end
 									
 									local osd = ArkInventory.ObjectStringDecode( ld.e )
-									local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style, osd.st, osd.bv, osd.bm, osd.ic, osd.pv, osd.pr )
+									local txt = ArkInventory.Collection.Reputation.LevelText( osd.id, style, osd.st, osd.bv, osd.bn, osd.bm, osd.ic, osd.pv, osd.pr, osd.rv, osd.rm )
 									table.insert( location_entries, string.format( "%s%s", c1, txt ) )
 								end
 								
@@ -3104,7 +3103,7 @@ function ArkInventory.TooltipProcessorSetBattlePet( ... )
 	local tooltip, tooltipInfo = ...
 	if checkAbortShow( tooltip ) then return true end
 	
-	ArkInventory.Output( "add battlepet count to ", tooltip:GetName( ), " - ", tooltipInfo.hyperlink )
+	--ArkInventory.Output( "add battlepet count to ", tooltip:GetName( ), " - ", tooltipInfo.hyperlink )
 	ArkInventory.HookOnTooltipSetUnit( ... )
 	
 end

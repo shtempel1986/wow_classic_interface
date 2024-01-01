@@ -11,11 +11,8 @@ local assert, type, pcall, xpcall, next, print = assert, type, pcall, xpcall, ne
 local rawget, rawset, setmetatable = rawget, rawset, setmetatable
 
 local CreateFrame = CreateFrame
-local DisableAddOn = DisableAddOn
-local GetAddOnEnableState = GetAddOnEnableState
 local GetBindingKey = GetBindingKey
 local GetCurrentBindingSet = GetCurrentBindingSet
-local GetCVarBool = GetCVarBool
 local GetNumGroupMembers = GetNumGroupMembers
 local GetSpellInfo = GetSpellInfo
 local InCombatLockdown = InCombatLockdown
@@ -28,12 +25,20 @@ local SetBinding = SetBinding
 local UIParent = UIParent
 local UnitFactionGroup = UnitFactionGroup
 local UnitGUID = UnitGUID
+
 local GetSpecialization = (E.Classic or E.Wrath) and LCS.GetSpecialization or GetSpecialization
+
+local DisableAddOn = (C_AddOns and C_AddOns.DisableAddOn) or DisableAddOn
+local GetAddOnMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+local GetCVarBool = C_CVar.GetCVarBool
+
+local C_AddOns_GetAddOnEnableState = C_AddOns and C_AddOns.GetAddOnEnableState
+local GetAddOnEnableState = GetAddOnEnableState -- eventually this will be on C_AddOns and args swap
 
 local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
 local LE_PARTY_CATEGORY_INSTANCE = LE_PARTY_CATEGORY_INSTANCE
 local C_ChatInfo_SendAddonMessage = C_ChatInfo.SendAddonMessage
-local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+
 -- GLOBALS: ElvCharacterDB
 
 --Modules
@@ -65,7 +70,7 @@ E.mylevel = UnitLevel('player')
 E.myname = UnitName('player')
 E.myrealm = GetRealmName()
 E.mynameRealm = format('%s - %s', E.myname, E.myrealm) -- contains spaces/dashes in realm (for profile keys)
-E.myspec = E.Retail and GetSpecialization()
+E.myspec = GetSpecialization()
 E.wowbuild = tonumber(E.wowbuild)
 E.physicalWidth, E.physicalHeight = GetPhysicalScreenSize()
 E.screenWidth, E.screenHeight = GetScreenWidth(), GetScreenHeight()
@@ -510,7 +515,11 @@ do
 end
 
 function E:IsAddOnEnabled(addon)
-	return GetAddOnEnableState(E.myname, addon) == 2
+	if C_AddOns_GetAddOnEnableState then
+		return C_AddOns_GetAddOnEnableState(addon, E.myname) == 2
+	else
+		return GetAddOnEnableState(E.myname, addon) == 2
+	end
 end
 
 function E:IsIncompatible(module, addons)

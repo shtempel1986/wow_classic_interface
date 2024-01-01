@@ -39,19 +39,20 @@ for x = 352170, 352180 do
 end
 ]]--
 
+
 --[[
-local z = "level is decreased"
+local z = "8"
 ArkInventory.Output( "search=", z )
 for k, v in pairs (_G) do
 	if type( k ) == "string" and type( v ) == "string" then
 		--if string.match( string.lower( k ), string.lower( z ) ) then -- found in key
-		if string.match( string.lower( v ), string.lower( z ) ) then -- found in value
-		--if string.lower( v ) == string.lower( z ) then -- exact match with value
+		--if string.match( string.lower( v ), string.lower( z ) ) then -- found in value
+		if string.lower( v ) == string.lower( z ) then -- exact match with value
 			ArkInventory.Output( k, "=", v )
 		end
 	end
 end
---]]
+]]--
 
 function ArkInventory.Tools.dump_enum( value, path, search )
 	if type( value ) == "table" then

@@ -764,15 +764,6 @@ function ArkInventory.LDB.Mounts.IsFlyable( )
 			IsFlyable = true
 		end
 		
-		
-		if ArkInventory.Collection.Mount.isDragonridingAvailable( ) then
-			local codex = ArkInventory.GetPlayerCodex( )
-			if codex.player.data.ldb.mounts.dragonriding then
-				IsFlyable = true
-				--ArkInventory.Output( "dragonriding enabled" )
-			end
-		end
-		
 	end
 	
 	if IsFlyable then
@@ -836,7 +827,7 @@ local function helper_companionTable_update( tbl )
 	
 end
 
-function ArkInventory.LDB.Mounts.GetUsable( forceAlternative )
+function ArkInventory.LDB.Mounts.GetUsable( forceAlternative, forceDragonridingAlternative )
 	
 	-- builds companionTable and returns the type
 	
@@ -844,7 +835,10 @@ function ArkInventory.LDB.Mounts.GetUsable( forceAlternative )
 	
 	wipe( companionTable )
 	
-	ArkInventory.Collection.Mount.UpdateUsable( )
+	local codex = ArkInventory.GetPlayerCodex( )
+	--ArkInventory.Collection.Mount.UpdateDragonridingMounts( codex.player.data.ldb.mounts.dragonriding )
+	
+	ArkInventory.Collection.Mount.UpdateUsable( codex.player.data.ldb.mounts.dragonriding, forceDragonridingAlternative )
 	
 	if ArkInventory.LDB.Mounts.IsSubmerged( ) then
 		
@@ -1019,9 +1013,13 @@ function ArkInventory.LDB.Mounts.GetNext( )
 	end
 	
 	local forceAlternative = IsModifiedClick( "CHATLINK" )
-	ArkInventory.LDB.Mounts.GetUsable( forceAlternative )
+	ArkInventory.OutputDebug( "forceAlternative = ", forceAlternative )
+	local forceDragonridingAlternative = IsModifiedClick( "DRESSUP" )
+	ArkInventory.OutputDebug( "forceDragonridingAlternative = ", forceAlternative )
 	
-	--ArkInventory.Output( #companionTable, " usable mounts", companionTable )
+	ArkInventory.LDB.Mounts.GetUsable( forceAlternative, forceDragonridingAlternative )
+	
+	ArkInventory.OutputDebug( #companionTable, " usable mounts", companionTable )
 	
 	if #companionTable == 0 then
 		

@@ -1,7 +1,8 @@
 # Auctionator
 
-## [10.1.35](https://github.com/Auctionator/Auctionator/tree/10.1.35) (2023-11-08)
-[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.1.34...10.1.35) 
+## [10.2.11](https://github.com/Auctionator/Auctionator/tree/10.2.11) (2023-12-29)
+[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.2.10...10.2.11) 
 
-- Update toc for 10.2  
-- Shopping: Lists: Fix import erroring from taking too long in some cases  
+- Retail: Shopping: Fix sort comparator for item level column  
+- [Fixes #1468] Retail: Shopping: Add optional item level column in search results  
+- Classic: Shfit-click on Max for Stack Size sets the stack size to 1  

@@ -104,6 +104,10 @@ local function CreateUnitTabGroup(unitID, localizedUnit, order)
                                 if value == false then
                                     return ReloadUI()
                                 end
+                                if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+                                    print("ClassicCastbars: Do a /reload if player castbar doesn't work properly on first time enabling.") -- luacheck: ignore
+                                    PlayerCastingBarFrame:SetLook("CLASSIC")
+                                end
                                 ClassicCastbars:SkinPlayerCastbar()
                             end
                         end,
@@ -633,7 +637,7 @@ local function GetOptionsTable()
             target = CreateUnitTabGroup("target", L.TARGET, 1),
             nameplate = CreateUnitTabGroup("nameplate", L.NAMEPLATE, 2),
             party = CreateUnitTabGroup("party", L.PARTY, 3),
-            player = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and CreateUnitTabGroup("player", L.PLAYER, 4) or nil,
+            player = CreateUnitTabGroup("player", L.PLAYER, 4),
             focus = CreateUnitTabGroup("focus", _G.FOCUS or "Focus", 5),
             arena = not isClassicEra and CreateUnitTabGroup("arena", _G.ARENA or "Arena", 6) or nil,
 
@@ -665,33 +669,6 @@ local function GetOptionsTable()
                 end,
             },
 
-            -- Reset Cache Button
-            resetCastCache = {
-                order = 7,
-                name = _G.BROWSER_CLEAR_CACHE,
-                desc = L.CLEAR_CACHE_DESC,
-                confirm = function()
-                    return L.CLEAR_CACHE_DESC
-                end,
-                type = "execute",
-                func = function()
-                    ClassicCastbarsDB.npcCastTimeCache = CopyTable(ClassicCastbars.defaultConfig.npcCastTimeCache)
-                    ClassicCastbarsDB.npcCastUninterruptibleCache = CopyTable(ClassicCastbars.defaultConfig.npcCastUninterruptibleCache)
-                    if ClassicCastbarsCharDB then
-                        ClassicCastbarsCharDB.npcCastTimeCache = CopyTable(ClassicCastbars.defaultConfig.npcCastTimeCache)
-                        ClassicCastbarsCharDB.npcCastUninterruptibleCache = CopyTable(ClassicCastbars.defaultConfig.npcCastUninterruptibleCache)
-                    end
-                    print(_G.BROWSER_CACHE_CLEARED) -- luacheck: ignore
-                end,
-            },
-
-            spacer = {
-                order = 8,
-                type = "description",
-                name = "\n",
-                hidden = not isClassicEra,
-            },
-
             -- Character specific savedvariables Checkbox
             usePerCharacterSettings = {
                 order = 9,
@@ -710,21 +687,6 @@ local function GetOptionsTable()
                     end
                     ClassicCastbarsCharDB.usePerCharacterSettings = value
                     ReloadUI()
-                end,
-            },
-
-            clearCastTimeCachePerZone = {
-                order = 10,
-                width = 1.4,
-                type = "toggle",
-                hidden = not isClassicEra,
-                name = "Clear CastTime Cache Per Zone",
-                desc = "Delete cached NPC cast times every time you change a major zone.",
-                get = function()
-                    return ClassicCastbars.db.clearCastTimeCachePerZone
-                end,
-                set = function(_, value)
-                    ClassicCastbars.db.clearCastTimeCachePerZone = value
                 end,
             },
         },

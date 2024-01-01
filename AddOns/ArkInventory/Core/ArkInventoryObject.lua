@@ -676,18 +676,24 @@ function ArkInventory.ObjectStringDecode( h, i )
 			[02]factionId
 			[03]standingText
 			[04]barValue
-			[05]barMax
-			[06]isCapped
-			[07]paragonLevel
-			[08]paragonReward
+			[05]barMin
+			[06]barMax
+			[07]isCapped
+			[08]paragonLevel
+			[09]paragonReward
+			[10]rankValue
+			[11]rankMax
 		]]--
 		
 		osd.st = osd[3]
 		osd.bv = osd[4]
-		osd.bm = osd[5]
-		osd.ic = osd[6]
-		osd.pv = osd[7]
-		osd.pr = osd[8]
+		osd.bn = osd[5]
+		osd.bm = osd[6]
+		osd.ic = osd[7]
+		osd.pv = osd[8]
+		osd.pr = osd[9]
+		osd.rv = osd[10]
+		osd.rm = osd[11]
 		
 	elseif osd.class == "spell" then
 		
@@ -1048,10 +1054,5 @@ function ArkInventory:EVENT_ARKINV_ITEM_DATA_LOAD_RESULT( ... )
 	--ArkInventory.Output( "[", event, "] [", id, "] [", success, "]" )
 	
 	ArkInventory:SendMessage( "EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET", "ITEM_DATA_READY" )
-	
-	
-	
-	
-	
 	
 end

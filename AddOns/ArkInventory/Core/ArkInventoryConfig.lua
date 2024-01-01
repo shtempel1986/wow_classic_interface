@@ -51,9 +51,9 @@ function ArkInventory.ConfigBlizzard( )
 		notes = {
 			order = 200,
 			name = function( )
-				local t = GetAddOnMetadata( ArkInventory.Const.Program.Name, string.format( "Notes-%s", GetLocale( ) ) ) or ""
+				local t = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, string.format( "Notes-%s", GetLocale( ) ) ) or ""
 				if t == "" then
-					t = GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes" ) or ""
+					t = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, "Notes" ) or ""
 				end
 				return t or ""
 			end,

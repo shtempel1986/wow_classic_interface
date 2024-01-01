@@ -1,6 +1,6 @@
 local E, L, V, P, G = unpack(ElvUI)
 local NP = E:GetModule('NamePlates')
-local oUF = E.oUF
+local ElvUF = E.oUF
 
 local ipairs, ceil, floor, tonumber = ipairs, ceil, floor, tonumber
 local wipe, strmatch, strlower, strfind, next = wipe, strmatch, strlower, strfind, next
@@ -8,6 +8,7 @@ local wipe, strmatch, strlower, strfind, next = wipe, strmatch, strlower, strfin
 local GetQuestLogSpecialItemInfo = GetQuestLogSpecialItemInfo
 local GetQuestDifficultyColor = GetQuestDifficultyColor
 local UnitIsPlayer = UnitIsPlayer
+local IsInInstance = IsInInstance
 local UnitGUID = UnitGUID
 
 local C_QuestLog_GetLogIndexForQuestID = C_QuestLog.GetLogIndexForQuestID
@@ -198,7 +199,7 @@ local function Update(self, event)
 	if not unit then return end
 
 	-- this only runs on npc units anyways
-	if NP.InstanceType ~= 'none' then return end
+	if IsInInstance() then return end
 
 	local list -- quests
 	local guid = UnitGUID(unit)
@@ -359,4 +360,4 @@ frame:SetScript('OnEvent', function(self, event, questID)
 	end
 end)
 
-oUF:AddElement('QuestIcons', Path, Enable, Disable)
+ElvUF:AddElement('QuestIcons', Path, Enable, Disable)

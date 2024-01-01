@@ -36,6 +36,7 @@ function QuestieQuestFixes:Load()
     local raceIDs = QuestieDB.raceKeys
     local classIDs = QuestieDB.classKeys
     local sortKeys = QuestieDB.sortKeys
+    local factionIDs = QuestieDB.factionIDs
     local profKeys = QuestieProfessions.professionKeys
     local specKeys = QuestieProfessions.specializationKeys
 
@@ -261,6 +262,7 @@ function QuestieQuestFixes:Load()
         },
         [518] = {
             [questKeys.preQuestSingle] = {},
+            [questKeys.reputationReward] = {{factionIDs.UNDERCITY,100}}
         },
         [522] = {
             [questKeys.startedBy] = {{2434},nil,{3668}},
@@ -287,6 +289,7 @@ function QuestieQuestFixes:Load()
             [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
             [questKeys.preQuestGroup] = {1687,1479,1558},
             [questKeys.inGroupWith] = nil,
+            [questKeys.childQuests] = {},
         },
         [566] = {
             [questKeys.preQuestSingle] = {549}, -- #1484
@@ -479,6 +482,8 @@ function QuestieQuestFixes:Load()
             [questKeys.objectivesText] = {"Get some Strawberry Ice Cream for your ward. The lad seems to prefer Tigule's brand ice cream."}, -- orc orphan
             [questKeys.preQuestGroup] = {1800,910,911},
             [questKeys.inGroupWith] = nil,
+            [questKeys.childQuests] = {},
+            [questKeys.parentQuest] = 0,
         },
         [918] = {
             [questKeys.preQuestSingle] = {},
@@ -489,6 +494,7 @@ function QuestieQuestFixes:Load()
         [925] = {
             [questKeys.preQuestGroup] = {1800,910,911},
             [questKeys.inGroupWith] = nil,
+            [questKeys.parentQuest] = 0,
         },
         [926] = {
             [questKeys.parentQuest] = 924, -- #806
@@ -770,6 +776,7 @@ function QuestieQuestFixes:Load()
         },
         [1361] = {
             [questKeys.exclusiveTo] = {1362},
+            [questKeys.startedBy] = {{2229,4485}},
         },
         [1364] = {
             [questKeys.preQuestSingle] = {1363}, -- #1674
@@ -920,6 +927,9 @@ function QuestieQuestFixes:Load()
         [1599] = {
             [questKeys.exclusiveTo] = {1598}, -- #999
         },
+        [1618] = {
+            [questKeys.requiredSkill] = {profKeys.BLACKSMITHING, 60},
+        },
         [1638] = {
             [questKeys.exclusiveTo] = {1666,1678,1680,1683,1686},
         },
@@ -948,6 +958,7 @@ function QuestieQuestFixes:Load()
             [questKeys.childQuests] = {1442,1655},
         },
         [1655] = {
+            [questKeys.specialFlags] = 1,
             [questKeys.parentQuest] = 1654,
         },
         [1661] = {
@@ -1329,7 +1340,7 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{5797},nil,{10621}},
         },
         [3520] = {
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_SLAY, l10n("Slay Vale Screechers and use Veh'kinya's Bramble on their corpse."), 0, {{"monster", 5307},{"monster", 5308}}}},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_SLAY, l10n("Slay Vale Screechers and use Yeh'kinya's Bramble on their corpse."), 0, {{"monster", 5307},{"monster", 5308}}}},
         },
         [3525] = {
             [questKeys.triggerEnd] = {"Protect Belnistrasz while he performs the ritual to shut down the idol", {[zoneIDs.THE_BARRENS]={{50.86,92.87}}}},
@@ -1689,13 +1700,14 @@ function QuestieQuestFixes:Load()
             [questKeys.objectivesText] = {"Get some Strawberry Ice Cream for your ward. The lad seems to prefer Tigule's brand ice cream."}, -- human orphan
             [questKeys.inGroupWith] = nil,
             [questKeys.preQuestGroup] = {1479,1558,1687},
+            [questKeys.childQuests] = {},
         },
         [4866] = {
             [questKeys.objectives] = {{{9563,"Milked"}}},
         },
         [4867] = {
             [questKeys.requiredSourceItems] = {12533,12534},
-            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Combine Omokk's Head with the Roughshot Pike."),0,{{"object", 175621}}},
+            [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_OBJECT, l10n("Combine Omokk's Head with the Roughshod Pike."),0,{{"object", 175621}}},
 			                               {nil, Questie.ICON_TYPE_OBJECT, l10n("Use it to instantly kill one nearby ogre."),0,{{"object", 400063}}},
 			},
         },
@@ -1840,6 +1852,13 @@ function QuestieQuestFixes:Load()
         },
         [5305]  ={
             [questKeys.exclusiveTo] = {8869},
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
+        },
+        [5306]  ={
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
+        },
+        [5307]  ={
+            [questKeys.requiredSpecialization] = specKeys.BLACKSMITHING_WEAPON,
         },
         [5321] = {
             [questKeys.triggerEnd] = {"Escort Kerlonian Evershade to Maestra's Post", {[zoneIDs.ASHENVALE]={{26.77,36.91}}}},
@@ -1947,7 +1966,7 @@ function QuestieQuestFixes:Load()
         },
         [5678] = {
             [questKeys.name] = "Arcane Feedback",
-            [questKeys.startedBy] = {{376,5489,11406},nil,nil},
+            [questKeys.startedBy] = {{11401},nil,nil},
             [questKeys.finishedBy] = {{376},nil},
             [questKeys.requiredLevel] = 20,
             [questKeys.questLevel] = 20,
@@ -2344,12 +2363,18 @@ function QuestieQuestFixes:Load()
             [questKeys.exclusiveTo] = {7021,7024},
             [questKeys.nextQuestInChain] = 6962,
         },
+        [6962] = {
+            [questKeys.objectivesText] = {"Bring 5 Gingerbread Cookies and an Ice Cold Milk to Greatfather Winter in Orgrimmar."},
+        },
         [6981] = {
             [questKeys.startedBy] = {{3654},nil,{10441}},
             [questKeys.objectives] = {{{3442,"Speak with someone in Ratchet about the Glowing Shard"}},nil,nil,nil},
         },
         [6982] = {
             [questKeys.questLevel] = 55,
+        },
+        [6984] = {
+            [questKeys.name] = "A Smokywood Pastures' Thank You!",
         },
         [6985] = {
             [questKeys.questLevel] = 55,
@@ -2385,6 +2410,15 @@ function QuestieQuestFixes:Load()
             [questKeys.triggerEnd] = {"Ram Collared and Returned", {
                 [zoneIDs.ALTERAC_MOUNTAINS]={{34.58,74.94}}},
             },
+        },
+        [7042] = {
+            [questKeys.finishedBy] = {{13636}},
+        },
+        [7043] = {
+            [questKeys.objectivesText] = {"Locate and return the Stolen Treats to Wulmort Jinglepocket in Ironforge. It was last thought to be in the possession of the Abominable Greench, found somewhere in the snowy regions of the Alterac Mountains."},
+        },
+        [7045] = {
+            [questKeys.name] = "A Smokywood Pastures' Thank You!",
         },
         [7046] = {
             [questKeys.triggerEnd] = {"Create the Scepter of Celebras", {[zoneIDs.DESOLACE]={{35.97,64.41}}}},
@@ -2499,11 +2533,17 @@ function QuestieQuestFixes:Load()
         [7489] = {
             [questKeys.preQuestSingle] = {}, -- #1514
         },
+        [7490] = {
+            [questKeys.startedBy] = {{10184},nil,{18422}},
+        },
         [7492] = {
             [questKeys.startedBy] = {{10879,10880,10881},nil,nil}, -- #1350
         },
         [7494] = {
             [questKeys.startedBy] = {{2198,10877,10878},nil,nil}, -- #2489
+        },
+        [7495] = {
+            [questKeys.startedBy] = {{10184},nil,{18423}},
         },
         [7507] = {
             [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN,
@@ -2519,6 +2559,12 @@ function QuestieQuestFixes:Load()
         },
         [7622] = {
             [questKeys.triggerEnd] = {"The Balance of Light and Shadow", {[zoneIDs.EASTERN_PLAGUELANDS]={{21.19,17.79}}}}, -- #2332
+        },
+        [7631] = {
+            [questKeys.requiredSourceItems] = {18663,18629,18670,18818},
+        },
+        [7632] = {
+            [questKeys.startedBy] = {{12018},{179703},{18703}},
         },
         [7633] = {
             [questKeys.preQuestSingle] = {7632},
@@ -2575,6 +2621,12 @@ function QuestieQuestFixes:Load()
         [7761] = {
             [questKeys.startedBy] = {{9046},nil,{18987}},
         },
+        [7781] = {
+            [questKeys.startedBy] = {{11583},nil,{19003}},
+        },
+        [7783] = {
+            [questKeys.startedBy] = {{11583},nil,{19002}},
+        },
         [7785] = {
             [questKeys.requiredClasses] = classIDs.WARRIOR + classIDs.PALADIN + classIDs.HUNTER + classIDs.ROGUE,
         },
@@ -2614,6 +2666,9 @@ function QuestieQuestFixes:Load()
         [7868] = {
             [questKeys.zoneOrSort] = 3277,
         },
+        [7882] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,100}},
+        },
         [7886] = { -- #1435
             [questKeys.startedBy] = {{14733},nil,nil},
             [questKeys.finishedBy] = {{14733},nil},
@@ -2626,15 +2681,51 @@ function QuestieQuestFixes:Load()
             [questKeys.startedBy] = {{14733},nil,nil},
             [questKeys.finishedBy] = {{14733},nil},
         },
+        [7890] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,100}},
+        },
+        [7891] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,100}},
+        },
+        [7892] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,100}},
+        },
+        [7897] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,100}},
+        },
+        [7905] = {
+            [questKeys.requiredRaces] = raceIDs.ALL_ALLIANCE,
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,50}},
+        },
         [7921] = { -- #1435
             [questKeys.startedBy] = {{14733},nil,nil},
             [questKeys.finishedBy] = {{14733},nil},
         },
+        [7926] = {
+            [questKeys.requiredRaces] = raceIDs.ALL_HORDE,
+        },
+        [7927] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,150}},
+        },
+        [7929] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,150}},
+        },
         [7937] = {
             [questKeys.specialFlags] = 1,
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,50}},
         },
         [7938] = {
             [questKeys.specialFlags] = 1,
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,50}},
+        },
+        [7942] = {
+            [questKeys.reputationReward] = {},
+        },
+        [7943] = {
+            [questKeys.reputationReward] = {},
+        },
+        [7944] = {
+            [questKeys.reputationReward] = {{factionIDs.DARKMOON_FAIRE,50}},
         },
         [7945] = {
             [questKeys.specialFlags] = 1,
@@ -2860,6 +2951,9 @@ function QuestieQuestFixes:Load()
         },
         [8438] = {
             [questKeys.zoneOrSort] = sortKeys.ARATHI_BASIN,
+        },
+        [8446] = {
+            [questKeys.startedBy] = {{14887,14888,14889,14890},nil,{20644}},
         },
         [8447] = {
             [questKeys.triggerEnd] = {"Waking Legends.",{[zoneIDs.MOONGLADE]={{40.0,48.6}}}},
@@ -3179,6 +3273,9 @@ function QuestieQuestFixes:Load()
         [8737] = {
             [questKeys.extraObjectives] = {{nil, Questie.ICON_TYPE_EVENT, l10n("Summon a Templar using a full Twilight set."),0,{{"object", 180456},{"object", 180518},{"object", 180529},{"object", 180544},{"object", 180549},{"object", 180564},}}},
         },
+        [8746] = {
+            [questKeys.requiredSourceItems] = {21314},
+        },
         [8747] = {
             [questKeys.exclusiveTo] = {8752,8753,8754,8755,8756,8757,8758,8759,8760,8761}, --protector neutral
         },
@@ -3224,15 +3321,21 @@ function QuestieQuestFixes:Load()
         [8761] = {
             [questKeys.exclusiveTo] = {8747,8748,8749,8750,8751,8752,8753,8754,8755,8756}, --invoker exalted
         },
+        [8762] = {
+            [questKeys.requiredSourceItems] = {21314},
+        },
         [8767] = {
             [questKeys.requiredRaces] = raceIDs.NONE,
-            [questKeys.requiredClasses] = classIDs.NONE,
+            [questKeys.requiredClasses] = classIDs.ROGUE + classIDs.WARRIOR + classIDs.HUNTER + classIDs.PALADIN,
             [questKeys.exclusiveTo] = {8788},
         },
         [8788] = {
             [questKeys.requiredRaces] = raceIDs.NONE,
-            [questKeys.requiredClasses] = classIDs.NONE,
+            [questKeys.requiredClasses] = classIDs.PRIEST + classIDs.WARLOCK + classIDs.MAGE + classIDs.SHAMAN + classIDs.DRUID,
             [questKeys.exclusiveTo] = {8767},
+        },
+        [8791] = {
+            [questKeys.startedBy] = {{15339},nil,{21220}},
         },
         [8792] = {
             [questKeys.requiredLevel] = 1,
@@ -3258,6 +3361,9 @@ function QuestieQuestFixes:Load()
         },
         [8798] = {
             [questKeys.requiredSkill] = {202,250},
+        },
+        [8801] = {
+            [questKeys.startedBy] = {{15727},nil,{21221}},
         },
         [8804] = {
             [questKeys.specialFlags] = 1, -- #2401
@@ -3640,6 +3746,9 @@ function QuestieQuestFixes:Load()
         [9118] = {
             [questKeys.specialFlags] = 1,
         },
+        [9120] = {
+            [questKeys.startedBy] = {{15990},nil,{22520}},
+        },
         [9124] = {
             [questKeys.requiredMinRep] = {529,3000},
         },
@@ -3820,7 +3929,7 @@ function QuestieQuestFixes:Load()
             [questKeys.objectivesText] = {"Retrieve the Wooden Figurine and bring it to Gakin the Darkbinder in the Mage Quarter of Stormwind."},
             [questKeys.objectives] = {nil,nil,{{190309}},nil,nil},
             [questKeys.zoneOrSort] = sortKeys.WARLOCK,
-            [questKeys.extraObjectives] = {{{[zoneIDs.ASHENVALE]={{26.7,22.5}}}, Questie.ICON_TYPE_EVENT, l10n("Light the Unlit Torch near a fire and use the Burning Torch to set the Archaeoligst's Cart on fire."),}},
+            [questKeys.extraObjectives] = {{{[zoneIDs.ASHENVALE]={{26.7,22.5}}}, Questie.ICON_TYPE_EVENT, l10n("Light the Unlit Torch near a fire and use the Burning Torch to set the Archaeologist's Cart on fire."),}},
         },
         [65603] = {
             [questKeys.name] = "The Binding",

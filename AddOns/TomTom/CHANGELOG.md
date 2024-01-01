@@ -1,8 +1,9 @@
 # TomTom
 
-## [v3.5.3-release](https://github.com/jnwhiteh/TomTom/tree/v3.5.3-release) (2023-10-28)
-[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v3.5.3-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
+## [v3.5.4-release](https://github.com/jnwhiteh/TomTom/tree/v3.5.4-release) (2023-11-09)
+[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v3.5.4-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
 
+- Update TOC for 10.2.0  
 - Update TOC for 3.4.3  
 - Update TOC for 10.1.7  
 - Fix issue with SetPassThroughButtons  
@@ -696,5 +697,3 @@
 - * Minimap waypoints now properly handle zoning between continents and using portals.  
     * CrazyArrow will be re-displayed when you cross continents, if the active waypoint is on that continent  
 - * Update world map waypoints to change with the map zoom, etc.  
-- * Moving files around  
-    * Cleaning up directory structure  

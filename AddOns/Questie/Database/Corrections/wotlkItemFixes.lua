@@ -145,6 +145,12 @@ function QuestieWotlkItemFixes:Load()
         [33123] = {
             [itemKeys.npcDrops] = {},
         },
+        [33284] = {
+            [itemKeys.class] = 12,
+        },
+        [33290] = {
+            [itemKeys.class] = 12,
+        },
         [33330] = {
             [itemKeys.npcDrops] = {23954},
         },
@@ -154,14 +160,8 @@ function QuestieWotlkItemFixes:Load()
         [33355] = {
             [itemKeys.npcDrops] = {},
         },
-        [33545] = {
-            [itemKeys.npcDrops] = {23931},
-        },
         [33558] = {
             [itemKeys.npcDrops] = {23967},
-        },
-        [33628] = {
-            [itemKeys.objectDrops] = {186659,186660,186661},
         },
         [33634] = {
             [itemKeys.class] = itemClasses.QUEST,
@@ -172,14 +172,17 @@ function QuestieWotlkItemFixes:Load()
         [34076] = {
             [itemKeys.class] = itemClasses.QUEST,
         },
+        [34112] = {
+            [itemKeys.npcDrops] = {24746},
+        },
         [34115] = {
             [itemKeys.npcDrops] = {24539},
         },
         [34116] = {
             [itemKeys.npcDrops] = {24788},
         },
-        [34118] = {
-            [itemKeys.objectDrops] = {186944},
+        [34120] = {
+            [itemKeys.npcDrops] = {24747},
         },
         [34123] = {
             [itemKeys.objectDrops] = {186946},
@@ -289,6 +292,9 @@ function QuestieWotlkItemFixes:Load()
         [36727] = {
             [itemKeys.npcDrops] = {},
         },
+        [36731] = {
+            [itemKeys.npcDrops] = {},
+        },
         [36733] = {
             [itemKeys.objectDrops] = {188539},
         },
@@ -301,8 +307,10 @@ function QuestieWotlkItemFixes:Load()
         [36768] = {
             [itemKeys.npcDrops] = {26358,26359},
         },
+        [36771] = {
+            [itemKeys.class] = 12,
+        },
         [36772] = {
-            [itemKeys.npcDrops] = {26359},
             [itemKeys.objectDrops] = {190510},
         },
         [36852] = {
@@ -318,6 +326,12 @@ function QuestieWotlkItemFixes:Load()
             [itemKeys.npcDrops] = {},
         },
         [37173] = {
+            [itemKeys.class] = 12,
+        },
+        [37250] = {
+            [itemKeys.objectDrops] = {188666},
+        },
+        [37265] = {
             [itemKeys.class] = 12,
         },
         [37303] = {
@@ -338,7 +352,16 @@ function QuestieWotlkItemFixes:Load()
         [37580] = {
             [itemKeys.npcDrops] = {},
         },
+        [37708] = {
+            [itemKeys.class] = 12,
+        },
+        [37661] = {
+            [itemKeys.class] = 12,
+        },
         [37727] = {
+            [itemKeys.npcDrops] = {},
+        },
+        [37879] = {
             [itemKeys.npcDrops] = {},
         },
         [37888] = {
@@ -346,9 +369,6 @@ function QuestieWotlkItemFixes:Load()
         },
         [38303] = {
             [itemKeys.npcDrops] = {26620,26639,27431},
-        },
-        [38305] = {
-            [itemKeys.npcDrops] = {28006},
         },
         [38326] = {
             [itemKeys.npcDrops] = {},
@@ -362,11 +382,14 @@ function QuestieWotlkItemFixes:Load()
         [38380] = {
             [itemKeys.npcDrops] = {28202},
         },
+        [38382] = {
+            [itemKeys.npcDrops] = {28203},
+        },
         [38483] = {
             [itemKeys.npcDrops] = {28161},
         },
         [38600] = {
-            [itemKeys.npcDrops] = {28389,28408},
+            [itemKeys.npcDrops] = {28389},
         },
         [38631] = {
             [itemKeys.objectDrops] = {190557,191746,191747,191748,},
@@ -380,6 +403,9 @@ function QuestieWotlkItemFixes:Load()
         [38639] = {
             [itemKeys.npcDrops] = {28495},
         },
+        [38657] = {
+            [itemKeys.class] = 12,
+        },
         [38677] = {
             [itemKeys.npcDrops] = {},
         },
@@ -391,6 +417,18 @@ function QuestieWotlkItemFixes:Load()
         },
         [39301] = {
             [itemKeys.npcDrops] = {},
+        },
+        [39614] = {
+            [itemKeys.npcDrops] = {29079},
+        },
+        [40390] = {
+            [itemKeys.class] = 12,
+        },
+        [40641] = {
+            [itemKeys.class] = 12,
+        },
+        [40652] = {
+            [itemKeys.class] = 12,
         },
         [40728] = {
             [itemKeys.npcDrops] = {29402},
@@ -410,6 +448,9 @@ function QuestieWotlkItemFixes:Load()
         },
         [42252] = {
             [itemKeys.objectDrops] = {192124,192127},
+        },
+        [42422] = {
+            [itemKeys.class] = 12,
         },
         [42423] = {
             [itemKeys.npcDrops] = {30163,30208},
@@ -431,6 +472,12 @@ function QuestieWotlkItemFixes:Load()
         },
         [43238] = {
             [itemKeys.objectDrops] = {192941},
+        },
+        [43288] = {
+            [itemKeys.objectDrops] = {193004},
+        },
+        [43323] = {
+            [itemKeys.npcDrops] = {30842,30872},
         },
         [43411] = {
             [itemKeys.npcDrops] = {29120},
@@ -528,6 +575,9 @@ function QuestieWotlkItemFixes:Load()
         [45817] = {
             [itemKeys.objectDrops] = {194314},
         },
+        [45857] = {
+            [itemKeys.npcDrops] = {32867,32927},
+        },
         [45897] = {
             [itemKeys.npcDrops] = {33288},
         },
@@ -537,11 +587,47 @@ function QuestieWotlkItemFixes:Load()
         [48418] = {
             [itemKeys.npcDrops] = {35451},
         },
+        [49698] = {
+            [itemKeys.npcDrops] = {36670},
+        },
+        [49723] = {
+            [itemKeys.npcDrops] = {36494},
+        },
+        [49739] = {
+            [itemKeys.objectDrops] = {201590},
+        },
+        [49750] = {
+            [itemKeys.npcDrops] = {37094},
+        },
         [49867] = {
             [itemKeys.npcDrops] = {37671,38065},
         },
+        [49908] = {
+            [itemKeys.npcDrops] = {36612,36855,36626,36627,36678,37970,37955,36853,36597},
+            [itemKeys.objectDrops] = {201873,202239,201959},
+            [itemKeys.vendors] = {37941,37942,38858,211332,211340},
+        },
         [49915] = {
             [itemKeys.npcDrops] = {37715},
+        },
+        [50226] = {
+            [itemKeys.npcDrops] = {36626},
+        },
+        [50231] = {
+            [itemKeys.npcDrops] = {36627},
+        },
+        [50274] = {
+            [itemKeys.npcDrops] = {36612,36855,36626,36627,36678,37970,37955,36853,36597},
+            [itemKeys.objectDrops] = {201873,202239,201959},
+        },
+        [51027] = {
+            [itemKeys.npcDrops] = {36853},
+        },
+        [51315] = {
+            [itemKeys.npcDrops] = {36597},
+        },
+        [51317] = {
+            [itemKeys.npcDrops] = {36597},
         },
 
         -- Boost quest items
@@ -579,15 +665,15 @@ function QuestieWotlkItemFixes:Load()
             [itemKeys.name] = 'Defiler\'s Medallion',
             [itemKeys.relatedQuests] = {78752},
             [itemKeys.class] = 12,
-            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658,36954},
-            [itemKeys.objectDrops] = {193597,193603},
+            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658},
+            [itemKeys.objectDrops] = {193597,193603,202336},
         },
         [211207] = {
             [itemKeys.name] = 'Mysterious Artifact',
             [itemKeys.relatedQuests] = {78753},
             [itemKeys.class] = 12,
-            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658,36954},
-            [itemKeys.objectDrops] = {193597,193603},
+            [itemKeys.npcDrops] = {23954,26723,26861,26632,29306,27978,28923,29120,29311,31134,35451,36502,36658},
+            [itemKeys.objectDrops] = {193597,193603,202336},
         },
     }
 end
@@ -601,4 +687,27 @@ function _QuestieWotlkItemFixes:InsertMissingItemIds()
     QuestieDB.itemData[200068] = {} -- Teleport Scroll: Shattrath City
     QuestieDB.itemData[211206] = {} -- Defiler's Medallion
     QuestieDB.itemData[211207] = {} -- Mysterious Artifact
+end
+
+-- This should allow manual fix for item availability
+function QuestieWotlkItemFixes:LoadFactionFixes()
+    local itemKeys = QuestieDB.itemKeys
+
+    local itemFixesHorde = {
+        [49698] = {
+            [itemKeys.npcDrops] = {36669},
+        },
+    }
+
+    local itemFixesAlliance = {
+        [49698] = {
+            [itemKeys.npcDrops] = {36670},
+        },
+    }
+
+    if UnitFactionGroup("Player") == "Horde" then
+        return itemFixesHorde
+    else
+        return itemFixesAlliance
+    end
 end

@@ -144,7 +144,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["and rotated right"] = "和向右旋轉"
 	L["and with width |cFFFF0000%s|r and %s"] = "、寬度 |cFFFF0000%s|r 和 %s"
 	L["Angle"] = "角度"
-	L["Angle Between Auras"] = "光環之間的角度"
+	L["Angle Between Auras"] = "提醒效果之間的角度"
 	L["Animate"] = "閃爍"
 	L["Animated Expand and Collapse"] = "展開和收合的動畫效果"
 	L["Animates progress changes"] = "進度變化動畫效果"
@@ -414,7 +414,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L[ [=[Filter formats: 'Name', 'Name-Realm', '-Realm'.
 
 Supports multiple entries, separated by commas
-Can use \ to escape -.]=] ] = "過濾器格式：'名字'，'名字-伺服器'，'-伺服器'。支持多個條目，以逗號分隔可以使用 \\ 避開 -。"
+Can use \ to escape -.]=] ] = "過濾格式: '名字'、'名字-伺服器'、'-伺服器'。支援輸入多個項目，使用逗號分隔。要將 - 當成一般文字可使用跳脫符號 \\"
 	L["Filter to only dispellable de/buffs of the given type(s)"] = "只過濾給予類型的可驅散增減益"
 	L["Find Auras"] = "尋找提醒效果"
 	L["Finish"] = "結束"
@@ -836,7 +836,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件發�
 	L["Stop Sound"] = "停止音效"
 	L["Sub Elements"] = "子元素"
 	L["Sub Option %i"] = "子選項 %i"
-	L["Supports multiple entries, separated by commas"] = "支援多個條目，以逗號分隔"
+	L["Supports multiple entries, separated by commas"] = "支援輸入多個項目，使用逗號分隔。"
 	L["Swipe Overlay Settings"] = "倒數轉圈效果設定"
 	L["Templates could not be loaded, the addon is %s"] = "範本無法載入，此插件為 %s"
 	L["Temporary Group"] = "暫時性的群組"
@@ -864,6 +864,10 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件發�
 	L["This adds %tooltip, %tooltip1, %tooltip2, %tooltip3 and %tooltip4 as text replacements and also allows filtering based on the tooltip content/values."] = "這會加入 %tooltip, %tooltip1, %tooltip2, %tooltip3 和 %tooltip4 來替換文字，還允許根據浮動提示資訊的內容/值來過濾。"
 	L[ [=[This aura contains custom Lua code.
 Make sure you can trust the person who sent it!]=] ] = "這個提醒效果包含自訂的 Lua 程式碼，請務必確定你能夠信任傳送給你的人!"
+	--[[Translation missing --]]
+	L["This aura is marked as an update to an aura '%s', but cannot be used to update that aura. This usually happens if an aura is moved out of a group."] = "This aura is marked as an update to an aura '%s', but cannot be used to update that aura. This usually happens if an aura is moved out of a group."
+	--[[Translation missing --]]
+	L["This aura is marked as an update to auras '%s', but cannot be used to update them. This usually happens if an aura is moved out of a group."] = "This aura is marked as an update to auras '%s', but cannot be used to update them. This usually happens if an aura is moved out of a group."
 	L[ [=[This aura was created with a different version (%s) of World of Warcraft.
 It might not work correctly!]=] ] = "這個提醒效果是由不同版本 (%s) 的魔獸世界建立的，可能無法正常運作!"
 	L[ [=[This aura was created with a newer version of WeakAuras.

@@ -47,6 +47,8 @@ local QUEST_FLAGS_WEEKLY = 32768
 -- Pre calculated 2 * QUEST_FLAGS, for testing a bit flag
 local QUEST_FLAGS_DAILY_X2 = 2 * QUEST_FLAGS_DAILY
 local QUEST_FLAGS_WEEKLY_X2 = 2 * QUEST_FLAGS_WEEKLY
+--- COMPATIBILITY ---
+local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted or C_QuestLog.IsQuestFlaggedCompleted
 
 --- Tag corrections for quests for which the API returns the wrong values.
 --- Strucute: [questId] = {tagId, "questType"}
@@ -72,6 +74,35 @@ local questTagCorrections = {
     [8406] = {41, "PvP"},
     [8407] = {41, "PvP"},
     [8408] = {41, "PvP"},
+    [12244] = {41, "PvP"},
+    [12268] = {41, "PvP"},
+    [12270] = {41, "PvP"},
+    [12280] = {41, "PvP"},
+    [12284] = {41, "PvP"},
+    [12288] = {41, "PvP"},
+    [12289] = {41, "PvP"},
+    [12296] = {41, "PvP"},
+    [12314] = {41, "PvP"},
+    [12315] = {41, "PvP"},
+    [12316] = {41, "PvP"},
+    [12317] = {41, "PvP"},
+    [12323] = {41, "PvP"},
+    [12324] = {41, "PvP"},
+    [12432] = {41, "PvP"},
+    [12433] = {41, "PvP"},
+    [12434] = {41, "PvP"},
+    [12437] = {41, "PvP"},
+    [12443] = {41, "PvP"},
+    [12446] = {41, "PvP"},
+    [78680] = {1, "Elite"},
+    [78681] = {1, "Elite"},
+    [78684] = {1, "Elite"},
+    [90014] = {1, "Elite"},
+    [90054] = {1, "Elite"},
+    [90070] = {1, "Elite"},
+    [90081] = {1, "Elite"},
+    [90091] = {1, "Elite"},
+    [90094] = {1, "Elite"},
 }
 
 -- race bitmask data, for easy access
@@ -112,6 +143,10 @@ QuestieDB.classKeys = {
     DRUID = 1024
 }
 
+QuestieDB.specialFlags = {
+    REPEATABLE = 1,
+}
+
 _QuestieDB.questCache = {}; -- stores quest objects so they dont need to be regenerated
 _QuestieDB.itemCache = {};
 _QuestieDB.npcCache = {};
@@ -149,11 +184,15 @@ function QuestieDB:Initialize()
         button1 = l10n("Recompile Database"),
         button2 = l10n("Don't show again"),
         OnAccept = function()
-            Questie.db.global.dbIsCompiled = false
+            if Questie.IsSoD then
+                Questie.db.global.sod.dbIsCompiled = false
+            else
+                Questie.db.global.dbIsCompiled = false
+            end
             ReloadUI()
         end,
         OnDecline = function()
-            Questie.db.global.disableDatabaseWarnings = true
+            Questie.db.profile.disableDatabaseWarnings = true
         end,
         OnShow = function(self)
             self:SetFrameStrata("TOOLTIP")
@@ -164,10 +203,32 @@ function QuestieDB:Initialize()
         preferredIndex = 3
     }
 
-    QuestieDB.QueryNPC = QuestieDBCompiler:GetDBHandle(Questie.db.global.npcBin, Questie.db.global.npcPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.npcCompilerTypes, QuestieDB.npcCompilerOrder), QuestieDB.npcKeys, QuestieDB.npcDataOverrides)
-    QuestieDB.QueryQuest = QuestieDBCompiler:GetDBHandle(Questie.db.global.questBin, Questie.db.global.questPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.questCompilerTypes, QuestieDB.questCompilerOrder), QuestieDB.questKeys, QuestieDB.questDataOverrides)
-    QuestieDB.QueryObject = QuestieDBCompiler:GetDBHandle(Questie.db.global.objBin, Questie.db.global.objPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.objectCompilerTypes, QuestieDB.objectCompilerOrder), QuestieDB.objectKeys, QuestieDB.objectDataOverrides)
-    QuestieDB.QueryItem = QuestieDBCompiler:GetDBHandle(Questie.db.global.itemBin, Questie.db.global.itemPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.itemCompilerTypes, QuestieDB.itemCompilerOrder), QuestieDB.itemKeys, QuestieDB.itemDataOverrides)
+    -- For now we store both, the SoD database and the Era/HC database
+    local npcBin, npcPtrs, questBin, questPtrs, objBin, objPtrs, itemBin, itemPtrs
+    if Questie.IsSoD then
+        npcBin = Questie.db.global.sod.npcBin
+        npcPtrs = Questie.db.global.sod.npcPtrs
+        questBin = Questie.db.global.sod.questBin
+        questPtrs = Questie.db.global.sod.questPtrs
+        objBin = Questie.db.global.sod.objBin
+        objPtrs = Questie.db.global.sod.objPtrs
+        itemBin = Questie.db.global.sod.itemBin
+        itemPtrs = Questie.db.global.sod.itemPtrs
+    else
+        npcBin = Questie.db.global.npcBin
+        npcPtrs = Questie.db.global.npcPtrs
+        questBin = Questie.db.global.questBin
+        questPtrs = Questie.db.global.questPtrs
+        objBin = Questie.db.global.objBin
+        objPtrs = Questie.db.global.objPtrs
+        itemBin = Questie.db.global.itemBin
+        itemPtrs = Questie.db.global.itemPtrs
+    end
+
+    QuestieDB.QueryNPC = QuestieDBCompiler:GetDBHandle(npcBin, npcPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.npcCompilerTypes, QuestieDB.npcCompilerOrder), QuestieDB.npcKeys, QuestieDB.npcDataOverrides)
+    QuestieDB.QueryQuest = QuestieDBCompiler:GetDBHandle(questBin, questPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.questCompilerTypes, QuestieDB.questCompilerOrder), QuestieDB.questKeys, QuestieDB.questDataOverrides)
+    QuestieDB.QueryObject = QuestieDBCompiler:GetDBHandle(objBin, objPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.objectCompilerTypes, QuestieDB.objectCompilerOrder), QuestieDB.objectKeys, QuestieDB.objectDataOverrides)
+    QuestieDB.QueryItem = QuestieDBCompiler:GetDBHandle(itemBin, itemPtrs, QuestieDBCompiler:BuildSkipMap(QuestieDB.itemCompilerTypes, QuestieDB.itemCompilerOrder), QuestieDB.itemKeys, QuestieDB.itemDataOverrides)
 
     QuestieDB._QueryQuestSingle = QuestieDB.QueryQuest.QuerySingle
     QuestieDB._QueryNPCSingle = QuestieDB.QueryNPC.QuerySingle
@@ -398,23 +459,29 @@ function QuestieDB.IsLevelRequirementsFulfilled(questId, minLevel, maxLevel, pla
     --* QuestiePlayer.currentQuestlog[parentQuestId] logic is from QuestieDB.IsParentQuestActive, if you edit here, also edit there
     local parentQuestId = QuestieDB.QueryQuestSingle(questId, "parentQuest")
     if parentQuestId and QuestiePlayer.currentQuestlog[parentQuestId] then
+        -- If the quest is in the player's log already, there's no need to do any logic here, it must already be available
         return true
     end
 
     --* QuestieEvent.activeQuests[questId] logic is from QuestieDB.IsParentQuestActive, if you edit here, also edit there
-    if (not Questie.db.char.absoluteLevelOffset) and
+    if (Questie.db.profile.lowLevelStyle ~= Questie.LOWLEVEL_RANGE) and
         minLevel > requiredLevel and
         QuestieEvent.activeQuests[questId]  then
         return true
     end
 
+    if (Questie.IsSoD == true) and (QuestieDB.IsSoDRuneQuest(questId) == true) and (requiredLevel <= playerLevel) then
+        -- Season of Discovery Rune quests are still shown when trivial
+        return true
+    end
+
     if maxLevel >= level then
-        if (not Questie.db.char.lowlevel) and minLevel > level then
+        if (Questie.db.profile.lowLevelStyle ~= Questie.LOWLEVEL_ALL) and minLevel > level then
             -- The quest level is too low and trivial quests are not shown
             return false
         end
     else
-        if Questie.db.char.absoluteLevelOffset or maxLevel < requiredLevel then
+        if (Questie.db.profile.lowLevelStyle == Questie.LOWLEVEL_RANGE) or maxLevel < requiredLevel then
             -- Either an absolute level range is set and maxLevel < level OR the maxLevel is manually set to a lower value
             return false
         end
@@ -492,32 +559,63 @@ function QuestieDB:IsPreQuestSingleFulfilled(preQuestSingle)
 end
 
 ---@param questId number
----@param debugPrint boolean?
+---@param debugPrint boolean? -- if true, IsDoable will print conclusions to debug channel
+---@param returnText boolean? -- if true, IsDoable will return plaintext explanation instead of true/false
+---@param returnBrief boolean? -- if true and returnText is true, IsDoable will return a very brief explanation instead of a verbose one
 ---@return boolean
-function QuestieDB.IsDoable(questId, debugPrint)
+function QuestieDB.IsDoable(questId, debugPrint, returnText, returnBrief)
 
     -- These are localized in the init function
     if QuestieCorrectionshiddenQuests[questId] then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is hidden!") end
-        return false
+        local msg = "Quest " .. questId .. " is hidden automatically!"
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Unknown: Automatically blacklisted"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     if Questiedbcharhidden[questId] then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is hidden manually!") end
-        return false
+        local msg = "Quest " .. questId .. " is hidden manually!"
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Unknown: Manually blacklisted"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
-    if QuestieDB.activeChildQuests[questId] then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is a child quest and the parent is active!") end
-        -- The parent quest is active, so this quest is doable
-        return true
+    if QuestieDB.activeChildQuests[questId] then -- The parent quest is active, so this quest is doable
+        local msg = "Quest " .. questId .. " is eligible because it's a child quest and the parent is active!"
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return true
+            -- this scenario actually returns true, so it skips the rest of the later checks, because
+            -- if we're on the parent quest then we implicitly know all other requirements are met
+        elseif returnText and returnBrief then
+            return "Eligible: Parent active"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     local requiredRaces = QuestieDB.QueryQuestSingle(questId, "requiredRaces")
     if (requiredRaces and not checkRace[requiredRaces]) then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] race requirement not fulfilled for questId:", questId) end
         QuestieQuest.autoBlacklist[questId] = "race"
-        return false
+        local msg = "Race requirement not fulfilled for quest " .. questId
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Ineligible: Race requirement"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     -- Check the preQuestSingle field where just one of the required quests has to be complete for a quest to show up
@@ -525,16 +623,30 @@ function QuestieDB.IsDoable(questId, debugPrint)
     if preQuestSingle then
         local isPreQuestSingleFulfilled = QuestieDB:IsPreQuestSingleFulfilled(preQuestSingle)
         if not isPreQuestSingleFulfilled then
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] preQuestSingle requirement not fulfilled for questId:", questId) end
-            return false
+            local msg = "Pre-quest requirement not fulfilled for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Incomplete pre-quest"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
     local requiredClasses = QuestieDB.QueryQuestSingle(questId, "requiredClasses")
     if (requiredClasses and not checkClass[requiredClasses]) then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] class requirement not fulfilled for questId:", questId) end
         QuestieQuest.autoBlacklist[questId] = "class"
-        return false
+        local msg = "Class requirement not fulfilled for quest " .. questId
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Ineligible: Class requirement"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     local requiredMinRep = QuestieDB.QueryQuestSingle(questId, "requiredMinRep")
@@ -542,14 +654,20 @@ function QuestieDB.IsDoable(questId, debugPrint)
     if (requiredMinRep or requiredMaxRep) then
         local aboveMinRep, hasMinFaction, belowMaxRep, hasMaxFaction = QuestieReputation:HasFactionAndReputationLevel(requiredMinRep, requiredMaxRep)
         if (not ((aboveMinRep and hasMinFaction) and (belowMaxRep and hasMaxFaction))) then
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet reputation requirements for", questId) end
-
             --- If we haven't got the faction for min or max we blacklist it
             if not hasMinFaction or not hasMaxFaction then -- or not belowMaxRep -- This is something we could have done, but would break if you rep downwards
                 QuestieQuest.autoBlacklist[questId] = "rep"
             end
 
-            return false
+            local msg = "Player does not meet reputation requirements for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Reputation requirement"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
@@ -557,13 +675,20 @@ function QuestieDB.IsDoable(questId, debugPrint)
     if (requiredSkill) then
         local hasProfession, hasSkillLevel = QuestieProfessions:HasProfessionAndSkillLevel(requiredSkill)
         if (not (hasProfession and hasSkillLevel)) then
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet profession requirements for", questId) end
             --? We haven't got the profession so we blacklist it.
             if(not hasProfession) then
                 QuestieQuest.autoBlacklist[questId] = "skill"
             end
 
-            return false
+            local msg = "Player does not meet profession requirements for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Profession requirement"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
@@ -575,25 +700,44 @@ function QuestieDB.IsDoable(questId, debugPrint)
         if preQuestGroup then
             local isPreQuestGroupFulfilled = QuestieDB:IsPreQuestGroupFulfilled(preQuestGroup)
             if not isPreQuestGroupFulfilled then
-                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] preQuestGroup requirement not fulfilled for questId:", questId) end
-
-                return false
+                local msg = "Group pre-quest requirement not fulfilled for quest " .. questId
+                if not returnText then
+                    if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                    return false
+                elseif returnText and returnBrief then
+                    return "Ineligible: Incomplete pre-quest group"
+                elseif returnText and not returnBrief then
+                    return msg
+                end
             end
         end
     end
 
     local parentQuest = QuestieDB.QueryQuestSingle(questId, "parentQuest")
     if parentQuest and parentQuest ~= 0 then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest has an inactive parent quest") end
-        return false
+        local msg = "Quest " .. questId .. " has an inactive parent quest"
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Ineligible: Inactive parent"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     local nextQuestInChain = QuestieDB.QueryQuestSingle(questId, "nextQuestInChain")
     if nextQuestInChain and nextQuestInChain ~= 0 then
         if Questie.db.char.complete[nextQuestInChain] or QuestiePlayer.currentQuestlog[nextQuestInChain] then
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Follow up quests already completed or in the quest log!") end
-
-            return false
+            local msg = "Follow up quests already completed or in the quest log for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Later quest completed"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
@@ -603,24 +747,44 @@ function QuestieDB.IsDoable(questId, debugPrint)
     if ExclusiveQuestGroup then -- fix (DO NOT REVERT, tested thoroughly)
         for _, v in pairs(ExclusiveQuestGroup) do
             if Questie.db.char.complete[v] or QuestiePlayer.currentQuestlog[v] then
-                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] we have completed a quest that locks out this quest!") end
-
-                return false
+                local msg = "Player has completed a quest exclusive with quest " .. questId
+                if not returnText then
+                    if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                    return false
+                elseif returnText and returnBrief then
+                    return "Ineligible: Exclusive quest completed"
+                elseif returnText and not returnBrief then
+                    return msg
+                end
             end
         end
     end
 
     if (not DailyQuests:IsActiveDailyQuest(questId)) then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] quest is a daily quest not active today!") end
-        return false
+        local msg = "Quest " .. questId .. " is a daily quest which isn't active today!"
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Ineligible: Inactive daily"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
     local requiredSpecialization = QuestieDB.QueryQuestSingle(questId, "requiredSpecialization")
     if (requiredSpecialization) and (requiredSpecialization > 0) then
         local hasSpecialization = QuestieProfessions:HasSpecialization(requiredSpecialization)
         if (not hasSpecialization) then
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet spell requirements for", questId) end
-            return false
+            local msg = "Player does not meet profession specialization requirements for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Profession specialization requirement"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
@@ -629,21 +793,54 @@ function QuestieDB.IsDoable(questId, debugPrint)
         local hasSpell = IsSpellKnownOrOverridesKnown(math.abs(requiredSpell))
         local hasProfSpell = IsPlayerSpell(math.abs(requiredSpell))
         if (requiredSpell > 0) and (not hasSpell) and (not hasProfSpell) then --if requiredSpell is positive, we make the quest ineligible if the player does NOT have the spell
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet spell requirements for", questId) end
-            return false
+            local msg = "Player does not meet learned spell requirements for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Spell not yet learned"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         elseif (requiredSpell < 0) and (hasSpell or hasProfSpell) then --if requiredSpell is negative, we make the quest ineligible if the player DOES  have the spell
-            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet spell requirements for", questId) end
-            return false
+            local msg = "Player does not meet unlearned spell requirements for quest " .. questId
+            if not returnText then
+                if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+                return false
+            elseif returnText and returnBrief then
+                return "Ineligible: Already learned spell"
+            elseif returnText and not returnBrief then
+                return msg
+            end
         end
     end
 
     -- Check and see if the Quest requires an achievement before showing as available
     if _QuestieDB:CheckAchievementRequirements(questId) == false then
-        if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] Player does not meet achievement requirements for", questId) end
-        return false
+        local msg = "Player does not meet achievement requirements for quest " .. questId
+        if not returnText then
+            if debugPrint then Questie:Debug(Questie.DEBUG_SPAM, "[QuestieDB.IsDoable] " .. msg) end
+            return false
+        elseif returnText and returnBrief then
+            return "Ineligible: Achievement requirement"
+        elseif returnText and not returnBrief then
+            return msg
+        end
     end
 
-    return true
+    if returnText then
+        if IsQuestFlaggedCompleted(questId) then
+            if returnBrief then
+                return "Already complete"
+            else
+                return "Player has already completed quest " .. questId .. "!"
+            end
+        else
+            return "Player is eligible for quest " .. questId .. "!"
+        end
+    else
+        return true
+    end
 end
 
 ---@param questId number
@@ -692,7 +889,7 @@ end
 
 ---@return number
 local _GetIconScale = function()
-    return Questie.db.global.objectScale or 1
+    return Questie.db.profile.objectScale or 1
 end
 
 ---@param questId QuestId
@@ -868,6 +1065,20 @@ function QuestieDB.GetQuest(questId) -- /dump QuestieDB.GetQuest(867)
                     tinsert(QO.ObjectiveData, 1, killCreditObjective);
                 else
                     tinsert(QO.ObjectiveData, killCreditObjective);
+                end
+            end
+        end
+        if objectives[6] then
+            for index, spellObjective in pairs(objectives[6]) do
+                if spellObjective then
+                    ---@type SpellObjective
+                    QO.ObjectiveData[#QO.ObjectiveData+1] = {
+                        Type = "spell",
+                        Id = spellObjective[1],
+                        Text = spellObjective[2],
+                        ItemSourceId = spellObjective[3],
+                    }
+                    QO.SpellItemId = spellObjective[3]
                 end
             end
         end
@@ -1216,4 +1427,5 @@ end
 
 QuestieDB.waypointPresets = {
     ORGRIMS_HAMMER = {[ZoneDB.zoneIDs.ICECROWN]={{{62.37,30.60},{61.93,30.93},{61.48,31.24},{61.08,31.55},{60.74,31.92},{60.46,32.44},{60.26,33.11},{60.14,33.85},{60.11,34.63},{60.17,35.35},{60.31,36.01},{60.56,36.66},{60.84,37.33},{61.15,38.00},{61.44,38.67},{61.71,39.28},{62.00,39.92},{62.31,40.55},{62.60,41.20},{62.90,41.83},{63.05,42.20},{63.33,42.85},{63.58,43.53},{63.85,44.19},{64.08,44.86},{64.33,45.50},{64.45,45.87},{64.69,46.56},{64.94,47.21},{65.16,47.87},{65.43,48.51},{65.71,49.15},{66.03,49.77},{66.36,50.46},{66.72,51.10},{67.07,51.67},{67.41,52.08},{67.82,52.37},{68.31,52.47},{68.80,52.38},{69.23,51.98},{69.45,51.56},{69.57,51.13},{69.67,50.59},{69.73,49.96},{69.77,49.26},{69.79,48.48},{69.80,47.62},{69.79,46.68},{69.79,45.68},{69.78,44.90},{69.78,44.25},{69.76,43.55},{69.75,42.80},{69.72,42.01},{69.70,41.20},{69.67,40.38},{69.64,39.54},{69.61,38.71},{69.58,37.88},{69.55,37.07},{69.52,36.28},{69.49,35.54},{69.46,34.83},{69.45,34.18},{69.42,33.50},{69.41,32.46},{69.42,31.52},{69.45,30.67},{69.47,29.92},{69.48,29.25},{69.46,28.65},{69.42,28.12},{69.35,27.83},{69.11,27.19},{68.71,26.77},{68.23,26.54},{67.71,26.51},{67.24,26.55},{66.81,26.76},{66.35,27.09},{65.90,27.52},{65.44,27.95},{65.01,28.39},{64.58,28.73},{64.16,29.10},{63.74,29.43},{63.34,29.79},{62.94,30.11},{62.65,30.37},{62.37,30.60}}}},
+    THE_SKYBREAKER = {[ZoneDB.zoneIDs.ICECROWN]={{{63.59,52.34},{63.44,51.88},{63.30,51.52},{63.15,51.19},{63.01,50.85},{62.85,50.52},{62.68,50.17},{62.50,49.78},{62.31,49.36},{62.09,48.88},{61.86,48.33},{61.81,48.20},{61.67,47.88},{61.52,47.52},{61.37,47.13},{61.19,46.74},{61.02,46.32},{60.84,45.88},{60.65,45.44},{60.46,44.99},{60.28,44.53},{60.09,44.08},{59.90,43.63},{59.72,43.18},{59.54,42.75},{59.36,42.34},{59.20,41.94},{59.04,41.56},{58.89,41.22},{58.75,40.87},{58.52,40.30},{58.32,39.77},{58.14,39.27},{57.97,38.80},{57.81,38.39},{57.65,38.03},{57.49,37.72},{57.31,37.50},{57.12,37.34},{56.87,37.29},{56.57,37.39},{56.27,37.60},{55.97,37.88},{55.72,38.23},{55.53,38.61},{55.43,38.95},{55.43,39.09},{55.46,39.49},{55.52,39.92},{55.62,40.39},{55.76,40.88},{55.89,41.38},{56.02,41.85},{56.17,42.25},{56.33,42.68},{56.51,43.13},{56.70,43.56},{56.88,43.99},{57.05,44.39},{57.22,44.74},{57.42,45.15},{57.64,45.52},{57.83,45.81},{58.03,46.14},{58.23,46.56},{58.41,46.90},{58.60,47.25},{58.80,47.62},{59.00,48.03},{59.19,48.46},{59.36,48.84},{59.53,49.22},{59.69,49.63},{59.86,50.04},{60.03,50.46},{60.19,50.90},{60.36,51.32},{60.51,51.74},{60.65,52.17},{60.79,52.59},{60.94,53.02},{61.07,53.46},{61.23,53.89},{61.39,54.30},{61.55,54.72},{61.70,55.18},{61.88,55.65},{62.05,56.14},{62.23,56.58},{62.43,56.95},{62.65,57.21},{62.87,57.30},{62.95,57.27},{63.22,57.16},{63.52,56.97},{63.81,56.68},{64.07,56.32},{64.26,55.91},{64.33,55.47},{64.30,55.11},{64.25,54.72},{64.16,54.30},{64.04,53.84},{63.91,53.36},{63.76,52.88},{63.59,52.34}}}},
 }

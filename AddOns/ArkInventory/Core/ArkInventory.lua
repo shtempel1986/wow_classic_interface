@@ -491,7 +491,8 @@ ArkInventory.Global = { -- globals
 		ColourBlind = ArkInventory.CrossClient.GetCVarBool( "colorblindMode" )
 	},
 	
-	LeaveCombatRun = { }, -- [loc_id] = true
+	ScanAfterCombat = { }, -- [loc_id] = true
+	ScanAfterDismount = { }, -- [loc_id] = true
 	
 	Tooltip = {
 		Scan = nil,
@@ -807,7 +808,7 @@ ArkInventory.Global = { -- globals
 		},
 		
 		[ArkInventory.Const.Location.Currency] = {
-			proj = ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.PANDARIA ), --FIX ME when did the currency tab turn up?
+			proj = ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.WRATH ),
 			id = ArkInventory.Const.Location.Currency,
 			isActive = true,
 			Internal = "currency",
@@ -1005,6 +1006,7 @@ ArkInventory.Global = { -- globals
 			money = 0,
 		},
 		Mail = {
+			process = false,
 			running = false,
 			status = nil,
 			limit = ATTACHMENTS_MAX_SEND or 12,
@@ -2032,7 +2034,7 @@ ArkInventory.Const.DatabaseDefaults.global = {
 				custom = false,
 				value = nil,
 			},
-			["EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET"] = { default = 0.2 },
+--			["EVENT_ARKINV_ACTIONBAR_UPDATE_USABLE_BUCKET"] = { default = 0.2 },
 			["EVENT_ARKINV_AUCTION_LEAVE_BUCKET"] = { default = 0.3 },
 			["EVENT_ARKINV_AUCTION_UPDATE_MASSIVE_BUCKET"] = { default = 60 },
 			["EVENT_ARKINV_AUCTION_UPDATE_BUCKET"] = { default = 2 },
@@ -2073,6 +2075,7 @@ ArkInventory.Const.DatabaseDefaults.global = {
 			["EVENT_ARKINV_LDB_ITEM_UPDATE_BUCKET"] = { default = 1 },
 			["EVENT_ARKINV_LDB_PET_UPDATE_BUCKET"] = { default = 1 },
 			["EVENT_ARKINV_LDB_MOUNT_UPDATE_BUCKET"] = { default = 1 },
+			["EVENT_ARKINV_UNIT_AURA_BUCKET"] = { default = 5 },
 		},
 		["bugfix"] = {
 			["framelevel"] = {
@@ -2451,7 +2454,7 @@ ArkInventory.Const.DatabaseDefaults.global = {
 					},
 					["mounts"] = {
 						["randomise"] = true,
-						["dragonriding"] = false,
+						["dragonriding"] = true,
 						["type"] = {
 							["l"] = { -- land (ground)
 								["useflying"] = false,
@@ -2662,7 +2665,7 @@ function ArkInventory.OnLoad( )
 	ArkInventory.Debug.frame = ARKINV_Debug
 	table.insert( UISpecialFrames, ArkInventory.Debug.frame:GetName( ) )
 	
-	ArkInventory.Const.Program.Version = GetAddOnMetadata( ArkInventory.Const.Program.Name, "Version" )
+	ArkInventory.Const.Program.Version = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, "Version" )
 	
 	local ignore, ignore, ignore, major, minor = string.find( ArkInventory.Const.Program.Version, "^((%d+)[.](%d%d))$" )
 	if not major then
@@ -2678,7 +2681,7 @@ function ArkInventory.OnLoad( )
 	--ArkInventory.Output( ArkInventory.Const.Program.Version )
 	
 	
-	local releasetype = GetAddOnMetadata( ArkInventory.Const.Program.Name, "X-ReleaseType" )
+	local releasetype = ArkInventory.CrossClient.GetAddOnMetadata( ArkInventory.Const.Program.Name, "X-ReleaseType" )
 	if releasetype ~= "" then
 		ArkInventory.Global.Version = string.format( "%s.%s", ArkInventory.Global.Version, releasetype )
 	end
@@ -2831,91 +2834,6 @@ function ArkInventory.OnLoad( )
 	
 end
 
-function ArkInventory.SetMountMacro( )
-	
-	if not InCombatLockdown( ) then
-		
-		--ArkInventory.Output( "SetMountMacro" )
-		
-		local codex = ArkInventory.GetPlayerCodex( )
-		
-		local macrotext = ""
-		macrotext = macrotext .. "/dismount [combat, mounted, noflying]" -- dismount if in combat and mounted and not flying
-		macrotext = macrotext .. "\n/stopmacro [combat]" -- abort if in combat
-		
-		if codex.player.data.info.class == "DRUID" or codex.player.data.info.class == "WARLOCK" or codex.player.data.info.class == "SHAMAN" then
-			macrotext = macrotext .. "\n/cancelform [noform:0]" -- cancel all forms
-		end
-		
-		
-		local usingtravelform = false
-		if codex.player.data.ldb.travelform then
-			
-			if codex.player.data.info.class == "DRUID" then
-				
-				usingtravelform = true
-				
-				local cat_form = GetSpellInfo( 768 )
-				local travel_form = GetSpellInfo( 783 )
-				
-				macrotext = macrotext .. "\n/cast [indoors] " .. cat_form
-				
-				if ArkInventory.Collection.Mount.isDragonridingAvailable( ) then
-					if codex.player.data.ldb.mounts.dragonriding then
-						
-						macrotext = macrotext .. "\n/run if not IsModifiedClick( ) then ArkInventory.LDB.Mounts.GetNext( ) end"
-						macrotext = macrotext .. "\n/cast [mod] " .. travel_form
-					else
-						macrotext = macrotext .. "\n/run if IsModifiedClick( ) then ArkInventory.LDB.Mounts.GetNext( ) end"
-						macrotext = macrotext .. "\n/cast [nomod] " .. travel_form
-					end
-				else
-					macrotext = macrotext .. "\n/cast [nomounted] " .. travel_form
-				end
-				
-				
-			end
-			
-			-- shaman ghost wolf?
-			
-		end
-		
-		
-		if not usingtravelform then
-			macrotext = macrotext .. "\n/run ArkInventory.LDB.Mounts.GetNext( )"
-		end
-		
-		
-		
-		--ArkInventory.Output( macrotext )
-		
-		local btn = ARKINV_MountToggle
-		if not btn then
-			btn = CreateFrame( "Button", "ARKINV_MountToggle", UIParent, "SecureActionButtonTemplate" )
-			btn:SetAttribute( "type", "macro" )
-			btn:SetPoint( "CENTER" )
-			btn:Hide( )
-			btn:RegisterForClicks( "LeftButtonDown", "LeftButtonUp" )
-		end
-		btn:SetAttribute( "macrotext", macrotext )
-		
-		if ArkInventory.ClientCheck( nil, ArkInventory.ENUM.EXPANSION.SHADOWLANDS ) then
-			
-			local state = ArkInventory.CrossClient.GetCVarBool( "ActionButtonUseKeyDown" )
-			
-			-- /run C_CVar.SetCVar("ActionButtonUseKeyDown",1)
-			
-			if state then
-				btn:RegisterForClicks( "LeftButtonDown" )
-			else
-				btn:RegisterForClicks( "LeftButtonUp" )
-			end
-		end
-		
-	end
-	
-end
-
 function ArkInventory.OnInitialize( )
 	
 	ArkInventory.OutputDebug( "OnInitialize - Start" )
@@ -3033,10 +2951,12 @@ function ArkInventory.OnInitialize( )
 		{ "MERCHANT_SHOW", "EVENT_ARKINV_MERCHANT_ENTER", nil, ArkInventory.ENUM.EXPANSION.SHADOWLANDS },
 		{ "MERCHANT_CLOSED", "EVENT_ARKINV_MERCHANT_LEAVE", nil, ArkInventory.ENUM.EXPANSION.SHADOWLANDS },
 		
-		{ "MOUNT_EQUIPMENT_APPLY_RESULT", "EVENT_ARKINV_COLLECTION_MOUNT_EQUIPMENT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
+		{ "MOUNT_EQUIPMENT_APPLY_RESULT", "EVENT_ARKINV_COLLECTION_MOUNT_EQUIPMENT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.MountEquipment].proj },
 --		{ "MOUNT_JOURNAL_SEARCH_UPDATED", "" },
 --		{ "MOUNT_JOURNAL_USABILITY_CHANGED", "" },
 		{ "NEW_MOUNT_ADDED", "EVENT_ARKINV_COLLECTION_MOUNT_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
+		{ "UNIT_AURA", "EVENT_ARKINV_UNIT_AURA", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
+		{ "PLAYER_CAN_GLIDE_CHANGED", "EVENT_ARKINV_PLAYER_CAN_GLIDE_CHANGED", ArkInventory.Global.Location[ArkInventory.Const.Location.Mount].proj },
 		
 		{ "BATTLE_PET_CURSOR_CLEAR", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
 --		{ "CHAT_MSG_PET_BATTLE_COMBAT_LOG", "EVENT_ARKINV_COLLECTION_PET_UPDATE", ArkInventory.Global.Location[ArkInventory.Const.Location.Pet].proj },
@@ -3109,9 +3029,6 @@ function ArkInventory.OnInitialize( )
 --		{ "ZONE_CHANGED", "EVENT_ARKINV_ZONE_CHANGED" },
 --		{ "ZONE_CHANGED_INDOORS", "EVENT_ARKINV_ZONE_CHANGED" },
 --		{ "ZONE_CHANGED_NEW_AREA", "EVENT_ARKINV_ZONE_CHANGED" },
-		
---		{ "PLAYER_INTERACTION_MANAGER_FRAME_SHOW", "EVENT_ARKINV_PLAYER_INTERACTION_SHOW", ArkInventory.ENUM.EXPANSION.DRAGONFLIGHT },
---		{ "PLAYER_INTERACTION_MANAGER_FRAME_HIDE", "EVENT_ARKINV_PLAYER_INTERACTION_HIDE", ArkInventory.ENUM.EXPANSION.DRAGONFLIGHT },
 		
 --		{ "SPELL_UPDATE_COOLDOWN", "EVENT_ARKINV_UPDATE_COOLDOWN" },
 --		{ "ACTIONBAR_UPDATE_COOLDOWN", "EVENT_ARKINV_UPDATE_COOLDOWN" },
@@ -8842,7 +8759,8 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 			
 		elseif loc_id == ArkInventory.Const.Location.Currency then
 			
-			GameTooltip:SetCurrencyByID( i.id )
+			--GameTooltip:SetCurrencyByID( i.id )
+			ArkInventory.CrossClient.TooltipSetCurrencyByID( GameTooltip, i.id )
 			CursorUpdate( frame )
 			return
 			
@@ -8857,10 +8775,11 @@ function ArkInventory.Frame_Item_OnEnter( frame )
 			
 			local showSell = nil
 			
-			if( tooltipInfo.battlePetSpeciesID and tooltipInfo.battlePetSpeciesID > 0 ) then
+			if tooltipInfo.type == Enum.TooltipDataType.BattlePet then
+--			if( tooltipInfo.battlePetSpeciesID and tooltipInfo.battlePetSpeciesID > 0 ) then
 				ContainerFrameItemButton_CalculateItemTooltipAnchors( frame, GameTooltip ) -- Battle pet tooltip uses the GameTooltip's anchor
-				BattlePetToolTip_Show( tooltipInfo.battlePetSpeciesID, tooltipInfo.battlePetLevel, tooltipInfo.battlePetBreedQuality, tooltipInfo.battlePetMaxHealth, tooltipInfo.battlePetPower, tooltipInfo.battlePetSpeed, tooltipInfo.battlePetName )
-				return
+				return BattlePetToolTip_ShowLink( i.h )
+--				return BattlePetToolTip_Show( tooltipInfo.battlePetSpeciesID, tooltipInfo.battlePetLevel, tooltipInfo.battlePetBreedQuality, tooltipInfo.battlePetMaxHealth, tooltipInfo.battlePetPower, tooltipInfo.battlePetSpeed, tooltipInfo.battlePetName )
 			else
 				if BattlePetTooltip then
 					BattlePetTooltip:Hide( )
@@ -11054,11 +10973,11 @@ function ArkInventory.HookOpenAllBags( self, ... )
 	end
 	
 	local BackpackAlreadyOpen = ArkInventory.Frame_Main_Get( ArkInventory.Const.Location.Bag ):IsVisible( )
-	--ArkInventory.Output( "backpack was open: ", BackpackAlreadyOpen )
+	ArkInventory.OutputDebug( "backpack was open: ", BackpackAlreadyOpen )
 	
 	if whoname then
 		
-		--ArkInventory.Output( "opened by: ", whoname )
+		ArkInventory.OutputDebug( "opened by: ", whoname )
 		
 		if whoname == "MerchantFrame" then
 			
@@ -11091,6 +11010,14 @@ function ArkInventory.HookOpenAllBags( self, ... )
 			
 			if ArkInventory.isLocationControlled( ArkInventory.Const.Location.Bag ) then
 				if ArkInventory.db.option.auto.open.merchant == ArkInventory.ENUM.BAG.OPENCLOSE.NO and not BackpackAlreadyOpen then
+					return
+				end
+			end
+			
+		elseif whoname == "EngravingFrame" then
+			
+			if ArkInventory.isLocationControlled( ArkInventory.Const.Location.Bag ) then
+				if ArkInventory.db.option.auto.open.rune == ArkInventory.ENUM.BAG.OPENCLOSE.NO and not BackpackAlreadyOpen then
 					return
 				end
 			end
@@ -11387,20 +11314,19 @@ function ArkInventory.HookToggleAllBags( self, ... )
 	
 end
 
+
 function ArkInventory.HookPlayerInteractionShow( ... )
 	local self, index = ...
-	--ArkInventory.Output( "HookPlayerInteractionShow [", index, "]" )
-	ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.SHOW )
+	return ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.SHOW )
 end
 
 function ArkInventory.HookPlayerInteractionHide( ... )
 	local self, index = ...
-	--ArkInventory.Output( "HookPlayerInteractionHide [", index, "]" )
-	ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.HIDE )
+	return ArkInventory.HookPlayerInteractionProcess( index, ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.HIDE )
 end
 
 function ArkInventory.HookPlayerInteractionProcess( index, state, event, ... )
-	
+
 	if ArkInventory:IsEnabled( ) then
 		
 		local e = event or "PLAYER_INTERACTION_HOOK"
@@ -11430,11 +11356,19 @@ function ArkInventory.HookPlayerInteractionProcess( index, state, event, ... )
 				ArkInventory:EVENT_ARKINV_SCRAP_ENTER( e )
 			elseif index == Enum.PlayerInteractionType.Vendor or index == Enum.PlayerInteractionType.Merchant then
 				ArkInventory:EVENT_ARKINV_MERCHANT_ENTER( e )
+			else
+				ArkInventory.OutputDebug( "code issue: PlayerInteraction has uncoded index [", index, "]" )
 			end
 			
 			if not event then
-				--ArkInventory.Output( "show frame [", index, "]" )
+				
+				if InCombatLockdown( ) then
+					ArkInventory.OutputWarning( "you are in combat, opening this interaction window is going to fail due to in combat restrictions" )
+				end
+				
+				ArkInventory.OutputDebug( "show frame [", index, "]" )
 				return ArkInventory.hooks[PlayerInteractionFrameManager].ShowFrame( nil, index )
+				
 			end
 			
 		elseif state == ArkInventory.Const.BLIZZARD.GLOBAL.FRAME.HIDE then
@@ -11461,19 +11395,33 @@ function ArkInventory.HookPlayerInteractionProcess( index, state, event, ... )
 				ArkInventory:EVENT_ARKINV_SCRAP_LEAVE( e )
 			elseif index == Enum.PlayerInteractionType.Vendor or index == Enum.PlayerInteractionType.Merchant then
 				ArkInventory:EVENT_ARKINV_MERCHANT_LEAVE( e )
+			else
+				ArkInventory.OutputDebug( "code issue: PlayerInteraction has uncoded index [", index, "]" )
 			end
 			
 			if not event then
-				--ArkInventory.Output( "hide frame [", index, "]" )
+				ArkInventory.OutputDebug( "hide frame [", index, "]" )
 				return ArkInventory.hooks[PlayerInteractionFrameManager].HideFrame( nil, index )
 			end
 			
 		else
 			
-			ArkInventory.OutputError( "code issue: PlayerInteraction has invalid state [", state, "]" )
+			ArkInventory.OutputWarning( "code issue: PlayerInteraction has unknown state [", state, "]" )
 			
 		end
 		
+	end
+	
+end
+
+function ArkInventory.HookEngravingFrameHide( ... )
+	
+	if not ArkInventory:IsEnabled( ) then return end
+	
+	if ArkInventory.db.option.auto.close.rune > ArkInventory.ENUM.BAG.OPENCLOSE.NO and ArkInventory.isLocationControlled( ArkInventory.Const.Location.Bag ) then
+		if ArkInventory.db.option.auto.close.rune == ArkInventory.ENUM.BAG.OPENCLOSE.ALWAYS or ArkInventory.Global.BagsOpenedBy == "EngravingFrame" then
+			ArkInventory.Frame_Main_Hide( ArkInventory.Const.Location.Bag )
+		end
 	end
 	
 end
@@ -11547,10 +11495,10 @@ function ArkInventory.HookCToyboxSetFavorite( ... )
 end
 
 function ArkInventory.LoadAddOn( addonname )
-	if IsAddOnLoaded( addonname ) then
+	if ArkInventory.CrossClient.IsAddOnLoaded( addonname ) then
 		return true
 	else
-		local loaded, reason = LoadAddOn( addonname )
+		local loaded, reason = ArkInventory.CrossClient.LoadAddOn( addonname )
 		if reason then
 			ArkInventory.OutputError( "Failed to load ", addonname, ": ", _G["ADDON_" .. reason] )
 		else
@@ -11563,6 +11511,10 @@ end
 function ArkInventory.BlizzardAPIHook( disable, reload )
 	
 	-- required blizzard internal addons - load them here as they expect to be loaded after the user has logged in, they usually have issues if you try to load them too early
+	
+	if ArkInventory.ClientCheck( nil, ArkInventory.ENUM.EXPANSION.CLASSIC ) then
+		ArkInventory.LoadAddOn( "Blizzard_EngravingUI" )
+	end
 	
 	if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.PANDARIA ) then
 		
@@ -11636,6 +11588,7 @@ function ArkInventory.BlizzardAPIHook( disable, reload )
 		ArkInventory:RawHook( "OpenBackpack", "HookOpenBackpack", true )
 		ArkInventory:RawHook( "ToggleBackpack", "HookToggleBackpack", true )
 		
+		BackpackTokenFrame:SetWidth(500) -- allows GetMaxTokensWatched to return 10
 		if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.DRAGONFLIGHT ) then
 			ArkInventory:SecureHook( "TokenFrame_SetTokenWatched", ArkInventory.EVENT_ARKINV_BACKPACK_TOKEN_UPDATE )
 		elseif ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.TBC ) then
@@ -11653,6 +11606,10 @@ function ArkInventory.BlizzardAPIHook( disable, reload )
 			ArkInventory:RawHook( "ToggleAllBags", "HookToggleAllBags", true )
 		end
 		
+		
+		if EngravingFrame then
+			ArkInventory.MySecureHook( "EngravingFrame_OnHide", ArkInventory.HookEngravingFrameHide )
+		end
 		
 		-- bank functions (now opens via the ui panels in all versions)
 		if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.CLASSIC ) then
@@ -11689,7 +11646,7 @@ function ArkInventory.BlizzardAPIHook( disable, reload )
 		
 		
 		-- tooltips
-		for func, proj in pairs( ArkInventory.Const.BLIZZARD.TooltipFunctions ) do	
+		for func, proj in pairs( ArkInventory.Const.BLIZZARD.TooltipFunctions ) do
 			if true or proj then -- fix this once the table is sorted out
 				-- one off error message here instead of one per tooltip below
 				local myfunc = "HookTooltip"..func

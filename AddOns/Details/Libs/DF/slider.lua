@@ -232,6 +232,11 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 		return self(value)
 	end
 
+	function DFSliderMetaFunctions:SetValueNoCallback(value)
+		self.NoCallback = true
+		self.slider:SetValue(value)
+	end
+
 	-- thumb size
 	function DFSliderMetaFunctions:SetThumbSize(width, height)
 		if (not width) then
@@ -314,7 +319,7 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 			return
 		end
 
-		DetailsFrameworkSliderButtons1:ShowMe(slider)
+		DetailsFrameworkSliderButtons1:ShowMe(slider, object.bAttachButtonsToLeft)
 
 		local kill = object:RunHooksForWidget("OnEnter", slider, object)
 		if (kill) then
@@ -358,6 +363,14 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 	local sliderButtonsParentFrame = DetailsFrameworkSliderButtons1 or CreateFrame("frame", "DetailsFrameworkSliderButtons1", UIParent, "BackdropTemplate")
 	sliderButtonsParentFrame:Hide()
 	sliderButtonsParentFrame:SetHeight(18) --width is set by setpoint
+
+	C_Timer.After(0, function()
+		if (not sliderButtonsParentFrame.__background) then
+			DetailsFramework:ApplyStandardBackdrop(sliderButtonsParentFrame) --ApplyStandardBackdrop loads after this file
+		end
+		sliderButtonsParentFrame:SetBackdropBorderColor(0, 0, 0, 0)
+		sliderButtonsParentFrame:SetBackdropColor(.05, .05, .05, .9)
+	end)
 	sliderButtonsParentFrame.isGoingToHide = false
 
 	local timeToHide = 0
@@ -370,11 +383,27 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 		end
 	end
 
-	function sliderButtonsParentFrame:ShowMe(sliderFrame)
+	function sliderButtonsParentFrame:ShowMe(sliderFrame, bAnchorToLeft)
+		sliderButtonsParentFrame.bAnchorToLeft = bAnchorToLeft
 		sliderButtonsParentFrame:SetParent(sliderFrame)
 		sliderButtonsParentFrame:ClearAllPoints()
-		sliderButtonsParentFrame:SetPoint("bottomleft", sliderFrame, "topleft", -5, -5)
-		sliderButtonsParentFrame:SetPoint("bottomright", sliderFrame, "topright", 5, -5)
+
+		sliderButtonsParentFrame.buttonMinor:ClearAllPoints()
+		sliderButtonsParentFrame.buttonPlus:ClearAllPoints()
+
+		sliderButtonsParentFrame:SetWidth(35)
+
+		if (sliderButtonsParentFrame.bAnchorToLeft) then
+			sliderButtonsParentFrame:SetPoint("topright", sliderFrame, "topleft", 0, 0)
+			sliderButtonsParentFrame:SetPoint("bottomright", sliderFrame, "bottomleft", 0, 0)
+			sliderButtonsParentFrame.buttonPlus:SetPoint("right", sliderButtonsParentFrame, "right", -2, 0)
+			sliderButtonsParentFrame.buttonMinor:SetPoint("right", sliderButtonsParentFrame.buttonPlus, "left", 0, 0)
+		else
+			sliderButtonsParentFrame:SetPoint("topleft", sliderFrame, "topright", 2, 0)
+			sliderButtonsParentFrame:SetPoint("bottomleft", sliderFrame, "bottomright", 2, 0)
+			sliderButtonsParentFrame.buttonMinor:SetPoint("left", sliderButtonsParentFrame, "left", 2, 0)
+			sliderButtonsParentFrame.buttonPlus:SetPoint("left", sliderButtonsParentFrame.buttonMinor, "right", 0, 0)
+		end
 
 		sliderButtonsParentFrame:SetFrameStrata("FULLSCREEN")
 		sliderButtonsParentFrame:SetFrameLevel(sliderFrame:GetFrameLevel() + 1000)
@@ -394,10 +423,12 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 		sliderButtonsParentFrame:SetScript("OnUpdate", onUpdateTimeToHide)
 	end
 
-	local buttonPlus = CreateFrame("button", "DetailsFrameworkSliderButtonsPlusButton", sliderButtonsParentFrame, "BackdropTemplate")
-	local buttonMinor = CreateFrame("button", "DetailsFrameworkSliderButtonsMinorButton", sliderButtonsParentFrame, "BackdropTemplate")
+	local buttonPlus = DetailsFrameworkSliderButtonsPlusButton or CreateFrame("button", "DetailsFrameworkSliderButtonsPlusButton", sliderButtonsParentFrame, "BackdropTemplate")
+	local buttonMinor = DetailsFrameworkSliderButtonsMinorButton or CreateFrame("button", "DetailsFrameworkSliderButtonsMinorButton", sliderButtonsParentFrame, "BackdropTemplate")
 	buttonPlus:SetFrameStrata(sliderButtonsParentFrame:GetFrameStrata())
 	buttonMinor:SetFrameStrata(sliderButtonsParentFrame:GetFrameStrata())
+	sliderButtonsParentFrame.buttonPlus = buttonPlus
+	sliderButtonsParentFrame.buttonMinor = buttonMinor
 
 	buttonPlus:SetScript("OnEnter", function(self)
 		if (sliderButtonsParentFrame.isGoingToHide) then
@@ -697,6 +728,18 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 		table.insert(object.previous_value, 1, amt)
 		table.remove(object.previous_value, 4)
 
+		if (object.useDecimals) then
+			slider.amt:SetText(string.format("%.2f", amt))
+		else
+			slider.amt:SetText(math.floor(amt))
+		end
+		object.ivalue = amt
+
+		if (object.NoCallback) then
+			object.NoCallback = false
+			return
+		end
+
 		--some plugins registered OnValueChanged and others with OnValueChange
 		local kill = object:RunHooksForWidget("OnValueChanged", slider, object.FixedValue, amt, object)
 		if (kill) then
@@ -711,17 +754,6 @@ DF:Mixin(DFSliderMetaFunctions, DF.ScriptHookMixin)
 		if (object.OnValueChanged) then
 			object.OnValueChanged(slider, object.FixedValue, amt)
 		end
-
-		if (amt < 10 and amt >= 1) then
-			amt = "0" .. amt
-		end
-
-		if (object.useDecimals) then
-			slider.amt:SetText(string.format("%.2f", amt))
-		else
-			slider.amt:SetText(math.floor(amt))
-		end
-		object.ivalue = amt
 	end
 
 ------------------------------------------------------------------------------------------------------------
@@ -985,7 +1017,7 @@ function DF:NewSwitch(parent, container, name, member, width, height, leftText, 
 	if (with_label) then
 		local label = DF:CreateLabel(slider.widget, with_label, nil, nil, nil, "label", nil, "overlay")
 		label.text = with_label
-		slider.widget:SetPoint("left", label.widget, "right", 2, 0)
+		PixelUtil.SetPoint(slider.widget, "left", label.widget, "right", 2, 0)
 		with_label = label
 
 		if (label_template) then
@@ -999,10 +1031,10 @@ end
 function DFSliderMetaFunctions:SetTemplate(template)
 	--slider e switch
 	if (template.width) then
-		self:SetWidth(template.width)
+		PixelUtil.SetWidth(self.widget, template.width)
 	end
 	if (template.height) then
-		self:SetHeight(template.height)
+		PixelUtil.SetHeight(self.widget, template.height)
 	end
 
 	if (template.backdrop) then
@@ -1136,8 +1168,7 @@ function DF:NewSlider (parent, container, name, member, width, height, minValue,
 	end
 
 	SliderObject.slider.MyObject = SliderObject
-	SliderObject.slider:SetWidth(width)
-	SliderObject.slider:SetHeight(height)
+	PixelUtil.SetSize(SliderObject.slider, width, height)
 	SliderObject.slider:SetOrientation("horizontal")
 	SliderObject.slider:SetMinMaxValues(minValue, maxValue)
 	SliderObject.slider:SetValue(defaultValue)

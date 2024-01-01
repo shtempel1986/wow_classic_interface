@@ -1690,13 +1690,15 @@
         self:SetHeight( self.icon:GetHeight( ) )
         self.UpdateTooltip = function( self )
           ArkInventory.GameTooltipSetPosition( self )
-          GameTooltip:SetCurrencyByID( self.currencyID )
+          --GameTooltip:SetCurrencyByID( self.currencyID )
+          ArkInventory.CrossClient.TooltipSetCurrencyByID( self, currencyID )
           GameTooltip:Show( )
         end
       </OnLoad>
       <OnEnter>
         ArkInventory.GameTooltipSetPosition( self )
-        GameTooltip:SetCurrencyByID( self.currencyID )
+        --GameTooltip:SetCurrencyByID( self.currencyID )
+        ArkInventory.CrossClient.TooltipSetCurrencyByID( self, currencyID )
         GameTooltip:Show( )
       </OnEnter>
       <OnLeave>

@@ -1,4 +1,5 @@
 if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then return end
+if select(7, GetBuildInfo()) >= 11500 then return end -- Patch 1.15.0 now has built in castbars
 
 local _, namespace = ...
 local PoolManager = namespace.PoolManager
@@ -305,11 +306,13 @@ end
 function addon:ToggleUnitEvents(shouldReset)
     if self.db.target.enabled then
         self:RegisterEvent("PLAYER_TARGET_CHANGED")
+        self:RegisterUnitEvent("UNIT_TARGET", "target")
         if self.db.target.autoPosition then
             self:RegisterUnitEvent("UNIT_AURA", "target")
         end
     else
         self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+        self:UnregisterEvent("UNIT_TARGET")
         self:UnregisterEvent("UNIT_AURA")
     end
 
@@ -380,11 +383,15 @@ function addon:PLAYER_LOGIN()
         self.db = CopyDefaults(namespace.defaultConfig, ClassicCastbarsDB)
     end
 
-    if self.db.version and tonumber(self.db.version) < 36 then
-        -- Reset npcCastTimeCache when updating from old version as structure changed
-        self.db.npcCastTimeCache = CopyTable(namespace.defaultConfig.npcCastTimeCache)
-        --self.db.npcCastUninterruptibleCache = CopyTable(namespace.defaultConfig.npcCastUninterruptibleCache)
-        print("ClassicCastbars: " .. _G.BROWSER_CACHE_CLEARED or "") -- luacheck: ignore
+    if self.db.version then
+        if tonumber(self.db.version) < 36 then
+            self.db.npcCastTimeCache = CopyTable(namespace.defaultConfig.npcCastTimeCache)
+        end
+        if tonumber(self.db.version) < 41 then
+            if self.db.player.statusColorSuccess[2] == 0.7 then
+                self.db.player.statusColorSuccess = { 0, 1, 0, 1 }
+            end
+        end
     end
     self.db.version = namespace.defaultConfig.version
 
@@ -431,6 +438,17 @@ function addon:ADDON_LOADED(addonName)
             LibClassicDurations.RegisterCallback("ClassicCastbars", "UNIT_BUFF", function() end) -- ensure .OnUsed() is triggered
             self.LibClassicDurationsInitialized = true
             self:UnregisterEvent("ADDON_LOADED")
+        end
+    end
+end
+
+function addon:UNIT_TARGET(unitID) -- detect target of target
+    if self.db[unitID] and self.db[unitID].autoPosition then
+        if activeFrames[unitID] then
+            local parentFrame = self.AnchorManager:GetAnchor(unitID)
+            if parentFrame then
+                self:SetTargetCastbarPosition(activeFrames[unitID], parentFrame)
+            end
         end
     end
 end
@@ -589,7 +607,7 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED()
 
                             -- Whatever time was detected between SPELL_CAST_START and SPELL_CAST_SUCCESS will be the new cast time
                             local castTimeDiff = abs(castTime - origCastTime)
-                            if castTimeDiff <= 4000 and castTimeDiff >= 200 then -- take lag into account
+                            if castTimeDiff <= 4000 and castTimeDiff >= 225 then -- take lag into account
                                 self.db.npcCastTimeCache[srcNpcID .. spellName] = floor(castTime)
                                 npcCastTimeCacheStart[srcGUID] = nil
                             end

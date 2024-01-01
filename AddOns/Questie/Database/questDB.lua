@@ -23,6 +23,7 @@ QuestieDB.questKeys = {
         --['itemObjective'] = 3, -- table {{item(int), text(string)},...}
         --['reputationObjective'] = 4, -- table: {faction(int), value(int)}
         --['killCreditObjective'] = 5, -- table: {{creature(int), ...}, baseCreatureID, baseCreatureText}
+        --['spellObjective'] = 6, -- table: {{spell(int), text(string)},...}
     ['sourceItemId'] = 11, -- int, item provided by quest starter
     ['preQuestGroup'] = 12, -- table: {quest(int)}
     ['preQuestSingle'] = 13, -- table: {quest(int)}
@@ -106,7 +107,18 @@ QuestieDB.questFlags = {
     UNUSED2 = 128,
     UNKNOWN = 256,
     HIDDEN_REWARDS = 512,
-    AUTO_REWARDED = 1024
+    AUTO_REWARDED = 1024,
+    DAILY = 4096,
+    WEEKLY = 32768,
+}
+
+QuestieDB.factionIDs = {
+    UNDERCITY = 68,
+    DARNASSUS = 69,
+    DARKMOON_FAIRE = 909,
+    EXODAR = 930,
+    THE_KALUAK = 1073,
+    KIRIN_TOR = 1090,
 }
 
 -- temporary, until we remove the old db funcitons

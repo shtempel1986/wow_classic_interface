@@ -1,11 +1,13 @@
 ## License: LGPL v2.1 (this file specifically)
 
-## Interface: 100000
+## Interface: 100107
 
 ## Title: ArkInventory [Rules] Example
 ## Notes: Example rule for ArkInventory
-## Author: Arkayenro
-## Version: 3.10.18
+## Author: Arkayenro - Khaz'goroth
+## Version: 3.10.22
+## X-ReleaseType: 
+## IconTexture: Interface\Icons\INV_Misc_Bag_07_Green
 
 ## DefaultState: Disabled
 ## LoadOnDemand: 0

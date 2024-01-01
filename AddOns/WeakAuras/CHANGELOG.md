@@ -1,40 +1,33 @@
-# [5.8.4](https://github.com/WeakAuras/WeakAuras2/tree/5.8.4) (2023-11-07)
+# [5.8.7](https://github.com/WeakAuras/WeakAuras2/tree/5.8.7) (2023-12-03)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.8.3...5.8.4)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.8.6...5.8.7)
 
 ## Highlights
 
- - Template updates for 10.2.0
-- More options for Buff Triggers
-- Improvements to profiling UI
+ - Updates for Season of Discovery
+- New option to treat charged combo point as 7 combo points (thanks to @weswigham for initial idea+PR)
 - Bug fixes 
 
 ## Commits
 
-InfusOnWoW (8):
+InfusOnWoW (9):
 
-- Template updates for 10.2
-- Dynamic Group: Fix frame strata setting
-- Totem Trigger: Add a tooltip that a spell id can be entered
-- IconPicker: Fix error for spells that don't have an icon
-- Work around UnitInRange being wonky
-- Model: Remove HasAnimation check
-- BT2: Allow for multiple npcIds in npcId check
-- IconPicker: If a spell id is entered, show the icon for that spell id
+- Show an warning on trying to update an aura that can't be updated
+- Add an option to treat a charged combo point as 7 combo points
+- Add CHAT_MSG_LOOT type
+- Tweak frame levels again a bit
+- Improve error message for auras without a region type
+- AuraBar: Fix property names for gradient colors
+- Author Options: Also sort Sound list for the user
+- Drangonflying Load Option
+- Templates: Fix talent load option for Holy Word: Sanctify
 
 Stanzilla (2):
 
-- Update TOC for Retail Patch 10.2.0
-- Update PayPal link in README.md
+- Bump minor
+- Bump Classic TOC for SoD
 
-mrbuds (8):
+mrbuds (1):
 
-- Profiling: improve system profiling readability by regrouping multiUnits
-- Theat Situation trigger: add nam/realm and npcId filters
-- Colorize "Class and Specialization" options fixes #4657
-- FontInstance:SetFont flags seems to break with "None"
-- BT2: add affectedUnits and unaffectedUnits tables when Fetch affected names option is toggle
-- Add "Not Item Equipped" load option, and make both Item Equipped option take multiple inputs
-- Workaround fonts not loading correctly on first login
-- Fix keybinding display
+- Classis SoD: include new spell ids in spell cache
 

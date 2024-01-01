@@ -1132,7 +1132,6 @@ G.unitframe.aurafilters.RaidDebuffs = {
 		[427299] = List(), -- Flash Fire
 		[428901] = List(), -- Ashen Devastation
 	-- Nymue, Weaver of the Cycle
-		[423195] = List(), -- Inflorescence
 		[427137] = List(), -- Threads of Life I
 		[427138] = List(), -- Threads of Life II
 		[426520] = List(), -- Weaver's Burden
@@ -1727,6 +1726,8 @@ G.unitframe.aurafilters.RaidBuffsElvUI = {
 		[366309] = List(), -- Meltdown (Destabilized Core)
 		[365596] = List(), -- Overload (Destabilized Core)
 		[360750] = List(), -- Aurelid Lure
+	-- Emerald Dream
+		[420009] = List(), -- Corrupting Sparks (Splinterlimb)
 	},
 }
 
@@ -1746,7 +1747,8 @@ G.unitframe.aurawatch = {
 		[360827]	= Aura(360827, nil, 'TOPRIGHT', {0.33, 0.33, 0.77}), -- Blistering Scales
 		[410089]	= Aura(410089, nil, 'TOP', {0.13, 0.87, 0.50}), -- Prescience
 		[395152]	= Aura(395152, nil, 'BOTTOMRIGHT', {0.98, 0.44, 0.00}), -- Ebon Might < others
-		[406732]	= Aura(406732, nil, 'RIGHT', {0.82, 0.29, 0.24}), -- Spatial Paradox
+		[406732]	= Aura(406732, nil, 'RIGHT', {0.82, 0.29, 0.24}), -- Spatial Paradox < on yourself
+		[406789]	= Aura(406789, nil, 'RIGHT', {0.82, 0.29, 0.24}), -- Spatial Paradox < on the partner
 	},
 	ROGUE = {
 		[57934]		= Aura(57934, nil, 'TOPRIGHT', {0.89, 0.09, 0.05}), -- Tricks of the Trade

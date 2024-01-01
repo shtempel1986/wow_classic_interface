@@ -56,6 +56,8 @@
 ---@alias actorspec number this is the specID of the actor
 ---@alias uniquecombatid number a unique ID to point to a single combat, each character has its ID counter, use with Details:DoesCombatWithUIDExists(); Details:GetCombatByUID(); retrive with combat:GetCombatUID()
 
+---@alias cleuname string
+
 ---@class petinfo : table
 ---@field key1 ownername
 ---@field key2 guid
@@ -82,6 +84,7 @@
 ---@field GetSpellSchoolFormatedName fun(self: details, spellschool: spellschool) : string
 ---@field CommaValue fun(self: details, number: number) : string
 ---@field CreateEventListener fun(self: details) : table
+---@field GetFullName fun(self: details, unitId: any, ambiguateString: any) : string create a CLEU compatible name of the unit passed, return string is in the format "playerName-realmName", the string will also be ambiguated using the ambiguateString passed
 
 ---@class detailseventlistener : table
 ---@field RegisterEvent fun(self: detailseventlistener, event: detailsevent, callback: function)
@@ -109,6 +112,7 @@
 ---@field __destroyedBy string
 ---@field amountCasts {[string]: table<string, number>}
 ---@field instance_type instancetype "raid" or "party" or "pvp" or "arena" or "none" or "scenario"
+---@field run_time number
 ---@field end_time number
 ---@field start_time number
 ---@field combat_counter number
@@ -127,10 +131,13 @@
 ---@field is_boss table
 ---@field is_world_trash_combat boolean when true this combat is a regular combat done in the world, not in a dungeon, raid, battleground, arena, ...
 ---@field player_last_events table<string, table[]> record the latest events of each player, latter used to build the death log
+---@field GetCombatType fun(combat: combat) : number
 ---@field GetCombatUID fun(combat: combat) : uniquecombatid
 ---@field GetTimeData fun(combat: combat, dataName: string) : table
 ---@field GetPhases fun(combat: combat) : table
----@field GetCombatTime fun(combat) : number
+---@field GetCombatTime fun(comba: combat) : number
+---@field GetRunTime fun(combat: combat) : number return the elapsed time of a mythic+ dungeon run, if not exists, return the combat time
+---@field GetRunTimeNoDefault fun(combat: combat) : number return the elapsed time of a mythic+ dungeon run, nil if not exists
 ---@field GetDeaths fun(combat) : table --get the table which contains the deaths of the combat
 ---@field GetStartTime fun(combat: combat) : number
 ---@field SetStartTime fun(combat: combat, time: number)

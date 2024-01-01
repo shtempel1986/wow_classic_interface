@@ -5,11 +5,12 @@ local wipe, sort, unpack = wipe, sort, unpack
 local next, pairs, tinsert = next, pairs, tinsert
 
 local CreateFrame = CreateFrame
-local GetAddOnInfo = GetAddOnInfo
-local GetCVarBool = GetCVarBool
-local GetNumAddOns = GetNumAddOns
 local GetRealZoneText = GetRealZoneText
-local GetSpecializationInfo = GetSpecializationInfo
+
+local GetCVarBool = C_CVar.GetCVarBool
+local GetAddOnInfo = (C_AddOns and C_AddOns.GetAddOnInfo) or GetAddOnInfo
+local GetNumAddOns = (C_AddOns and C_AddOns.GetNumAddOns) or GetNumAddOns
+
 local UNKNOWN = UNKNOWN
 
 function E:AreOtherAddOnsEnabled()
@@ -30,8 +31,7 @@ function E:GetDisplayMode()
 end
 
 local function GetSpecName()
-	local info = E.myspec and E.SpecName[GetSpecializationInfo(E.myspec)]
-	return info and info.englishName
+	return E.SpecName[E.myspecID]
 end
 
 function E:CreateStatusContent(num, width, parent, anchorTo, content)

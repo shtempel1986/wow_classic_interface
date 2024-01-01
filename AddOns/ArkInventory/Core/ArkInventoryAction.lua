@@ -18,7 +18,7 @@ local junk_addons = { "Scrap", "SellJunk", "ReagentRestocker", "Peddler" }
 function ArkInventory.Action.Vendor.ProcessCheck( name )
 	for _, a in pairs( junk_addons ) do
 		--ArkInventory.Output( "checking ", a )
-		if IsAddOnLoaded( a ) and _G[a] then
+		if ArkInventory.CrossClient.IsAddOnLoaded( a ) and _G[a] then
 			ArkInventory.OutputWarning( string.format( ArkInventory.Localise["CONFIG_ACTION_VENDOR_PROCESSING_DISABLED_DESC"], a ) )
 			return false, a
 		end
@@ -37,25 +37,25 @@ function ArkInventory.Action.Vendor.Check( i, codex, manual, delete )
 		
 		if info.ready and info.id then
 			
-			if IsAddOnLoaded( "Scrap" ) and Scrap then
+			if ArkInventory.CrossClient.IsAddOnLoaded( "Scrap" ) and Scrap then
 				
 				if Scrap:IsJunk( info.id ) then
 					isMatch = true
 				end
 				
-			elseif IsAddOnLoaded( "SellJunk" ) and SellJunk then
+			elseif ArkInventory.CrossClient.IsAddOnLoaded( "SellJunk" ) and SellJunk then
 				
 				if ( info.q == ArkInventory.ENUM.ITEM.QUALITY.POOR and not SellJunk:isException( i.h ) ) or ( info.q ~= ArkInventory.ENUM.ITEM.QUALITY.POOR and SellJunk:isException( i.h ) ) then
 					isMatch = true
 				end
 				
-			elseif IsAddOnLoaded( "ReagentRestocker" ) and ReagentRestocker then
+			elseif ArkInventory.CrossClient.IsAddOnLoaded( "ReagentRestocker" ) and ReagentRestocker then
 				
 				if ReagentRestocker:isToBeSold( info.id ) then
 					isMatch = true
 				end
 				
-			elseif IsAddOnLoaded( "Peddler" ) and PeddlerAPI then
+			elseif ArkInventory.CrossClient.IsAddOnLoaded( "Peddler" ) and PeddlerAPI then
 				
 				if PeddlerAPI.itemIsToBeSold( info.id ) then
 					isMatch = true
@@ -604,6 +604,7 @@ function ArkInventory.Action.Mail.Send( manual )
 		if not ArkInventory.db.option.action.mail.manual then return end
 	else
 		if not ArkInventory.db.option.action.mail.auto then return end
+		if not ArkInventory.Global.Action.Mail.process then return end
 	end
 	
 	
@@ -622,6 +623,7 @@ function ArkInventory.Action.Mail.Send( manual )
 	local tf = function ( )
 		ArkInventory.Global.Action.Mail.running = true
 		ActionMailSend_Threaded( thread_id, manual )
+		ArkInventory.Global.Action.Mail.process = false
 		ArkInventory.Global.Action.Mail.running = false
 	end
 	
