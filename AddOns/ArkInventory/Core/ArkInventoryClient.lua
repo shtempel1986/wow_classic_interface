@@ -302,7 +302,7 @@ function ArkInventory.CrossClient.GetCurrencyListInfo( ... )
 	elseif GetCurrencyListInfo then
 		
 		r.name, r.isHeader, r.isHeaderExpanded, r.isTypeUnused, r.isShowInBackpack, r.quantity, r.iconFileID, r.maxQuantity, r.canEarnPerWeek, r.quantityEarnedThisWeek, unknown, r.itemID = GetCurrencyListInfo( ... )
-		r.link = GetCurrencyListLink( ... )
+		r.link = ArkInventory.CrossClient.GetCurrencyListLink( ... )
 		
 	end
 	
@@ -828,7 +828,10 @@ end
 if ArkInventory.Const.BLIZZARD.CLIENT.ID == nil then
 	ArkInventory.OutputError( "code error: unable to determine game client, please contact the author with the following client data: project=[", WOW_PROJECT_ID, "], agent=[", a, "], portal=[", p, "] TOC=[", ArkInventory.Const.BLIZZARD.TOC, "]")
 else
-	if string.match( a, "beta" ) then
+	if string.match( a, "alpha" ) then
+		ArkInventory.Const.BLIZZARD.CLIENT.ID = ArkInventory.Const.BLIZZARD.CLIENT.ID + ArkInventory.Const.BLIZZARD.CLIENT.ALPHA
+		ArkInventory.Const.BLIZZARD.CLIENT.NAME = string.format( "%s: Alpha", ArkInventory.Const.BLIZZARD.CLIENT.NAME )
+	elseif string.match( a, "beta" ) then
 		ArkInventory.Const.BLIZZARD.CLIENT.ID = ArkInventory.Const.BLIZZARD.CLIENT.ID + ArkInventory.Const.BLIZZARD.CLIENT.BETA
 		ArkInventory.Const.BLIZZARD.CLIENT.NAME = string.format( "%s: Beta", ArkInventory.Const.BLIZZARD.CLIENT.NAME )
 	elseif string.match( a, "ptr" ) or p == "test" then

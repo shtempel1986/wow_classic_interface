@@ -1,5 +1,5 @@
 
-local MAJOR, MINOR = "LibDropDownMenu", tonumber((gsub("r34","r",""))) or 9999;
+local MAJOR, MINOR = "LibDropDownMenu", tonumber((gsub("r39","r",""))) or 9999;
 local lib = LibStub:NewLibrary(MAJOR, MINOR);
 
 if not lib then return end
@@ -146,6 +146,9 @@ function UIDropDownMenu_Initialize(frame, initFunction, displayMode, level, menu
 	local dropDownList = _G["LibDropDownMenu_List"..level];
 	dropDownList.dropdown = frame;
 	dropDownList.shouldRefresh = true;
+	if dropDownList.SetWindow and frame.GetWindow then -- classic compatibilty; SetWindow and GetWindow not present in classic
+		dropDownList:SetWindow(frame:GetWindow());
+	end
 
 	UIDropDownMenu_SetDisplayMode(frame, displayMode);
 end
@@ -290,6 +293,8 @@ function UIDropDownMenuButton_OnEnter(self)
 	end
 
 	GetValueOrCallFunction(self, "funcOnEnter", self);
+	--self.NewFeature:Hide(); -- why should it disappear on mouse over? (found in retail code)
+	self.NewFeature:SetShown(self.showNewLabel);
 end
 
 function UIDropDownMenuButton_OnLeave(self)
@@ -335,7 +340,7 @@ function UIDropDownMenuButtonIcon_OnEnter(self)
 	local shouldShowIconTooltip = UIDropDownMenuButton_ShouldShowIconTooltip(button);
 
 	if shouldShowIconTooltip then
-		
+
 		local tooltip = GetAppropriateTooltip();
 		tooltip:SetOwner(button, "ANCHOR_RIGHT");
 		if button.iconTooltipTitle then
@@ -656,6 +661,7 @@ function UIDropDownMenu_AddButton(info, level)
 	button.iconXOffset = info.iconXOffset;
 	button.mouseOverIcon = info.mouseOverIcon;
 	button.ignoreAsMenuSelection = info.ignoreAsMenuSelection;
+	button.showNewLabel = info.showNewLabel;
 
 	if ( info.value ~= nil) then
 		button.value = info.value;
@@ -785,6 +791,8 @@ function UIDropDownMenu_AddButton(info, level)
 		_G[listFrameName.."Button"..index.."UnCheck"]:Hide();
 	end
 	button.checked = info.checked;
+	Update_DropDownMenuButton(button:GetName());
+	button.NewFeature:SetShown(button.showNewLabel);
 
 	-- If has a colorswatch, show it and vertex color it
 	local colorSwatch = _G[listFrameName.."Button"..index.."ColorSwatch"];
@@ -885,6 +893,10 @@ function UIDropDownMenu_GetButtonWidth(button)
 	if ( button.hasArrow or button.hasColorSwatch ) then
 		width = width + 10;
 	end
+	if (button.showNewLabel) then
+		Update_DropDownMenuButton(buttonName);
+		width = width + button.NewFeature.Label:GetUnboundedStringWidth();
+	end
 	if ( button.notCheckable ) then
 		width = width - 30;
 	end
@@ -956,6 +968,11 @@ function UIDropDownMenu_Refresh(frame, useValue, dropdownLevel)
 				uncheckImage:Show();
 			end
 		end
+
+		local normalText = _G[button:GetName().."NormalText"];
+		Update_DropDownMenuButton(button:GetName());
+		button.NewFeature:SetShown(button.showNewLabel);
+		button.NewFeature:SetPoint("LEFT", normalText, "RIGHT", 20, 0);
 
 		if ( button:IsShown() ) then
 			local width = UIDropDownMenu_GetButtonWidth(button);
@@ -1416,7 +1433,6 @@ function UIDropDownMenu_OnHide(self)
 	if (id == 1) then
 		UIDROPDOWNMENU_OPEN_MENU = nil;
 	end
-
 	UIDropDownMenu_ClearCustomFrames(self);
 	if EventRegistry and EventRegistry.TriggerEvent then
 		EventRegistry:TriggerEvent("UIDropDownMenu.Hide");
@@ -1436,7 +1452,7 @@ end
 function UIDropDownMenu_MatchTextWidth(frame, minWidth, maxWidth)
 	local frameName = frame:GetName();
 	local newWidth = GetChild(frame, frameName, "Text"):GetUnboundedStringWidth() + UIDROPDOWNMENU_DEFAULT_WIDTH_PADDING;
-	
+
 	if minWidth or maxWidth then
 		newWidth = Clamp(newWidth, minWidth or newWidth, maxWidth or newWidth);
 	end
@@ -1545,7 +1561,11 @@ function UIDropDownMenuButton_OpenColorPicker(self, button)
 		button = self;
 	end
 	UIDROPDOWNMENU_MENU_VALUE = button.value;
-	OpenColorPicker(button);
+	if ColorPickerFrame.SetupColorPickerAndShow then
+		ColorPickerFrame:SetupColorPickerAndShow(button);
+	else
+		OpenColorPicker(button); -- classic
+	end
 end
 
 function UIDropDownMenu_DisableButton(level, id)
@@ -1660,7 +1680,7 @@ function UIDropDownMenu_GetValue(id)
 	end
 end
 
-function OpenColorPicker(info)
+function OpenColorPicker(info) -- deprecated in retail
 	ColorPickerFrame.func = info.swatchFunc;
 	ColorPickerFrame.hasOpacity = info.hasOpacity;
 	ColorPickerFrame.opacityFunc = info.opacityFunc;

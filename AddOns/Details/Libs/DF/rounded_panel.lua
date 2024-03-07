@@ -74,6 +74,7 @@ local cornerNames = {"TopLeft", "TopRight", "BottomLeft", "BottomRight"}
 ---@field GetMaxFrameLevel fun(self:df_roundedpanel) : number --return the max frame level of the frame and its children
 
 ---@class df_roundedpanel : frame, df_roundedcornermixin, df_optionsmixin, df_titlebar
+---@field disabled boolean
 ---@field bHasBorder boolean
 ---@field bHasTitleBar boolean
 ---@field options df_roundedpanel_options
@@ -110,14 +111,14 @@ local cornerNames = {"TopLeft", "TopRight", "BottomLeft", "BottomRight"}
 local setCornerPoints = function(self, textures, width, height, xOffset, yOffset, bIsBorder)
     for cornerName, thisTexture in pairs(textures) do
         PixelUtil.SetSize(thisTexture, width or 16, height or 16)
-        thisTexture:SetTexture(self.options.corner_texture)
+        thisTexture:SetTexture(self.options.corner_texture, "CLAMP", "CLAMP", "TRILINEAR")
 
         --set the mask
         if (not thisTexture.MaskTexture and bIsBorder) then
             thisTexture.MaskTexture = self:CreateMaskTexture(nil, "background")
             thisTexture.MaskTexture:SetSize(74, 64)
             thisTexture:AddMaskTexture(thisTexture.MaskTexture)
-            thisTexture.MaskTexture:SetTexture([[Interface\Azerite\AzeriteGoldRingRank2]]) --1940690
+            thisTexture.MaskTexture:SetTexture([[Interface\Azerite\AzeriteGoldRingRank2]], "CLAMP", "CLAMP", "TRILINEAR") --1940690
             --thisTexture.MaskTexture:Hide()
         end
 
@@ -286,6 +287,10 @@ detailsFramework.RoundedCornerPanelMixin = {
     ---adjust the size of the corner textures and the border edge textures
     ---@param self df_roundedpanel
     OnSizeChanged = function(self)
+        if (self.disabled) then
+            return
+        end
+
         --if the frame has a titlebar, need to adjust the size of the titlebar
         if (self.bHasTitleBar) then
             self.TitleBar:SetWidth(self:GetWidth() - 14)
@@ -295,7 +300,7 @@ detailsFramework.RoundedCornerPanelMixin = {
         ---@type height
         local frameHeight = self:GetHeight()
 
-        if (frameHeight < 32) then
+        if (false and frameHeight < 32) then
             local newCornerSize = frameHeight / 2
 
             --set the new size of the corners on all corner textures
@@ -351,6 +356,44 @@ detailsFramework.RoundedCornerPanelMixin = {
         end
     end,
 
+    DisableRoundedCorners = function(self)
+		self.TopLeft:Hide()
+		self.TopRight:Hide()
+		self.BottomLeft:Hide()
+		self.BottomRight:Hide()
+		self.CenterBlock:Hide()
+		self.TopEdgeBorder:Hide()
+		self.BottomEdgeBorder:Hide()
+		self.LeftEdgeBorder:Hide()
+		self.RightEdgeBorder:Hide()
+		self.TopLeftBorder:Hide()
+		self.TopRightBorder:Hide()
+		self.BottomLeftBorder:Hide()
+		self.BottomRightBorder:Hide()
+		self.TopHorizontalEdge:Hide()
+		self.BottomHorizontalEdge:Hide()
+        self.disabled = true
+    end,
+
+    EnableRoundedCorners = function(self)
+		self.TopLeft:Show()
+		self.TopRight:Show()
+		self.BottomLeft:Show()
+		self.BottomRight:Show()
+		self.CenterBlock:Show()
+		self.TopEdgeBorder:Show()
+		self.BottomEdgeBorder:Show()
+		self.LeftEdgeBorder:Show()
+		self.RightEdgeBorder:Show()
+		self.TopLeftBorder:Show()
+		self.TopRightBorder:Show()
+		self.BottomLeftBorder:Show()
+		self.BottomRightBorder:Show()
+		self.TopHorizontalEdge:Show()
+		self.BottomHorizontalEdge:Show()
+        self.disabled = false
+    end,
+
     ---get the size of the edge texture
     ---@param self df_roundedpanel
     ---@param alignment "vertical"|"horizontal"
@@ -368,9 +411,19 @@ detailsFramework.RoundedCornerPanelMixin = {
         alignment = alignment:lower()
 
         if (alignment == "vertical") then
+            if (self.tabSide) then
+                if (self.tabSide == "top" or self.tabSide == "bottom") then
+                    return self:GetHeight() - (borderTexture:GetHeight() * 2) + 2 - borderTexture:GetHeight()
+                end
+            end
             return self:GetHeight() - (borderTexture:GetHeight() * 2) + 2
 
         elseif (alignment == "horizontal") then
+            if (self.tabSide) then
+                if (self.tabSide == "left" or self.tabSide == "right") then
+                    return self:GetWidth() - (borderTexture:GetHeight() * 2) + 2 - borderTexture:GetHeight()
+                end
+            end
             return self:GetWidth() - (borderTexture:GetHeight() * 2) + 2
         end
 
@@ -635,6 +688,68 @@ function detailsFramework:AddRoundedCornersToFrame(frame, preset)
         applyPreset(frame, preset)
     else
         applyPreset(frame, defaultPreset)
+        preset = defaultPreset
+    end
+
+    if (preset.tab_side) then
+        if (preset.tab_side == "top") then
+            --hide the bottom textures of the rounded corner, the top and middle textures will be used to fill the tab
+            frame.BottomHorizontalEdge:Hide()
+            frame.BottomLeft:Hide()
+            frame.BottomRight:Hide()
+
+            local point1, relativeTo, point2, x, y = frame.CornerTextures["TopLeft"]:GetPoint(1)
+            frame.CornerTextures["TopLeft"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+            point1, relativeTo, point2, x, y = frame.CornerTextures["TopRight"]:GetPoint(1)
+            frame.CornerTextures["TopRight"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+            if (frame.BorderCornerTextures["TopLeft"]) then
+                point1, relativeTo, point2, x, y = frame.BorderCornerTextures["TopLeft"]:GetPoint(1)
+                frame.BorderCornerTextures["TopLeft"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                point1, relativeTo, point2, x, y = frame.BorderCornerTextures["TopRight"]:GetPoint(1)
+                frame.BorderCornerTextures["TopRight"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                point1, relativeTo, point2, x, y = frame.TopEdgeBorder:GetPoint(1)
+                frame.TopEdgeBorder:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                frame.BottomEdgeBorder:Hide()
+
+                frame.tabSide = "top"
+            end
+
+        elseif (preset.tab_side == "bottom") then
+            --hide the top textures of the rounded corner, the bottom and middle textures will be used to fill the tab
+            frame.TopHorizontalEdge:Hide()
+            frame.TopLeft:Hide()
+            frame.TopRight:Hide()
+
+            local point1, relativeTo, point2, x, y = frame.CornerTextures["BottomLeft"]:GetPoint(1)
+            frame.CornerTextures["BottomLeft"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+            point1, relativeTo, point2, x, y = frame.CornerTextures["BottomRight"]:GetPoint(1)
+            frame.CornerTextures["BottomRight"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+            if (frame.BorderCornerTextures["BottomLeft"]) then
+                point1, relativeTo, point2, x, y = frame.BorderCornerTextures["BottomLeft"]:GetPoint(1)
+                frame.BorderCornerTextures["BottomLeft"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                point1, relativeTo, point2, x, y = frame.BorderCornerTextures["BottomRight"]:GetPoint(1)
+                frame.BorderCornerTextures["BottomRight"]:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                point1, relativeTo, point2, x, y = frame.BottomEdgeBorder:GetPoint(1)
+                frame.BottomEdgeBorder:SetPoint(point1, relativeTo, point2, x, math.abs(preset.roundness -16))
+
+                frame.TopEdgeBorder:Hide()
+
+                point1, relativeTo, point2, x, y = frame.RightEdgeBorder:GetPoint(1)
+                ---@type height
+                local verticalEdgeSize = frame:CalculateBorderEdgeSize("vertical")
+                frame.RightEdgeBorder:SetHeight(verticalEdgeSize - 6)
+                frame.tabSide = "bottom"
+            end
+        end
     end
 end
 

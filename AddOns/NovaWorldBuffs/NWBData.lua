@@ -32,6 +32,9 @@ local GetContainerNumFreeSlots = GetContainerNumFreeSlots or C_Container.GetCont
 local GetContainerNumSlots = GetContainerNumSlots or C_Container.GetContainerNumSlots;
 local GetGossipText = GetGossipText or C_GossipInfo.GetText;
 local IsQuestFlaggedCompleted = IsQuestFlaggedCompleted or C_QuestLog.IsQuestFlaggedCompleted;
+local GetGuildInfo = GetGuildInfo;
+local GetGuildRosterInfo = GetGuildRosterInfo;
+local GetRaidRosterInfo = GetRaidRosterInfo;
 local connectedRealms = {};
 if (GetAutoCompleteRealms and next(GetAutoCompleteRealms())) then
 	NWB.isConnectedRealm = true;
@@ -192,6 +195,10 @@ function NWB:OnCommReceived(commPrefix, string, distribution, sender)
 			--NWB:debug("npcwalking inc", sender, data);
 			local zoneID, buffs = strsplit(" ", data, 2);
 			NWB:receivedLayerBuffs(zoneID, buffs);
+		elseif (cmd == "stvb") then
+			--NWB:debug("npcwalking inc", sender, data);
+			local zoneID, x, y = strsplit(" ", data, 3);
+			NWB:receivedStvPos(distribution, zoneID, x, y);
 		elseif (cmd == "rlb" and distribution == "GUILD") then
 			NWB:sendLayerBuffs();
 		end
@@ -614,6 +621,13 @@ function NWB:sendHandIn(distribution, type, target, layer)
 end
 
 --Send npc walking msg.
+function NWB:sendStvData(distribution, type, target)
+	if (NWB:isClassicCheck()) then
+		NWB:debug("sending stv data", distribution);
+		NWB:sendComm(distribution, "stvb " .. version .. " " .. self.k() .. " " .. type, target);
+	end
+end
+
 function NWB:sendNpcWalking(distribution, type, target, layer)
 	if (tonumber(layer) and NWB:isClassicCheck()) then
 		NWB:sendComm(distribution, "npcWalking " .. version .. " " .. self.k() .. " " .. type .. " " .. layer, target);
@@ -691,10 +705,10 @@ function NWB:createData(distribution, noLogs, type, isRequestData)
 		return data;
 	end
 	if (type == "ashenvale") then
-		if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
-			data.ashenvale = NWB.data.ashenvale;
-			data.ashenvaleTime = NWB.data.ashenvaleTime;
-		end
+		--if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
+		--	data.ashenvale = NWB.data.ashenvale;
+		--	data.ashenvaleTime = NWB.data.ashenvaleTime;
+		--end
 	else
 		if (NWB.data.rendTimer > (GetServerTime() - NWB.db.global.rendRespawnTime)) then
 			data['rendTimer'] = NWB.data.rendTimer;
@@ -779,15 +793,15 @@ function NWB:createData(distribution, noLogs, type, isRequestData)
 			end
 		end
 		if (NWB.isSOD) then
-			if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
-				data.ashenvale = NWB.data.ashenvale;
-				data.ashenvaleTime = NWB.data.ashenvaleTime;
-			end
-			if (distribution == "GUILD" and isRequestData and NWB.data.lastAshenvaleGuildMsg and GetServerTime() - NWB.data.lastAshenvaleGuildMsg < 1800) then
+			--if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
+			--	data.ashenvale = NWB.data.ashenvale;
+			--	data.ashenvaleTime = NWB.data.ashenvaleTime;
+			--end
+			--if (distribution == "GUILD" and isRequestData and NWB.data.lastAshenvaleGuildMsg and GetServerTime() - NWB.data.lastAshenvaleGuildMsg < 1800) then
 				--Only gets sent when someone logs on in guild and only if we're one of the 2 people at logon that share data.
 				--These variable names are shortened before sendin.
-				data.lastAshenvaleGuildMsg = NWB.data.lastAshenvaleGuildMsg;
-			end
+			--	data.lastAshenvaleGuildMsg = NWB.data.lastAshenvaleGuildMsg;
+			--end
 		end
 		if (distribution == "GUILD") then
 			--Include settings with timer data for guild.
@@ -839,10 +853,10 @@ function NWB:createDataLayered(distribution, noLayerMap, noLogs, type, forceLaye
 	end]]
 	if (type == "ashenvale") then
 		--Only send ashenvale data.
-		if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
-			data.ashenvale = NWB.data.ashenvale;
-			data.ashenvaleTime = NWB.data.ashenvaleTime;
-		end
+		--if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
+		--	data.ashenvale = NWB.data.ashenvale;
+		--	data.ashenvaleTime = NWB.data.ashenvaleTime;
+		--end
 	else
 		local sendLayerMapDelay = 1840;
 		local sendLayerMap, foundTimer;
@@ -1099,14 +1113,20 @@ function NWB:createDataLayered(distribution, noLayerMap, noLogs, type, forceLaye
 			end
 		end
 		if (NWB.isSOD) then
-			if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
-				data.ashenvale = NWB.data.ashenvale;
-				data.ashenvaleTime = NWB.data.ashenvaleTime;
-			end
-			if (distribution == "GUILD" and isRequestData and NWB.data.lastAshenvaleGuildMsg and GetServerTime() - NWB.data.lastAshenvaleGuildMsg < 1800) then
+			--if (NWB:isAshenvaleTimerValid() or (distribution == "GUILD" and NWB:isAshenvaleTimerExpired())) then
+			--	data.ashenvale = NWB.data.ashenvale;
+			--	data.ashenvaleTime = NWB.data.ashenvaleTime;
+			--end
+			--if (distribution == "GUILD" and isRequestData and NWB.data.lastAshenvaleGuildMsg and GetServerTime() - NWB.data.lastAshenvaleGuildMsg < 1800) then
 				--Only gets sent when someone logs on in guild and only if we're one of the 2 people at logon that share data.
 				--These variable names are shortened before sendin.
-				data.lastAshenvaleGuildMsg = NWB.data.lastAshenvaleGuildMsg;
+			--	data.lastAshenvaleGuildMsg = NWB.data.lastAshenvaleGuildMsg;
+			--end
+			if (NWB.stvRunning) then
+				local stvData = NWB:buildStvData();
+				if (stvData) then
+					data.stvData = stvData;
+				end
 			end
 		end
 		if (distribution == "GUILD" and not forceLayerMap) then
@@ -1326,6 +1346,7 @@ NWB.validKeys = {
 	["wintergraspTime"] = true,
 	["wintergraspFaction"] = true,
 	["hellfireRep"] = true,
+	["stvData"] = true,
 	["tbcHD"] = true,
 	["tbcHDT"] = true,
 	["tbcDD"] = true,
@@ -1568,6 +1589,9 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 													if (not NWB.data.layers[layer].terokTowersTime) then
 														NWB.data.layers[layer].terokTowersTime = 0;
 													end
+													if (not NWB.data.layers[layer].terokTowers) then
+														NWB.data.layers[layer].terokTowers = 0;
+													end
 													if (NWB.data.layers[layer][k] and v ~= 0 and vv.terokTowersTime and vv.terokTowersTime ~= 0
 															and vv.terokTowersTime > NWB.data.layers[layer].terokTowersTime
 															and v > GetServerTime() and v < GetServerTime() + 21700
@@ -1746,6 +1770,9 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 							if (not NWB.data.terokTowersTime) then
 								NWB.data.terokTowersTime = 0;
 							end
+							if (not NWB.data.terokTowers) then
+								NWB.data.terokTowers = 0;
+							end
 							if (NWB.data[k] and v ~= 0 and data.terokTowersTime and data.terokTowersTime ~= 0
 									and data.terokTowersTime > NWB.data.terokTowersTime
 									and v > GetServerTime() and v < GetServerTime() + 21700
@@ -1767,6 +1794,9 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 						end
 					elseif (k == "ashenvale" or k == "ashenvaleTime") then
 						if (k ~= "ashenvaleTime") then
+							if (not NWB.data.ashenvale) then
+								NWB.data.ashenvale = 0;
+							end
 							if (not NWB.data.ashenvaleTime) then
 								NWB.data.ashenvaleTime = 0;
 							end
@@ -1855,6 +1885,8 @@ function NWB:receivedData(dataReceived, sender, distribution, elapsed)
 						end
 					end
 				end
+			elseif (k == "stvData") then
+				NWB:parseStvData(v);
 			elseif (v ~= nil and k ~= "layers") then
 				if (not NWB.validKeys[k] and type(v) ~= "table") then
 					NWB:debug("Invalid key received3:", k, v);
@@ -1956,7 +1988,7 @@ function NWB:receivedNpcDied(type, timestamp, distribution, layer, sender)
 					local layerMsg = "";
 					if (layer) then
 						local layerNum = NWB:GetLayerNum(layer);
-						layerMsg = " (Layer " .. layerNum .. ")";
+						layerMsg = " (" .. L["Layer"] .. " " .. layerNum .. ")";
 					end
 					local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago" .. layerMsg .. ".";
 					if (NWB.db.global.middleNpcKilled) then
@@ -1969,7 +2001,7 @@ function NWB:receivedNpcDied(type, timestamp, distribution, layer, sender)
 				local layerMsg = "";
 				if (layer) then
 					local layerNum = NWB:GetLayerNum(layer);
-					layerMsg = " (Layer " .. layerNum .. ")";
+					layerMsg = " (" .. L["Layer"] .. " " .. layerNum .. ")";
 				end
 				local msg = "New recently killed " .. typeString .. " NPC timer received, died " .. timeAgoString .. " ago" .. layerMsg .. ".";
 				if (NWB.db.global.middleNpcKilled) then
@@ -2099,6 +2131,7 @@ local shortKeys = {
 	["aa"] = "ashenvale",
 	["ab"] = "ashenvaleTime",
 	["ac"] = "lastAshenvaleGuildMsg",
+	["ad"] = "stvData",
 	["f1"] = "flower1",
 	["f2"] = "flower2",
 	["f3"] = "flower3",
@@ -2446,7 +2479,7 @@ NWBTimerLogDragFrame.tooltip:SetAlpha(.8);
 NWBTimerLogDragFrame.tooltip.fs = NWBTimerLogDragFrame.tooltip:CreateFontString("NWBTimerLogDragTooltipFS", "ARTWORK");
 NWBTimerLogDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBTimerLogDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBTimerLogDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBTimerLogDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBTimerLogDragFrame.tooltip:SetWidth(NWBTimerLogDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBTimerLogDragFrame.tooltip:SetHeight(NWBTimerLogDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBTimerLogDragFrame:SetScript("OnEnter", function(self)
@@ -2536,7 +2569,7 @@ function NWB:openTimerLogFrame()
 		if (not logRendOnly or not NWB.isLayered) then
 			NWB:createTimerLogCheckboxes();
 		else
-			NWBTimerLogFrame.fs:SetText("|cFFFFFF00NovaWorldBuffs Rend Log|r");
+			NWBTimerLogFrame.fs:SetText("|cFFFFFF00NovaWorldBuffs " .. L["Rend Log"] .. "|r");
 		end
 		NWB:createTimerLogMergeLayersCheckbox();
 		NWBTimerLogFrame:SetHeight(300);
@@ -2568,9 +2601,9 @@ function NWB:setLayerFrameTimerLogButtonText()
 		return;
 	end
 	if (not logRendOnly or not NWB.isLayered) then
-		NWBlayerFrameTimerLogButton:SetText("Timer Log");
+		NWBlayerFrameTimerLogButton:SetText(L["Timer Log"]);
 	else
-		NWBlayerFrameTimerLogButton:SetText("Rend Log");
+		NWBlayerFrameTimerLogButton:SetText(L["Rend Log"]);
 	end
 end
 
@@ -2581,7 +2614,7 @@ end
 function NWB:recalcTimerLogFrame()
 	NWBTimerLogFrame.EditBox:SetText("\n\n\n");
 	if (type(NWB.data.timerLog) ~= "table" or not next(NWB.data.timerLog)) then
-		NWBTimerLogFrame.EditBox:Insert("|cffFFFF00No timer logs found.\n");
+		NWBTimerLogFrame.EditBox:Insert("|cffFFFF00" .. L["No timer logs found."] .. "\n");
 	else
 		local sorted = {}
 		for k, v in ipairs(NWB.data.timerLog) do
@@ -2658,7 +2691,7 @@ function NWB:recalcTimerLogFrame()
 						layerText = "|cff00ff00[Unknown Layer]|r ";
 						layers = {};
 					elseif (NWB.isLayered) then
-						layerText = "|cff00ff00[Layer " .. layerNum .. "]|r ";
+						layerText = "|cff00ff00[" .. L["Layer"] .. " " .. layerNum .. "]|r ";
 					end
 					local timeLeftString = "";
 					if (v.type == "r") then
@@ -2780,8 +2813,8 @@ function NWB:createTimerLogMergeLayersCheckbox()
 		NWB.timerLogMergeLayersButton = CreateFrame("CheckButton", "NWBtimerLogMergeLayersButton", NWBTimerLogFrame.EditBox, "ChatConfigCheckButtonTemplate");
 		NWB.timerLogMergeLayersButton:SetPoint("TOPLEFT", 5, 0);
 		--So strange the way to set text is to append Text to the global frame name.
-		NWBtimerLogMergeLayersButtonText:SetText("Merge Layers");
-		NWB.timerLogMergeLayersButton.tooltip = "If multiple layers have the same timer this will merge them into [All Layers] instead of showing them separately.";
+		NWBtimerLogMergeLayersButtonText:SetText(L["Merge Layers"]);
+		NWB.timerLogMergeLayersButton.tooltip = L["mergeLayersTooltip"];
 		NWB.timerLogMergeLayersButton:SetFrameStrata("HIGH");
 		NWB.timerLogMergeLayersButton:SetFrameLevel(3);
 		NWB.timerLogMergeLayersButton:SetWidth(24);
@@ -2865,6 +2898,7 @@ f:RegisterEvent("PLAYER_DEAD");
 f:RegisterEvent("BAG_UPDATE");
 f:RegisterEvent("PLAYER_MONEY");
 f:RegisterEvent("QUEST_TURNED_IN");
+f:RegisterEvent("UPDATE_INSTANCE_INFO");
 f:SetScript('OnEvent', function(self, event, ...)
 	if (event == "PLAYER_ENTERING_WORLD" ) then
 		local isLogon, isReload = ...;
@@ -2891,6 +2925,8 @@ f:SetScript('OnEvent', function(self, event, ...)
 		NWB:throddleEventByFunc(event, 2, "recordInventoryData", ...);
 	elseif (event == "QUEST_TURNED_IN") then
 		NWB:throddleEventByFunc(event, 2, "recordPlayerLevelData", ...);
+	elseif (event == "UPDATE_INSTANCE_INFO") then
+		NWB:recordLockoutData();
 	end
 end)
 
@@ -3344,7 +3380,7 @@ end)
 NWBLFrame.fs = NWBLFrame:CreateFontString("NWBLFrameFS", "ARTWORK");
 NWBLFrame.fs:SetPoint("TOP", 0, -0);
 NWBLFrame.fs:SetFont(NWB.regionFont, 14);
-NWBLFrame.fs:SetText("|cFFFFFF00Guild Layers|r");
+NWBLFrame.fs:SetText("|cFFFFFF00" .. L["Guild Layers"] .. "|r");
 
 local NWBLDragFrame = CreateFrame("Frame", "NWBLDragFrame", NWBLFrame);
 NWBLDragFrame:SetToplevel(true);
@@ -3361,7 +3397,7 @@ NWBLDragFrame.tooltip:SetAlpha(.8);
 NWBLDragFrame.tooltip.fs = NWBLDragFrame.tooltip:CreateFontString("NWBLDragTooltipFS", "ARTWORK");
 NWBLDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBLDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBLDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBLDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBLDragFrame.tooltip:SetWidth(NWBLDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBLDragFrame.tooltip:SetHeight(NWBLDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBLDragFrame:SetScript("OnEnter", function(self)
@@ -3411,7 +3447,7 @@ NWBLFrameClose:GetHighlightTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125)
 NWBLFrameClose:GetPushedTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
 NWBLFrameClose:GetDisabledTexture():SetTexCoord(0.1875, 0.8125, 0.1875, 0.8125);
 
---Config button.
+--Refresh button.
 local NWBLFrameRefreshButton = CreateFrame("Button", "NWBLFrameRefreshButton", NWBLFrame.EditBox, "UIPanelButtonTemplate");
 NWBLFrameRefreshButton:SetPoint("TOPRIGHT", -8, 3);
 NWBLFrameRefreshButton:SetWidth(90);
@@ -3539,7 +3575,7 @@ function NWB:recalcLFrame()
 					end
 				end
 			end
-			text = text .. "|cff00ff00[Layer " .. layer .. "]|r " .. zoneText .. " " .. wintergraspTexture .. buffTextures .. "\n";
+			text = text .. "|cff00ff00[" .. L["Layer"] .. " " .. layer .. "]|r " .. zoneText .. " " .. wintergraspTexture .. buffTextures .. "\n";
 			for k, v in NWB:pairsByKeys(data) do
 				found = true;
 				local _, _, _, classColor = GetClassColor(v.class);
@@ -3550,7 +3586,7 @@ function NWB:recalcLFrame()
 		if (found) then
 			NWBLFrame.EditBox:Insert(text);
 		else
-			NWBLFrame.EditBox:Insert("|cffFFFF00No guild members online sharing layer data found.");
+			NWBLFrame.EditBox:Insert("|cffFFFF00" .. L["No guild members online sharing layer data found."]);
 		end
 	end
 end
@@ -3957,7 +3993,7 @@ function NWB:updateTerokkarMarkers(type, layer)
 				break;
 			end
 		end
-		_G[type .. layer .. "NWBTerokkarMap"].fsLayer:SetText("|cff00ff00[Layer " .. count.. "] |cFFB5E0E6(" .. layerZoneID .. ")");
+		_G[type .. layer .. "NWBTerokkarMap"].fsLayer:SetText("|cff00ff00[" .. L["Layer"] .. " " .. count.. "] |cFFB5E0E6(" .. layerZoneID .. ")");
 		if (NWB.data.layers[layer] and NWB.data.layers[layer]["terokTowers"]) then
 			time = NWB:getTerokEndTime(NWB.data.layers[layer].terokTowers, NWB.data.layers[layer].terokTowersTime) - GetServerTime() or 0;
 		else
@@ -3996,7 +4032,7 @@ function NWB:updateTerokkarMarkers(type, layer)
 	    if (timeString == L["noTimer"]) then
 	    	_G[type .. layer .. "NWBTerokkarMap"].timerMsg = nil;
 	    else
-	    	local msg = NWB:getTimeString(time, true) .. " (Layer " .. count .. ")";
+	    	local msg = NWB:getTimeString(time, true) .. " (" .. L["Layer"] .. " " .. count .. ")";
 	    	_G[type .. layer .. "NWBTerokkarMap"].timerMsg = msg;
 	    end
 		return timeString;
@@ -5448,3 +5484,49 @@ f:SetScript('OnEvent', function(self, event, ...)
 		updateAuras(true);
 	end
 end)
+
+function NWB:isFullGuildGroup()
+	C_GuildInfo.GuildRoster();
+	local unitType = "party";
+	if (IsInRaid()) then
+		unitType = "raid";
+	end
+	local myGuild = GetGuildInfo("player");
+	local myRealm = NWB.realmNormalized;
+	local found;
+	--We need to check if same realm because UnitName realm is empty string if same realm.
+	--We need to check if realm shown in roster info is same as our current realm in this case.
+	--And check the normal Name-Realm in case it's a connected realm.
+	for i = 1, GetNumGroupMembers() do
+		local name, realm = UnitName(unitType .. i);
+		if (name ~= UnitName("player")) then
+			local online = UnitIsConnected(unitType .. i);
+			--local realmRelationship = UnitRealmRelationship(unitType .. i);
+			--UnitName shows empty realm string if same realm, wiki says nil but it seems to be wrong?
+			if (online) then
+				local mergedName;
+				if (realm and realm ~= "") then
+					mergedName = name .. "-" .. realm;
+				end
+				local inGuild;
+				if (name) then
+					for ii = 1, GetNumGuildMembers() do
+						local gname = GetGuildRosterInfo(ii); --Normalized realm name.
+						--Check if same Name-Realm, or if realm is missing then it's this realm so check against that too.
+						local splitName, splitRealm = strsplit("-", gname, 2);
+						if (splitName == name and (gname == mergedName or (realm == "" and splitRealm == myRealm))) then
+							inGuild = true;
+							break;
+						end
+					end
+					if (not inGuild) then
+						found = true;
+					end
+				end
+			end
+		end
+	end
+	if (not found) then
+		return true;
+	end
+end

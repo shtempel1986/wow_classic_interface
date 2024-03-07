@@ -1050,9 +1050,9 @@ end
 
 function ArkInventory:EVENT_ARKINV_ITEM_DATA_LOAD_RESULT( ... )
 	
-	--local event, id, success = ...
-	--ArkInventory.Output( "[", event, "] [", id, "] [", success, "]" )
+	local event, id, success = ...
+--	ArkInventory.OutputDebug( "[", event, "] [", id, "] [", success, "]" )
 	
-	ArkInventory:SendMessage( "EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET", "ITEM_DATA_READY" )
+	ArkInventory:SendMessage( "EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET", event or "ITEM_DATA_READY" )
 	
 end

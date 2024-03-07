@@ -717,6 +717,442 @@ local function Scan( )
 	
 end
 
+
+function ArkInventory:EVENT_ARKINV_TRADE_SKILL_ITEM_CRAFTED_RESULT( ... )
+	
+	local event, id, success = ...
+	ArkInventory.OutputDebug( "[", event, "] [", id, "] [", success, "]" )
+	
+end
+
+--function ArkInventory.ScrollBoxListViewMixin_CalculateDataIndices( ... )
+function ArkInventory.testing1840( )
+	
+--	ArkInventory.testing1840( )
+	
+	local resultData = {
+		qualityProgress = 0,
+		recraftable = false,
+		critBonusSkill = 0,
+		firstCraftReward = false,
+		itemGUID = "Item-3276-0-400000093E85BE38",
+		multicraft = 0,
+		quantity = 1,
+		itemID = 210395,
+		isCrit = false,
+		hyperlink = "item:210395::::::::70:260::42:4:6652:9559:1494:8767:1:28:2699:::::",
+		operationID = 119964300,
+		isEnchant = true,
+		bonusCraft = false,
+		bonusData = {},
+	}
+	
+	local function GetFrameExtent(self, frame)
+		local width, height = frame:GetSize();
+		ArkInventory.Output( "width = [", width, "]" )
+		ArkInventory.Output( "height = [", height, "]" )
+		ArkInventory.Output( "isHorizontal = [", self.isHorizontal, "]" )
+		return self.isHorizontal and width or height;
+	end
+
+	
+	local function GetExtent(self)
+		
+		local z1 = GetFrameExtent(self, self:GetScrollTarget())
+		ArkInventory.Output( "GetFrameExtent = [", z1, "]" )
+		
+		return z1
+	end
+
+	local function GetDerivedExtent(self)
+		local view = self:GetView();
+		if view then
+			local z1 = GetExtent(view, self);
+			ArkInventory.Output( "GetExtent = [", z1, "]" )
+			return z1;
+		end
+		return 0;
+	end
+
+	local function GetDerivedScrollRange(self)
+		local z1 = GetDerivedExtent(self)
+		ArkInventory.Output( "GetDerivedExtent = [", z1, "]" )
+		local z2 = self:GetVisibleExtent()
+		ArkInventory.Output( "GetVisibleExtent = [", z2, "]" )
+		return math.max(0, z1 - z2);
+	end
+
+	local function GetDerivedScrollOffset(self)
+		local z1 = GetDerivedScrollRange(self)
+		ArkInventory.Output( "GetDerivedScrollRange = [", z1, "]" )
+		local z2 = self:GetScrollPercentage()
+		ArkInventory.Output( "GetScrollPercentage = [", z2, "]" )
+		
+		return z1 * z2;
+	end
+
+	local function HasIdenticalElementExtents(self)
+		if self.elementExtentCalculator then
+			return false;
+		end
+		
+		if self.elementExtent then
+			return true;
+		end
+
+		return self:HasEqualTemplateInfoExtents();
+	end
+	
+	local function GetElementExtent(self, dataIndex)
+		
+		ArkInventory.Output( "dataIndex = [", dataIndex, "]" )
+		ArkInventory.Output( "elementExtent = [", self.elementExtent, "]" )
+		
+		if self:HasIdenticalElementExtents() then 
+			ArkInventory.Output( "+HasIdenticalElementExtents" )
+			return self:GetIdenticalElementExtents();
+		end
+
+		local extent = 0;
+		if self.calculatedElementExtents then	
+			ArkInventory.Output( "+calculatedElementExtents" )
+			extent = self.calculatedElementExtents[dataIndex];
+			--ValidateExtent(self.calculatedElementExtents, dataIndex);
+		elseif self.templateExtents then
+			ArkInventory.Output( "+templateExtents" )
+			extent = self.templateExtents[dataIndex];
+			--ValidateExtent(self.templateExtents, dataIndex);
+		end
+		
+		ArkInventory.Output( "GetElementExtent = [", extent, "]" )
+		return extent;
+	end
+
+	local function CheckDataIndicesReturn(dataIndexBegin, dataIndexEnd)
+		-- Erroring here to prevent the client from lockup if 100,000 frames are requested. This can happen
+		-- if a frame doesn't correct frame extents (1 height/width), causing a much larger range to be displayed than expected.
+		local size = dataIndexEnd - dataIndexBegin;
+		local capacity = 500;
+		if size >= capacity then
+			error(string.format("ScrollBoxListViewMixin:CalculateDataIndices encountered an unsupported size. %d/%d", size, capacity));
+		end
+		
+		return dataIndexBegin, dataIndexEnd;
+	end
+	
+	local function CalculateDataIndices(self, scrollBox)
+		
+		local stride = self:GetStride( );
+		local spacing = self:GetSpacing( );
+		
+		local size = self:GetDataProviderSize();
+		if size == 0 then
+			return 0, 0;
+		end
+		
+		if not self:IsVirtualized() then
+			return CheckDataIndicesReturn(1, size);
+		end
+
+		self:RecalculateExtent(scrollBox, stride, spacing); --prevents the assert in GetElementExtent
+
+		local dataIndexBegin;
+		local scrollOffset = Round(GetDerivedScrollOffset(scrollBox));
+		if scrollOffset ~= 0 then
+			ArkInventory.Output( "scrollOffset = [", scrollOffset, "] FAIL" )
+			return
+		end
+		ArkInventory.Output( "scrollOffset = [", scrollOffset, "] PASS" )
+		
+		local upperPadding = scrollBox:GetUpperPadding();
+		local extentBegin = upperPadding;
+		-- For large element ranges (i.e. 10,000+), we're required to use identical element extents 
+		-- to avoid performance issues. We're calculating the number of elements that partially or fully
+		-- fit inside the extent of the scroll offset to obtain our reference position. If we happen to
+		-- be using a traditional data provider, this optimization is still useful.
+		if HasIdenticalElementExtents(self) then
+			ArkInventory.Output("HasIdenticalElementExtents")
+			local extentWithSpacing = self:GetIdenticalElementExtents() + spacing;
+			local intervals = math.floor(math.max(0, scrollOffset - upperPadding) / extentWithSpacing);
+			dataIndexBegin = 1 + (intervals * stride);
+			local extentTotal = (1 + intervals) * extentWithSpacing;
+			extentBegin = extentBegin + extentTotal;
+		else
+			do
+				dataIndexBegin = 1 - stride;
+				repeat
+					ArkInventory.Output( "loop ", dataIndexBegin )
+					dataIndexBegin = dataIndexBegin + stride;
+					local extentWithSpacing = GetElementExtent(self, dataIndexBegin) + spacing;
+					extentBegin = extentBegin + extentWithSpacing;
+					ArkInventory.Output( "loop ", extentBegin, " > ", scrollOffset )
+				until (extentBegin > scrollOffset);
+			end
+		end
+		
+		ArkInventory.Output( "end loop" )
+		
+		-- Addon request to exclude the first element when only spacing is visible.
+		-- This will be revised when per-element spacing support is added.
+		ArkInventory.Output( "extentBegin = [", extentBegin, "]" )
+		ArkInventory.Output( "spacing = [", spacing, "]" )
+		ArkInventory.Output( "scrollOffset = [", scrollOffset, "]" )
+		
+		ArkInventory.Output( "(", spacing, ">0) and ((", extentBegin-spacing, "<", scrollOffset, ")" )
+		if (spacing > 0) and ((extentBegin - spacing) < scrollOffset) then
+			ArkInventory.Output( "failed" )
+			dataIndexBegin = dataIndexBegin + stride;
+			extentBegin = extentBegin + GetElementExtent(self, dataIndexBegin) + spacing;
+		end
+
+		-- Optimization above for fixed element extents is not necessary here because we do
+		-- not need to iterate over the entire data range. The iteration is limited to the
+		-- number of elements that can fit in the displayable area.
+		local extentEnd = scrollBox:GetVisibleExtent() + scrollOffset;
+		local extentNext = extentBegin;
+		local dataIndexEnd = dataIndexBegin;
+		while (dataIndexEnd < size) and (extentNext < extentEnd) do
+			local nextDataIndex = dataIndexEnd + stride;
+			dataIndexEnd = nextDataIndex;
+
+			-- We're oor, which is expected in the case of stride > 1. In this case we're done
+			-- and the dataIndexEnd will be clamped into range of the data provider below.
+			local extent = GetElementExtent(self, nextDataIndex);
+			if extent == nil or extent == 0 then
+				break;
+			end
+
+			extentNext = extentNext + extent + spacing;
+		end
+
+		if stride > 1 then
+			dataIndexEnd = math.min(dataIndexEnd - (dataIndexEnd % stride) + stride, size);
+		else
+			dataIndexEnd = math.min(dataIndexEnd, size);
+		end
+
+		return CheckDataIndicesReturn(dataIndexBegin, dataIndexEnd);
+	end
+	
+	local function ValidateDataRange(self,scrollBox)
+		-- Calculate the range of indices to display.
+		local oldDataIndexBegin, oldDataIndexEnd = self:GetDataRange();
+		local dataIndexBegin, dataIndexEnd = CalculateDataIndices(self, scrollBox);
+
+		-- Invalidation occurs whenever the data provider is sorted, the size changes, or the data provider is replaced.
+		local invalidated = self:IsInvalidated();
+		local rangeChanged = invalidated or oldDataIndexBegin ~= dataIndexBegin or oldDataIndexEnd ~= dataIndexEnd;
+		if rangeChanged then
+			local dataProvider = self:GetDataProvider();
+			--[[
+				local size = dataProvider and dataProvider:GetSize() or 0;
+				print(string.format("%d - %d of %d, invalidated =", dataIndexBegin, dataIndexEnd, 
+					size), invalidated, GetTime());
+			--]]
+
+			self:SetDataRange(dataIndexBegin, dataIndexEnd);
+
+			-- Frames are generally recyclable when the element data is a table because we can uniquely identify it.
+			-- Note that if an invalidation occurred due to the data provider being exchanged, we never try and recycle.
+			local canRecycle = not invalidated or self:GetInvalidationReason() ~= InvalidationReason.DataProviderReassigned;
+			if canRecycle then
+				for index, frame in ipairs(self:GetFrames()) do
+					if type(frame:GetElementData()) ~= "table" then
+						canRecycle = false;
+						break;
+					end
+				end
+			end
+			
+			if canRecycle then
+				local acquireList = {};
+				local releaseList = {};
+				for index, frame in ipairs(self:GetFrames()) do
+					releaseList[frame:GetElementData()] = frame;
+				end
+
+				if dataIndexBegin > 0 then
+					for dataIndex, currentElementData in self:EnumerateDataProvider(dataIndexBegin, dataIndexEnd) do
+						if releaseList[currentElementData] then
+							local frame = releaseList[currentElementData];
+							frame:SetOrderIndex(dataIndex);
+							releaseList[currentElementData] = nil;
+						else
+							tinsert(acquireList, dataIndex);
+						end
+					end
+				end
+
+				for elementData, frame in pairs(releaseList) do
+					self:Release(frame);
+				end
+
+				self:AcquireRange(acquireList);
+
+			else
+				for index, frame in ipairs_reverse(self:GetFrames()) do
+					self:Release(frame);
+				end
+
+				local dataIndexBegin, dataIndexEnd = self:GetDataRange();
+				if dataIndexEnd > 0 then
+					local range = {};
+					for dataIndex = dataIndexBegin, dataIndexEnd do
+						table.insert(range, dataIndex);
+					end
+					self:AcquireRange(range);
+				end
+			end
+			
+			self:ClearInvalidation();
+
+			self:SortFrames();
+
+			return true;
+		end
+		return false;
+	end
+	
+	local function GetDataScrollOffset(self,scrollBox)
+		local dataIndexBegin, dataIndexEnd = CalculateDataIndices(self, scrollBox);
+		local dataScrollOffset = self:GetExtentUntil(scrollBox, dataIndexBegin);
+		return dataScrollOffset;
+	end
+	
+	local function Update(self, forceLayout)
+		if self:IsUpdateLocked() or self:IsAcquireLocked() then
+			return;
+		end
+
+		local view = self:GetView();
+		if not view then
+			return;
+		end
+
+		self:SetUpdateLocked(true);
+
+		local changed = ValidateDataRange(view, self);
+		local requiresLayout = changed or forceLayout;
+		if requiresLayout then
+			self:Layout();
+		end
+
+		self:SetScrollTargetOffset(GetDerivedScrollOffset(self) - GetDataScrollOffset(view, self));
+		self:SetPanExtentPercentage(self:CalculatePanExtentPercentage());
+		
+		if changed then
+			view:InvokeInitializers();
+
+			self:TriggerEvent(ScrollBoxListMixin.Event.OnDataRangeChanged, self:GetDataIndexBegin(), self:GetDataIndexEnd());
+		end
+
+		self:TriggerEvent(ScrollBoxListMixin.Event.OnUpdate);
+		
+		self:SetUpdateLocked(false);
+	end
+
+	local function SetScrollPercentageInternal(self, scrollPercentage)
+		ScrollControllerMixin.SetScrollPercentage(self, scrollPercentage);
+		
+		Update(self);
+	end
+
+	local function SetScrollPercentage(self, scrollPercentage, noInterpolation)
+		if not ApproximatelyEqual(self:GetScrollPercentage(), scrollPercentage) then
+			if not noInterpolation and self:CanInterpolateScroll() then
+				self:Interpolate(scrollPercentage, self.scrollInternal);
+			else
+				SetScrollPercentageInternal(self, scrollPercentage);
+			end
+		end
+	end
+	
+	local function ScrollToEnd(self, noInterpolation)
+		SetScrollPercentage(self, 1, noInterpolation);
+	end
+	
+	local function FinalizePendingResultData(self)
+		local dataProvider = self.ScrollBox:GetDataProvider();
+		if not dataProvider then
+			dataProvider = CreateDataProvider();
+			self.ScrollBox:SetDataProvider(dataProvider);
+		end
+		
+		for index, resultData in ipairs_reverse(self.pendingResultData) do
+			local childResultData = FindValueInTableIf(self.pendingResultData, function(data)
+				return data.operationID and data.firstCraftReward and (resultData.operationID == data.operationID);
+			end);
+			if childResultData then
+				table.remove(self.pendingResultData, index);
+				table.insert(resultData.bonusData, childResultData);
+			end
+		end
+		
+		for index, resultData in ipairs_reverse(self.pendingResultData) do
+			if resultData.operationID and not resultData.firstCraftReward then
+				dataProvider:Insert(resultData);
+			end
+		end
+		
+		self.pendingResultData = {};
+		
+		if self:IsShown() then
+			self:Resize();
+		else
+			self:Open();
+		end
+		
+		ScrollToEnd(self.ScrollBox);
+	end
+	
+	
+--	ProfessionsFrame.CraftingPage.CraftingOutputLog.ScrollBox:GetView( ):GetSpacing( )
+--	ProfessionsFrame.CraftingPage.CraftingOutputLog.ScrollBox:GetView( ):GetStride( )
+	
+	--ProfessionsFrame.CraftingPage:Reset()
+	
+	ProfessionsFrame:OnShow()
+	
+	local self = ProfessionsFrame.CraftingPage.CraftingOutputLog
+	--self:Cleanup();
+	
+	local ScrollBox = self.ScrollBox
+	--ScrollBox.panExtentPercentage = 0
+	--ScrollBox.scrollPercentage = 0
+	--ScrollBox:Flush();
+	--ScrollBox:Hide();
+	--ScrollBox:SetFrameExtent(ScrollBox:GetScrollTarget(), 0)
+	--ScrollBox:Layout();
+	
+	local view = ScrollBox:GetView( )
+	
+	
+--[[
+	for k, v in pairs(self) do
+		local t = type(v)
+		if t == "number" or t == "string" then
+			ArkInventory.Output( k, " = [", v, "]" )
+		elseif t == "table" then
+			ArkInventory.Output( k, " = [", type(v), "]" )
+		end
+	end
+]]--
+	
+	
+--	ArkInventory.testing1840( )
+	
+	
+	
+	
+	
+	
+	table.insert( self.pendingResultData, resultData )
+	FinalizePendingResultData(self);
+	--self:FinalizePendingResultData();
+	
+	
+end
+
 function ArkInventory.Tradeskill.ScanHeaders( )
 	
 	ArkInventory.OutputDebug( "TRADESKILL: ScanHeaders" )
@@ -743,12 +1179,27 @@ function ArkInventory.Tradeskill.ScanHeaders( )
 		ArkInventory.ObjectCacheTooltipClear( )
 		
 		if ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.DRAGONFLIGHT ) then
+			
+--			ArkInventory.Output( "professions - start" )
+			
 			ArkInventory.LoadAddOn( "Blizzard_Professions" )
+			
 			ArkInventory.Tradeskill.Const.Frame = ProfessionsFrame
+			
+			--local z1 = ArkInventory.testing1840( )
+			
+			--local self = ProfessionsFrame.CraftingPage.CraftingOutputLog.ScrollBox
+			--local view = self:GetView();
+			
+			--ProfessionsFrame.CraftingPage.CraftingOutputLog:ProcessPendingResultData(testData)
+			
+--			ArkInventory.Output( "professions - end" )
+			
 		else
 			ArkInventory.LoadAddOn( "Blizzard_TradeSkillUI" )
 			ArkInventory.Tradeskill.Const.Frame = TradeSkillFrame
 		end
+		
 		
 		if not ArkInventory.Tradeskill.Const.Frame then
 			ArkInventory.OutputDebug( "TRADESKILL: frame does not exist" )

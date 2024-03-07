@@ -32,6 +32,7 @@ L["Fengus' Ferocity"] = "芬古斯的狂暴";
 L["Mol'dar's Moxie"] = "摩爾達的勇氣";
 L["Boon of Blackfathom"] = "黑澗深淵的恩賜";
 L["Ashenvale Rallying Cry"] = "梣谷振奮咆哮";
+L["Spark of Inspiration"] = "鼓舞火花"; --Phase 2 SoD world buff.
 
 ---=====---
 ---Horde---
@@ -623,13 +624,13 @@ L["timerWindowWidthTitle"] = "計時器視窗寬度";
 L["timerWindowWidthDesc"] = "計時器的視窗寬度。";
 
 L["timerWindowHeightTitle"] = "計時器視窗高度";
-L["timerWindowHeghtDesc"] = "計時器的視窗高度。";
+L["timerWindowHeightDesc"] = "計時器的視窗高度。";
 
 L["buffWindowWidthTitle"] = "增益視窗寬度";
 L["buffWindowWidthDesc"] = "增益視窗的寬度。";
 
 L["buffWindowHeightTitle"] = "增益視窗高度";
-L["buffWindowHeghtDesc"] = "增益視窗的高度。";
+L["buffWindowHeightDesc"] = "增益視窗的高度。";
 
 L["dmfSettingsListTitle"] = "按月馬增益清單";
 L["dmfSettingsListDesc"] = "點擊這個顯示你的暗月增益設定哪個種類。";

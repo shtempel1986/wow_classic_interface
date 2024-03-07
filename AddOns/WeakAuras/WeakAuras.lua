@@ -173,9 +173,9 @@ function SlashCmdList.WEAKAURAS(input)
 
   for v in string.gmatch(input, "%S+") do
     if not msg then
-      msg = v
+      msg = v:lower()
     else
-      insert(args, v)
+      insert(args, v:lower())
     end
   end
 
@@ -193,6 +193,46 @@ function SlashCmdList.WEAKAURAS(input)
     Private.PrintHelp();
   elseif msg == "repair" then
     StaticPopup_Show("WEAKAURAS_CONFIRM_REPAIR", nil, nil, {reason = "user"})
+  elseif msg == "ff" or msg == "feat" or msg == "feature" then
+    if #args < 2 then
+      local features = Private.Features:ListFeatures()
+      local summary = {}
+      for _, feature in ipairs(features) do
+        table.insert(summary, ("|c%s%s|r"):format(feature.enabled and "ff00ff00" or "ffff0000", feature.id))
+      end
+      prettyPrint(L["Syntax /wa feature <toggle|on|enable|disable|off> <feature>"])
+      prettyPrint(L["Available features: %s"]:format(table.concat(summary, ", ")))
+    else
+      local action = ({
+        toggle = "toggle",
+        on = "enable",
+        enable = "enable",
+        disable = "disable",
+        off = "disable"
+      })[args[1]]
+      if not action then
+        prettyPrint(L["Unknown action %q"]:format(args[1]))
+      else
+        local feature = args[2]
+        if not Private.Features:Exists(feature) then
+          prettyPrint(L["Unknown feature %q"]:format(feature))
+        elseif not Private.Features:Enabled(feature) then
+          if action ~= "disable" then
+            Private.Features:Enable(feature)
+            prettyPrint(L["Enabled feature %q"]:format(feature))
+          else
+            prettyPrint(L["Feature %q is already disabled"]:format(feature))
+          end
+        elseif Private.Features:Enabled(feature) then
+          if action ~= "enable" then
+            Private.Features:Disable(feature)
+            prettyPrint(L["Disabled feature %q"]:format(feature))
+          else
+            prettyPrint(L["Feature %q is already enabled"]:format(feature))
+          end
+        end
+      end
+    end
   else
     WeakAuras.OpenOptions(msg);
   end
@@ -350,13 +390,6 @@ Private.ExecEnv.conditionTextFormatters = {}
 Private.ExecEnv.conditionHelpers = {}
 
 local load_prototype = Private.load_prototype;
-
-local levelColors = {
-  [0] = "|cFFFFFFFF",
-  [1] = "|cFF40FF40",
-  [2] = "|cFF6060FF",
-  [3] = "|cFFFF4040"
-};
 
 function Private.validate(input, default)
   for field, defaultValue in pairs(default) do
@@ -604,7 +637,7 @@ local function EvalBooleanArg(arg, trigger, default)
   end
 end
 
-local function singleTest(arg, trigger, use, name, value, operator, use_exact)
+local function singleTest(arg, trigger, use, name, value, operator, use_exact, caseInsensitive)
   local number = value and tonumber(value) or nil
   if(arg.type == "tristate") then
     if(use == false) then
@@ -710,9 +743,18 @@ local function singleTest(arg, trigger, use, name, value, operator, use_exact)
     return "("..arg.test:format(value)..")";
   elseif(arg.type == "longstring" and operator) then
     if(operator == "==") then
-      return "("..name.."==[["..value.."]])";
+      if caseInsensitive then
+        return ("(%s and %s:lower() == [[%s]]:lower())"):format(name, name, value)
+      else
+        return "("..name.."==[["..value.."]])";
+      end
     else
-      return "("..name..":"..operator:format(value)..")";
+      if caseInsensitive then
+        local op = operator:format(value:lower())
+        return ("(%s:lower():%s)"):format(name, op)
+      else
+        return "("..name..":"..operator:format(value)..")";
+      end
     end
   elseif(arg.type == "number") then
     if number then
@@ -766,9 +808,10 @@ local function ConstructFunction(prototype, trigger, skipOptional)
             test = ""
             for i, value in ipairs(trigger[name]) do
               local operator = name and type(trigger[name.."_operator"]) == "table" and trigger[name.."_operator"][i]
+              local caseInsensitive = name and arg.canBeCaseInsensitive and type(trigger[name.."_caseInsensitive"]) == "table" and trigger[name.."_caseInsensitive"][i]
               local use_exact = name and type(trigger["use_exact_" .. name]) == "table" and trigger["use_exact_" .. name][i]
               local use = name and trigger["use_"..name]
-              local single = singleTest(arg, trigger, use, name, value, operator, use_exact)
+              local single = singleTest(arg, trigger, use, name, value, operator, use_exact, caseInsensitive)
               if single then
                 if test ~= "" then
                   test = test .. arg.multiEntry.operator
@@ -785,9 +828,10 @@ local function ConstructFunction(prototype, trigger, skipOptional)
         else
           local value = trigger[name]
           local operator = name and trigger[name.."_operator"]
+          local caseInsensitive = name and trigger[name.."_caseInsensitive"]
           local use_exact = name and trigger["use_exact_" .. name]
           local use = name and trigger["use_"..name]
-          test = singleTest(arg, trigger, use, name, value, operator, use_exact)
+          test = singleTest(arg, trigger, use, name, value, operator, use_exact, caseInsensitive)
         end
 
         if (arg.preamble) then
@@ -1121,6 +1165,9 @@ do -- Archive stuff
           error(string.format(L["Could not load WeakAuras Archive, the addon is %s"], reason))
         end
       end
+      if type(WeakAurasArchive) ~= "table" then
+        WeakAurasArchive = {}
+      end
       Archivist:Initialize(WeakAurasArchive)
     end
     return Archivist
@@ -1163,7 +1210,6 @@ end
 function Private.Login(initialTime, takeNewSnapshots)
   local loginThread = coroutine.create(function()
     Private.Pause();
-
     if db.history then
       local histRepo = WeakAuras.LoadFromArchive("Repository", "history")
       local migrationRepo = WeakAuras.LoadFromArchive("Repository", "migration")
@@ -1176,6 +1222,10 @@ function Private.Login(initialTime, takeNewSnapshots)
       db.history = nil
       coroutine.yield();
     end
+
+
+    Private.Features:Hydrate()
+    coroutine.yield()
 
     local toAdd = {};
     loginFinished = false
@@ -1269,7 +1319,7 @@ loadedFrame:SetScript("OnEvent", function(self, event, addon)
     if(addon == ADDON_NAME) then
       WeakAurasSaved = WeakAurasSaved or {};
       db = WeakAurasSaved;
-
+      Private.db = db
       -- Defines the action squelch period after login
       -- Stored in SavedVariables so it can be changed by the user if they find it necessary
       db.login_squelch_time = db.login_squelch_time or 10;
@@ -1282,6 +1332,9 @@ loadedFrame:SetScript("OnEvent", function(self, event, addon)
 
       db.displays = db.displays or {};
       db.registered = db.registered or {};
+      db.features = db.features or {}
+      db.migrationCutoff = db.migrationCutoff or 730
+      db.historyCutoff = db.historyCutoff or 730
 
       Private.UpdateCurrentInstanceType();
       Private.SyncParentChildRelationships();
@@ -1451,10 +1504,10 @@ local function DestroyEncounterTable()
 end
 
 local function CreateEncounterTable(encounter_id)
-  local _, _, _, _, _, _, _, ZoneMapID = GetInstanceInfo()
+  local _, _, _, _, _, _, _, instanceId = GetInstanceInfo()
   WeakAuras.CurrentEncounter = {
     id = encounter_id,
-    zone_id = ZoneMapID,
+    zone_id = instanceId,
     boss_guids = {},
   }
   timer:ScheduleTimer(StoreBossGUIDs, 2)
@@ -1526,7 +1579,7 @@ end
 local function GetInstanceTypeAndSize()
   local size, difficulty
   local inInstance, Type = IsInInstance()
-  local _, instanceType, difficultyIndex, _, _, _, _, ZoneMapID = GetInstanceInfo()
+  local _, instanceType, difficultyIndex, _, _, _, _, instanceId = GetInstanceInfo()
   if (inInstance) then
     size = Type
     local difficultyInfo = Private.difficulty_info[difficultyIndex]
@@ -1545,7 +1598,7 @@ local function GetInstanceTypeAndSize()
         end
       end
     end
-    return size, difficulty, instanceType, ZoneMapID, difficultyIndex
+    return size, difficulty, instanceType, instanceId, difficultyIndex
   end
   return "none", "none", nil, nil, nil
 end
@@ -1606,6 +1659,7 @@ local function scanForLoadsImpl(toCheck, event, arg1, ...)
   local dragonriding
   local zoneId = C_Map.GetBestMapForUnit("player")
   local zonegroupId = zoneId and C_Map.GetMapGroupID(zoneId)
+  local minimapText = GetMinimapZoneText()
   local _, race = UnitRace("player")
   local faction = UnitFactionGroup("player")
   local _, class = UnitClass("player")
@@ -1647,11 +1701,11 @@ local function scanForLoadsImpl(toCheck, event, arg1, ...)
     vehicleUi = UnitHasVehicleUI('player') or HasOverrideActionBar() or HasVehicleActionBar() or false
   end
 
-  local size, difficulty, instanceType, ZoneMapID, difficultyIndex = GetInstanceTypeAndSize()
+  local size, difficulty, instanceType, instanceId, difficultyIndex= GetInstanceTypeAndSize()
   Private.UpdateCurrentInstanceType(instanceType)
 
   if (WeakAuras.CurrentEncounter) then
-    if (ZoneMapID ~= WeakAuras.CurrentEncounter.zone_id and not inCombat) then
+    if (instanceId ~= WeakAuras.CurrentEncounter.zone_id and not inCombat) then
       encounter_id = 0
       DestroyEncounterTable()
     end
@@ -1683,14 +1737,14 @@ local function scanForLoadsImpl(toCheck, event, arg1, ...)
       local loadFunc = loadFuncs[id];
       local loadOpt = loadFuncsForOptions[id];
       if WeakAuras.IsClassicEra() then
-        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, vehicle, class, player, realm, race, faction, playerLevel, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size)
-        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, vehicle, class, player, realm, race, faction, playerLevel, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size)
+        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, vehicle, class, player, realm, race, faction, playerLevel, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size)
+        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, vehicle, class, player, realm, race, faction, playerLevel, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size)
       elseif WeakAuras.IsWrathClassic() then
-        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, vehicle, vehicleUi, class, player, realm, race, faction, playerLevel, role, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size, difficulty, difficultyIndex)
-        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, vehicle, vehicleUi, class, player, realm, race, faction, playerLevel, role, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size, difficulty, difficultyIndex)
+        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, vehicle, vehicleUi, class, player, realm, race, faction, playerLevel, role, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size, difficulty, difficultyIndex)
+        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, vehicle, vehicleUi, class, player, realm, race, faction, playerLevel, role, raidRole, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size, difficulty, difficultyIndex)
       elseif WeakAuras.IsRetail() then
-        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, warmodeActive, inPetBattle, vehicle, vehicleUi, dragonriding, specId, player, realm, race, faction, playerLevel, effectiveLevel, role, position, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size, difficulty, difficultyIndex, affixes)
-        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, warmodeActive, inPetBattle, vehicle, vehicleUi, dragonriding, specId, player, realm, race, faction, playerLevel, effectiveLevel, role, position, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, encounter_id, size, difficulty, difficultyIndex, affixes)
+        shouldBeLoaded = loadFunc and loadFunc("ScanForLoads_Auras", inCombat, alive, inEncounter, warmodeActive, inPetBattle, vehicle, vehicleUi, dragonriding, specId, player, realm, race, faction, playerLevel, effectiveLevel, role, position, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size, difficulty, difficultyIndex, affixes)
+        couldBeLoaded =  loadOpt and loadOpt("ScanForLoads_Auras",   inCombat, alive, inEncounter, warmodeActive, inPetBattle, vehicle, vehicleUi, dragonriding, specId, player, realm, race, faction, playerLevel, effectiveLevel, role, position, group, groupSize, raidMemberType, zone, zoneId, zonegroupId, instanceId, minimapText, encounter_id, size, difficulty, difficultyIndex, affixes)
       end
 
       if(shouldBeLoaded and not loaded[id]) then
@@ -2542,29 +2596,57 @@ function Private.AddMany(tbl, takeSnapshots)
 
   local order = loadOrder(tbl, idtable)
   coroutine.yield()
+
+  if takeSnapshots then
+    for _, data in ipairs(order) do
+      Private.SetMigrationSnapshot(data.uid, data)
+      coroutine.yield()
+    end
+  end
+
   local groups = {}
+  local bads = {}
   for _, data in ipairs(order) do
-    WeakAuras.Add(data, takeSnapshots);
-    coroutine.yield()
-    if data.regionType == "dynamicgroup" or data.regionType == "group" then
-      groups[data] = true
+    if data.parent and bads[data.parent] then
+      bads[data.id] = true
+    else
+      local ok = xpcall(WeakAuras.PreAdd, geterrorhandler(), data)
+      if not ok then
+        prettyPrint(L["Unable to modernize aura '%s'. This is probably due to corrupt data or a bad migration, please report this to the WeakAuras team."]:format(data.id))
+        if data.regionType == "dynamicgroup" or data.regionType == "group" then
+          prettyPrint(L["All children of this aura will also not be loaded, to minimize the chance of further corruption."])
+        end
+        bads[data.id] = true
+      elseif data.regionType == "dynamicgroup" or data.regionType == "group" then
+        groups[data] = true
+      end
+      coroutine.yield()
+    end
+  end
+
+  for _, data in ipairs(order) do
+    if not bads[data.id] then
+      WeakAuras.Add(data)
+      coroutine.yield()
     end
   end
 
   for id in pairs(anchorTargets) do
     local data = idtable[id]
-    if data and (data.parent == nil or idtable[data.parent].regionType ~= "dynamicgroup") then
+    if data and not bads[data.id] and (data.parent == nil or idtable[data.parent].regionType ~= "dynamicgroup") then
       Private.EnsureRegion(id)
     end
   end
 
   for data in pairs(groups) do
-    if data.type == "dynamicgroup" then
-      if Private.regions[data.id] and Private.regions[data.id].region then
-        Private.regions[data.id].region:ReloadControlledChildren()
+    if not bads[data.id] then
+      if data.type == "dynamicgroup" then
+        if Private.regions[data.id] and Private.regions[data.id].region then
+          Private.regions[data.id].region:ReloadControlledChildren()
+        end
+      else
+        WeakAuras.Add(data)
       end
-    else
-      WeakAuras.Add(data)
     end
     coroutine.yield();
   end
@@ -2723,28 +2805,6 @@ local function validateUserConfig(data, options, config)
   end
 end
 
-local function removeSpellNames(data)
-  local trigger
-  for i = 1, #data.triggers do
-    trigger = data.triggers[i].trigger
-    if trigger and trigger.type == "aura" then
-      if type(trigger.spellName) == "number" then
-        trigger.realSpellName = GetSpellInfo(trigger.spellName) or trigger.realSpellName
-      end
-      if (trigger.spellId) then
-        trigger.name = GetSpellInfo(trigger.spellId) or trigger.name;
-      end
-      if (trigger.spellIds) then
-        for i = 1, 10 do
-          if (trigger.spellIds[i]) then
-            trigger.names = trigger.names or {};
-            trigger.names[i] = GetSpellInfo(trigger.spellIds[i]) or trigger.names[i];
-          end
-        end
-      end
-    end
-  end
-end
 
 local oldDataStub = {
   -- note: this is the minimal data stub which prevents false positives in diff upon reimporting an aura.
@@ -2846,30 +2906,53 @@ local oldDataStub2 = {
 }
 
 function Private.UpdateSoundIcon(data)
-  local function anySoundCondition()
+  local function testConditions()
+    local sound, tts
     if data.conditions then
       for _, condition in ipairs(data.conditions) do
         for changeIndex, change in ipairs(condition.changes) do
           if change.property == "sound" then
-            return true
+            sound = true
           end
+          if change.property == "chat" and change.value and change.value.message_type == "TTS" then
+            tts = true
+          end
+          if sound and tts then break end
         end
       end
     end
+    return sound, tts
   end
 
+  local soundCondition, ttsCondition = testConditions()
+
+  -- sound
   if data.actions.start.do_sound or data.actions.finish.do_sound then
     Private.AuraWarnings.UpdateWarning(data.uid, "sound_action", "sound", L["This aura plays a sound via an action."])
   else
     Private.AuraWarnings.UpdateWarning(data.uid, "sound_action")
   end
 
-  if anySoundCondition() then
+  if soundCondition then
     Private.AuraWarnings.UpdateWarning(data.uid, "sound_condition", "sound", L["This aura plays a sound via a condition."])
   else
     Private.AuraWarnings.UpdateWarning(data.uid, "sound_condition")
   end
 
+  -- tts
+  if (data.actions.start.do_message and data.actions.start.message_type == "TTS")
+  or (data.actions.finish.do_message and data.actions.finish.message_type == "TTS")
+  then
+    Private.AuraWarnings.UpdateWarning(data.uid, "tts_action", "tts", L["This aura plays a Text To Speech via an action."])
+  else
+    Private.AuraWarnings.UpdateWarning(data.uid, "tts_action")
+  end
+
+  if ttsCondition then
+    Private.AuraWarnings.UpdateWarning(data.uid, "tts_condition", "tts", L["This aura plays a Text To Speech via a condition."])
+  else
+    Private.AuraWarnings.UpdateWarning(data.uid, "tts_condition")
+  end
 end
 
 function WeakAuras.PreAdd(data)
@@ -2912,7 +2995,6 @@ function WeakAuras.PreAdd(data)
     end
   end
   validateUserConfig(data, data.authorOptions, data.config)
-  removeSpellNames(data)
   data.init_started = nil
   data.init_completed = nil
   data.expanded = nil
@@ -3076,13 +3158,9 @@ local function pAdd(data, simpleChange)
   end
 end
 
-function WeakAuras.Add(data, takeSnapshot, simpleChange)
-  local snapshot
-  if takeSnapshot or (data.internalVersion or 0) < internalVersion then
-    snapshot = CopyTable(data)
-  end
-  if takeSnapshot then
-    Private.SetMigrationSnapshot(data.uid, snapshot)
+function WeakAuras.Add(data, simpleChange)
+  if (data.internalVersion or 0) < internalVersion then
+    Private.SetMigrationSnapshot(data.uid, data)
   end
   local ok = xpcall(WeakAuras.PreAdd, Private.GetErrorHandlerUid(data.uid, "PreAdd"), data)
   if ok then
@@ -4050,18 +4128,35 @@ local function SetFrameLevel(id, frameLevel)
   Private.frameLevels[id] = frameLevel;
 end
 
-function Private.FixGroupChildrenOrderForGroup(data)
-  SetFrameLevel(data.id, 0)
-  local frameLevel, offset
-  if data.regionType == "dynamicgroup" then
-    frameLevel, offset = 5, 0
+local function FixGroupChildrenOrderImpl(data, frameLevel)
+  SetFrameLevel(data.id, frameLevel)
+  local offset
+  if data.sharedFrameLevel then
+    offset = 0
   else
-    frameLevel, offset = 2, 4
+    offset = 4
   end
-  for child in Private.TraverseLeafs(data) do
-    SetFrameLevel(child.id, frameLevel);
-    frameLevel = frameLevel + offset;
+  for _, childId in ipairs(data.controlledChildren) do
+    local childData = WeakAuras.GetData(childId)
+    if childData.regionType ~= "group" and childData.regionType ~= "dynamicgroup" then
+      frameLevel = frameLevel + offset
+      SetFrameLevel(childId, frameLevel)
+    else
+      frameLevel = frameLevel + offset
+      local endFrameLevel = FixGroupChildrenOrderImpl(childData, frameLevel)
+      if not data.sharedFrameLevel then
+        frameLevel = endFrameLevel
+      end
+    end
   end
+  return frameLevel
+end
+
+function Private.FixGroupChildrenOrderForGroup(data)
+  if data.parent then
+    return
+  end
+  FixGroupChildrenOrderImpl(data, 0)
 end
 
 local function GetFrameLevelFor(id)
@@ -4070,11 +4165,18 @@ end
 
 function Private.ApplyFrameLevel(region, frameLevel)
   frameLevel = frameLevel or GetFrameLevelFor(region.id)
+
+  local setBackgroundFrameLevel = false
   if region.subRegions then
     for index, subRegion in pairs(region.subRegions) do
       if subRegion.type == "subbackground" then
         subRegion:SetFrameLevel(frameLevel + index)
+        setBackgroundFrameLevel = true
       end
+    end
+
+    if not setBackgroundFrameLevel then
+      region:SetFrameLevel(frameLevel)
     end
 
     for index, subRegion in pairs(region.subRegions) do
@@ -4082,6 +4184,8 @@ function Private.ApplyFrameLevel(region, frameLevel)
         subRegion:SetFrameLevel(frameLevel + index)
       end
     end
+  else
+    region:SetFrameLevel(frameLevel)
   end
 end
 
@@ -5865,8 +5969,8 @@ function Private.ExecEnv.ParseZoneCheck(input)
   if not input then return end
 
   local matcher = {
-    Check = function(self, zoneId, zonegroupId)
-      return self.zoneIds[zoneId] or self.zoneGroupIds[zonegroupId]
+    Check = function(self, zoneId, zonegroupId, instanceId, minimapZoneText)
+      return self.zoneIds[zoneId] or self.zoneGroupIds[zonegroupId] or (instanceId and self.instanceIds[instanceId]) or self.areaNames[minimapZoneText]
     end,
     AddId = function(self, input, start, last)
       local id = tonumber(strtrim(input:sub(start, last)))
@@ -5874,13 +5978,25 @@ function Private.ExecEnv.ParseZoneCheck(input)
         local prevChar = input:sub(start - 1, start - 1)
         if prevChar == 'g' or prevChar == 'G' then
           self.zoneGroupIds[id] = true
+        elseif prevChar == 'c' or prevChar == 'C' then
+          self.zoneIds[id] = true
+          local info = C_Map.GetMapChildrenInfo(id, nil, true)
+          for _,childInfo in pairs(info) do
+             self.zoneIds[childInfo.mapID] = true
+          end
+        elseif prevChar == 'a' or prevChar == 'A' then
+          self.areaNames[C_Map.GetAreaInfo(id)] = true
+        elseif prevChar == 'i' or prevChar == 'I' then
+          self.instanceIds[id] = true
         else
           self.zoneIds[id] = true
         end
       end
     end,
     zoneIds = {},
-    zoneGroupIds = {}
+    zoneGroupIds = {},
+    instanceIds = {},
+    areaNames = {}
   }
 
   local start = input:find('%d', 1)
@@ -5969,6 +6085,15 @@ function Private.SortOrderForValues(values)
   table.sort(sortOrder, function(aKey, bKey)
     local aValue = values[aKey]
     local bValue = values[bKey]
+
+    if aValue:sub(1, #WeakAuras.newFeatureString) == WeakAuras.newFeatureString then
+      aValue = aValue:sub(#WeakAuras.newFeatureString + 1)
+    end
+
+    if bValue:sub(1, #WeakAuras.newFeatureString) == WeakAuras.newFeatureString then
+      bValue = bValue:sub(#WeakAuras.newFeatureString + 1)
+    end
+
     return aValue < bValue
   end)
   return sortOrder

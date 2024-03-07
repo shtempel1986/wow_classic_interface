@@ -42,6 +42,10 @@ local SecureButton_GetUnit = SecureButton_GetUnit
 local SecureButton_GetModifiedUnit = SecureButton_GetModifiedUnit
 local PingableType_UnitFrameMixin = PingableType_UnitFrameMixin
 
+local GetAuraDataByIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+local UnpackAuraData = AuraUtil and AuraUtil.UnpackAuraData
+local UnitAura = UnitAura
+
 local GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 local SetCVar = C_CVar.SetCVar
 -- end
@@ -355,9 +359,7 @@ local function initObject(unit, style, styleFunc, header, ...)
 			Used to define which contextual ping is used for the frame.
 			By default this wraps `C_Ping.GetContextualPingTypeForUnit(UnitGUID(frame.unit))`.
 			--]]
-			if PingableType_UnitFrameMixin then
-				object:SetAttribute('ping-receiver', true)
-			end
+			object:SetAttribute('ping-receiver', true)
 
 			if(isEventlessUnit(objectUnit)) then
 				oUF:HandleEventlessUnit(object)
@@ -650,9 +652,7 @@ do
 				frame:SetAttribute('*type2', 'togglemenu')
 				frame:SetAttribute('oUF-guessUnit', unit)
 
-				if PingableType_UnitFrameMixin then
-					frame:SetAttribute('ping-receiver', true)
-				end
+				frame:SetAttribute('ping-receiver', true)
 			end
 
 			local body = header:GetAttribute('oUF-initialConfigFunction')
@@ -933,6 +933,14 @@ function oUF:AddElement(name, update, enable, disable)
 		enable = enable;
 		disable = disable;
 	}
+end
+
+function oUF:GetAuraData(unitToken, index, filter)
+	if oUF.isRetail then
+		return UnpackAuraData(GetAuraDataByIndex(unitToken, index, filter))
+	else
+		return UnitAura(unitToken, index, filter)
+	end
 end
 
 oUF.version = _VERSION

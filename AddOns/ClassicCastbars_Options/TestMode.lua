@@ -5,10 +5,12 @@ TestMode.isTesting = {}
 local dummySpellData = {
     spellName = GetSpellInfo(118),
     icon = GetSpellTexture(118),
-    maxValue = 10.0,
-    timeStart = GetTime(),
-    endTime = GetTime() + 10.0,
+    spellID = 118,
+    maxValue = 10,
+    value = 5,
     isChanneled = false,
+    isActiveCast = true,
+    castID = nil,
 }
 
 local isRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
@@ -34,19 +36,11 @@ end
 local function OnDragStop(self)
     self:StopMovingOrSizing()
 
-    local unit = self.unitID
-    if strfind(unit, "nameplate") then
-        unit = "nameplate" -- make it match our DB key
-    elseif strfind(unit, "arena") then
-        unit = "arena"
-    elseif strfind(unit, "party") then
-        unit = "party"
-    end
-
     -- Frame loses relativity to parent and is instead relative to UIParent after
     -- dragging so we can't just use self:GetPoint() here
+    local unit = ClassicCastbars:GetUnitType(self.unitID)
     local x, y = CalcScreenGetPoint(self)
-    ClassicCastbars.db[unit].position = { "CENTER", x, y }  -- has to be center for CalcScreenGetPoint to work
+    ClassicCastbars.db[unit].position = { "CENTER", x, y } -- Has to be center for CalcScreenGetPoint to work
     ClassicCastbars.db[unit].autoPosition = false
 
     -- Reanchor from UIParent back to parent frame
@@ -56,7 +50,7 @@ local function OnDragStop(self)
 end
 
 function TestMode:ToggleArenaContainer(showFlag)
-    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then -- Dragonflight
+    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then -- Dragonflight UI
         EditModeManagerFrame.AccountSettings:SetArenaFramesShown(showFlag)
         EditModeManagerFrame.AccountSettings:RefreshArenaFrames()
     elseif ArenaEnemyFrames then
@@ -65,16 +59,12 @@ function TestMode:ToggleArenaContainer(showFlag)
 end
 
 function TestMode:TogglePartyContainer(showFlag)
-    if EditModeManagerFrame then
+    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then -- Dragonflight UI
         if showFlag then
             ShowUIPanel(EditModeManagerFrame)
         else
             HideUIPanel(EditModeManagerFrame)
         end
-
-        --EditModeManagerFrame.AccountSettings:SetPartyFramesShown(showFlag)
-        --EditModeManagerFrame.AccountSettings:SetRaidFramesShown(showFlag)
-        --EditModeManagerFrame.AccountSettings:RefreshPartyFrames()
     end
 end
 
@@ -93,8 +83,12 @@ function TestMode:OnOptionChanged(unitID)
 
     -- Immediately update castbar display after changing an option
     local castbar = ClassicCastbars.activeFrames[unitID]
-    if castbar and castbar.isTesting then
-        castbar._data = CopyTable(dummySpellData)
+    if castbar and castbar:IsVisible() then
+        if castbar.isTesting then
+            for key, value in pairs(dummySpellData) do
+                castbar[key] = value
+            end
+        end
         ClassicCastbars:DisplayCastbar(castbar, unitID)
     end
 end
@@ -141,7 +135,7 @@ function TestMode:SetCastbarMovable(unitID, parent)
     end
 
     local castbar = unitID == "player" and CastingBarFrame or ClassicCastbars:GetCastbarFrame(unitID)
-    if unitID ~= "nameplate-testmode" then -- Blizzard broke drag functionality for frames that are anchored to restricted frames in TBC :(
+    if unitID ~= "nameplate-testmode" then -- Blizzard broke drag functionality for frames that are anchored to restricted frames :(
         castbar:SetMovable(true)
         castbar:SetClampedToScreen(true)
         castbar:EnableMouse(true)
@@ -156,21 +150,25 @@ function TestMode:SetCastbarMovable(unitID, parent)
         castbar:SetScript("OnMouseUp", OnDragStop)
     end
 
-    castbar._data = CopyTable(dummySpellData) -- Set test data for :DisplayCastbar()
+    -- Set test data for :DisplayCastbar()
+    for key, value in pairs(dummySpellData) do
+        castbar[key] = value
+    end
     castbar.parent = parentFrame
     castbar.unitID = unitID
     castbar.isTesting = true
 
-    local maxValue = castbar._data.maxValue
-    castbar:SetMinMaxValues(1, maxValue)
-    castbar:SetValue(maxValue / 2)
-    castbar.Timer:SetFormattedText("%.1f", maxValue / 2)
-    castbar.Spark:SetPoint("CENTER", castbar, "LEFT", (((maxValue / 2) / maxValue) * castbar:GetWidth()) - 6, 0)
+    castbar:SetMinMaxValues(0, castbar.maxValue)
+    castbar:SetValue(castbar.value)
+    castbar.Timer:SetFormattedText("%.1f", castbar.isChanneled and castbar.value or not castbar.isChanneled and castbar.maxValue - castbar.value)
+
+    local sparkPosition = (castbar.value / castbar.maxValue) * (castbar.currWidth or castbar:GetWidth())
+    castbar.Spark:SetPoint("CENTER", castbar, "LEFT", sparkPosition, 0)
 
     if IsModifierKeyDown() or (IsMetaKeyDown and IsMetaKeyDown()) then
-        castbar._data.isUninterruptible = true
+        castbar.isUninterruptible = true
     else
-        castbar._data.isUninterruptible = false
+        castbar.isUninterruptible = false
     end
 
     if unitID == "party-testmode" or unitID == "arena-testmode" then
@@ -215,6 +213,7 @@ function TestMode:SetCastbarImmovable(unitID)
         castbar.tooltip:Hide()
     end
 
+    castbar.isActiveCast = false
     castbar.unitID = nil
     castbar.parent = nil
     castbar.isTesting = false
@@ -223,9 +222,11 @@ function TestMode:SetCastbarImmovable(unitID)
 
     if unitID == "party-testmode" then
         local parentFrame = castbar.parent or ClassicCastbars.AnchorManager:GetAnchor(unitID)
-        if parentFrame and not UnitExists("party1") then
+        if parentFrame then
             TestMode:TogglePartyContainer(false)
-            parentFrame:Hide()
+            if not UnitExists("party1") then
+                parentFrame:Hide()
+            end
         end
     elseif unitID == "arena-testmode" then
         local parentFrame = castbar.parent or ClassicCastbars.AnchorManager:GetAnchor(unitID)

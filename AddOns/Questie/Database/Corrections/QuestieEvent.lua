@@ -67,7 +67,13 @@ local l10n = QuestieLoader:ImportModule("l10n")
 
 
 local tinsert = table.insert
-local _WithinDates, _LoadDarkmoonFaire, _IsDarkmoonFaireActive
+local _WithinDates, _LoadDarkmoonFaire, _GetDarkmoonFaireLocation, _GetDarkmoonFaireLocationEra, _GetDarkmoonFaireLocationSoD
+
+local DMF_LOCATIONS = {
+    NONE = 0,
+    MULGORE = 1,
+    ELWYNN_FOREST = 2,
+}
 
 function QuestieEvent:Load()
     local year = date("%y")
@@ -143,76 +149,108 @@ end
 
 ---@param dayOfMonth number
 ---@return boolean
-_IsDarkmoonFaireActive = function(dayOfMonth)
+_GetDarkmoonFaireLocation = function()
     if C_Calendar == nil then
         -- This is a band aid fix for private servers which do not support the `C_Calendar` API.
         -- They won't see Darkmoon Faire quests, but that's the price to pay.
         return false
     end
-    local baseInfo = C_Calendar.GetMonthInfo() -- In Era+SoD this returns `GetMinDate` (November 2004)
+
     local currentDate = C_DateAndTime.GetCurrentCalendarTime()
+
+    if Questie.IsSoD then
+        return _GetDarkmoonFaireLocationSoD(currentDate)
+    else
+        return _GetDarkmoonFaireLocationEra(currentDate)
+    end
+end
+
+_GetDarkmoonFaireLocationEra = function(currentDate)
+    local baseInfo = C_Calendar.GetMonthInfo() -- In Era+SoD this returns `GetMinDate` (November 2004)
     -- Calculate the offset in months from GetMinDate to make C_Calendar.GetMonthInfo return the correct month
     local monthOffset = (currentDate.year - baseInfo.year) * 12 + (currentDate.month - baseInfo.month)
     local firstWeekday = C_Calendar.GetMonthInfo(monthOffset).firstWeekday
 
+    local eventLocation = (currentDate.month % 2) == 0 and DMF_LOCATIONS.MULGORE or DMF_LOCATIONS.ELWYNN_FOREST
+
+    local dayOfMonth = currentDate.monthDay
     if firstWeekday == 1 then
         -- The 1st is a Sunday
-        if dayOfMonth >= 9 and dayOfMonth < 15 or (Questie.IsSoD and dayOfMonth >= 23 and dayOfMonth < 29) then
-            return true
+        if dayOfMonth >= 9 and dayOfMonth < 15 then
+            return eventLocation
         end
     elseif firstWeekday == 2 then
         -- The 1st is a Monday
-        if dayOfMonth >= 8 and dayOfMonth < 14 or (Questie.IsSoD and dayOfMonth >= 22 and dayOfMonth < 28) then
-            return true
+        if dayOfMonth >= 8 and dayOfMonth < 14 then
+            return eventLocation
         end
     elseif firstWeekday == 3 then
         -- The 1st is a Tuesday
-        if dayOfMonth >= 7 and dayOfMonth < 13 or (Questie.IsSoD and dayOfMonth >= 21 and dayOfMonth < 27) then
-            return true
+        if dayOfMonth >= 7 and dayOfMonth < 13 then
+            return eventLocation
         end
     elseif firstWeekday == 4 then
         -- The 1st is a Wednesday
-        if dayOfMonth >= 6 and dayOfMonth < 12 or (Questie.IsSoD and dayOfMonth >= 20 and dayOfMonth < 26) then
-            return true
+        if dayOfMonth >= 6 and dayOfMonth < 12 then
+            return eventLocation
         end
     elseif firstWeekday == 5 then
         -- The 1st is a Thursday
-        if dayOfMonth >= 5 and dayOfMonth < 11 or (Questie.IsSoD and dayOfMonth >= 19 and dayOfMonth < 25) then
-            return true
+        if dayOfMonth >= 5 and dayOfMonth < 11 then
+            return eventLocation
         end
     elseif firstWeekday == 6 then
         -- The 1st is a Friday
-        if dayOfMonth >= 4 and dayOfMonth < 10 or (Questie.IsSoD and dayOfMonth >= 18 and dayOfMonth < 24) then
-            return true
+        if dayOfMonth >= 4 and dayOfMonth < 10 then
+            return eventLocation
         end
     elseif firstWeekday == 7 then
         -- The 1st is a Saturday
-        if dayOfMonth >= 10 and dayOfMonth < 16 or (Questie.IsSoD and dayOfMonth >= 24 and dayOfMonth < 30) then
-            return true
+        if dayOfMonth >= 10 and dayOfMonth < 16 then
+            return eventLocation
         end
     end
 
-    return false
+    return DMF_LOCATIONS.NONE
+end
+
+-- DMF in SoD is every second week, starting on the 4th of December 2023
+_GetDarkmoonFaireLocationSoD = function(currentDate)
+    local initialStartDate = time({year=2023, month=12, day=4, hour=0, min=1}) -- The first time DMF started in SoD
+    local initialEndDate = time({year=2023, month=12, day=10, hour=23, min=59}) -- The first time DMF ended in SoD
+    currentDate = time({ year = currentDate.year, month = currentDate.month, day = currentDate.monthDay, hour = 0, min = 1 })
+
+    local eventDuration = initialEndDate - initialStartDate
+    local timeSinceStart = currentDate - initialStartDate
+
+    local positionInCurrentCycle = timeSinceStart % (eventDuration * 2) -- * 2 because the event repeats every two weeks
+
+    local isEventActive = positionInCurrentCycle < eventDuration
+
+    if (not isEventActive) then
+        return DMF_LOCATIONS.NONE
+    end
+
+    local weeksSinceStart = math.floor(timeSinceStart / eventDuration)
+
+    if weeksSinceStart % 4 == 0 then
+        return DMF_LOCATIONS.MULGORE
+    else
+        return DMF_LOCATIONS.ELWYNN_FOREST
+    end
 end
 
 --- https://classic.wowhead.com/guides/classic-darkmoon-faire#darkmoon-faire-location-and-schedule
 --- Darkmoon Faire starts its setup the first Friday of the month and will begin the following Monday.
 --- The faire ends the sunday after it has begun.
 _LoadDarkmoonFaire = function()
-    local currentDate = C_DateAndTime.GetCurrentCalendarTime()
-
-    if (not _IsDarkmoonFaireActive(currentDate.monthDay)) then
+    local eventLocation = _GetDarkmoonFaireLocation()
+    if (eventLocation == DMF_LOCATIONS.NONE) then
         return
     end
 
     -- TODO: Also handle Terrokar Forest starting with TBC
-    local isInMulgore
-    if Questie.IsSoD then
-        -- The first event of a month is always in Mulgore, the second in Elwynn Forest
-        isInMulgore = currentDate.monthDay < 16
-    else
-        isInMulgore = (currentDate.month % 2) == 0
-    end
+    local isInMulgore = eventLocation == DMF_LOCATIONS.MULGORE
 
     -- The faire is setting up right now or is already up
     local announcingQuestId = 7905 -- Alliance announcement quest
@@ -277,7 +315,7 @@ QuestieEvent.eventDates = {
         startDate = "3/2",
         endDate = "24/2"
     },
-    ["Love is in the Air"] = {startDate = "06/2", endDate = "20/2"},
+    ["Love is in the Air"] = {startDate = "05/2", endDate = "19/2"},
     ["Noblegarden"] = { -- WARNING THIS DATE VARIES!!!!
         startDate = "31/3",
         endDate = "6/4"
@@ -303,6 +341,7 @@ QuestieEvent.eventDateCorrections = {
     ["CLASSIC"] = {
         ["Brewfest"] = false,
         ["Pilgrim's Bounty"] = false,
+        ["Love is in the Air"] = {startDate = "11/2", endDate = "16/2"},
     },
     ["TBC"] = {
         ["Harvest Festival"] = false,
@@ -316,7 +355,7 @@ QuestieEvent.lunarFestival = {
     ["22"] = {startDate = "30/1", endDate = "18/2"},
     -- Below are estimates
     ["23"] = {startDate = "20/1", endDate = "10/2"},
-    ["24"] = {startDate = "10/2", endDate = "24/2"},
+    ["24"] = {startDate = "3/2", endDate = "23/2"},
     ["25"] = {startDate = "29/1", endDate = "12/2"},
     ["26"] = {startDate = "17/2", endDate = "3/3"},
     ["27"] = {startDate = "7/2", endDate = "21/2"},
@@ -326,32 +365,68 @@ QuestieEvent.lunarFestival = {
 -- This variable will be cleared at the end of the load, do not use, use QuestieEvent.activeQuests.
 QuestieEvent.eventQuests = {}
 
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8684}) -- Dreamseer the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8619}) -- Morndeep the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8635}) -- Splitrock the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8883}) -- Valadar Starsong
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8713}) -- Starsong the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8868}) -- Elune's Blessing
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8636}) -- Rumblerock the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8642}) -- Silvervein the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8866}) -- Bronzebeard the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8643}) -- Highpeak the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8678}) -- Proudhorn the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8670}) -- Runetotem the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8725}) -- Riversong the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8683}) -- Dawnstrider the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8716}) -- Starglade the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8644}) -- Stonefort the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8645}) -- Obsidian the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8646}) -- Hammershout the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8647}) -- Bellowrage the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8648}) -- Darkcore the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8649}) -- Stormbrow the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8650}) -- Snowcrown the Elder
--- tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8874}) -- The Lunar Festival
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8722}) -- Meadowrun the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8651}) -- Ironband the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8652}) -- Graveborn the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8720}) -- Skygleam the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8653}) -- Goldwell the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8654}) -- Primestone the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8670}) -- Runetotem the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8671}) -- Ragetotem the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8672}) -- Stonespire the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8673}) -- Bloodhoof the Elder
--- tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8875}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8674}) -- Winterhoof the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8675}) -- Skychaser the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8676}) -- Wildmane the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8677}) -- Darkhorn the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8678}) -- Proudhorn the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8679}) -- Grimtotem the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8680}) -- Windtotem the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8681}) -- Thunderhorn the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8682}) -- Skyseer the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8683}) -- Dawnstrider the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8684}) -- Dreamseer the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8685}) -- Mistwalker the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8686}) -- High Mountain the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8688}) -- Windrun the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8713}) -- Starsong the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8714}) -- Moonstrike the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8715}) -- Bladeleaf the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8716}) -- Starglade the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8717}) -- Moonwarden the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8718}) -- Bladeswift the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8719}) -- Bladesing the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8720}) -- Skygleam the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8721}) -- Starweave the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8722}) -- Meadowrun the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8723}) -- Nightwind the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8724}) -- Morningdew the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8725}) -- Riversong the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8726}) -- Brightspear the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8727}) -- Farwhisper the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8862, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Elune's Candle
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8863, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Festival Dumplings
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8864, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Festive Lunar Dresses
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8865, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Festive Lunar Pant Suits
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8867, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Lunar Fireworks
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8873, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8866}) -- Bronzebeard the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8867}) -- Lunar Fireworks
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8868}) -- Elune's Blessing
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8870}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8871}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8872}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8873}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8874}) -- The Lunar Festival
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8875}) -- The Lunar Festival
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8876, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Small Rockets
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8877, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Firework Launcher
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8878, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Festive Recipes
@@ -359,43 +434,7 @@ tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8879, nil, nil, QuestieCorr
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8880, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Cluster Rockets
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8881, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Large Cluster Rockets
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8882, nil, nil, QuestieCorrections.CLASSIC_ONLY}) -- Cluster Launcher
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8723}) -- Nightwind the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8681}) -- Thunderhorn the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8676}) -- Wildmane the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8651}) -- Ironband the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8672}) -- Stonespire the Elder
--- tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8870}) -- The Lunar Festival
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8871}) -- The Lunar Festival
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8649}) -- Stormbrow the Elder
--- tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8872}) -- The Lunar Festival
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8726}) -- Brightspear the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8718}) -- Bladeswift the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8685}) -- Mistwalker the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8653}) -- Goldwell the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8671}) -- Ragetotem the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8677}) -- Darkhorn the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8714}) -- Moonstrike the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8645}) -- Obsidian the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8717}) -- Moonwarden the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8648}) -- Darkcore the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8715}) -- Bladeleaf the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8646}) -- Hammershout the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8724}) -- Morningdew the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8727}) -- Farwhisper the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8679}) -- Grimtotem the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8647}) -- Bellowrage the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8674}) -- Winterhoof the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8680}) -- Windtotem the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8686}) -- High Mountain the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8654}) -- Primestone the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8721}) -- Starweave the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8619}) -- Morndeep the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8688}) -- Windrun the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8682}) -- Skyseer the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8636}) -- Rumblerock the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8644}) -- Stonefort the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8675}) -- Skychaser the Elder
-tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8719}) -- Bladesing the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 8883}) -- Valadar Starsong
 -- Northrend Elders
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13012}) -- Sardis the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13013}) -- Beldak the Elder
@@ -419,6 +458,9 @@ tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13030}) -- Whurain the Elde
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13031}) -- Skywarden the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13032}) -- Muraco the Elder
 tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13033}) -- Arp the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13065}) -- Ohanzee the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13066}) -- Yurauk the Elder
+tinsert(QuestieEvent.eventQuests, {"Lunar Festival", 13067}) -- Chogan'gada the Elder
 
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 8897}) -- Dearest Colara
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 8898}) -- Dearest Colara
@@ -923,6 +965,7 @@ tinsert(QuestieEvent.eventQuests, {"Noblegarden", 13480}) -- The Great Egg Hunt
 tinsert(QuestieEvent.eventQuests, {"Noblegarden", 13502}) -- A Tisket, a Tasket, a Noblegarden Basket
 tinsert(QuestieEvent.eventQuests, {"Noblegarden", 13503}) -- A Tisket, a Tasket, a Noblegarden Basket
 
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 14483}) -- Something is in the Air (and it Ain't Love)
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 14488}) -- You've Been Served
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24597}) -- A Gift for the King of Stormwind
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24609}) -- A Gift for the Lord of Ironforge
@@ -939,6 +982,7 @@ tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24536}) -- Something St
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24655}) -- Something Stinks
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24541}) -- Pilfering Perfume
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24656}) -- Pilfering Perfume
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24745}) -- Something is in the Air (and it Ain't Love)
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24804}) -- Uncommon Scents
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24805}) -- Uncommon Scents
 
@@ -963,21 +1007,21 @@ tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24851}) -- Hot On The T
 -- instead of the level 5 one. Users can only tell the difference if they're watching quest IDs.
 -- TODO: If we implement maxLevel, these hacky workarounds should be implemented properly.
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24638}) -- Crushing the Crown (Durotar)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24645}) -- Crushing the Crown (Ambermill)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24647}) -- Crushing the Crown (Hillsbrad H)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24648}) -- Crushing the Crown (Theramore H)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24649}) -- Crushing the Crown (Aerie Peak H)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24650}) -- Crushing the Crown (Everlook H)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24651}) -- Crushing the Crown (Shattrath H)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24652}) -- Crushing the Crown (Crystalsong H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24645}) -- Crushing the Crown (Ambermill)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24647}) -- Crushing the Crown (Hillsbrad H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24648}) -- Crushing the Crown (Theramore H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24649}) -- Crushing the Crown (Aerie Peak H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24650}) -- Crushing the Crown (Everlook H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24651}) -- Crushing the Crown (Shattrath H)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24652}) -- Crushing the Crown (Crystalsong H)
 tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24658}) -- Crushing the Crown (Elwynn)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24659}) -- Crushing the Crown (Darkshore)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24660}) -- Crushing the Crown (Hillsbrad A)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24662}) -- Crushing the Crown (Theramore A)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24663}) -- Crushing the Crown (Aerie Peak A)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24664}) -- Crushing the Crown (Everlook A)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24665}) -- Crushing the Crown (Shattrath A)
---tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24666}) -- Crushing the Crown (Crystalsong A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24659}) -- Crushing the Crown (Darkshore)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24660}) -- Crushing the Crown (Hillsbrad A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24662}) -- Crushing the Crown (Theramore A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24663}) -- Crushing the Crown (Aerie Peak A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24664}) -- Crushing the Crown (Everlook A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24665}) -- Crushing the Crown (Shattrath A)
+tinsert(QuestieEvent.eventQuests, {"Love is in the Air", 24666}) -- Crushing the Crown (Crystalsong A)
 
 tinsert(QuestieEvent.eventQuests, {"Children's Week", 13926}) -- Little Orphan Roo Of The Oracles
 tinsert(QuestieEvent.eventQuests, {"Children's Week", 13927}) -- Little Orphan Kekek Of The Wolvar

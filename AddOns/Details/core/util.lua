@@ -35,6 +35,10 @@
 
 	local gump = Details.gump --details local
 
+	function Details:IsInMythicPlus()
+		return C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()
+	end
+
 	local predicateFunc = function(spellIdToFind, casterName, _, name, icon, applications, dispelName, duration, expirationTime, sourceUnitId, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossAura, isFromPlayerOrPlayerPet, nameplateShowAll, timeMod, applications)
 		if (spellIdToFind == spellId and UnitExists(sourceUnitId)) then
 			if (casterName == Details:GetUnitNameForAPI(sourceUnitId)) then
@@ -454,17 +458,17 @@
 	---@return {key1: unixtime, key2: spellid}
 	---@return specializationid specId
 	function Details:UnpackDeathTable(deathTable)
-		local deathevents = deathTable[1]
-		local deathtime = deathTable[2]
-		local playername = deathTable[3]
-		local playerclass = deathTable[4]
-		local playermaxhealth = deathTable[5]
-		local deathtimestring = deathTable[6]
-		local lastcooldown = deathTable.last_cooldown
-		local deathcombattime = deathTable.dead_at
+		local deathEvents = deathTable[1]
+		local deathTime = deathTable[2]
+		local playerName = deathTable[3]
+		local playerClass = deathTable[4]
+		local playerMaxHealth = deathTable[5]
+		local deathTimeString = deathTable[6]
+		local lastCooldown = deathTable.last_cooldown
+		local deathCombatTime = deathTable.dead_at
 		local spec = deathTable.spec
 
-		return playername, playerclass, deathtime, deathcombattime, deathtimestring, playermaxhealth, deathevents, lastcooldown, spec
+		return playerName, playerClass, deathTime, deathCombatTime, deathTimeString, playerMaxHealth, deathEvents, lastCooldown, spec
 	end
 
 	---get a random fraction number
@@ -1287,7 +1291,7 @@ end
 		--coach feature
 		if (not Details.Coach.Server.IsEnabled()) then
 			if (Details.debug) then
-				Details:Msg("coach is disabled, the combat is now over!")
+				--Details:Msg("coach is disabled, the combat is now over!")
 			end
 		end
 

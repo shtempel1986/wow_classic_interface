@@ -56,7 +56,6 @@ function module:SetIcon(mod, target, icon, timer, ignoreOld)
 	local uId = DBM:GetRaidUnitId(target) or UnitExists(target) and target
 	if uId and UnitIsUnit(uId, "player") and DBM:GetNumRealGroupMembers() < 2 then return end--Solo raid, no reason to put icon on yourself.
 	if uId then--target accepts uid, unitname both.
-		uId = uId or target
 		--save previous icon into a table.
 		local oldIcon = self:GetIcon(uId) or 0
 		if not mod.iconRestore[uId] and not ignoreOld then
@@ -330,7 +329,7 @@ do
 				end
 			end
 		end
-		if success then
+		if success and guid then
 			addsGUIDs[guid] = true
 			addsIconSet[scanId] = addsIconSet[scanId] + 1
 			DBM:Debug("SetRaidTarget succeeded. Total set "..(addsIconSet[scanId] or "unknown").." of "..(iconVariables[scanId].maxIcon or "unknown"), 2)
@@ -449,6 +448,9 @@ do
 			end
 		else
 			DBM:Debug("Not elected to set icons for "..(optionName or "nil"), 2)
+			if wipeGUID then
+				addsGUIDs[scanId] = nil
+			end
 		end
 	end
 end

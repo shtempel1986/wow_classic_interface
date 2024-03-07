@@ -1,7 +1,7 @@
 ## Interface: 30403
 ## Title: Clique
 ## Author: Cladhaire
-## Version: v3.5.5-release
+## Version: v3.5.6-release
 ## Notes: Simply powerful click-casting interface
 ## IconTexture: Interface\AddOns\Clique\images\icon_square_64.tga
 ## SavedVariables: CliqueDB, CliqueDB3

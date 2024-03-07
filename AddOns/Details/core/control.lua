@@ -295,8 +295,9 @@
 	function Details:EntrarEmCombate (...)
 		if (Details.debug) then
 			Details:Msg("(debug) |cFFFFFF00started a new combat|r|cFFFF7700", Details.encounter_table and Details.encounter_table.name or "")
-			local from = debugstack(2, 1, 0)
-			print("from:", from)
+			--local from = debugstack(2, 1, 0)
+			--print("from:", from)
+			DetailsParserDebugFrame:Show()
 		end
 
 		local segmentsTable = Details:GetCombatSegments()
@@ -355,13 +356,28 @@
 		local bFromCombatStart = true
 		Details:UpdateParserGears(bFromCombatStart)
 
-		--get all buff already applied before the combat start
+		--retrieve all buffs applied before the combat starts
 		C_Timer.After(0.05, function()
-			--wait the initial aura wipe done by the client on certain situations
+			--wait for the initial aura wipe performed by the client in certain situations
 			Details:CatchRaidBuffUptime("BUFF_UPTIME_IN")
 		end)
 		Details:CatchRaidDebuffUptime("DEBUFF_UPTIME_IN")
 		Details:UptadeRaidMembersCache()
+
+		--is inside a mythic dungeon and running a mythic+?
+
+		if (newCombatObject.is_challenge or Details.debug) then
+			--local bRegisterAuraScanTimeLine = true
+			--Details222.AuraScan.AddAura(395152) --ebon might
+			--Details222.AuraScan.AddAura(395296) --the evoker buff on it self
+			--Details222.AuraScan.AddAura(410089--[[, bRegisterAuraScanTimeLine--]]) --prescience
+			--Details222.AuraScan.AddAura(413984) --Shifting Sands
+			--Details222.AuraScan.AddAura(409560) --Temporal Wound
+			--Details222.AuraScan.AddAura(360827) --Blistering Scales
+			--Details222.AuraScan.AddAura(410263) --Inferno's Blessing
+			--Details222.AuraScan.RegisterCallback(Details222.SpecHelpers[1473].OnAugmentationBuffUpdate)
+			--Details222.AuraScan.Start() --combat started (m+ active)
+		end
 
 		--Details222.TimeCapture.StartCombatTimer(Details.tabela_vigente)
 
@@ -459,10 +475,14 @@
 	function Details:SairDoCombate(bossKilled, bIsFromEncounterEnd)
 		if (Details.debug) then
 			Details:Msg("(debug) |cFFFFFF00ended a combat|r|cFFFF7700", Details.encounter_table and Details.encounter_table.name or "")
+		else
+			DetailsParserDebugFrame:Hide()
 		end
 
 		---@type combat
 		local currentCombat = Details:GetCurrentCombat()
+
+		Details:SendEvent("COMBAT_PLAYER_LEAVING", nil, currentCombat)
 
 		if (currentCombat.bIsClosed) then
 			return
@@ -505,11 +525,15 @@
 			end
 		end
 
-		Details:OnCombatPhaseChanged() --.PhaseData is nil here on alpha-32
+		Details:OnCombatPhaseChanged()
 
 		if (currentCombat.bossFunction) then
 			Details:CancelTimer(currentCombat.bossFunction)
 			currentCombat.bossFunction = nil
+		end
+
+		if (currentCombat.is_challenge or Details.debug) then
+			--Details222.AuraScan.Stop() --combat ended (m+ active)
 		end
 
 		--stop combat ticker
@@ -621,7 +645,7 @@
 				local enemy = Details:FindEnemy()
 
 				if (enemy and Details.debug) then
-					Details:Msg("(debug) enemy found", enemy)
+					--Details:Msg("(debug) enemy found", enemy)
 				end
 
 				currentCombat.enemy = enemy
@@ -692,7 +716,7 @@
 				Details:CaptureSet(false, "spellcast", false, 15)
 
 				if (Details.debug) then
-					Details:Msg("(debug) freezing parser for 15 seconds.")
+					--Details:Msg("(debug) freezing parser for 15 seconds.")
 				end
 			end
 
@@ -839,12 +863,12 @@
 
 		Details.pre_pot_used = nil
 
-		--do not wipe the encounter table if is in the argus encounter ~REMOVE on 8.0
+		--do not wipe the encounter table if is in the argus encounter
 		if (Details.encounter_table and Details.encounter_table.id ~= 2092) then
 			Details:Destroy(Details.encounter_table)
 		else
 			if (Details.debug) then
-				Details:Msg("(debug) in argus encounter, cannot wipe the encounter table.")
+				--Details:Msg("(debug) in argus encounter, cannot wipe the encounter table.")
 			end
 		end
 
@@ -1793,12 +1817,18 @@
 		if (not panel) then
 			panel = CreateFrame("frame", "DetailsEraseDataConfirmation", UIParent, "BackdropTemplate")
 			panel:SetSize(400, 85)
-			panel:SetBackdrop({bgFile = [[Interface\AddOns\Details\images\background]], tile = true, tileSize = 16,
-			edgeFile = [[Interface\AddOns\Details\images\border_2]], edgeSize = 12})
+			--panel:SetBackdrop({bgFile = [[Interface\AddOns\Details\images\background]], tile = true, tileSize = 16,
+			--edgeFile = [[Interface\AddOns\Details\images\border_2]], edgeSize = 12})
+			--panel:SetBackdropColor(0, 0, 0, 0.4)
 			panel:SetPoint("center", UIParent)
-			panel:SetBackdropColor(0, 0, 0, 0.4)
 
-			DetailsFramework:ApplyStandardBackdrop(panel)
+			--DetailsFramework:ApplyStandardBackdrop(panel)
+			DetailsFramework:AddRoundedCornersToFrame(panel, Details.PlayerBreakdown.RoundedCornerPreset)
+
+			local LibWindow = LibStub("LibWindow-1.1")
+			LibWindow.RegisterConfig(panel, Details.ask_to_erase_frame)
+			LibWindow.MakeDraggable(panel)
+			LibWindow.RestorePosition(panel)
 
 			panel:SetScript("OnMouseDown", function(self, button)
 				if (button == "RightButton") then
@@ -1838,7 +1868,9 @@
 
 			elseif (Details.segments_auto_erase == 3) then
 				--erase
-				Details.tabela_historico:ResetAllCombatData()
+				C_Timer.After(2, function()
+					Details.tabela_historico:ResetAllCombatData()
+				end)
 			end
 		else
 			if (_tempo > Details.last_instance_time + 21600) then --6 hours

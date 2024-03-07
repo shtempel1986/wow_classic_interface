@@ -716,6 +716,7 @@ ArkInventory.Const = { -- constants
 			EXPANSION = { },
 			PTR = 0.1,
 			BETA = 0.2,
+			ALPHA = 0.3,
 		},
 		
 		GLOBAL = {

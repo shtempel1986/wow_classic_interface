@@ -50,6 +50,8 @@ CL.FAR_AWAY					= "먼 곳"
 CL.PIT							= "구멍"--Pit, as in hole in ground
 CL.TOTEM							= "토템"
 CL.TOTEMS							= "토템"
+CL.HORIZONTAL							= "가로"
+CL.VERTICAL							= "세로"
 --Mechanics
 CL.BOMB								= "폭탄"--Usually auto localized but kept around in case it needs to be used in a place that's not auto localized such as MoveTo or Use alert
 CL.BOMBS							= "폭탄"--Usually auto localized but kept around in case it needs to be used in a place that's not auto localized such as MoveTo or Use alert
@@ -73,10 +75,13 @@ CL.TANKCOMBO					= "탱커 연속 공격"
 CL.AOEDAMAGE						= "광역 데미지"
 CL.GROUPSOAK						= "같이 맞기"
 CL.GROUPSOAKS						= "같이 맞기"
+CL.HEALABSORB						= "치유 흡수"
+CL.HEALABSORBS						= "치유 흡수"
 CL.DODGES							= "피하기"
 CL.POOL								= "바닥"
 CL.POOLS							= "바닥"
 CL.DEBUFFS							= "디버프"
+CL.DISPELS							= "해제"
 CL.PUSHBACK							= "밀어내기"
 CL.FRONTAL							= "전방 시전"
 CL.LASER							= "레이저"
@@ -85,6 +90,8 @@ CL.RIFT								= "균열"--Often has auto localized alternatives, but still tran
 CL.RIFTS							= "균열"--Often has auto localized alternatives, but still translated for BW aura matching when needed
 CL.TRAPS							= "함정"--Doesn't have a direct auto localize so has to be manually localized, unlike non plural version
 CL.ROOTS							= "이동 불가"
---NOTE, many common locals are auto localized:
---Bomb (37859), Bombs (167180), Scream (31295), Breath (17088), Beam (173303), Beams (207544), Charge (100), Knockback (28405), Portal (161722), Portals (109400)
---Fixate (12021), Trap (181341), Meteor (28884), Shield (151702), Teleport (4801), Fear (5782), Roar (140459), Leap (47482), Orb (265315), Tornados (86189)
+CL.MARK								= "징표"--As in short text for all the encounter mechanics that start or end in "Mark"
+CL.MARKS							= "징표"--Plural of above
+CL.CURSE							= "저주"
+CL.CURSES							= "저주"
+CL.SWIRLS							= "회오리"--Plural of Swirl

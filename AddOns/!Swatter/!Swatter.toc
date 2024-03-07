@@ -1,0 +1,19 @@
+## Title: Swatter |cff224477(lib)
+## Notes: Debugging tool for handling and displaying of error messages in a useful way.
+##
+## IconTexture: Interface/Addons/!Swatter/Textures/SwatterIcon.blp
+##
+## Interface: 30402
+## SavedVariables: SwatterData
+##
+## Version: 3.4.6977 (SwimmingSeadragon)
+## Revision: $Id: !Swatter.toc 6977 2023-08-28 00:00:20Z none $
+## Author: Norganna's AddOns
+## X-Part-Of: Libraries
+## X-Category: Library
+## X-Max-Interface: 80100
+## X-URL: http://zip.norganna.org/libs/!Swatter/
+## X-Feedback: http://forums.norganna.org
+##
+Support\Load.xml
+Swatter.lua

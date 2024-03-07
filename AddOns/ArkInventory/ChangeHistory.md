@@ -1,9 +1,7 @@
-# 3.10.22 (31-DEC-2023)
- - fixed - https://github.com/arkayenro/arkinventory/issues/1848 - issue with caged battlepets not getting the default tooltip when the custom tooltip is disabled
- - fixed - issues with reputation data storage - all repuation data has been erased.  please login to each character to update its data
- - fixed - reputation menu generation now creates entries for headers that have rep (eg valdrakken accord)
- - updated - code for currency ldb object, and menu, generation
- - updated - code for reputation tooltip, ldb object, and menu, generation
+# 3.10.24 (30-JAN-2024)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1855 - issue with TRADE_SKILL_ITEM_CRAFTED_RESULT event in non dragonflight clients
+ - added - holding the shift key down when opening the mailbox will stop any automatic send actions from being run
+ - updated - category for some items
 
 
 # known issues

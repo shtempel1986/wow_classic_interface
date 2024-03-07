@@ -1055,3 +1055,178 @@ L:SetWarningLocalization({
 L:SetTimerLocalization({
 	TimerPhase2	= "Phase 2"
 })
+
+---------------------------
+--  Season of Discovery  --
+---------------------------
+
+---------------------------
+--  Blackfathom Deeps  --
+---------------------------
+
+------------------
+--  Baron Aquanis  --
+------------------
+L = DBM:GetModLocalization("BaronAuanisSoD")
+
+L:SetGeneralLocalization({
+	name = "Baron Aquanis"
+})
+
+L:SetMiscLocalization({
+	Water		= "Wasser"
+})
+
+------------------
+--  Ghamoo-ra  --
+------------------
+L = DBM:GetModLocalization("GhamooraSoD")
+
+L:SetGeneralLocalization({
+	name = "Ghamoo-ra"
+})
+
+------------------
+--  Lady Sarevess  --
+------------------
+L = DBM:GetModLocalization("LadySarevessSoD")
+
+L:SetGeneralLocalization({
+	name = "Lady Sarevess"
+})
+
+------------------
+--  Gelihast  --
+------------------
+L = DBM:GetModLocalization("GelihastSoD")
+
+L:SetGeneralLocalization({
+	name = "Gelihast"
+})
+
+L:SetTimerLocalization{
+	TimerImmune = "Immunität endet"
+}
+
+L:SetOptionLocalization({
+	TimerImmune	= "Zeige Timer für die Immunität zwischen den Phasen."
+})
+
+------------------
+--  Lorgus Jett  --
+------------------
+L = DBM:GetModLocalization("LorgusJettSoD")
+
+L:SetGeneralLocalization({
+	name = "Lorgus Jett"
+})
+
+L:SetWarningLocalization({
+	warnPriestRemaining		= "%s Priesterinnen übrig"
+})
+
+L:SetOptionLocalization({
+	warnPriestRemaining	= "Zeige Warnung für Anzahl verbleibender Priesterinnen"
+})
+
+------------------
+--  Twilight Lord Kelris  --
+------------------
+L = DBM:GetModLocalization("TwilightLordKelrisSoD")
+
+L:SetGeneralLocalization({
+	name = "Twilight-Lord Kelris"
+})
+
+------------------
+--  Aku'mai  --
+------------------
+L = DBM:GetModLocalization("AkumaiSoD")
+
+L:SetGeneralLocalization({
+	name = "Aku'mai"
+})
+
+------------------
+--  Gnomeregan  --
+------------------
+
+---------------------------
+--  Crowd Pummeler 9-60  --
+---------------------------
+L = DBM:GetModLocalization("CrowdPummellerSoD")
+
+L:SetGeneralLocalization({
+	name = "Meuteverprügler 9-60"
+})
+
+---------------
+--  Grubbis  --
+---------------
+L = DBM:GetModLocalization("GrubbisSoD")
+
+L:SetGeneralLocalization({
+	name = "Grubbis"
+})
+
+L:SetMiscLocalization({
+	FirstPull = "In ganz Gnomeregan speien Lüftungsschächten noch immer aktiv radioaktives Material aus.",
+	-- No clue about the second message, the RP looks like this in deDE, the last message seems to be missing?
+	-- enUS has the other message for both first pulls and after wipes, dunno what is going on.
+	-- "<63.24 19:05:04> [CHAT_MSG_MONSTER_SAY] In ganz Gnomeregan speien Lüftungsschächten noch immer aktiv radioaktives Material aus.#Sprengmeisterin Emi Shortfuse###Tandanu##0#0##0#554#nil#0#false#false#false#false",
+	-- "<68.94 19:05:10> [CHAT_MSG_MONSTER_SAY] Wenn mein Volk eine Chance haben soll, zurückzukehren...#Sprengmeisterin Emi Shortfuse###Tandanu##0#0##0#566#nil#0#false#false#false#false",
+	-- "<75.40 19:05:17> [CHAT_MSG_MONSTER_SAY] in diese Stadt...#Sprengmeisterin Emi Shortfuse###Tandanu##0#0##0#583#nil#0#false#false#false#false",
+	--Pull = "Oh no! Tremors like these can only mean one thing..."
+})
+
+----------------------------
+--  Electrocutioner 6000  --
+----------------------------
+L = DBM:GetModLocalization("ElectrocutionerSoD")
+
+L:SetGeneralLocalization({
+	name = "Elektrokutor 6000"
+})
+
+-----------------------
+--  Viscous Fallout  --
+-----------------------
+L = DBM:GetModLocalization("ViscousFalloutSoD")
+
+L:SetGeneralLocalization({
+	name = "Verflüssigte Ablagerung"
+})
+
+----------------------------
+--  Mechanical Menagerie  --
+----------------------------
+L = DBM:GetModLocalization("MechanicalMenagerieSoD")
+
+L:SetGeneralLocalization({
+	name = "Mechanische Menagerie"
+})
+
+L:SetMiscLocalization{
+	Sheep		= "Schaf",
+	Whelp		= "Drachenwelpe",
+	Squirrel	= "Eichhörnchen",
+	Chicken		= "Huhn"
+}
+
+
+-----------------------------
+--  Mekgineer Thermaplugg  --
+-----------------------------
+L = DBM:GetModLocalization("ThermapluggSoD")
+
+L:SetGeneralLocalization({
+	name = "Robogenieur Thermaplugg"
+})
+
+L:SetTimerLocalization{
+	timerTankCD = "Ritzelfeuerschlag"
+}
+
+L:SetOptionLocalization({
+	timerTankCD	= "Zeige Timer für Cooldown von Ritzelfeuerschlag auf den Maintank in Phase 4 (Tank wechseln)"
+})

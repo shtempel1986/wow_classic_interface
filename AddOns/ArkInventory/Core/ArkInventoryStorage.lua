@@ -1156,8 +1156,10 @@ function ArkInventory:EVENT_ARKINV_MAIL_ENTER( ... )
 		ArkInventory.Frame_Main_Generate( loc_id, ArkInventory.Const.Window.Draw.Refresh )
 	end
 	
-	ArkInventory.Global.Action.Mail.process = true
-	--ArkInventory.Action.Mail.Send( )
+	if not IsShiftKeyDown( ) then
+		ArkInventory.Global.Action.Mail.process = true
+		--ArkInventory.Action.Mail.Send( )
+	end
 	
 end
 

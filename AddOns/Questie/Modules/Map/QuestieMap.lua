@@ -20,6 +20,8 @@ local QuestieDB = QuestieLoader:ImportModule("QuestieDB");
 local ZoneDB = QuestieLoader:ImportModule("ZoneDB")
 ---@type l10n
 local l10n = QuestieLoader:ImportModule("l10n")
+---@type WeaponMasterSkills
+local WeaponMasterSkills = QuestieLoader:ImportModule("WeaponMasterSkills")
 
 QuestieMap.ICON_MAP_TYPE = "MAP";
 QuestieMap.ICON_MINIMAP_TYPE = "MINIMAP";
@@ -65,6 +67,7 @@ local fadeLogicCoroutine
 local isDrawQueueDisabled = false
 
 
+--* TODO: How the frames are handled needs to be reworked, why are we getting them from _G
 --Get the frames for a quest, this returns all of the frames
 function QuestieMap:GetFramesForQuest(questId)
     local frames = {}
@@ -357,7 +360,8 @@ function QuestieMap:ShowNPC(npcID, icon, scale, title, body, disableShiftToRemov
     data.Name = npc.name
     data.IsObjectiveNote = false
     data.ManualTooltipData = {}
-    data.ManualTooltipData.Title = title or (npc.name .. " (" .. l10n("NPC") .. ")")
+    local baseTitle = title or (npc.name .. " (" .. l10n("NPC") .. ")")
+    data.ManualTooltipData.Title = WeaponMasterSkills.AppendSkillsToTitle(baseTitle, data.id)
     local level = tostring(npc.minLevel)
     local health = tostring(npc.minLevelHealth)
     if npc.minLevel ~= npc.maxLevel then

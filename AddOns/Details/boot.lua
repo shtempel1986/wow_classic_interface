@@ -10,11 +10,16 @@
 		--add the original name to the global namespace
 		_detalhes = _G.Details --[[GLOBAL]]
 
+		__details_debug = __details_debug or {}
+		if (__details_debug.prescience_timeline) then
+			wipe(__details_debug.prescience_timeline)
+		end
+
 		local addonName, Details222 = ...
 		local version, build, date, tocversion = GetBuildInfo()
 
-		Details.build_counter = 12197
-		Details.alpha_build_counter = 12197 --if this is higher than the regular counter, use it instead
+		Details.build_counter = 12330
+		Details.alpha_build_counter = 12330 --if this is higher than the regular counter, use it instead
 		Details.dont_open_news = true
 		Details.game_version = version
 		Details.userversion = version .. " " .. Details.build_counter
@@ -74,6 +79,12 @@
 			return Details222.ColorScheme[colorScheme]
 		end
 
+		function Details222.DebugMsg(...)
+			if (Details.debug) then
+				print("|cFFCCAAAADetails! Debug:|r", ...)
+			end
+		end
+
 		--namespace for damage spells (spellTable)
 		Details222.DamageSpells = {}
 		--namespace for texture
@@ -86,7 +97,12 @@
 		Details222.OptionsPanel = {}
 		Details222.Instances = {}
 		Details222.Combat = {}
-		Details222.MythicPlus = {}
+		Details222.MythicPlus = {
+			Charts = {},
+			Frames = {},
+		}
+
+		Details222.MythicPlusBreakdown = {}
 		Details222.EJCache = {}
 		Details222.Segments = {}
 		Details222.Tables = {}
@@ -127,6 +143,8 @@
 		}
 		--store all data from the encounter journal
 		Details222.EncounterJournalDump = {}
+		--aura scanner
+		Details222.AuraScan = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --initialization stuff
@@ -140,9 +158,60 @@ do
 
 	--change logs
 	--[=[
+		12329
+		"Frame for 'Ask to Erase Data' can now be moved.",
+		"Small bug fixes and continued development on End of Mythic+ Panel.",
 	--]=]
 
 	local news = {
+		{"v10.2.5.12329.155", "February 18th, 2024"},
+		"Frame for 'Ask to Erase Data' can now be moved.",
+		"Small bug fixes and continued development on End of Mythic+ Panel.",
+
+		{"v10.2.5.12307.155", "February 13th, 2024"},
+		"Fixed the deaths display, where the windows wasn't usig custom text scripts.",
+		"Fixed an issue with custom displays, where it was unable to use class colors in their texts.",
+		"More development and bug fixes on the new Mythic+ Run Completion panel.",
+		"Framework Update.",
+
+		{"v10.2.5.12294.155", "February 08th, 2024"},
+		"General fixes applied to the Mythic+ Panel.",
+		"The Mythic+ section in the options panel can now be translated.",
+		"More fixes for text color.",
+
+		{"v10.2.5.12281.155", "February 07th, 2024"},
+		"Released the new panel for the Mythic+ Run Completion.",
+		"The list of Crowd Control spells is now sourced from the Lib Open Raid.",
+		"Fixed an issue where the Player Color feature wouldn't work properly if not using class colors.",
+		"Fixed an error with Vanilla, where it was trying to access talent data from Retail.",
+
+		{"v10.2.5.12255.155", "February 04th, 2024"},
+		"Dungeon followers now correctly show into the damage done section.",
+		"Fixed an error while statusbar plugin options.",
+		"Backend code maintenance.",
+
+		{"v10.2.5.12236.155", "January 20th, 2024"},
+		"Added Blistering Scales and Mana Restored to the Evoker Predicted Damage bar.",
+		"Fixed an issue which was making the Evoker Predicted Damage bar to show beyond the window width.",
+		"Fixed the key level up animation at the new End of Mythic+ Run panel.",
+		"Lib Open Raid updated to use Burst communications (Grim). The command /keys should give all Keys of the party almost instantly now.",
+		"Framework updated and other minor fixes.",
+
+		{"v10.2.0.12220.155", "January 14th, 2024"},
+		"Ignoring the heal of Smoldering Seedling trinket (Flamanis).",
+		"Attribute Judgement of Light to the healed on Wrath (Flamanis).",
+		"Fixed an error while scrolling down target npcs in the breakdown window.",
+		"Fixed an error when clicking to open the Death Recap by Details!.",
+		"End of Mythic Run panel got updates.",
+		"Many tooltips in Details! are now rouded!",
+		"Evoker extra bar tooltip's, now also show the uptime of Black Attunement and Prescience applications.",
+		"Breakdown Window now show Plater Npc Colors in the target box.",
+		"Added event: 'COMBAT_MYTHICPLUS_OVERALL_READY', trigger when the overall segment for the mythic+ is ready.",
+		"Added event: 'COMBAT_PLAYER_LEAVING', trigger at the beginning of the leave combat process.",
+		"Added: Details:IsInMythicPlus() return true if the player is on a mythic dungeon run.",
+		"CombatObjects now have the key 'is_challenge' if the combat is a part of a challenge mode or mythic+ run.",
+		"Lib Open Raid updated.",
+
 		{"v10.2.0.12188.155", "December 28th, 2023"},
 		"Dreamwalker's Healing Potion now shows in the Healing Potion & Stone custom display.",
 		"Added the 'Remove Battleground Segments' option to the menu that opens when hovering over the erase button.",
@@ -579,6 +648,7 @@ do
 		--armazena as skins dispon�veis para as janelas
 			_detalhes.skins = {}
 		--armazena os hooks das fun��es do parser
+			---@type table<detailshook, function[]>
 			_detalhes.hooks = {}
 		--informa��es sobre a luta do boss atual
 			_detalhes.encounter_end_table = {}
@@ -1489,6 +1559,8 @@ Details222.UnitIdCache.Party = {
 	[3] = "party3",
 	[4] = "party4",
 }
+
+Details222.UnitIdCache.PartyIds = {"player", "party1", "party2", "party3", "party4"}
 
 Details222.UnitIdCache.Boss = {
 	[1] = "boss1",

@@ -4,17 +4,18 @@ end
 local mod	= DBM:NewMod("z727", "DBM-PvP")
 local L		= mod:GetLocalizedStrings()
 
-mod:SetRevision("20220126115338")
+mod:SetRevision("20240302224145")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
 mod:RegisterEvents(
 	"LOADING_SCREEN_DISABLED",
-	"ZONE_CHANGED_NEW_AREA"
+	"ZONE_CHANGED_NEW_AREA",
+	"PLAYER_ENTERING_WORLD"
 )
 
 do
 	local bgzone = false
 
-	local function Init(self)
+	function mod:Init()
 		local zoneID = DBM:GetCurrentArea()
 		if not bgzone and zoneID == 727 then
 			bgzone = true
@@ -33,7 +34,7 @@ do
 	end
 
 	function mod:LOADING_SCREEN_DISABLED()
-		self:Schedule(1, Init, self)
+		self:ScheduleMethod(1, "Init")
 	end
 	mod.ZONE_CHANGED_NEW_AREA	= mod.LOADING_SCREEN_DISABLED
 	mod.PLAYER_ENTERING_WORLD	= mod.LOADING_SCREEN_DISABLED

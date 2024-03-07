@@ -1350,6 +1350,8 @@ local function helper_AcceptableRedText( txt, ignore_known, ignore_level )
 		else
 			return false
 		end
+	elseif string.match( txt, ArkInventory.Localise["EQUIP_COLON"] ) then
+		return true
 	end
 	
 	

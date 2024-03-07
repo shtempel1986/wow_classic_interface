@@ -1,4 +1,10 @@
-﻿# 3.10.22 (31-DEC-2023)
+﻿# 3.10.23 (20-JAN-2024)
+ - changed - (retail) toc updated to 100205
+ - fixed - should now ignore red text for old equip bonus
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1852 - issue with nil reputation cache
+ - fixed - expansion names/id should now properly display in the debug menu
+
+# 3.10.22 (31-DEC-2023)
  - fixed - https://github.com/arkayenro/arkinventory/issues/1848 - issue with caged battlepets not getting the default tooltip when the custom tooltip is disabled
  - fixed - issues with reputation data storage - all repuation data has been erased.  please login to each character to update its data
  - fixed - reputation menu generation now creates entries for headers that have rep (eg valdrakken accord)
@@ -39,7 +45,7 @@
 # 3.10.17 (02-SEP-2023)
  - changed - (retail) toc updated to 100105
  - changed - (wrath) toc updated to 30402
- - changed - (Classic) toc updated to 11404
+ - changed - (classic) toc updated to 11404
  - fixed - https://github.com/arkayenro/arkinventory/issues/1805 - code issue with HookOpenAllBags from GearManagerDialogPopup
  - fixed - https://github.com/arkayenro/arkinventory/issues/1814 - (classic) default bank windows opening due to `PlayerInteractionFrameManager` being added to classic
 
@@ -290,16 +296,16 @@
 # 3.09.68 (08-SEP-2022)
  - fixed - issue with WOW_PROJECT_ID getting a new client value for wrath (WOW_PROJECT_WRATH_CLASSIC)
  - fixed - https://github.com/arkayenro/arkinventory/issues/1575 - issue with toybox filters not being restored to their original values after a scan
- - changed - (Retail) toc updated to 90207
+ - changed - (retail) toc updated to 90207
  - updated - recategorised some items
  - added - wrath toc file
 
 # 3.09.67 (05-JUN-2022)
  - updated - recategorised some items
  - fixed - parts of the LDB object wouldnt always update on first load (waiting for currencies and rep to become ready)
- - changed - (TBC) toc updated to 20504
- - changed - (Classic) toc updated to 11403
- - changed - (Retail) toc updated to 90205
+ - changed - (tbc) toc updated to 20504
+ - changed - (classic) toc updated to 11403
+ - changed - (retail) toc updated to 90205
 
 # 3.09.66 (18-MAR-2022)
  - fixed - mythic keystone data never being ready causing constant resorting
@@ -318,11 +324,11 @@
 
 # 3.09.64 (23-FEB-2022)
  - fixed - issue with LibDialog-1.0 (temporarily until the author fixes it)
- - fixed - (TBC) issue with splitting stacks in the guild bank
+ - fixed - (tbc) issue with splitting stacks in the guild bank
  - added - wago project id
- - changed - (TBC) toc updated to 20503
- - changed - (Classic) toc updated to 11402
- - changed - (Retail) toc updated to 90200
+ - changed - (tbc) toc updated to 20503
+ - changed - (classic) toc updated to 11402
+ - changed - (retail) toc updated to 90200
  - changed - renamed mainline toc files because curse cant handle them and rejects the upload
  - note - contains new folder structure - do NOT upgrade while the game is running
 
@@ -1618,7 +1624,7 @@
  - fixed - embeds for no-lib download
  
 # 3.05.02 (25-JUN-2015)
- - toc updated to 60200
+ - changed - toc updated to 60200
  
 # 3.05.01 (xx-JUN-2015) Beta 4
  - fixed - restack code
@@ -2099,7 +2105,7 @@
  - fixed - menu library issue where menus were always expanding in size until they went off the screen
  
 # 3.02.84 (30-NOV-2011)
- - changed - TOC updated to 4.3
+ - changed - TOC updated to 40300
  - changed - void storage icon
  - fixed - void storage online/offline status
  - added - slash command `/ai summon pet`
@@ -2123,7 +2129,7 @@
 
 # 3.02.80 (29-JUN-2011)
  - fixed - bug in erase code
- - changed - TOC updated to 4.2
+ - changed - TOC updated to 40200
  - added - bound to battle.net account now treated as soulbound
  - removed - keyring
 
@@ -2132,7 +2138,7 @@
  
 # 3.02.78 (28-APR-2011)
  - workaround - Open All Bags keybinding calls ToggleAllBags, ToggleAllBags is now hooked and calls OpenAllBags instead
- - changed - TOC updated to 4.1
+ - changed - TOC updated to 40100
  - changed - OpenAllBags now works properly
 
 # 3.02.77 (26-FEB-2011)

@@ -3,7 +3,7 @@ local S = E:GetModule('Skins')
 
 local _G = _G
 local next, unpack = next, unpack
-local pairs, ipairs = pairs, ipairs
+local pairs = pairs
 
 local hooksecurefunc = hooksecurefunc
 local UnitIsUnit = UnitIsUnit
@@ -44,6 +44,11 @@ function S:BlizzardMiscFrames()
 	_G.ReadyCheckFrameText:SetParent(ReadyCheckFrame)
 	_G.ReadyCheckFrameText:ClearAllPoints()
 	_G.ReadyCheckFrameText:Point('TOP', 0, -15)
+
+	_G.PVPReadyDialog:StripTextures()
+	_G.PVPReadyDialog:SetTemplate('Transparent')
+	S:HandleButton(_G.PVPReadyDialogEnterBattleButton)
+	S:HandleButton(_G.PVPReadyDialogHideButton)
 
 	_G.ReadyCheckListenerFrame:SetAlpha(0)
 	ReadyCheckFrame:HookScript('OnShow', FixReadyCheckFrame)
@@ -99,23 +104,13 @@ function S:BlizzardMiscFrames()
 		end
 	end)
 
-	local ChatMenus = {
-		_G.ChatMenu,
-		_G.EmoteMenu,
-		_G.LanguageMenu,
-		_G.VoiceMacroMenu,
-	}
-
-	for _, frame in ipairs(ChatMenus) do
+	for _, frame in next, { _G.ChatMenu.NineSlice, _G.EmoteMenu.NineSlice, _G.LanguageMenu.NineSlice, _G.VoiceMacroMenu.NineSlice } do
 		if frame == _G.ChatMenu then
 			frame:HookScript('OnShow', function(menu) menu:SetTemplate('Transparent', true) menu:SetBackdropColor(unpack(E.media.backdropfadecolor)) menu:ClearAllPoints() menu:Point('BOTTOMLEFT', _G.ChatFrame1, 'TOPLEFT', 0, 30) end)
 		else
 			frame:HookScript('OnShow', function(menu) menu:SetTemplate('Transparent', true) menu:SetBackdropColor(unpack(E.media.backdropfadecolor)) end)
 		end
 	end
-
-	-- Emotes NineSlice
-	_G.ChatMenu.NineSlice:SetTemplate()
 
 	-- reskin popup buttons
 	for i = 1, 4 do
@@ -171,87 +166,7 @@ function S:BlizzardMiscFrames()
 	_G.OpacityFrame:SetTemplate('Transparent')
 
 	--DropDownMenu
-	hooksecurefunc('UIDropDownMenu_CreateFrames', function(level, index)
-		local listFrame = _G['DropDownList'..level]
-		local listFrameName = listFrame:GetName()
-		local expandArrow = _G[listFrameName..'Button'..index..'ExpandArrow']
-		if expandArrow then
-			local normTex = expandArrow:GetNormalTexture()
-			expandArrow:SetNormalTexture(E.Media.Textures.ArrowUp)
-			normTex:SetVertexColor(unpack(E.media.rgbvaluecolor))
-			normTex:SetRotation(S.ArrowRotation.right)
-			expandArrow:Size(12)
-		end
-
-		local Backdrop = _G[listFrameName..'Backdrop']
-		if Backdrop and not Backdrop.template then
-			Backdrop:StripTextures()
-			Backdrop:SetTemplate('Transparent')
-		end
-
-		local menuBackdrop = _G[listFrameName..'MenuBackdrop']
-		if menuBackdrop and not menuBackdrop.template then
-			menuBackdrop.NineSlice:SetTemplate('Transparent')
-		end
-	end)
-
-	hooksecurefunc('UIDropDownMenu_SetIconImage', function(icon, texture)
-		if texture:find('Divider') then
-			local r, g, b = unpack(E.media.rgbvaluecolor)
-			icon:SetColorTexture(r, g, b, 0.45)
-			icon:Height(1)
-		end
-	end)
-
-	hooksecurefunc('ToggleDropDownMenu', function(level)
-		if not level then
-			level = 1
-		end
-
-		local r, g, b = unpack(E.media.rgbvaluecolor)
-
-		for i = 1, _G.UIDROPDOWNMENU_MAXBUTTONS do
-			local button = _G['DropDownList'..level..'Button'..i]
-			local check = _G['DropDownList'..level..'Button'..i..'Check']
-			local uncheck = _G['DropDownList'..level..'Button'..i..'UnCheck']
-			local highlight = _G['DropDownList'..level..'Button'..i..'Highlight']
-			local text = _G['DropDownList'..level..'Button'..i..'NormalText']
-
-			highlight:SetTexture(E.Media.Textures.Highlight)
-			highlight:SetBlendMode('BLEND')
-			highlight:SetDrawLayer('BACKGROUND')
-			highlight:SetVertexColor(r, g, b)
-
-			if not button.backdrop then
-				button:CreateBackdrop()
-			end
-
-			if not button.notCheckable then
-				S:HandlePointXY(text, 5)
-				uncheck:SetTexture()
-
-				if E.private.skins.checkBoxSkin then
-					check:SetTexture(E.media.normTex)
-					check:SetVertexColor(r, g, b, 1)
-					check:Size(10)
-					check:SetDesaturated(false)
-					button.backdrop:SetOutside(check)
-				else
-					check:SetTexture([[Interface\Buttons\UI-CheckBox-Check]])
-					check:SetVertexColor(r, g, b, 1)
-					check:Size(20)
-					check:SetDesaturated(true)
-					button.backdrop:SetInside(check, 4, 4)
-				end
-
-				button.backdrop:Show()
-				check:SetTexCoord(0, 1, 0, 1)
-			else
-				button.backdrop:Hide()
-				check:Size(16)
-			end
-		end
-	end)
+	S:SkinDropDownMenu('DropDownList')
 
 	local SideDressUpFrame = _G.SideDressUpFrame
 	S:HandleCloseButton(_G.SideDressUpModelCloseButton)

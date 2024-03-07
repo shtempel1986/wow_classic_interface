@@ -37,14 +37,16 @@ NWB.LSM = LibStub("LibSharedMedia-3.0");
 NWB.dragonLib = LibStub("HereBeDragons-2.0");
 NWB.dragonLibPins = LibStub("HereBeDragons-Pins-2.0");
 NWB.candyBar = LibStub("LibCandyBar-3.0");
+NWB.LibRealmInfo = LibStub("LibRealmInfo");
 NWB.commPrefix = "NWB";
 NWB.hasAddon = {};
 NWB.hasL = {};
 NWB.realm = GetRealmName();
+NWB.realmNormalized = GetNormalizedRealmName();
 NWB.faction = UnitFactionGroup("player");
 NWB.maxBuffLevel = 63;
 NWB.loadTime = 0;
-NWB.limitLayerCount = 10;
+NWB.limitLayerCount = 10; --Do not change this, it does not work unless all addon users have the same number.
 NWB.sharedLayerBuffs = true;
 NWB.doLayerMsg = false;
 NWB.noGUID = false;
@@ -104,12 +106,16 @@ function NWB:OnInitialize()
 	self:getDmfData();
 	self:createDmfMarkers();
 	self:loadAshenvale();
+	self:loadStranglethorn();
+	self:loadOverlay();
 	self:doResetTimerData();
 	self:resetSongFlowers();
 	self:resetLayerData();
 	self:resetLayerMaps();
 	self:wipeTerokkarData();
 	self:removeOldLayers();
+	--Before we start the ticker we need a temp record of our last online time to check dmf reset.
+	self.lastOnlineCache = NWB.data.myChars[UnitName("player")].lo;
 	self:ticker();
 	self:yellTicker();
 	self:createBroker();
@@ -127,6 +133,9 @@ function NWB:OnInitialize()
 		self:populateDailyData();
 	end
 	self:checkNewVersion();
+	--Rereshing frames to load fonts need to be done at entering world instead, to make sure all addons and shared fonts are loaded.
+	--self:refreshMinimapLayerFrame();
+	--self:refreshOverlay();
 end
 
 --Set font used in fontstrings on frames.
@@ -144,6 +153,7 @@ function NWB:setRegionFont()
     end
 end
 NWB:setRegionFont();
+NWB.LSM:Register("font", "NWB Default", NWB.regionFont);
 
 --Print current buff timers to chat window.
 local npcRespawnTime = 360;
@@ -245,12 +255,19 @@ function NWB:printBuffTimers(isLogon)
 			NWB:print("|HNWBCustomLink:timers|h" .. msg .. "|h", nil, "[DMF]");
 		end
 	end
-	if ((NWB.isDmfUp or NWB.isSOD) and NWB.data.myChars[UnitName("player")].buffs) then
+	local foundThisCharDmfReset;
+	if (isLogon) then
+		foundThisCharDmfReset = NWB:checkDmfBuffReset(true);
+	end
+	if ((NWB.isDmfUp or NWB.isAlwaysDMF) and NWB.data.myChars[UnitName("player")].buffs) then
 		local dmfCooldown, noMsgs = NWB:getDmfCooldown();
 		if (dmfCooldown > 0 and not noMsgs) then
 			if ((not isLogon and NWB.db.global.showDmfBuffWb) or NWB.db.global.logonDmfBuffCooldown) then
-				msg = string.format(L["dmfBuffCooldownMsg"], NWB:getTimeString(dmfCooldown, true));
-				NWB:print("|HNWBCustomLink:timers|h" .. msg .. "|h", nil, "[DMF]");
+				if (not foundThisCharDmfReset) then
+					--Only send this cooldown left msg if dmf didn't reset while we're offline.
+					msg = string.format(L["dmfBuffCooldownMsg"], NWB:getTimeString(dmfCooldown, true));
+					NWB:print("|HNWBCustomLink:timers|h" .. msg .. "|h", nil, "[DMF]");
+				end
 			end
 		end
 		--[[for k, v in pairs(NWB.data.myChars[UnitName("player")].buffs) do
@@ -410,9 +427,9 @@ function NWB:getShortBuffTimers(channel, layerNum)
 		msg = msg .. "(" .. L["nefarian"] .. ": " .. L["noTimer"] .. shortLayerMsg .. ")";
 	end
 	if (layerNum and not doShortestPerBuff) then
-		return msg .. " (Layer " .. layerNum .. " of " .. count .. ")";
+		return msg .. " (" .. L["Layer"] .. " " .. layerNum .. " of " .. count .. ")";
 	elseif (NWB.isLayered and not doShortestPerBuff) then
-		return msg .. " (Layer 1 of " .. count .. ")";
+		return msg .. " (" .. L["Layer"] .. " 1 of " .. count .. ")";
 	end
 	return msg;
 end
@@ -657,7 +674,7 @@ function NWB:ticker()
 							if (secondsLeft <= 600 and secondsLeft >= 570) then
 								NWB.data.layers[layer]["terokTowers10"] = nil;
 								local layer = NWB:GetLayerNum(layer);
-								local layerMsg = " (Layer " .. layer .. ")";
+								local layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 								local msg = string.format(L["terokkarWarning"], "10 minutes") .. layerMsg .. ".";
 								if (NWB.db.global.terokkarChat10) then
 									NWB:print(msg);
@@ -767,8 +784,8 @@ function NWB:ticker()
 	end
 	if (NWB.data.myChars[UnitName("player")].dmfCooldown) then
 		NWB.data.myChars[UnitName("player")].dmfCooldown = NWB.data.myChars[UnitName("player")].dmfCooldown - 1;
-		if (lastDmfTick >= 1 and NWB.data.myChars[UnitName("player")].dmfCooldown <= 0) then
-			if (NWB.isDmfUp or NWB.isSOD) then
+		if (lastDmfTick >= 1 and NWB.data.myChars[UnitName("player")].dmfCooldown <= 0 and NWB.data.myChars[UnitName("player")].dmfCooldown > -99990) then
+			if (NWB.isDmfUp or NWB.isAlwaysDMF) then
 				NWB:print(L["dmfBuffReset"]);
 			end
 			lastDmfTick = -99999;
@@ -810,8 +827,13 @@ function NWB:ticker()
 			end
 		end
 	end
+	NWB.db.global[NWB.realm][NWB.faction].myChars[UnitName("player")].lo = GetServerTime();
 	--_G["\78\87\66"] = {};
-	NWB.db.global.lo = GetServerTime();
+	--NWB.db.global.lo = GetServerTime(); --Was this ever used?
+	if (NWB.isSOD) then
+		NWB:checkAshenvaleTimer();
+		NWB:checkStranglethornTimer();
+	end
 	C_Timer.After(1, function()
 		NWB:ticker();
 	end)
@@ -878,7 +900,7 @@ function NWB:doWarning(type, num, secondsLeft, layer)
 		for k, v in NWB:pairsByKeys(NWB.data.layers) do
 			count = count + 1;
 			if (k == tonumber(layer)) then
-				layerMsg = " (Layer " .. count .. ")";
+				layerMsg = " (" .. L["Layer"] .. " " .. count .. ")";
 			end
 		end
 	end
@@ -977,8 +999,6 @@ end
 
 --Only one person online at a time sends guild msgs so there's no spam, chosen by alphabetical order.
 --Can also specify zone so only 1 person from that zone will send the msg (like orgrimmar when npc yell goes out).
---BUG: sometimes a user doesn't register as having addon, checked table they don't exist when this happens.
---Must be some reason they don't send a guild addon msg at logon.
 function NWB:sendGuildMsg(msg, type, zoneName, prefix, minVersion)
 	if (not NWB.isClassic and type ~= "guildTerok10" and type ~= "guildWintergrasp10") then
 		return;
@@ -1378,7 +1398,7 @@ local rendFirstYell, onyFirstYell, nefFirstYell, zanFirstYell = 0, 0, 0, 0;
 function NWB:doFirstYell(type, layer, source, distribution, arg)
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layer) and NWB.doLayerMsg and layer > 0) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "rend") then
 		if ((GetServerTime() - rendFirstYell) > 40) then
@@ -1487,7 +1507,7 @@ local rendDropMsg, onyDropMsg, nefDropMsg = 0, 0, 0;
 function NWB:doBuffDropMsg(type, layer)
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layer) and NWB.doLayerMsg) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "rend") then
 		if ((GetServerTime() - rendDropMsg) > 40) then
@@ -1517,7 +1537,7 @@ local onyNpcKill, nefNpcKill = 0, 0;
 function NWB:doNpcKilledMsg(type, layer)
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layer)) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "ony") then
 		if ((GetServerTime() - onyNpcKill) > 40) then
@@ -1571,7 +1591,7 @@ function NWB:doNpcRespawnMsg(type, layerID)
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layerID)) then
 		local layer = NWB:GetLayerNum(layerID);
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "ony") then
 		if ((GetServerTime() - onyNpcRespawn) > 40) then
@@ -1615,6 +1635,7 @@ local lastHeraldAlert = 0;
 local waitingCombatEnd, hideSummonPopup;
 local lastRendHandIn, lastOnyHandIn, lastNefHandIn, lastZanHandIn = 0, 0, 0, 0;
 NWB.lastBlackfathomBoon = 0;
+NWB.lastSparkOfInspiration = 0;
 local unitDamageFrame = CreateFrame("Frame");
 function NWB:combatLogEventUnfiltered(...)
 	local timestamp, subEvent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, 
@@ -2058,18 +2079,28 @@ function NWB:combatLogEventUnfiltered(...)
 		--New SoD buffs, now that they allow spellIDs in classic this needs to all be changed to a hash table instead of this mess of elseif's in the future.
 		elseif (destName == UnitName("player") and spellName == L["Boon of Blackfathom"]) then
 			local expirationTime = NWB:getBuffDuration(spellName, 0);
-			if (expirationTime >= 7199) then
+			if (expirationTime >= 7199 and UnitLevel("player") < 40) then
 				NWB:trackNewBuff(spellName, "boonOfBlackfathom");
-				if (GetServerTime() - NWB.lastBlackfathomBoon > 120) then
+				if (GetServerTime() - NWB.lastBlackfathomBoon > 300) then
 					NWB.lastBlackfathomBoon = GetServerTime();
 					NWB:playSound("soundsBlackfathomBoon", "bob");
-					NWB:print(L["blackfathomBoomBuffDropped"]);
+					NWB:print(string.format(L["specificBuffDropped"], L["Boon of Blackfathom"]));
 				end
 			end
 		elseif (destName == UnitName("player") and spellName == L["Ashenvale Rallying Cry"]) then
 			local expirationTime = NWB:getBuffDuration(spellName, 0);
 			if (expirationTime >= 7199) then
 				NWB:trackNewBuff(spellName, "ashenvaleRallyingCry");
+			end
+		elseif (destName == UnitName("player") and spellName == L["Spark of Inspiration"]) then
+			local expirationTime = NWB:getBuffDuration(spellName, 0);
+			if (expirationTime >= 7199) then
+				NWB:trackNewBuff(spellName, "sparkOfInspiration");
+				if (GetServerTime() - NWB.lastSparkOfInspiration > 300) then
+					NWB.lastSparkOfInspiration = GetServerTime();
+					NWB:playSound("soundsBlackfathomBoon", "bob"); --Shared blackfathom boon sound option.
+					NWB:print(string.format(L["specificBuffDropped"], L["Spark of Inspiration"]));
+				end
 			end
 		elseif (destName == UnitName("player") and spellName == L["Stealth"]) then
 			--Vanish is hidden from combat log even to ourself, use stealth instead as it fires when we vanish.
@@ -2092,6 +2123,17 @@ function NWB:combatLogEventUnfiltered(...)
 		if (not NWB.db.global.dispelsMine and not NWB.db.global.dispelsMineWBOnly
 				and not NWB.db.global.dispelsAll and not NWB.db.global.dispelsAllWBOnly) then
 			return;
+		end
+		for i = 1, 32 do
+			local _, _, _, _, _, _, _, _, _, spellID = UnitBuff("player", i);
+			if (spellID) then
+				if (spellID == 436097) then
+					--Don't spam dispel msgs during blood moon event.
+					return;
+				end
+			else
+				break;
+			end
 		end
 		local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
 		if (zone == 125 or zone == 126) then
@@ -2936,6 +2978,8 @@ local spellTypes = {
 	--SoD.
 	[430947] = "boonOfBlackfathom",
 	[430352] = "ashenvaleRallyingCry",
+	[438536] = "sparkOfInspiration", --Why is there 2 the same? Horde and Alliance perhaps?
+	[438537] = "sparkOfInspiration",
 }; 
 		
 local buffTable = {
@@ -3158,6 +3202,11 @@ local buffTable = {
 		fullName = "Ashenvale Rallying Cry",
 		maxDuration = 7200,
 	},
+	["sparkOfInspiration"] = {
+		icon = "|TInterface\\Icons\\achievement_boss_mekgineer_thermaplugg-:12:12:0:0|t",
+		fullName = "Spark of Inspiration",
+		maxDuration = 7200,
+	},
 };
 
 local dmfBuffTable = {
@@ -3252,8 +3301,8 @@ function NWB:dmfChronoCheck()
 		for k, v in pairs(NWB.data.myChars[UnitName("player")].storedBuffs) do
 			if (v.type == "dmf") then
 				NWB:addDmfCooldown();
-				if (NWB.isDmfUp or NWB.isSOD) then
-					NWB:print("You have chronoboon released a Darkmoon Faire buff, a new 4 hour cooldown has started.");
+				if (NWB.isDmfUp or NWB.isAlwaysDMF) then
+					NWB:print(L["chronoboonReleased"]);
 				end
 				return;
 			end
@@ -3385,7 +3434,8 @@ function NWB:storeBuffs()
 						or k == L["Sayge's Dark Fortune of Intelligence"] or k == L["Sayge's Dark Fortune of Spirit"]
 						or k == L["Sayge's Dark Fortune of Stamina"] or k == L["Sayge's Dark Fortune of Strength"]
 						or k == L["Sayge's Dark Fortune of Armor"] or k == L["Sayge's Dark Fortune of Resistance"]
-						or k == L["Sayge's Dark Fortune of Damage"] or k == L["Boon of Blackfathom"]) then
+						or k == L["Sayge's Dark Fortune of Damage"] or k == L["Boon of Blackfathom"]
+						or k == L["Spark of Inspiration"]) then
 					tempStoredBuffs[k] = {};
 					for kk, vv in pairs(v) do
 						tempStoredBuffs[k][kk] = vv;
@@ -3862,6 +3912,7 @@ f:RegisterEvent("QUEST_TURNED_IN");
 f:RegisterEvent("BAG_UPDATE_DELAYED");
 f:RegisterEvent("UI_INFO_MESSAGE");
 f:RegisterEvent("UNIT_DAMAGE");
+f:RegisterEvent("PLAYER_UPDATE_RESTING");
 local doLogon = true;
 local mc = "myChars";
 local storeBuffsTimer;
@@ -3881,7 +3932,12 @@ f:SetScript("OnEvent", function(self, event, ...)
 		end)
 	elseif (event == "PLAYER_ENTERING_WORLD") then
 		NWB:trackUnitDamage();
+		C_Timer.After(5, function()
+			NWB.db.global[NWB.realm][NWB.faction].myChars[UnitName("player")].resting = IsResting();
+		end)
 		if (doLogon) then
+			NWB:refreshMinimapLayerFrame();
+			NWB:refreshOverlay();
 			--Refresh map stuff after login, loading them at initialize creates a bug with them not showing up until you move sometimes.
 			C_Timer.After(5, function()
 				NWB:refreshFelwoodMarkers();
@@ -3892,6 +3948,15 @@ f:SetScript("OnEvent", function(self, event, ...)
 				C_Timer.After(10, function()
 					GuildRoster(); --Attempting to fix slow guild roster update at logon.
 					NWB:printBuffTimers(true);
+					--If logon timers are enabled we'll check this during the printBuffTimers() func instgead..
+					--[[C_Timer.After(1, function()
+						NWB:checkDmfBuffReset();
+					end)]]
+				end);
+			else
+				--If logon timers are disabled still check dmf buff reset.
+				C_Timer.After(10, function()
+					NWB:checkDmfBuffReset();
 				end);
 			end
 			--First request after logon is high prio so gets sent right away, need to register addon users asap so no duplicate guild msgs.
@@ -4077,6 +4142,8 @@ f:SetScript("OnEvent", function(self, event, ...)
 				NWB:trackUnitDamage();
 			end)
 		end
+	elseif (event == "PLAYER_UPDATE_RESTING") then
+		NWB.db.global[NWB.realm][NWB.faction].myChars[UnitName("player")].resting = IsResting();
 	end
 end)
 
@@ -4426,6 +4493,7 @@ function NWB:getTimeFormat(timeStamp, fullDate, abbreviate, forceServerTime, suf
 				return date("%a %b %d", timeStamp) .. " " .. gsub(string.lower(date("%I:%M%p", timeStamp)), "^0", "") .. suffix;
 			end
 		else
+			--if (GetLocale() == "en")
 			return gsub(string.lower(date("%I:%M%p", timeStamp)), "^0", "") .. suffix;
 		end
 	else
@@ -5152,10 +5220,16 @@ end
 function NWB:updateMinimapButton(tooltip, frame)
 	tooltip = tooltip or GameTooltip;
 	if (not tooltip:IsOwned(frame)) then
+		--This seperator line stuff needs rewriting to use a frame pool instead of a long list for each module.
 		if (tooltip.NWBSeparator) then
 			tooltip.NWBSeparator:Hide();
 		end
-		if (tooltip.NWBSeparator2) then
+		for i = 2, 10 do
+			if (tooltip["NWBSeparator" .. i]) then
+				tooltip["NWBSeparator" .. i]:Hide();
+			end
+		end
+		--[[if (tooltip.NWBSeparator2) then
 			tooltip.NWBSeparator2:Hide();
 		end
 		if (tooltip.NWBSeparator3) then
@@ -5164,6 +5238,24 @@ function NWB:updateMinimapButton(tooltip, frame)
 		if (tooltip.NWBSeparator4) then
 			tooltip.NWBSeparator4:Hide();
 		end
+		if (tooltip.NWBSeparator5) then
+			tooltip.NWBSeparator5:Hide();
+		end
+		if (tooltip.NWBSeparator6) then
+			tooltip.NWBSeparator6:Hide();
+		end
+		if (tooltip.NWBSeparator7) then
+			tooltip.NWBSeparator7:Hide();
+		end
+		if (tooltip.NWBSeparator8) then
+			tooltip.NWBSeparator8:Hide();
+		end
+		if (tooltip.NWBSeparator9) then
+			tooltip.NWBSeparator9:Hide();
+		end
+		if (tooltip.NWBSeparator10) then
+			tooltip.NWBSeparator10:Hide();
+		end]]
 		return;
 	end
 	tooltip:ClearLines();
@@ -5197,7 +5289,7 @@ function NWB:updateMinimapButton(tooltip, frame)
 					end
 				end
 			end]]
-			tooltip:AddLine("|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ") " .. wintergraspTexture .. buffTextures .. "|r");
+			tooltip:AddLine("|cff00ff00[" .. L["Layer"] .. " " .. count .. "]|r  |cFF989898(" .. L["zone"] .. " " .. k .. ") " .. wintergraspTexture .. buffTextures .. "|r");
 			if ((NWB.isClassic or (not NWB.db.global.hideMinimapBuffTimers
 					and not (NWB.db.global.disableBuffTimersMaxBuffLevel and UnitLevel("player") > 64)))
 					and not (NWB.isSOD and UnitLevel("player") < NWB.db.global.disableOnlyNefRendBelowMaxLevelNum)) then
@@ -5840,15 +5932,22 @@ function NWB:updateMinimapButton(tooltip, frame)
 		end
 	end
 	if (NWB.isSOD) then
-		NWB:addAshenvaleMinimapString(tooltip);
+		--First line adds the top seperator, the rest don't so they're merged in the same section.
+		NWB:addAshenvaleMinimapString(tooltip, nil, true);
+		NWB:addStranglethornMinimapString(tooltip, true);
 	end
-	tooltip:AddLine("|cFF9CD6DELeft-Click|r Timers");
-	tooltip:AddLine("|cFF9CD6DERight-Click|r Buffs");
-	tooltip:AddLine("|cFF9CD6DEShift Left-Click|r Felwood Map");
-	tooltip:AddLine("|cFF9CD6DEShift Right-Click|r Config");
+	if (NWB.isClassic) then
+		NWB:addDMFMinimapString(tooltip);
+		--3 day reset is bundled in the above with dmf string.
+	end
+	tooltip:AddLine("|cFF9CD6DE" .. L["Left-Click"] .. "|r " .. L["Timers"]);
+	tooltip:AddLine("|cFF9CD6DE" .. L["Right-Click"] .. "|r " .. L["Buffs"]);
+	tooltip:AddLine("|cFF9CD6DE" .. L["Shift Left-Click"] .. "|r " .. L["Felwood Map"]);
+	tooltip:AddLine("|cFF9CD6DE" .. L["Shift Right-Click"] .. "|r " .. L["Config"]);
 	if (NWB.isLayered) then
-		tooltip:AddLine("|cFF9CD6DEControl Left-Click|r Guild Layers");
+		tooltip:AddLine("|cFF9CD6DE" .. L["Control Left-Click"] .. "|r " .. L["Guild Layers"]);
 	end
+	tooltip:Show();
 	C_Timer.After(0.1, function()
 		NWB:updateMinimapButton(tooltip, frame);
 	end)
@@ -6064,7 +6163,7 @@ function SlashCmdList.NWBSFCMD(msg, editBox)
 		layerNum = NWB.lastKnownLayer;
 		layer = NWB.lastKnownLayerID;
 		dataPrefix = NWB.data.layers[layer];
-		layerMsg = " (Layer " .. layerNum .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layerNum .. ")";
 	else
 		dataPrefix = NWB.data;
 	end
@@ -6418,7 +6517,7 @@ local flowerMsg = 0;
 function NWB:doFlowerMsg(type, layer)
 	local layerMsg = "";
 	if (NWB.isLayered and layer and tonumber(layer) and NWB.doLayerMsg) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type and (GetServerTime() - flowerMsg) > 10) then
 		if (NWB.db.global.guildSongflower == true or NWB.db.global.guildSongflower == 1) then
@@ -6581,7 +6680,7 @@ function NWB:updateFelwoodWorldmapMarker(type)
 					--tooltipText = tooltipText .. "\n|Cffff2500"
 					--		.. NWB:getTimeFormat(NWB.data[type] + 1500) .. " " .. L["spawn"] .. " (expired) (Layer " .. count .. ")|r";
 					tooltipText = "|Cffff2500"
-							.. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500) .. " " .. L["spawn"] .. " (expired) (Layer " .. count .. ")|r\n" .. tooltipText
+							.. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500) .. " " .. L["spawn"] .. " (expired) (" .. L["Layer"] .. " " .. count .. ")|r\n" .. tooltipText
 					frame.fs:SetText("|Cffff2500-" .. minutes .. ":" .. seconds);
 					frame:SetWidth(42);
 					frame:SetHeight(24);
@@ -6594,7 +6693,7 @@ function NWB:updateFelwoodWorldmapMarker(type)
 			    	--tooltipText = tooltipText .. "\n" .. NWB:getTimeFormat(NWB.data[type] + 1500)
 			    	--		.. " " .. L["spawn"] .. " (Layer " .. count .. ")";
 			    	tooltipText = NWB:getTimeFormat(NWB.data.layers[k][type] + 1500)
-			    			.. " " .. L["spawn"] .. " (Layer " .. count .. ")\n" .. tooltipText
+			    			.. " " .. L["spawn"] .. " (" .. L["Layer"] .. " " .. count .. ")\n" .. tooltipText
 					frame.fs:SetText(minutes .. ":" .. seconds);
 					frame:SetWidth(42);
 					frame:SetHeight(24);
@@ -6602,7 +6701,7 @@ function NWB:updateFelwoodWorldmapMarker(type)
 					frame.hasTimer = true;
 			  	else
 			  		--tooltipText = tooltipText .. "\n" .. L["noTimer"] .. " (Layer " .. count .. ")";
-			  		tooltipText = L["noTimer"] .. " (Layer " .. count .. ")\n" .. tooltipText
+			  		tooltipText = L["noTimer"] .. " (" .. L["Layer"] .. " " .. count .. ")\n" .. tooltipText
 					frame:Hide();
 					frame.fs:SetText(L["noTimer"]);
 					frame:SetWidth(54);
@@ -6752,7 +6851,7 @@ function NWB:updateFelwoodMinimapMarker(type)
 					--tooltipText = tooltipText .. "\n|Cffff2500"
 					--		.. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500) .. " " .. L["spawn"] .. " (expired) (Layer " .. count .. ")|r";
 					tooltipText = "|Cffff2500"
-							.. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500) .. " " .. L["spawn"] .. " (expired) (Layer " .. count .. ")|r\n" .. tooltipText;
+							.. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500) .. " " .. L["spawn"] .. " (expired) (" .. L["Layer"] .. " " .. count .. ")|r\n" .. tooltipText;
 					frame.fs:SetText("|Cffff2500-" .. minutes .. ":" .. seconds);
 					frame:SetWidth(frame.fs:GetStringWidth() + 14);
 					frame:SetHeight(frame.fs:GetStringHeight() + 9);
@@ -6764,14 +6863,14 @@ function NWB:updateFelwoodMinimapMarker(type)
 			    	--tooltipText = tooltipText .. "\n" .. NWB:getTimeFormat(NWB.data.layers[k][type] + 1500)
 			    	--		.. " " .. L["spawn"] .. " (Layer " .. count .. ")";
 			    	tooltipText =  NWB:getTimeFormat(NWB.data.layers[k][type] + 1500)
-			    			.. " " .. L["spawn"] .. " (Layer " .. count .. ")\n" .. tooltipText;
+			    			.. " " .. L["spawn"] .. " (" .. L["Layer"] .. " " .. count .. ")\n" .. tooltipText;
 					frame.fs:SetText(minutes .. ":" .. seconds);
 					frame:SetWidth(frame.fs:GetStringWidth() + 14);
 					frame:SetHeight(frame.fs:GetStringHeight() + 9);
 					hasTimer = count;
 			  	else
 			  		--tooltipText = tooltipText .. "\n" .. L["noTimer"] .. " (Layer " .. count .. ")";
-			  		tooltipText = L["noTimer"] .. " (Layer " .. count .. ")\n" .. tooltipText;
+			  		tooltipText = L["noTimer"] .. " (" .. L["Layer"] .. " " .. count .. ")\n" .. tooltipText;
 					frame:Hide();
 					frame.fs:SetText(L["noTimer"]);
 					frame:SetWidth(frame.fs:GetStringWidth() + 14);
@@ -6902,7 +7001,7 @@ function NWB:createSongflowerMarkers()
 					local msg = string.format(L["singleSongflowerMsg"], NWB.songFlowers[obj.type].subZone, NWB:getTimeString(time, true));
 					if (NWB.isLayered and NWB.layeredSongflowers and NWB:GetLayerCount() >= 2 and NWB.lastKnownLayerMapID and NWB.lastKnownLayerMapID > 0
 							and NWB.lastKnownLayer and NWB.lastKnownLayer > 0) then
-						msg = msg .. " (Layer " .. NWB.lastKnownLayer .. ")";
+						msg = msg .. " (" .. L["Layer"] .. " " .. NWB.lastKnownLayer .. ")";
 					elseif (NWB.isLayered and NWB.layeredSongflowers) then
 						NWB:print("No layer currently known for Felwood, try targetting a NPC.");
 						return;
@@ -6982,7 +7081,7 @@ function NWB:createSongflowerMarkers()
 					local msg = string.format(L["singleSongflowerMsg"], NWB.songFlowers[obj.type].subZone, NWB:getTimeString(time, true));
 					if (NWB.isLayered and NWB.layeredSongflowers and NWB:GetLayerCount() >= 2 and NWB.lastKnownLayerMapID and NWB.lastKnownLayerMapID > 0
 							and NWB.lastKnownLayer and NWB.lastKnownLayer > 0) then
-						msg = msg .. " (Layer " .. NWB.lastKnownLayer .. ")";
+						msg = msg .. " (" .. L["Layer"] .. " " .. NWB.lastKnownLayer .. ")";
 					elseif (NWB.isLayered and NWB.layeredSongflowers) then
 						NWB:print("No layer currently known for Felwood, try targetting a NPC.");
 						return;
@@ -7276,7 +7375,7 @@ function NWB:updateWorldbuffMarkers(type, layer)
 					break;
 				end
 			end
-			_G[type .. layer .. "NWBWorldMap"].fsLayer:SetText("|cff00ff00[Layer " .. count.. "] |cFFB5E0E6(" .. layerZoneID .. ")");
+			_G[type .. layer .. "NWBWorldMap"].fsLayer:SetText("|cff00ff00[" .. L["Layer"] .. " " .. count.. "] |cFFB5E0E6(" .. layerZoneID .. ")");
 		end
 		if (NWB.data.layers[layer]) then
 			time = (NWB.data.layers[layer][type .. "Timer"] + NWB.db.global[type .. "RespawnTime"]) - GetServerTime() or 0;
@@ -8133,190 +8232,285 @@ end
 --Realms within the region possibly don't all spawn at same moment though, realms may wait for their own monday.
 --(Bug: US player reported it showing 1 day late DMF end time while on OCE realm, think this whole thing needs rewriting tbh).
 function NWB:getDmfStartEnd(month, nextYear, recalc)
-	local startOffset, endOffset, validRegion, isDst;
-	local  minOffset, hourOffset, dayOffset = 0, 0, 0;
-	local region = GetCurrentRegion();
-	--I may change this to realm names later instead, region may be unreliable with US client on EU region if that issue still exists.
-	if (NWB.realm == "Arugal" or NWB.realm == "Felstriker" or NWB.realm == "Remulos" or NWB.realm == "Yojamba") then
-		--OCE Sunday 12pm UTC reset time (4am monday server time).
-		--dayOffset = 2; --2 days after friday (sunday).
-		--Change this to saturday instead of of friday to try fix classic era calcs.
-		dayOffset = 1;
-		hourOffset = 18; -- 6pm.
-		validRegion = true;
-	elseif (NWB.realm == "Arcanite Reaper" or NWB.realm == "Old Blanchy" or NWB.realm == "Anathema" or NWB.realm == "Azuresong"
-			or NWB.realm == "Kurinnaxx" or NWB.realm == "Myzrael" or NWB.realm == "Rattlegore" or NWB.realm == "Smolderweb"
-			or NWB.realm == "Thunderfury" or NWB.realm == "Atiesh" or NWB.realm == "Bigglesworth" or NWB.realm == "Blaumeux"
-			or NWB.realm == "Fairbanks" or NWB.realm == "Grobbulus" or NWB.realm == "Whitemane") then
-		--US west Sunday 11am UTC reset time (4am monday server time).
-		--dayOffset = 2; --2 days after friday (sunday).
-		dayOffset = 1;
-		hourOffset = 11; -- 11am.
-		validRegion = true;
-	elseif (region == 1) then
-		--US east + Latin Sunday 8am UTC reset time (4am monday server time).
-		--dayOffset = 2; --2 days after friday (sunday).
-		dayOffset = 1;
-		hourOffset = 8; -- 8am.
-		validRegion = true;
-	elseif (region == 2) then
-		--Korea 1am UTC monday (9am monday local) reset time.
-		--(TW seems to be region 2 for some reason also? Hopefully they have same DMF spawn).
-		--I can change it to server name based if someone from KR says this spawn time is wrong.
-		--dayOffset = 3;
-		dayOffset = 2;
-		hourOffset = 1;
-		validRegion = true;
-	elseif (region == 3) then
-		--EU Monday 4am UTC reset time.
-		--dayOffset = 3; --3 days after friday (monday).
-		dayOffset = 2;
-		hourOffset = 2; -- 4am.
-		validRegion = true;
-	elseif (region == 4) then
-		--Taiwan 1am UTC monday (9am monday local) reset time.
-		--dayOffset = 3;
-		dayOffset = 2;
-		hourOffset = 1;
-		validRegion = true;
-	elseif (region == 5) then
-		--China 8pm UTC sunday (4am monday local) reset time.
-		--dayOffset = 2;
-		dayOffset = 1;
-		hourOffset = 20;
-		validRegion = true;
-	end
-	--Create current UTC date table.
-	local data = date("!*t", GetServerTime());
-	local dataLocalTime = date("*t", GetServerTime());
-	--Spawns change with DST by 1 hour UTC to stay the same server time.
-	if (dataLocalTime.isdst) then
-		hourOffset = hourOffset - 1;
-	end
-	--If month is specified then use that month instead (next dmf spawn is next month);
-	if (month) then
-		data.month = month;
-	end
-	--If nextYear is true then next dmf spawn is next year (we're in december right now).
-	if (nextYear) then
-		data.year = data.year + 1;
-	end
-	local dmfStartDay;
-	--[[for i = 1, 7 do
-		--Iterate the first 7 days in the month to find first friday.
-		local time = date("!*t", time({year = data.year, month = data.month, day = i}));
-		--if (time.wday == 6) then
-		--Change this saturday instead of of friday to try fix classic era calcs.
-		if (time.wday == 7) then
-			--If day of the week (wday) is 6 (friday) then set this as first friday of the month.
-			dmfStartDay = i;
+	if (NWB.isSOD) then
+		local region = GetCurrentRegion();
+		local calcStart;
+		--Elywwn Forest start times in the past to calc from.
+		--Using normal classic spawn times for now, but maybe it just spawns at midnight on all SoD servers?
+		--I may change this to realm names later instead, region may be unreliable with US client on EU region if that issue still exists.
+		--if (NWB.realm == "Shadowstrike (AU)" or NWB.realm == "Penance (AU)") then
+		if (region == 1 and string.match(NWB.realm, "(AU)")) then
+			--OCE Sunday 5pm UTC reset time (4am monday server time).
+			calcStart = 1700413200; --Sunday, November 19, 2023 5:00:00 PM UTC.
+		elseif (region == 1) then
+			--US Sunday 11pm UTC reset time (4am monday server time).
+			--Unlike normal classic, in SoD it seems all US realms use the same timezone MST?
+			calcStart = 1700478000; --Monday, November 20, 2023 11:00:00 AM UTC.
+		elseif (region == 2) then
+			--Korea 1am UTC monday (9am monday local) reset time.
+			--(TW seems to be region 2 for some reason also? Hopefully they have same DMF spawn).
+			--I can change it to server name based if someone from KR says this spawn time is wrong.
+			calcStart = 1702890000; --Monday, December 18, 2023 9:00:00 AM UTC.
+		elseif (region == 3) then
+			--EU Monday 4am UTC reset time.
+			calcStart = 1702872000; --Monday, December 18, 2023 4:00:00 AM UTC.
+		elseif (region == 4) then
+			--Taiwan 1am UTC monday (9am monday local) reset time.
+			calcStart = 1702861200; --Monday, December 18, 2023 1:00:00 AM.
+		elseif (region == 5) then
+			--China 8pm UTC sunday (4am monday local) reset time.
+			calcStart = 1702843200; --Sunday, December 17, 2023 8:00:00 PM UTC.
 		end
-	end]]
-	--There was an issue with using the date table above for a single user, thier client couldn't get the first day of the month correct.
-	--It was correct using %w instead so we'll just go with that for now.
-	for i = 1, 7 do
-		--Iterate the first 7 days in the month to find first saturday.
-		if (date("%w", time({year = data.year, month = data.month, day = i})) == "6") then
-			--If day of the week (wday) is 6 (friday) then set this as first friday of the month.
-			dmfStartDay = i;
-		end
-	end
-	if (not dmfStartDay) then
-		--How is it possible this could fail to be found above? It was reported to have failed by a user.
-		return;
-	end
-	local timeTable = {year = data.year, month = data.month, day = dmfStartDay + dayOffset, hour = hourOffset, min = minOffset, sec = 0};
-	local dataNextStatic, lastStaticDmf = NWB:getNextStaticDate();
-	local utcdate   = date("!*t", GetServerTime());
-	local localdate = date("*t", GetServerTime());
-	localdate.isdst = false;
-	local secondsDiff = difftime(time(utcdate), time(localdate));
-	--local secondsDiff = difftime(time(localdate), time(utcdate));
-	--local secondsDiffTest = difftime(time(utcdate), time(localdate));
-	--NWB:debug(secondsDiff);
-	local dmfStart;
-	--if (secondsDiff > 0) then
-	--	dmfStart = time(timeTable) - secondsDiff;
-	--else
-	--	dmfStart = time(timeTable) + secondsDiff;
-	--end
-	dmfStart = time(timeTable) - secondsDiff;
-	--local dmfStart = time(timeTable) - secondsDiff;
-	if (not lastStaticDmf) then
-		lastStaticDmf = 0;
-	end
-	local dmfStartStatic = 0;
-	if (dataNextStatic) then
-		--Use next static instead if there is a valid static date set for next spawn.
-		data = dataNextStatic;
-		--Convert to a timestamp and add our region offsets.
-		local staticTimestamp = time(dataNextStatic);
-		local staticOffset = 0;
-		staticOffset = staticOffset + (dayOffset * 86400);
-		staticOffset = staticOffset + (hourOffset * 3600);
-		staticOffset = staticOffset + (minOffset * 60);
-		local staticOffsetTimestamp = staticTimestamp + staticOffset;
-		local staticDateUTC = date("*t", staticOffsetTimestamp);
-		dmfStartStatic = time(staticDateUTC) - secondsDiff;
-		if (GetServerTime() > dmfStart + 604800) then
-			local dataNextStatic = NWB:getNextStaticDate(true);
-			if (dataNextStatic) then
-				local staticTimestamp = time(dataNextStatic);
-				local staticOffset = 0;
-				staticOffset = staticOffset + (dayOffset * 86400);
-				staticOffset = staticOffset + (hourOffset * 3600);
-				staticOffset = staticOffset + (minOffset * 60);
-				local staticOffsetTimestamp = staticTimestamp + staticOffset;
-				local staticDateUTC = date("*t", staticOffsetTimestamp);
-				--dmfStart = time(staticDateUTC) - secondsDiff;
-				dmfStartStatic = time(staticDateUTC) - secondsDiff;
+		if (calcStart) then
+			--local dataLocalTime = date("*t", GetServerTime());
+			--Spawns change with DST by 1 hour UTC to stay the same server time.
+			--if (dataLocalTime.isdst) then
+			--	calcStart = calcStart - 604800;
+			--end
+			--2 week cycle.
+			local utc = time(date("*t"));
+			local secondsSinceFirstReset = utc - calcStart;
+			--Divide seconds elapsed since our static timestamp in the past by the cycle time (3.5h).
+			--Get the floor of secondsSinceFirstReset / cycle time
+			--Divide seconds elapsed since our static timestamp in the past by the cycle time (3.5h).
+			--Get the floor of that result (which would be last reset if multipled by cycle time) then add 1 for next reset, then multiply by cycle time.
+			--This calc gets the next dmf start in the future and not the last start.
+			local dmfStart = calcStart + ((math.floor(secondsSinceFirstReset / 1209600) + 1) * 1209600);
+			if (utc < dmfStart - 604800) then
+				--If next future dmf start is more than 1 week away then the previous dmf is still up so remove 2 weeks and calc for that instead.
+				dmfStart = dmfStart - 1209600;
 			end
-		--else
-			--dmfStart = dmfStartStatic;
+			local dmfEnd = dmfStart + 604800;
+			local timeLeft = dmfStart - utc;
+			return dmfStart, dmfEnd, calcStart;
 		end
-	end
-
-	if (dmfStartStatic > GetServerTime() + 1296000 and dmfStartStatic < GetServerTime() - 1296000
-			and dmfStart < GetServerTime() + 950400 and dmfStart > GetServerTime() - 950400) then
-		--If formula date is within 11 days and there's no static date within the next or past 15 days then force use the forumla date.
-		--So we don't get next static date within 31 days while the forumla dmf is still up.
-		--This will probably create wrong next dmf date for the first day or 2 after dmf ends but it's good enough for now.
-		--This while thing needs a rewrite.
-	--elseif (dataNextStatic and dataNextStatic > 0) then
-	elseif (dmfStartStatic and dmfStartStatic > 0) then
-		dmfStart = dmfStartStatic;
-	end
-	--This is basically just adjusting for my shitty local offset code since all regions spawn on monday.
-	--My offset code will get the time right but sometimes the day behind, so adjust to monday if it's sunday.
-	--It needs fixing later, but all regions start on monday/tuesday so this works for now..
-	--This also helps with playing from a diff timezone than the server issues.
-	if (date("%w", dmfStart) == "0") then
-		--Not sure if whole region spawns at the same moment or if each realm waits for their own monday.
-		--All realms spawn same time of day, but possibly not same UTC day depending on timezone.
-		--Just incase each realm waits for monday we can add a day here.
-		dmfStart = dmfStart + 86400;
-	end
-	--Add 7 days to get end timestamp.
-	local dmfEnd = dmfStart + 604800;
-	--Only return if we have set daily reset offsets for this region.
-	if (not recalc and lastStaticDmf + 604800 > GetServerTime() - 1296000
-		and (dmfStartStatic == 0 or dmfStartStatic > GetServerTime() + 3456000)) then
+	else
+		local startOffset, endOffset, validRegion, isDst;
+		local  minOffset, hourOffset, dayOffset = 0, 0, 0;
+		local region = GetCurrentRegion();
+		--I may change this to realm names later instead, region may be unreliable with US client on EU region if that issue still exists.
+		if (NWB.realm == "Arugal" or NWB.realm == "Felstriker" or NWB.realm == "Remulos" or NWB.realm == "Yojamba") then
+			--OCE Sunday 12pm UTC reset time (4am monday server time).
+			--dayOffset = 2; --2 days after friday (sunday).
+			--Change this to saturday instead of of friday to try fix classic era calcs.
+			dayOffset = 1;
+			hourOffset = 18; -- 6pm.
+			validRegion = true;
+		elseif (NWB.realm == "Arcanite Reaper" or NWB.realm == "Old Blanchy" or NWB.realm == "Anathema" or NWB.realm == "Azuresong"
+				or NWB.realm == "Kurinnaxx" or NWB.realm == "Myzrael" or NWB.realm == "Rattlegore" or NWB.realm == "Smolderweb"
+				or NWB.realm == "Thunderfury" or NWB.realm == "Atiesh" or NWB.realm == "Bigglesworth" or NWB.realm == "Blaumeux"
+				or NWB.realm == "Fairbanks" or NWB.realm == "Grobbulus" or NWB.realm == "Whitemane") then
+			--US west Sunday 11am UTC reset time (4am monday server time).
+			--dayOffset = 2; --2 days after friday (sunday).
+			dayOffset = 1;
+			hourOffset = 11; -- 11am.
+			validRegion = true;
+		elseif (region == 1) then
+			--US east + Latin Sunday 8am UTC reset time (4am monday server time).
+			--dayOffset = 2; --2 days after friday (sunday).
+			dayOffset = 1;
+			hourOffset = 8; -- 8am.
+			validRegion = true;
+		elseif (region == 2) then
+			--Korea 1am UTC monday (9am monday local) reset time.
+			--(TW seems to be region 2 for some reason also? Hopefully they have same DMF spawn).
+			--I can change it to server name based if someone from KR says this spawn time is wrong.
+			--dayOffset = 3;
+			dayOffset = 2;
+			hourOffset = 1;
+			validRegion = true;
+		elseif (region == 3) then
+			--EU Monday 4am UTC reset time.
+			--dayOffset = 3; --3 days after friday (monday).
+			dayOffset = 2;
+			hourOffset = 2; -- 4am.
+			validRegion = true;
+		elseif (region == 4) then
+			--Taiwan 1am UTC monday (9am monday local) reset time.
+			--dayOffset = 3;
+			dayOffset = 2;
+			hourOffset = 1;
+			validRegion = true;
+		elseif (region == 5) then
+			--China 8pm UTC sunday (4am monday local) reset time.
+			--dayOffset = 2;
+			dayOffset = 1;
+			hourOffset = 20;
+			validRegion = true;
+		end
+		--Create current UTC date table.
 		local data = date("!*t", GetServerTime());
-		if (data.month == 12) then
-			data.month = 1;
-			return NWB:getDmfStartEnd(data.month, true, true);
-		else
-			data.month = data.month + 1
-			return NWB:getDmfStartEnd(data.month, nil, true);
+		local dataLocalTime = date("*t", GetServerTime());
+		--Spawns change with DST by 1 hour UTC to stay the same server time.
+		if (dataLocalTime.isdst) then
+			hourOffset = hourOffset - 1;
 		end
-	elseif (validRegion) then
-		return dmfStart, dmfEnd;
+		--If month is specified then use that month instead (next dmf spawn is next month);
+		if (month) then
+			data.month = month;
+		end
+		--If nextYear is true then next dmf spawn is next year (we're in december right now).
+		if (nextYear) then
+			data.year = data.year + 1;
+		end
+		local dmfStartDay;
+		--[[for i = 1, 7 do
+			--Iterate the first 7 days in the month to find first friday.
+			local time = date("!*t", time({year = data.year, month = data.month, day = i}));
+			--if (time.wday == 6) then
+			--Change this saturday instead of of friday to try fix classic era calcs.
+			if (time.wday == 7) then
+				--If day of the week (wday) is 6 (friday) then set this as first friday of the month.
+				dmfStartDay = i;
+			end
+		end]]
+		--There was an issue with using the date table above for a single user, thier client couldn't get the first day of the month correct.
+		--It was correct using %w instead so we'll just go with that for now.
+		for i = 1, 7 do
+			--Iterate the first 7 days in the month to find first saturday.
+			if (date("%w", time({year = data.year, month = data.month, day = i})) == "6") then
+				--If day of the week (wday) is 6 (friday) then set this as first friday of the month.
+				dmfStartDay = i;
+			end
+		end
+		if (not dmfStartDay) then
+			--How is it possible this could fail to be found above? It was reported to have failed by a user.
+			return;
+		end
+		local timeTable = {year = data.year, month = data.month, day = dmfStartDay + dayOffset, hour = hourOffset, min = minOffset, sec = 0};
+		local dataNextStatic, lastStaticDmf = NWB:getNextStaticDate();
+		local utcdate   = date("!*t", GetServerTime());
+		local localdate = date("*t", GetServerTime());
+		localdate.isdst = false;
+		local secondsDiff = difftime(time(utcdate), time(localdate));
+		--local secondsDiff = difftime(time(localdate), time(utcdate));
+		--local secondsDiffTest = difftime(time(utcdate), time(localdate));
+		--NWB:debug(secondsDiff);
+		local dmfStart;
+		--if (secondsDiff > 0) then
+		--	dmfStart = time(timeTable) - secondsDiff;
+		--else
+		--	dmfStart = time(timeTable) + secondsDiff;
+		--end
+		dmfStart = time(timeTable) - secondsDiff;
+		--local dmfStart = time(timeTable) - secondsDiff;
+		if (not lastStaticDmf) then
+			lastStaticDmf = 0;
+		end
+		local dmfStartStatic = 0;
+		if (dataNextStatic) then
+			--Use next static instead if there is a valid static date set for next spawn.
+			data = dataNextStatic;
+			--Convert to a timestamp and add our region offsets.
+			local staticTimestamp = time(dataNextStatic);
+			local staticOffset = 0;
+			staticOffset = staticOffset + (dayOffset * 86400);
+			staticOffset = staticOffset + (hourOffset * 3600);
+			staticOffset = staticOffset + (minOffset * 60);
+			local staticOffsetTimestamp = staticTimestamp + staticOffset;
+			local staticDateUTC = date("*t", staticOffsetTimestamp);
+			dmfStartStatic = time(staticDateUTC) - secondsDiff;
+			if (GetServerTime() > dmfStart + 604800) then
+				local dataNextStatic = NWB:getNextStaticDate(true);
+				if (dataNextStatic) then
+					local staticTimestamp = time(dataNextStatic);
+					local staticOffset = 0;
+					staticOffset = staticOffset + (dayOffset * 86400);
+					staticOffset = staticOffset + (hourOffset * 3600);
+					staticOffset = staticOffset + (minOffset * 60);
+					local staticOffsetTimestamp = staticTimestamp + staticOffset;
+					local staticDateUTC = date("*t", staticOffsetTimestamp);
+					--dmfStart = time(staticDateUTC) - secondsDiff;
+					dmfStartStatic = time(staticDateUTC) - secondsDiff;
+				end
+			--else
+				--dmfStart = dmfStartStatic;
+			end
+		end
+	
+		if (dmfStartStatic > GetServerTime() + 1296000 and dmfStartStatic < GetServerTime() - 1296000
+				and dmfStart < GetServerTime() + 950400 and dmfStart > GetServerTime() - 950400) then
+			--If formula date is within 11 days and there's no static date within the next or past 15 days then force use the forumla date.
+			--So we don't get next static date within 31 days while the forumla dmf is still up.
+			--This will probably create wrong next dmf date for the first day or 2 after dmf ends but it's good enough for now.
+			--This while thing needs a rewrite.
+		--elseif (dataNextStatic and dataNextStatic > 0) then
+		elseif (dmfStartStatic and dmfStartStatic > 0) then
+			dmfStart = dmfStartStatic;
+		end
+		--This is basically just adjusting for my shitty local offset code since all regions spawn on monday.
+		--My offset code will get the time right but sometimes the day behind, so adjust to monday if it's sunday.
+		--It needs fixing later, but all regions start on monday/tuesday so this works for now..
+		--This also helps with playing from a diff timezone than the server issues.
+		if (date("%w", dmfStart) == "0") then
+			--Not sure if whole region spawns at the same moment or if each realm waits for their own monday.
+			--All realms spawn same time of day, but possibly not same UTC day depending on timezone.
+			--Just incase each realm waits for monday we can add a day here.
+			dmfStart = dmfStart + 86400;
+		end
+		--Add 7 days to get end timestamp.
+		local dmfEnd = dmfStart + 604800;
+		--Only return if we have set daily reset offsets for this region.
+		if (not recalc and lastStaticDmf + 604800 > GetServerTime() - 1296000
+			and (dmfStartStatic == 0 or dmfStartStatic > GetServerTime() + 3456000)) then
+			local data = date("!*t", GetServerTime());
+			if (data.month == 12) then
+				data.month = 1;
+				return NWB:getDmfStartEnd(data.month, true, true);
+			else
+				data.month = data.month + 1
+				return NWB:getDmfStartEnd(data.month, nil, true);
+			end
+		elseif (validRegion) then
+			return dmfStart, dmfEnd;
+		end
 	end
 end
 
 function NWB:getDmfData()
-	--Once Blizzard fixes calender timezones we'll get dmf spawn time from there.
-	if (NWB.isClassic or NWB.isTBC) then
+	if (NWB.isSOD) then
+		local dmfStart, dmfEnd, calcStart = NWB:getDmfStartEnd();
+		local timestamp, timeLeft, type;
+		local cycleCount = 0;
+		if (dmfStart and dmfEnd) then
+			if (GetServerTime() < dmfStart) then
+				--It's before the start of dmf.
+				timestamp = dmfStart;
+				type = "start";
+				timeLeft = dmfStart - GetServerTime();
+				NWB.isDmfUp = nil;
+			elseif (GetServerTime() < dmfEnd) then
+				--It's after dmf started and before the end.
+				timestamp = dmfEnd;
+				type = "end";
+				timeLeft = dmfEnd - GetServerTime();
+				NWB.isDmfUp = true;
+			elseif (GetServerTime() >= dmfEnd) then
+				--It's after dmf ended so calc next months dmf instead.
+				local data = date("!*t", GetServerTime());
+				if (data.month == 12) then
+					dmfStart, dmfEnd = NWB:getDmfStartEnd(1, true);
+				else
+					dmfStart, dmfEnd = NWB:getDmfStartEnd(data.month + 1);
+				end
+				timestamp = dmfStart;
+				type = "start";
+				timeLeft = dmfStart - GetServerTime();
+				NWB.isDmfUp = nil;
+			end
+			if (timestamp) then
+				local weeks = (timestamp - calcStart) / 604800;
+				local twoWeeks = (timestamp - calcStart) / 1209600;
+				--Check if weeks since calc started is divisble by 4.
+				if (((dmfStart - calcStart) / 604800) % 4 == 0) then
+					NWB.dmfZone = "Elwynn Forest";
+				else
+					NWB.dmfZone = "Mulgore";
+				end
+				return timestamp, timeLeft, type;
+			end
+		end
+	elseif (NWB.isClassic or NWB.isTBC) then
 		local dmfStart, dmfEnd = NWB:getDmfStartEnd();
 		local timestamp, timeLeft, type;
 		if (dmfStart and dmfEnd) then
@@ -8406,6 +8600,53 @@ function NWB:getDmfZoneString()
 	end
 end
 
+function NWB:checkDmfBuffReset(isLogon)
+	if (not NWB.isClassic) then
+		return;
+	end
+	local charString = "";
+	local count = 0;
+	local foundThisCharDmfReset;
+	local me = UnitName("player");
+	for realm, realmData in pairs(NWB.db.global) do
+		if (type(realmData) == "table" and realm ~= "minimapIcon" and realm ~= "versions") then
+			for faction, factionData in pairs(realmData) do
+				if (type(factionData) == "table" and factionData.myChars) then
+					for char, charData in pairs(factionData.myChars) do
+						local lastOnline;
+						if (char == me and isLogon) then
+							--Use a cache recorded before the ticker starts for checks at logon.
+							lastOnline = NWB.lastOnlineCache;
+						else
+							lastOnline = charData.lo;
+						end
+						if (charData.dmfCooldown and lastOnline and charData.resting and charData.dmfCooldown > 0 and GetServerTime() - lastOnline > 28800) then
+							--If 8+ hours offline and in rested area and have dmf buff cooldwn.
+							count = count + 1;
+							local _, _, _, classColorHex = GetClassColor(charData.englishClass);
+							local text = "|c" .. classColorHex .. char .. "-" .. realm .. "|r";
+							if (count == 1) then
+								charString = text;
+							else
+								charString = charString .. ", " .. text;
+							end
+							--Reset dmf buff cooldown data, needs to still be a number and lower than -99990.
+							charData.dmfCooldown = -99999;
+							if (char == me) then
+								foundThisCharDmfReset = true;
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if (NWB.isDmfUp and charString ~= "") then
+		NWB:print(L["dmfLogonBuffResetMsg"] .. ": " .. charString);
+		return foundThisCharDmfReset;
+	end
+end
+
 function NWB:updateDmfMarkers(type)
 	local timestamp, timeLeft, type = NWB:getDmfData();
 	local text = "";
@@ -8428,7 +8669,7 @@ function NWB:updateDmfMarkers(type)
     	tooltipText = tooltipText .. NWB:getTimeFormat(timestamp, true);
     	local dmfFound;
     	local buffText = "";
-    	if (NWB.isDmfUp or NWB.isSOD) then
+    	if (NWB.isDmfUp or NWB.isAlwaysDMF) then
     		local dmfCooldown, noMsgs = NWB:getDmfCooldown();
 			if (dmfCooldown > 0 and not noMsgs) then
 				buffText = "\n" .. string.format(L["dmfBuffCooldownMsg"],  NWB:getTimeString(dmfCooldown, true));
@@ -8559,20 +8800,18 @@ function NWB:refreshDmfMarkers()
 	if (not NWB.dmfZone) then
 		return;
 	end
-	if (NWB.isSOD) then
-		--Hide dmf markers in sod until we work out the new rotation, is it just every 2nd week?
-		return;
-	end
+	--Mulgore and Elwynn are both slightly south (+1 coord) of the actual DMF spot in continent maps to not clash with other addon quest markers.
+	--Players need to be able to hover DMF marker easily to see buff cooldown etc.
 	local x, y, mapID, worldX, worldY, worldMapID;
 	if (NWB.dmfZone == "Outlands") then
 		x, y, mapID = 34.8, 34.6, 1952;
 		worldX, worldY, worldMapID = 44.6, 69.5, 1945;
 	elseif (NWB.dmfZone == "Mulgore") then
 		x, y, mapID = 36.8, 37.6, 1412;
-		worldX, worldY, worldMapID = 46, 63, 1414;
+		worldX, worldY, worldMapID = 45.95, 59.6, 1414;
 	else
 		x, y, mapID = 42, 70, 1429;
-		worldX, worldY, worldMapID = 45.7, 71.4, 1415;
+		worldX, worldY, worldMapID = 45.2, 73.55, 1415;
 	end
 	NWB.dragonLibPins:RemoveWorldMapIcon("NWBDMF", _G["NWBDMF"]);
 	if (NWB.db.global.showDmfMap) then
@@ -8594,6 +8833,89 @@ function NWB:fixMapMarkers()
 	--WorldMapFrame:Hide();
 end
 
+function NWB:addDMFMinimapString(tooltip)
+	if (not NWB.isSOD) then
+		return;
+	end
+	local text;
+	--Check if previous line is a seperator so we don't double up.
+	if (_G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()] and _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()]:GetText() ~= " ") then
+		tooltip:AddLine(" ");
+		if (not tooltip.NWBSeparator5) then
+		    tooltip.NWBSeparator5 = tooltip:CreateTexture(nil, "BORDER");
+		    tooltip.NWBSeparator5:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+		    tooltip.NWBSeparator5:SetHeight(1);
+		    tooltip.NWBSeparator5:SetPoint("LEFT", 10, 0);
+		    tooltip.NWBSeparator5:SetPoint("RIGHT", -10, 0);
+		end
+		tooltip.NWBSeparator5:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+		tooltip.NWBSeparator5:Show();
+	end
+	local timestamp, timeLeft, type = NWB:getDmfData();
+	local zone = NWB.dmfZone;
+	if (zone == "Elwynn Forest") then
+		zone = "Elwynn";
+	end
+	--NWB.isDmfUp = true;
+	local text = "";
+	if (not timestamp or timestamp < 1) then
+		text = text .. L["noTimer"];
+	else
+		if (type == "start") then
+			text = text .. L["dmfAbbreviation"] .. " (" .. zone .. ") " .. string.lower(string.format(L["startsIn"], "|cFF9CD6DE" .. NWB:getTimeString(timeLeft, true, "short") .. "|r"));
+		else
+			text = text .. string.format(L["endsIn"], "|cFF9CD6DE" .. NWB:getTimeString(timeLeft, true, "short") .. "|r") .. " (" .. zone .. ")";
+		end
+	end
+	local dateString = "";
+	if (IsShiftKeyDown()) then
+		if (NWB.db.global.timeStampFormat == 12) then
+			dateString = " (" .. date("%A", timestamp) .. " " .. gsub(date("%I:%M", timestamp), "^0", "")
+					.. string.lower(date("%p", timestamp)) .. ")";
+		else
+			dateString = " (" .. date("%A %H:%M", timestamp) .. ")";
+		end
+	end
+	if (NWB.isDmfUp) then
+		tooltip:AddLine("|cFF00C800" .. L["Darkmoon Faire is up"] .. "|r");
+		tooltip:AddLine(text .. dateString);
+		local dmfCooldown, noMsgs = NWB:getDmfCooldown();
+		if (dmfCooldown > 0) then
+			tooltip:AddLine(string.format(L["dmfBuffCooldownMsg"],  NWB:getTimeString(dmfCooldown, true, "short")));
+		else
+			tooltip:AddLine(L["dmfBuffReady"]);
+		end
+	else
+		tooltip:AddLine(text .. dateString);
+	end
+	if (NWB.isSOD) then
+		--Bundle 3 day reset with dmf minimap tooltip.
+		local threeDayReset = NWB:getThreeDayReset();
+		if (threeDayReset) then
+			local threeDateString = "";
+			if (IsShiftKeyDown()) then
+				if (NWB.db.global.timeStampFormat == 12) then
+					threeDateString = " (" .. date("%A", threeDayReset) .. " " .. gsub(date("%I:%M", threeDayReset), "^0", "")
+							.. string.lower(date("%p", threeDayReset)) .. ")";
+				else
+					threeDateString = " (" .. date("%A %H:%M", threeDayReset) .. ")";
+				end
+			end
+			tooltip:AddLine(L["3 day raid reset"] .. ":|r |cFF9CD6DE" .. NWB:getTimeString(threeDayReset - GetServerTime(), true, "short")
+					.. "|r" .. threeDateString .. "|r");
+		end
+	end
+	tooltip:AddLine(" ");
+	if (not tooltip.NWBSeparator6) then
+	    tooltip.NWBSeparator6 = tooltip:CreateTexture(nil, "BORDER");
+	    tooltip.NWBSeparator6:SetColorTexture(0.6, 0.6, 0.6, 0.85);
+	    tooltip.NWBSeparator6:SetHeight(1);
+	    tooltip.NWBSeparator6:SetPoint("LEFT", 10, 0);
+	    tooltip.NWBSeparator6:SetPoint("RIGHT", -10, 0);
+	end
+	tooltip.NWBSeparator6:SetPoint("TOP", _G[tooltip:GetName() .. "TextLeft" .. tooltip:NumLines()], "CENTER");
+	tooltip.NWBSeparator6:Show();
+end
 ---===================---
 ---Buff tracking frame---
 ---===================---
@@ -8633,7 +8955,7 @@ NWBbuffListFrame.fs:SetText("|cffffff00" .. L["Your Current World Buffs"]);
 NWBbuffListFrame.fs2 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS2", "ARTWORK");
 NWBbuffListFrame.fs2:SetPoint("TOP", 0, -16);
 NWBbuffListFrame.fs2:SetFont(NWB.regionFont, 13);
-NWBbuffListFrame.fs2:SetText("|cffffff00Mouseover char names for extra info");
+NWBbuffListFrame.fs2:SetText("|cffffff00" .. L["Mouseover char names for extra info"]);
 NWBbuffListFrame.fs3 = NWBbuffListFrame.EditBox:CreateFontString("NWBbuffListFrameFS3", "ARTWORK");
 NWBbuffListFrame.fs3:SetPoint("TOPLEFT", 1, -32);
 NWBbuffListFrame.fs3:SetFont(NWB.regionFont, 13);
@@ -8654,7 +8976,7 @@ NWBbuffListDragFrame.tooltip:SetAlpha(.8);
 NWBbuffListDragFrame.tooltip.fs = NWBbuffListDragFrame.tooltip:CreateFontString("NWBbuffListDragTooltipFS", "ARTWORK");
 NWBbuffListDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBbuffListDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBbuffListDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBbuffListDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBbuffListDragFrame.tooltip:SetWidth(NWBbuffListDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBbuffListDragFrame.tooltip:SetHeight(NWBbuffListDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBbuffListDragFrame:SetScript("OnEnter", function(self)
@@ -8807,8 +9129,8 @@ function NWB:createShowStatsButton()
 		NWB.showStatsButton = CreateFrame("CheckButton", "NWBShowStatsButton", NWBbuffListFrame.EditBox, "ChatConfigCheckButtonTemplate");
 		NWB.showStatsButton:SetPoint("TOPLEFT", -1, 1);
 		--So strange the way to set text is to append Text to the global frame name.
-		NWBShowStatsButtonText:SetText("Show Stats");
-		NWB.showStatsButton.tooltip = "Show how many times you got each buff.";
+		NWBShowStatsButtonText:SetText(L["Show Stats"]);
+		NWB.showStatsButton.tooltip = L["Show how many times you got each buff."];
 		--NWB.showStatsButton:SetFrameStrata("HIGH");
 		NWB.showStatsButton:SetFrameLevel(3);
 		NWB.showStatsButton:SetWidth(24);
@@ -8826,8 +9148,8 @@ function NWB:createShowStatsButton()
 	if (not NWB.showStatsAllButton) then
 		NWB.showStatsAllButton = CreateFrame("CheckButton", "NWBShowStatsAllButton", NWBbuffListFrame.EditBox, "ChatConfigCheckButtonTemplate");
 		NWB.showStatsAllButton:SetPoint("TOPLEFT", 95, 1);
-		NWBShowStatsAllButtonText:SetText("All");
-		NWB.showStatsAllButton.tooltip = "Show all alts that have buff stats? (stats must be enabled).";
+		NWBShowStatsAllButtonText:SetText(L["All"]);
+		NWB.showStatsAllButton.tooltip = L["Show all alts that have buff stats? (stats must be enabled)."];
 		--NWB.showStatsAllButton:SetFrameStrata("HIGH");
 		NWB.showStatsAllButton:SetFrameLevel(4);
 		NWB.showStatsAllButton:SetWidth(24);
@@ -8982,13 +9304,13 @@ function NWB:recalcBuffListFrame()
 	framesUsed = {};
 	usedLineFrameCount = 0;
 	offset = 40; --Start offset, per line offset.
-	if (NWB.isDmfUp or NWB.isSOD) then
+	if (NWB.isDmfUp or NWB.isAlwaysDMF) then
 		offset = 57;
 		local dmfCooldown, noMsgs = NWB:getDmfCooldown();
 		if (dmfCooldown > 0 and not noMsgs) then
-			NWBbuffListFrame.fs3:SetText(string.format(L["dmfBuffCooldownMsg2"],  NWB:getTimeString(dmfCooldown, true)));
+			NWBbuffListFrame.fs3:SetText(string.format("|cFF69CCF0" .. L["dmfBuffCooldownMsg2"] .. "|r",  NWB:getTimeString(dmfCooldown, true)));
 	    elseif (NWB.isDmfUp) then
-	    	NWBbuffListFrame.fs3:SetText(L["dmfBuffReady"]);
+	    	NWBbuffListFrame.fs3:SetText("|cFF69CCF0" .. L["dmfBuffReady"] .. "|r");
 	    end
 	end
 	local count = 0;
@@ -9044,7 +9366,7 @@ function NWB:recalcBuffListFrame()
 							pvpFlagMsg = " " .. texture;
 						end
 						if (v.chronoCooldown and v.chronoCooldown > GetServerTime()) then
-							chronoCooldownMsg = " |cFFA0A0A0(Cooldown: " .. NWB:getTimeString(v.chronoCooldown - GetServerTime(),
+							chronoCooldownMsg = " |cFFA0A0A0(" .. L["Cooldown"] .. ": " .. NWB:getTimeString(v.chronoCooldown - GetServerTime(),
 									true, NWB.db.global.timeStringType, nil, true) .. ")|r";
 							foundChronoCooldown = true;
 						end
@@ -9057,6 +9379,18 @@ function NWB:recalcBuffListFrame()
 							nameString = "  -|c" .. classColor .. k .. "|r" .. pvpFlagMsg .. " " .. chronoCountMsg .. chronoCooldownMsg;
 						else
 							nameString = "  -|c" .. classColor .. k .. "|r" .. pvpFlagMsg;
+						end
+						if (k == UnitName("player")) then
+							nameString = nameString .. " |cFF00C800(" .. L["Online"] .. ")|r";
+						elseif (NWB.isDmfUp and v.lo and v.dmfCooldown and v.dmfCooldown > 0) then
+							local resting = "";
+							if (v.resting) then
+								resting = " " .. L["Rested"] .. "";
+							else
+								resting = " " .. L["Not Rested"] .. "";
+							end
+							nameString = nameString .. " |cFFA0A0A0(" .. L["Offline"] .. " for " .. NWB:getTimeString(GetServerTime() - v.lo, true, "short") .. resting .. ")|r";
+							foundActiveBuff = true;
 						end
 						local charName = k;
 						local foundBuffs = {};
@@ -9233,7 +9567,7 @@ function NWB:recalcBuffListFrame()
 								end
 							end
 							if (next(storedBuffStrings)) then
-								NWB:insertBuffsLineFrameString("        |cffffff00" .. L["Chronoboon Displacer"] .. " Buffs|r");
+								NWB:insertBuffsLineFrameString("        |cffffff00" .. L["Chronoboon Displacer"] .. " " .. L["Buffs"] .. "|r");
 								for k, v in ipairs(storedBuffStrings) do
 									NWBbuffListFrame.fsCalc:SetText(v);
 									local width = NWBbuffListFrame.fsCalc:GetWidth() + 60;
@@ -9264,7 +9598,7 @@ function NWB:recalcBuffListFrame()
 		NWBbuffListFrame.fs2:SetText("");
 		NWB:insertBuffsLineFrameString("|cffffff00No characters with buffs found.");
 	else
-		NWBbuffListFrame.fs2:SetText("|cffffff00Mouseover char names for extra info");
+		NWBbuffListFrame.fs2:SetText("|cffffff00" .. L["Mouseover char names for extra info"]);
 	end
 	if (NWB.db.global.showBuffStats) then
 		--A little wider to fit the buff count.
@@ -9423,10 +9757,10 @@ function NWB:recalcBuffsLineFramesTooltip(obj)
 				end
 				text = text .. "\n" .. color1 .. L["durability"] .. ": " .. displayDurability;
 				if (data.chronoCooldown and data.chronoCooldown > GetServerTime()) then
-					text = text .. "\n" .. color1 .. "Chronoboon CD:|r " .. color2 .. NWB:getTimeString(data.chronoCooldown - GetServerTime(),
+					text = text .. "\n" .. color1 .. L["Chronoboon CD"] .. ":|r " .. color2 .. NWB:getTimeString(data.chronoCooldown - GetServerTime(),
 							true, NWB.db.global.timeStringType, nil, true) .. ".|r";
 				else
-					text = text .. "\n" .. color1 .. "Chronoboon CD:|r " .. color2 .. "Ready.|r";
+					text = text .. "\n" .. color1 .. L["Chronoboon CD"] .. ":|r " .. color2 .. L["Ready"] .. ".|r";
 				end
 				if (data.pvpFlag) then
 					local texture = "";
@@ -9435,11 +9769,11 @@ function NWB:recalcBuffsLineFramesTooltip(obj)
 					else
 						texture = "|TInterface\\AddOns\\NovaWorldBuffs\\Media\\alliancepvp:13:13:-1:0|t";
 					end
-					text = text .. "\n" .. texture .. " ".. color1 .. "PvP enabled|r";
+					text = text .. "\n" .. texture .. " ".. color1 .. L["PvP enabled"] .. "|r";
 				end
 				local itemString = "\n\n|cFFFFFF00" .. L["items"] .. "|r";
 				itemString = itemString .. "\n  |TInterface\\Icons\\inv_misc_enggizmos_21:12:12:0:0|t|c"
-						.. classColorHex .. " Chronoboon:|r " .. color2 .. (data.chronoCount or 0) .. "|r";
+						.. classColorHex .. " " .. L["Chronoboon"] .. ":|r " .. color2 .. (data.chronoCount or 0) .. "|r";
 				if (data.englishClass == "PRIEST" or data.englishClass == "MAGE" or data.englishClass == "DRUID"
 						or data.englishClass == "WARLOCK" or data.englishClass == "SHAMAN" or data.englishClass == "PALADIN"
 								or data.englishClass == "HUNTER") then
@@ -9577,6 +9911,16 @@ function NWB:recalcBuffsLineFramesTooltip(obj)
 					text = text .. "\n  " .. color2 .. L["none"] .. "|r";
 				else
 					text = text .. lockoutString;
+				end
+				if (data.playerName ~= UnitName("player") and NWB.isDmfUp and data.lo and data.dmfCooldown and data.dmfCooldown > 0) then
+					text = text .. "\n\n|cFFFFFF00" .. L["dmfOfflineStatusTooltip"] .. "|r";
+					local resting = "";
+					if (data.resting) then
+						resting = " " .. L["Rested"] .. "";
+					else
+						resting = " " .. L["Not Rested"] .. "";
+					end
+					text = text .. "\n  |cFFA0A0A0(" .. L["Offline"] .. " for " .. NWB:getTimeString(GetServerTime() - data.lo, true, "short") .. resting .. ")|r";
 				end
 				obj.tooltip.fs:SetText(text);
 			else
@@ -9775,7 +10119,7 @@ NWBlayerDragFrame.tooltip:SetAlpha(.8);
 NWBlayerDragFrame.tooltip.fs = NWBlayerDragFrame.tooltip:CreateFontString("NWBlayerDragTooltipFS", "ARTWORK");
 NWBlayerDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBlayerDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBlayerDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBlayerDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBlayerDragFrame.tooltip:SetWidth(NWBlayerDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBlayerDragFrame.tooltip:SetHeight(NWBlayerDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBlayerDragFrame:SetScript("OnEnter", function(self)
@@ -9860,7 +10204,7 @@ local NWBlayerFrameBuffsButton = CreateFrame("Button", "NWBlayerFrameBuffsButton
 NWBlayerFrameBuffsButton:SetPoint("CENTER", -58, -14);
 NWBlayerFrameBuffsButton:SetWidth(90);
 NWBlayerFrameBuffsButton:SetHeight(17);
-NWBlayerFrameBuffsButton:SetText("Buffs");
+NWBlayerFrameBuffsButton:SetText(L["Buffs"]);
 NWBlayerFrameBuffsButton:SetNormalFontObject("GameFontNormalSmall");
 NWBlayerFrameBuffsButton:SetScript("OnClick", function(self, arg)
 	NWB:openBuffListFrame();
@@ -9890,7 +10234,7 @@ local NWBlayerFrameMapButton = CreateFrame("Button", "NWBlayerFrameMapButton", N
 NWBlayerFrameMapButton:SetPoint("CENTER", -58, -28);
 NWBlayerFrameMapButton:SetWidth(90);
 NWBlayerFrameMapButton:SetHeight(17);
-NWBlayerFrameMapButton:SetText("Layer Map");
+NWBlayerFrameMapButton:SetText(L["Layer Map"]);
 NWBlayerFrameMapButton:SetNormalFontObject("GameFontNormalSmall");
 NWBlayerFrameMapButton:SetScript("OnClick", function(self, arg)
 	NWB:openLayerMapFrame();
@@ -9920,7 +10264,7 @@ local NWBGuildLayersButton = CreateFrame("Button", "NWBGuildLayersButton", NWBla
 NWBGuildLayersButton:SetPoint("CENTER", -58, -57);
 NWBGuildLayersButton:SetWidth(90);
 NWBGuildLayersButton:SetHeight(17);
-NWBGuildLayersButton:SetText("Guild Layers");
+NWBGuildLayersButton:SetText(L["Guild Layers"]);
 NWBGuildLayersButton:SetNormalFontObject("GameFontNormalSmall");
 NWBGuildLayersButton:SetScript("OnClick", function(self, arg)
 	NWB:openLFrame();
@@ -9993,7 +10337,7 @@ NWBCopyDragFrame:SetBackdropBorderColor(0.235, 0.235, 0.235);
 NWBCopyDragFrame.fs = NWBCopyDragFrame:CreateFontString("NWBCopyDragFrameFS", "ARTWORK");
 NWBCopyDragFrame.fs:SetPoint("CENTER", 0, 0);
 NWBCopyDragFrame.fs:SetFont(NWB.regionFont, 14);
-NWBCopyDragFrame.fs:SetText(NWB.prefixColor .. "NovaWorldBuffs Copy Frame|r");
+NWBCopyDragFrame.fs:SetText(NWB.prefixColor .. "NovaWorldBuffs " .. L["Copy Frame"] .. "|r");
 NWBCopyDragFrame:SetWidth(NWBCopyDragFrame.fs:GetWidth() + 16);
 NWBCopyDragFrame:SetHeight(22);
 
@@ -10024,7 +10368,7 @@ local NWBlayerFrameCopyButton = CreateFrame("Button", "NWBlayerFrameCopyButton",
 NWBlayerFrameCopyButton:SetPoint("TOPLEFT", 1, 1);
 NWBlayerFrameCopyButton:SetWidth(90);
 NWBlayerFrameCopyButton:SetHeight(17);
-NWBlayerFrameCopyButton:SetText("Copy/Paste");
+NWBlayerFrameCopyButton:SetText(L["Copy/Paste"]);
 NWBlayerFrameCopyButton:SetNormalFontObject("GameFontNormalSmall");
 NWBlayerFrameCopyButton:SetScript("OnClick", function(self, arg)
 	NWB:openCopyFrame();
@@ -10055,7 +10399,7 @@ function NWB:createCopyFormatButton()
 		NWB.copyDiscordButton:SetPoint("TOPRIGHT", -84, 3);
 		--So strange the way to set text is to append Text to the global frame name.
 		NWBCopyDiscordButtonText:SetText("Discord");
-		NWB.copyDiscordButton.tooltip = "Format the text to paste in discord? (Adds colors etc)";
+		NWB.copyDiscordButton.tooltip = L["formatForDiscord"];
 		--NWB.copyDiscordButton:SetFrameStrata("HIGH");
 		NWB.copyDiscordButton:SetFrameLevel(3);
 		NWB.copyDiscordButton:SetWidth(24);
@@ -10552,7 +10896,7 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 		for k, v in NWB:pairsByKeys(NWB.data.layers) do
 			foundTimers = true;
 			count = count + 1;
-			--NWBlayerFrame.EditBox:Insert("\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r\n");
+			--NWBlayerFrame.EditBox:Insert("\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(" .. L["zone"] .. " " .. k .. ")|r\n");
 			local wintergraspTextures, buffTextures = "", "";
 			if (NWB:isWintergraspBuffLayer(k, "layerFrame")) then
 				wintergraspTextures = " " .. "|T237021:12:12|t";
@@ -10565,7 +10909,7 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 					end
 				end
 			end
-			text = text .. "\n|cff00ff00[Layer " .. count .. "]|r  |cFF989898(zone " .. k .. ")|r " .. wintergraspTextures .. buffTextures .. "\n";
+			text = text .. "\n|cff00ff00[" .. L["Layer"] .. " " .. count .. "]|r  |cFF989898(" .. L["zone"] .. " " .. k .. ")|r " .. wintergraspTextures .. buffTextures .. "\n";
 			text = text .. NWB.chatColor;
 			if (not _G["NWBDisableLayerButton" .. count]) then
 				NWB:createDisableLayerButton(count);
@@ -10777,7 +11121,7 @@ function NWB:recalclayerFrame(isLogon, copyPaste)
 				foundTimers = true;
 				count = count + 1;
 				--NWBlayerFrame.EditBox:Insert("\n|cFF989898[Layer Disabled]  (zone " .. k .. ")|r\n");
-				text = text .. "\n|cFF989898[Layer Disabled]  (zone " .. k .. ")|r\n";
+				text = text .. "\n|cFF989898[Layer Disabled]  (" .. L["zone"] .. " " .. k .. ")|r\n";
 				if (not _G["NWBEnableLayerButton" .. count]) then
 					NWB:createEnabledLayerButton(count);
 				end
@@ -11394,6 +11738,7 @@ f:SetScript('OnEvent', function(self, event, ...)
 		logonEnteringWorld = GetServerTime();
 		if (IsInGroup()) then
 			NWB.lastKnownLayerMapID = 0;
+			NWB.lastKnownLayerMapZoneID = 0;
 			NWB.lastKnownLayerMapID_Mapping = 0;
 			NWB.currentZoneID = 0;
 			--NWB.lastJoinedGroup = GetServerTime();
@@ -11442,6 +11787,7 @@ end)
 
 function NWB:joinedGroupLayer()
 	NWB.lastKnownLayerMapID = 0;
+	NWB.lastKnownLayerMapZoneID = 0;
 	NWB.lastKnownLayerMapID_Mapping = 0;
 	NWB.currentZoneID = 0;
 	NWB.lastCurrentZoneID = 0;
@@ -11492,6 +11838,7 @@ end
 NWB.lastKnownLayer = 0;
 NWB.lastKnownLayerID = 0;
 NWB.lastKnownLayerMapID = 0;
+NWB.lastKnownLayerMapZoneID = 0;
 NWB.lastKnownLayerMapID_Mapping = 0; --More strict layerMapID, can only be set in capitals and zones with timers can only be mapped by this.
 NWB.lastKnownLayerMapIDBackup = 0; --Only used for songflowers if logging on in a group.
 NWB.lastKnownLayerMapIDBackupValidFor = 120; --How long after logon this can be valid for.
@@ -11536,9 +11883,9 @@ function NWB:setCurrentLayerText(unit)
 	end
 	if (unitType ~= "Creature" or NWB.companionCreatures[tonumber(npcID)]) then
 		if (NWB.faction == "Horde") then
-			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Orgrimmar") .. "|r");
+			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], L["Orgrimmar"]) .. "|r");
 		else
-			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], "Stormwind") .. "|r");
+			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. string.format(L["layerMsg3"], L["Stormwind"]) .. "|r");
 		end
 		return;
 	end
@@ -11546,7 +11893,7 @@ function NWB:setCurrentLayerText(unit)
 	for k, v in NWB:pairsByKeys(NWB.data.layers) do
 		count = count + 1;
 		if (k == tonumber(zoneID)) then
-			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. L["You are currently on"] .. " |cff00ff00[Layer " .. count .. "]|cFF9CD6DE.|r");
+			NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. L["You are currently on"] .. " |cff00ff00[" .. L["Layer"] .. " " .. count .. "]|cFF9CD6DE.|r");
 			if (NWB.currentLayerShared ~= count) then
 				NWB:sendL(count, "set current layer text");
 				NWB.currentLayerShared = count;
@@ -11559,6 +11906,7 @@ function NWB:setCurrentLayerText(unit)
 			NWB.lastKnownLayerID = k;
 			if ((GetServerTime() - NWB.lastJoinedGroup) > NWB.lastJoinedGroupCooldown) then
 				NWB.lastKnownLayerMapID = tonumber(k);
+				NWB.lastKnownLayerMapZoneID = tonumber(zoneID);
 			end
 			NWB.lastKnownLayerTime = GetServerTime();
 			NWB:recalcMinimapLayerFrame();
@@ -11614,7 +11962,7 @@ function NWB:setCurrentLayerText(unit)
 			end
 		end
 	end]]
-	NWBlayerFrame.fs2:SetText("|cFF9CD6DECan't find current layer or no timers active for this layer.|r");
+	NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. L["Can't find current layer or no timers active for this layer."] .. "|r");
 end
 
 NWB.layerMapWhitelist = {
@@ -11786,6 +12134,7 @@ function NWB:mapCurrentLayer(unit)
 							--Also can start mapping if we pickup our current layer from an already known id.
 							--NWB:debug("found mapped id");
 							NWB.lastKnownLayerMapID = k;
+							NWB.lastKnownLayerMapZoneID = zoneID;
 							foundOldID = true;
 						end
 					end
@@ -11828,7 +12177,7 @@ function NWB:mapCurrentLayer(unit)
 		--If we join a group then we must cross a zone border before we can record layer data.
 		--If we have a zoneID recorded for this zone and it suddenly changes then assume we got pushed off the layer without a group join.
 		--Simulate a group join.
-		NWB:debug("Phase changed detected?");
+		NWB:debug("Phase changed detected?", NWB.phaseCheck, zoneID);
 		NWB:joinedGroupLayer();
 		return;
 	end
@@ -12016,7 +12365,7 @@ end)
 NWBLayerMapFrame.fs = NWBLayerMapFrame:CreateFontString("NWBLayerMapFrameFS", "ARTWORK");
 NWBLayerMapFrame.fs:SetPoint("TOP", 0, -0);
 NWBLayerMapFrame.fs:SetFont(NWB.regionFont, 14);
-NWBLayerMapFrame.fs:SetText("|cFFFFFF00Layer Mapping for " .. GetRealmName() .. "|r");
+NWBLayerMapFrame.fs:SetText("|cFFFFFF00" .. L["Layer Mapping for"] .. " " .. GetRealmName() .. "|r");
 
 local NWBLayerMapDragFrame = CreateFrame("Frame", "NWBLayerMapDragFrame", NWBLayerMapFrame);
 NWBLayerMapDragFrame:SetToplevel(true);
@@ -12033,7 +12382,7 @@ NWBLayerMapDragFrame.tooltip:SetAlpha(.8);
 NWBLayerMapDragFrame.tooltip.fs = NWBLayerMapDragFrame.tooltip:CreateFontString("NWBLayerMapDragTooltipFS", "ARTWORK");
 NWBLayerMapDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBLayerMapDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBLayerMapDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBLayerMapDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBLayerMapDragFrame.tooltip:SetWidth(NWBLayerMapDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBLayerMapDragFrame.tooltip:SetHeight(NWBLayerMapDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBLayerMapDragFrame:SetScript("OnEnter", function(self)
@@ -12143,14 +12492,14 @@ function NWB:recalcLayerMapFrame()
 				end
 			else --C_Map.GetAreaInfo(
 			--C_Map.GetMapInfoAtPosition(1434, 1, 1)
-				text = text .. "  -|cffFFFF00No zones mapped for this layer yet.|r\n";
+				text = text .. "  -|cffFFFF00" .. L["No zones mapped for this layer yet."] .. "|r\n";
 			end
 			if (NWB.faction == "Horde") then
-				NWBLayerMapFrame.EditBox:Insert("\n|cff00ff00[Layer " .. count .. "]|r  |cff9CD6DE(" .. NWB.mapName .. " " .. k .. ")|r  "
-						.. NWB.prefixColor .. "(" .. zoneCount .. " zones mapped)|r\n" .. text);
+				NWBLayerMapFrame.EditBox:Insert("\n|cff00ff00[" .. L["Layer"] .. " " .. count .. "]|r  |cff9CD6DE(" .. NWB.mapName .. " " .. k .. ")|r  "
+						.. NWB.prefixColor .. "(" .. zoneCount .. " " .. L["zones mapped"] .. ")|r\n" .. text);
 			else
-				NWBLayerMapFrame.EditBox:Insert("\n|cff00ff00[Layer " .. count .. "]|r  |cff9CD6DE(" .. NWB.mapName .. " " .. k .. ")|r  "
-						.. NWB.prefixColor .. "(" .. zoneCount .. " zones mapped)|r\n" .. text);
+				NWBLayerMapFrame.EditBox:Insert("\n|cff00ff00[" .. L["Layer"] .. " " .. count .. "]|r  |cff9CD6DE(" .. NWB.mapName .. " " .. k .. ")|r  "
+						.. NWB.prefixColor .. "(" .. zoneCount .. " " .. L["zones mapped"] .. ")|r\n" .. text);
 			end
 		end
 	end
@@ -12360,8 +12709,9 @@ MinimapLayerFrame:SetFrameLevel(9);
 MinimapLayerFrame:SetMovable(true);
 MinimapLayerFrame.fs = MinimapLayerFrame:CreateFontString("MinimapLayerFrameFS", "ARTWORK");
 MinimapLayerFrame.fs:SetPoint("CENTER", 0, 0);
-MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 10); --No region font here, "Layer" in english always.
-MinimapLayerFrame.fs:SetText("No Layer");
+--MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 10); --No region font here, "Layer" in english always.
+MinimapLayerFrame.fs:SetFont(NWB.regionFont, 10);
+MinimapLayerFrame.fs:SetText(L["No Layer"]);
 MinimapLayerFrame:SetWidth(46);
 MinimapLayerFrame:SetHeight(17);
 MinimapLayerFrame:Hide();
@@ -12373,7 +12723,7 @@ MinimapLayerFrame.tooltip:SetFrameLevel(9);
 MinimapLayerFrame.tooltip.fs = MinimapLayerFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "ARTWORK");
 MinimapLayerFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 MinimapLayerFrame.tooltip.fs:SetFont(NWB.regionFont, 10);
-MinimapLayerFrame.tooltip.fs:SetText("Hold Shift to drag");
+MinimapLayerFrame.tooltip.fs:SetText(L["Hold Shift to drag"]);
 MinimapLayerFrame.tooltip:SetWidth(MinimapLayerFrame.tooltip.fs:GetStringWidth() + 10);
 MinimapLayerFrame.tooltip:SetHeight(MinimapLayerFrame.tooltip.fs:GetStringHeight() + 10);
 MinimapLayerFrame:SetScript("OnEnter", function(self)
@@ -12434,7 +12784,7 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 		for k, v in NWB:pairsByKeys(NWB.data.layers) do
 			count = count + 1;
 			if (k == NWB.lastKnownLayerMapID) then
-				NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. L["You are currently on"] .. " |cff00ff00[Layer " .. count .. "]|cFF9CD6DE.|r");
+				NWBlayerFrame.fs2:SetText("|cFF9CD6DE" .. L["You are currently on"] .. " |cff00ff00[" .. L["Layer"] .. " " .. count .. "]|cFF9CD6DE.|r");
 				if (NWB.currentLayerShared ~= count) then
 					NWB:sendL(count, "recalc minimap");
 					NWB.currentLayerShared = count;
@@ -12448,6 +12798,10 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 				NWB.lastKnownLayerTime = GetServerTime();
 				layerNum = count;
 				foundLayer = true;
+				if (NWB.stvRunning and zone ~= 1434) then
+					--Only from outside STV.
+					NWB:refreshStvBossMarker(NWB.lastKnownLayerMapZoneID, true);
+				end
 			end
 		end
 	end
@@ -12455,15 +12809,15 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 	--		or (NWB.faction == "Alliance" and zone == 1453)) then
 	if (foundLayer or zone == NWB.map) then
 		if (NWB.currentLayer > 0) then
-			MinimapLayerFrame.fs:SetText(NWB.mmColor .. "Layer " .. NWB.lastKnownLayer);
+			MinimapLayerFrame.fs:SetText(NWB.mmColor .. L["Layer"] .. " " .. NWB.lastKnownLayer);
 			MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 12);
 			NWB_CurrentLayer = NWB.lastKnownLayer;
 		elseif (layerNum > 0) then
-			MinimapLayerFrame.fs:SetText(NWB.mmColor .. "Layer " .. layerNum);
+			MinimapLayerFrame.fs:SetText(NWB.mmColor .. L["Layer"] .. " " .. layerNum);
 			MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 12);
 			NWB_CurrentLayer = layerNum;
 		else
-			MinimapLayerFrame.fs:SetText(NWB.mmColor .. "No Layer");
+			MinimapLayerFrame.fs:SetText(NWB.mmColor .. L["No Layer"]);
 			MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 10);
 			NWB_CurrentLayer = 0;
 		end
@@ -12484,7 +12838,7 @@ function NWB:recalcMinimapLayerFrame(zoneID, event, unit)
 				if (v.layerMap and next(v.layerMap)) then
 					for zone, map in pairs(v.layerMap) do
 						if (zone == zoneID) then
-							MinimapLayerFrame.fs:SetText("Layer " .. backupCount);
+							MinimapLayerFrame.fs:SetText(L["Layer"] .. " " .. backupCount);
 							MinimapLayerFrame.fs:SetFont("Fonts\\ARIALN.ttf", 12);
 							foundBackup = true;
 							NWB_CurrentLayer = backupCount;
@@ -12539,6 +12893,12 @@ function NWB:toggleMinimapLayerFrame(type)
 		end
 		NWB.minimapLayerFrameState = nil;
 	end
+	NWB:refreshMinimapLayerFrame();
+end
+
+function NWB:refreshMinimapLayerFrame()
+	MinimapLayerFrame.fs:SetFont(NWB.LSM:Fetch("font", NWB.db.global.minimapLayerFont), NWB.db.global.minimapLayerFontSize);
+	--MinimapLayerFrame:SetScale(NWB.db.global.minimapLayerScale);
 end
 
 Minimap:HookScript("OnEnter", function(self, arg)
@@ -12609,7 +12969,7 @@ NWBVersionDragFrame.tooltip:SetAlpha(.8);
 NWBVersionDragFrame.tooltip.fs = NWBVersionDragFrame.tooltip:CreateFontString("NWBVersionDragTooltipFS", "ARTWORK");
 NWBVersionDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 NWBVersionDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-NWBVersionDragFrame.tooltip.fs:SetText("Hold to drag");
+NWBVersionDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 NWBVersionDragFrame.tooltip:SetWidth(NWBVersionDragFrame.tooltip.fs:GetStringWidth() + 16);
 NWBVersionDragFrame.tooltip:SetHeight(NWBVersionDragFrame.tooltip.fs:GetStringHeight() + 10);
 NWBVersionDragFrame:SetScript("OnEnter", function(self)
@@ -13404,7 +13764,7 @@ function NWB:doNpcWalkingMsg(type, layer, sender)
 	local msg = "";
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layer)) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "ony") then
 		msg = L["onyNpcMoving"] .. layerMsg;
@@ -13436,7 +13796,7 @@ function NWB:walkingAlert(type, layer, sender)
 	local msg = "";
 	local layerMsg = "";
 	if (NWB.isLayered and tonumber(layer)) then
-		layerMsg = " (Layer " .. layer .. ")";
+		layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 	end
 	if (type == "ony") then
 		msg = L["onyNpcMoving"] .. layerMsg;
@@ -13876,7 +14236,7 @@ end)
 
 function NWB:enableScan()
 	if (NWB.isClassic and not doScan and NWB.db.global.earlyRendScan) then
-		NWB:debug("Starting NPC scan.");
+		--NWB:debug("Starting NPC scan.");
 		--Disable swatter from intercepting our error check, it breaks the NPC warning.
 		if (Swatter and Swatter.Frame) then
 			Swatter.Frame:UnregisterEvent("ADDON_ACTION_FORBIDDEN");
@@ -13888,7 +14248,7 @@ end
 
 function NWB:disableScan()
 	if (doScan) then
-		NWB:debug("Stopping NPC scan.");
+		--NWB:debug("Stopping NPC scan.");
 		if (Swatter and Swatter.Frame) then
 			Swatter.Frame:RegisterEvent("ADDON_ACTION_FORBIDDEN");
 		end
@@ -13936,7 +14296,7 @@ function NWB:heraldFound(sender, layer)
 		local time = 20;
 		local layerMsg = "";
 		if (NWB.isLayered and tonumber(layer)) then
-			layerMsg = " (Layer " .. layer .. ")";
+			layerMsg = " (" .. L["Layer"] .. " " .. layer .. ")";
 		end
 		msg = msg .. layerMsg;
 		lastHeraldAlert = GetServerTime();
@@ -14068,7 +14428,7 @@ if (NWB.isClassic) then
 	NWBDmfDragFrame.tooltip.fs = NWBDmfDragFrame.tooltip:CreateFontString("NWBDmfDragTooltipFS", "ARTWORK");
 	NWBDmfDragFrame.tooltip.fs:SetPoint("CENTER", 0, 0.5);
 	NWBDmfDragFrame.tooltip.fs:SetFont(NWB.regionFont, 12);
-	NWBDmfDragFrame.tooltip.fs:SetText("Hold to drag");
+	NWBDmfDragFrame.tooltip.fs:SetText(L["Hold to drag"]);
 	NWBDmfDragFrame.tooltip:SetWidth(NWBDmfDragFrame.tooltip.fs:GetStringWidth() + 16);
 	NWBDmfDragFrame.tooltip:SetHeight(NWBDmfDragFrame.tooltip.fs:GetStringHeight() + 10);
 	NWBDmfDragFrame:SetScript("OnEnter", function(self)

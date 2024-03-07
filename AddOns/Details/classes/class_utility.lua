@@ -574,55 +574,85 @@ function atributo_misc:ReportSingleDebuffUptimeLine (misc_actor, instance)
 	return _detalhes:Reportar (report_table, {_no_current = true, _no_inverse = true, _custom = true})
 end
 
+---index[1] is the death log
+---index[2] is the death time
+---index[3] is the name of the player
+---index[4] is the class of the player
+---index[5] is the max health
+---index[6] is the time of the fight as string
+---@field death boolean
+---@field last_cooldown table
+---@field dead_at number --combat time when the player died
+---@field spec number
+
 ---update a row in an instance (window) showing death logs
----@param morte table
+---@param deathTable table
 ---@param whichRowLine number
 ---@param rankPosition number
----@param instance table
-function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instance) --todo: change this function name
-	morte["dead"] = true
-	local thisRow = instance.barras[whichRowLine]
+---@param instanceObject table
+function atributo_misc:UpdateDeathRow(deathTable, whichRowLine, rankPosition, instanceObject) --todo: change this function name
+	local playerName, playerClass, deathTime, deathCombatTime, deathTimeString, playerMaxHealth, deathEvents, lastCooldown, spec = Details:UnpackDeathTable(deathTable)
+
+	deathTable["dead"] = true
+	local thisRow = instanceObject.barras[whichRowLine]
 
 	if (not thisRow) then
 		print("DEBUG: problema com <instancia.esta_barra> "..whichRowLine.." "..rankPosition)
 		return
 	end
 
-	thisRow.minha_tabela = morte
+	thisRow.minha_tabela = deathTable
 
-	morte.nome = morte[3] --void an issue while resizing the window
-	morte.minha_barra = whichRowLine
+	deathTable.nome = playerName
+	deathTable.minha_barra = whichRowLine
 	thisRow.colocacao = rankPosition
 
-	if (not getmetatable(morte)) then
-		setmetatable(morte, {__call = RefreshBarraMorte})
-		morte._custom = true
+	if (not getmetatable(deathTable)) then
+		setmetatable(deathTable, {__call = RefreshBarraMorte})
+		deathTable._custom = true
 	end
 
-	thisRow.lineText1:SetText(rankPosition .. ". " .. morte[3]:gsub(("%-.*"), ""))
+	local bUseCustomLeftText = instanceObject.row_info.textL_enable_custom_text
+
+	local actorObject = instanceObject:GetCombat():GetContainer(DETAILS_ATTRIBUTE_MISC):GetActor(playerName)
+	if (actorObject) then
+		actorObject:SetBarLeftText(thisRow, instanceObject, false, false, false, bUseCustomLeftText)
+	else
+		Details:SetBarLeftText(thisRow, instanceObject, false, false, false, bUseCustomLeftText)
+	end
+
+	if (instanceObject.row_info.textL_class_colors) then
+		local textColor_Red, textColor_Green, textColor_Blue = actorObject:GetTextColor(instanceObject, "left")
+		thisRow.lineText1:SetTextColor(textColor_Red, textColor_Green, textColor_Blue) --the r, g, b color passed are the color used on the bar, so if the bar is not using class color, the text is painted with the fixed color for the bar
+	end
+
+	if (instanceObject.row_info.textR_class_colors) then
+		local textColor_Red, textColor_Green, textColor_Blue = actorObject:GetTextColor(instanceObject, "right")
+		thisRow.lineText4:SetTextColor(textColor_Red, textColor_Green, textColor_Blue) --the r, g, b color passed are the color used on the bar, so if the bar is not using class color, the text is painted with the fixed color for the bar
+	end
+
 	thisRow.lineText2:SetText("")
 	thisRow.lineText3:SetText("")
-	thisRow.lineText4:SetText(morte[6])
+	thisRow.lineText4:SetText(deathTimeString)
+
+	local r, g, b, a = actorObject:GetBarColor()
+	actorObject:SetBarColors(thisRow, instanceObject, r, g, b, a)
 
 	thisRow:SetValue(100)
 	if (thisRow.hidden or thisRow.fading_in or thisRow.faded) then
 		Details.FadeHandler.Fader(thisRow, "out")
 	end
 
-	--seta a cor da barra e a cor do texto caso eles esteja mostrando com a cor da classe
-	local r, g, b, a = unpack(_detalhes.class_colors[morte[4]])
-	_detalhes:SetBarColors(thisRow, instance, r, g, b, a)
-
-	if (instance.row_info.use_spec_icons) then
-		local nome = morte[3]
-		local spec = instance.showing (1, nome) and instance.showing (1, nome).spec or (instance.showing (2, nome) and instance.showing (2, nome).spec)
+	if (instanceObject.row_info.use_spec_icons) then
+		local nome = deathTable[3]
+		local spec = instanceObject.showing (1, nome) and instanceObject.showing (1, nome).spec or (instanceObject.showing (2, nome) and instanceObject.showing (2, nome).spec)
 		if (spec and spec ~= 0) then
-			thisRow.icone_classe:SetTexture(instance.row_info.spec_file)
+			thisRow.icone_classe:SetTexture(instanceObject.row_info.spec_file)
 			thisRow.icone_classe:SetTexCoord(unpack(_detalhes.class_specs_coords[spec]))
 		else
-			if (CLASS_ICON_TCOORDS [morte[4]]) then
-				thisRow.icone_classe:SetTexture(instance.row_info.icon_file)
-				thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [morte[4]]))
+			if (CLASS_ICON_TCOORDS [deathTable[4]]) then
+				thisRow.icone_classe:SetTexture(instanceObject.row_info.icon_file)
+				thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [deathTable[4]]))
 			else
 				local texture, l, r, t, b = Details:GetUnknownClassIcon()
 				thisRow.icone_classe:SetTexture(texture)
@@ -630,9 +660,9 @@ function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instanc
 			end
 		end
 	else
-		if (CLASS_ICON_TCOORDS [morte[4]]) then
-			thisRow.icone_classe:SetTexture(instance.row_info.icon_file)
-			thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [morte[4]]))
+		if (CLASS_ICON_TCOORDS [deathTable[4]]) then
+			thisRow.icone_classe:SetTexture(instanceObject.row_info.icon_file)
+			thisRow.icone_classe:SetTexCoord(unpack(CLASS_ICON_TCOORDS [deathTable[4]]))
 		else
 			local texture, l, r, t, b = Details:GetUnknownClassIcon()
 			thisRow.icone_classe:SetTexture(texture)
@@ -642,8 +672,8 @@ function atributo_misc:UpdateDeathRow(morte, whichRowLine, rankPosition, instanc
 
 	thisRow.icone_classe:SetVertexColor(1, 1, 1)
 
-	if (thisRow.mouse_over and not instance.baseframe.isMoving) then --precisa atualizar o tooltip
-		gump:UpdateTooltip (whichRowLine, thisRow, instance)
+	if (thisRow.mouse_over and not instanceObject.baseframe.isMoving) then --precisa atualizar o tooltip
+		gump:UpdateTooltip (whichRowLine, thisRow, instanceObject)
 	end
 
 	thisRow.lineText1:SetSize(thisRow:GetWidth() - thisRow.lineText4:GetStringWidth() - 20, 15)
@@ -1176,7 +1206,9 @@ function atributo_misc:ToolTipDispell(instancia, numero, barra)
 		if (spellTable.dispell) then
 			spellsUsedToDispel[#spellsUsedToDispel+1] = {spellId, math.floor(spellTable.dispell)}
 		else
-			Details:Msg("D! table.dispell is invalid. spellId:", spellId)
+			--happens when druid uses shapeshift to break root
+			--Details:Msg("D! table.dispell is invalid. spellId:", spellId)
+			spellsUsedToDispel[#spellsUsedToDispel+1] = {spellId, math.floor(-1)}
 		end
 	end
 	table.sort (spellsUsedToDispel, _detalhes.Sort2)
@@ -1193,7 +1225,13 @@ function atributo_misc:ToolTipDispell(instancia, numero, barra)
 			local spellId = spellInfo[1]
 			local amountDispels = spellInfo[2]
 			local spellName, _, spellicon = _GetSpellInfo(spellId)
-			GameCooltip:AddLine(spellName, amountDispels .. " (" .. string.format("%.1f", amountDispels / totalDispels * 100) .. "%)")
+			local amountOfDispelsStr = "" .. amountDispels
+
+			if (amountDispels == -1) then
+				amountOfDispelsStr = _G["UNKNOWN"]
+			end
+
+			GameCooltip:AddLine(spellName, amountOfDispelsStr .. " (" .. string.format("%.1f", amountDispels / totalDispels * 100) .. "%)")
 			GameCooltip:AddIcon(spellicon, nil, nil, icon_size.W, icon_size.H, icon_border.L, icon_border.R, icon_border.T, icon_border.B)
 			_detalhes:AddTooltipBackgroundStatusbar()
 		end
@@ -1335,115 +1373,93 @@ function _detalhes:CloseEnemyDebuffsUptime()
 	return
 end
 
-function _detalhes:CatchRaidDebuffUptime (in_or_out) -- "DEBUFF_UPTIME_IN"
+function _detalhes:CatchRaidDebuffUptime(sOperationType) -- "DEBUFF_UPTIME_IN"
+	if (sOperationType == "DEBUFF_UPTIME_OUT") then
+		local combatObject = Details:GetCurrentCombat()
+		local utilityContainer = combatObject:GetContainer(DETAILS_ATTRIBUTE_MISC)
 
-	if (in_or_out == "DEBUFF_UPTIME_OUT") then
-		local combat = _detalhes.tabela_vigente
-		local misc_container = combat [4]._ActorTable --error attempt to index a new value
-
-		for _, actor in ipairs(misc_container) do
-			if (actor.debuff_uptime) then
-				for spellid, spell in pairs(actor.debuff_uptime_spells._ActorTable) do
-					if (spell.actived and spell.actived_at) then
-						spell.uptime = spell.uptime + _detalhes._tempo - spell.actived_at
-						actor.debuff_uptime = actor.debuff_uptime + _detalhes._tempo - spell.actived_at
-						spell.actived = false
-						spell.actived_at = nil
+		for _, actorObject in utilityContainer:ListActors() do
+			if (actorObject.debuff_uptime) then
+				for spellId, spellTable in pairs(actorObject.debuff_uptime_spells._ActorTable) do
+					if (spellTable.actived and spellTable.actived_at) then
+						spellTable.uptime = spellTable.uptime + _detalhes._tempo - spellTable.actived_at
+						actorObject.debuff_uptime = actorObject.debuff_uptime + _detalhes._tempo - spellTable.actived_at
+						spellTable.actived = false
+						spellTable.actived_at = nil
 					end
 				end
 			end
 		end
-
 		return
-	end
 
-	local cacheGetTime = GetTime()
+	elseif (sOperationType == "DEBUFF_UPTIME_IN") then
+		local cacheGetTime = GetTime()
 
-	if (IsInRaid()) then
+		if (IsInRaid()) then
 
-		local checked = {}
+			local checked = {}
 
-		for raidIndex = 1, GetNumGroupMembers() do
+			for raidIndex = 1, GetNumGroupMembers() do
 
-			local target = "raid"..raidIndex.."target"
-			local his_target = UnitGUID(target)
+				local target = "raid"..raidIndex.."target"
+				local his_target = UnitGUID(target)
 
-			if (his_target and not checked [his_target]) then
-				local rect = UnitReaction (target, "player")
-				if (rect and rect <= 4) then
+				if (his_target and not checked [his_target]) then
+					local rect = UnitReaction (target, "player")
+					if (rect and rect <= 4) then
+
+						checked [his_target] = true
+
+						for debuffIndex = 1, 41 do
+							local name, _, _, _, _, _, _, unitCaster, _, _, spellid = UnitDebuff (target, debuffIndex)
+							if (name and unitCaster) then
+								local playerGUID = UnitGUID(unitCaster)
+								if (playerGUID) then
+
+									local playerName, realmName = _UnitName (unitCaster)
+									if (realmName and realmName ~= "") then
+										playerName = playerName .. "-" .. realmName
+									end
+
+									_detalhes.parser:add_debuff_uptime (nil, cacheGetTime, playerGUID, playerName, 0x00000417, his_target, _UnitName (target), 0x842, nil, spellid, name, sOperationType)
+								end
+							end
+						end
+					end
+				end
+			end
+
+		elseif (IsInGroup()) then
+
+			local checked = {}
+
+			for raidIndex = 1, GetNumGroupMembers()-1 do
+				local his_target = UnitGUID("party"..raidIndex.."target")
+				local rect = UnitReaction ("party"..raidIndex.."target", "player")
+				if (his_target and not checked [his_target] and rect and rect <= 4) then
 
 					checked [his_target] = true
 
-					for debuffIndex = 1, 41 do
-						local name, _, _, _, _, _, _, unitCaster, _, _, spellid = UnitDebuff (target, debuffIndex)
+					for debuffIndex = 1, 40 do
+						local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("party"..raidIndex.."target", debuffIndex)
 						if (name and unitCaster) then
+							local playerName, realmName = _UnitName (unitCaster)
 							local playerGUID = UnitGUID(unitCaster)
 							if (playerGUID) then
-
-								local playerName, realmName = _UnitName (unitCaster)
 								if (realmName and realmName ~= "") then
 									playerName = playerName .. "-" .. realmName
 								end
 
-								_detalhes.parser:add_debuff_uptime (nil, cacheGetTime, playerGUID, playerName, 0x00000417, his_target, _UnitName (target), 0x842, nil, spellid, name, in_or_out)
+								_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("party"..raidIndex.."target"), 0x842, nil, spellid, name, sOperationType)
 							end
 						end
 					end
 				end
 			end
-		end
 
-	elseif (IsInGroup()) then
-
-		local checked = {}
-
-		for raidIndex = 1, GetNumGroupMembers()-1 do
-			local his_target = UnitGUID("party"..raidIndex.."target")
-			local rect = UnitReaction ("party"..raidIndex.."target", "player")
+			local his_target = UnitGUID("playertarget")
+			local rect = UnitReaction ("playertarget", "player")
 			if (his_target and not checked [his_target] and rect and rect <= 4) then
-
-				checked [his_target] = true
-
-				for debuffIndex = 1, 40 do
-					local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("party"..raidIndex.."target", debuffIndex)
-					if (name and unitCaster) then
-						local playerName, realmName = _UnitName (unitCaster)
-						local playerGUID = UnitGUID(unitCaster)
-						if (playerGUID) then
-							if (realmName and realmName ~= "") then
-								playerName = playerName .. "-" .. realmName
-							end
-
-							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("party"..raidIndex.."target"), 0x842, nil, spellid, name, in_or_out)
-						end
-					end
-				end
-			end
-		end
-
-		local his_target = UnitGUID("playertarget")
-		local rect = UnitReaction ("playertarget", "player")
-		if (his_target and not checked [his_target] and rect and rect <= 4) then
-			for debuffIndex = 1, 40 do
-				local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
-				if (name and unitCaster) then
-					local playerName, realmName = _UnitName (unitCaster)
-					local playerGUID = UnitGUID(unitCaster)
-					if (playerGUID) then
-						if (realmName and realmName ~= "") then
-							playerName = playerName .. "-" .. realmName
-						end
-						_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, in_or_out)
-					end
-				end
-			end
-		end
-
-	else
-		local his_target = UnitGUID("playertarget")
-		if (his_target) then
-			local reaction = UnitReaction ("playertarget", "player")
-			if (reaction and reaction <= 4) then
 				for debuffIndex = 1, 40 do
 					local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
 					if (name and unitCaster) then
@@ -1453,7 +1469,28 @@ function _detalhes:CatchRaidDebuffUptime (in_or_out) -- "DEBUFF_UPTIME_IN"
 							if (realmName and realmName ~= "") then
 								playerName = playerName .. "-" .. realmName
 							end
-							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, in_or_out)
+							_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, sOperationType)
+						end
+					end
+				end
+			end
+
+		else
+			local his_target = UnitGUID("playertarget")
+			if (his_target) then
+				local reaction = UnitReaction ("playertarget", "player")
+				if (reaction and reaction <= 4) then
+					for debuffIndex = 1, 40 do
+						local name, _, _, _, _, _, _, unitCaster, _, _, spellid  = UnitDebuff ("playertarget", debuffIndex)
+						if (name and unitCaster) then
+							local playerName, realmName = _UnitName (unitCaster)
+							local playerGUID = UnitGUID(unitCaster)
+							if (playerGUID) then
+								if (realmName and realmName ~= "") then
+									playerName = playerName .. "-" .. realmName
+								end
+								_detalhes.parser:add_debuff_uptime (nil, GetTime(), playerGUID, playerName, 0x00000417, his_target, _UnitName ("playertarget"), 0x842, nil, spellid, name, sOperationType)
+							end
 						end
 					end
 				end
@@ -1536,8 +1573,9 @@ function _detalhes:CatchRaidBuffUptime(sOperationType)
 					if (auraName) then
 						if (UnitExists(unitCaster)) then
 							local bBuffIsPlacedOnTarget = Details.CreditBuffToTarget[spellId]
-							if (UnitIsUnit(unitCaster, unitId) or bBuffIsPlacedOnTarget) then
-								if (bBuffIsPlacedOnTarget and not UnitIsUnit(unitCaster, unitId)) then
+							local bUnitIsTheCaster = UnitIsUnit(unitCaster, unitId)
+							if (bUnitIsTheCaster or bBuffIsPlacedOnTarget) then
+								if (bBuffIsPlacedOnTarget and not bUnitIsTheCaster) then
 									--could be prescince, ebom might or power infusion; casted on a target instead of the caster
 									local sourceSerial = UnitGUID(unitCaster)
 									local sourceName = Details:GetFullName(unitCaster)
@@ -1547,9 +1585,9 @@ function _detalhes:CatchRaidBuffUptime(sOperationType)
 									local targetFlags = 0x514
 									local targetFlags2 = 0x0
 									local spellName = auraName
-									--print(targetName, "already had", spellName, "at first of a combat")
 									Details.parser:buff("SPELL_AURA_APPLIED", time(), sourceSerial, sourceName, sourceFlags, targetSerial, targetName, targetFlags, targetFlags2, spellId, spellName, 0x4, "BUFF", 0)
-								else
+
+								elseif (bUnitIsTheCaster) then
 									local playerGUID = UnitGUID(unitId)
 									if (playerGUID) then
 										local playerName = Details:GetFullName(unitId)
@@ -1671,6 +1709,10 @@ function _detalhes:CatchRaidBuffUptime(sOperationType)
 		--]]
 		-- _detalhes:Msg(string_output)
 
+	end
+
+	if (sOperationType == "BUFF_UPTIME_OUT") then
+		
 	end
 end
 
@@ -2595,6 +2637,17 @@ function atributo_misc:r_connect_shadow(actor, no_refresh, combat_object)
 		DetailsFramework.table.addunique(shadow.pets, petName)
 	end
 
+	if (actor.cleu_prescience_time) then
+		local shadowPrescienceStackData = shadow.cleu_prescience_time
+		if (not shadowPrescienceStackData) then
+			shadow.cleu_prescience_time = detailsFramework.table.copy({}, actor.cleu_prescience_time)
+		else
+			for amountOfPrescienceApplied, time in pairs(actor.cleu_prescience_time.stackTime) do
+				shadow.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = shadow.cleu_prescience_time.stackTime[amountOfPrescienceApplied] + time
+			end
+		end
+	end
+
 	if (actor.cc_done) then
 		if (not shadow.cc_done_targets) then
 			shadow.cc_done = _detalhes:GetOrderNumber()
@@ -2948,6 +3001,17 @@ function _detalhes.clear:c_atributo_misc (este_jogador)
 end
 
 atributo_misc.__add = function(tabela1, tabela2)
+	if (tabela2.cleu_prescience_time) then --timeline
+		local shadowPrescienceStackData = tabela1.cleu_prescience_time
+		if (not shadowPrescienceStackData) then
+			tabela1.cleu_prescience_time = detailsFramework.table.copy({}, tabela2.cleu_prescience_time)
+		else
+			for amountOfPrescienceApplied, time in pairs(tabela2.cleu_prescience_time.stackTime) do
+				tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] + time
+			end
+		end
+	end
+
 	if (tabela2.cc_done) then
 		tabela1.cc_done = tabela1.cc_done + tabela2.cc_done
 
@@ -3223,6 +3287,15 @@ local subtractKeyValues = function(habilidade, habilidade_tabela1)
 end
 
 atributo_misc.__sub = function(tabela1, tabela2)
+	if (tabela2.cleu_prescience_time) then --timeline
+		local shadowPrescienceStackData = tabela1.cleu_prescience_time
+		if (shadowPrescienceStackData) then
+			for amountOfPrescienceApplied, time in pairs(tabela2.cleu_prescience_time.stackTime) do
+				tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] = tabela1.cleu_prescience_time.stackTime[amountOfPrescienceApplied] - time
+			end
+		end
+	end
+
 	if (tabela2.cc_done) then
 		tabela1.cc_done = tabela1.cc_done - tabela2.cc_done
 

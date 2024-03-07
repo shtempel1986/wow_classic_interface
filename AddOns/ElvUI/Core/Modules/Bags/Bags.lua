@@ -102,7 +102,7 @@ local BANK_CONTAINER = Enum.BagIndex.Bank
 local BACKPACK_CONTAINER = Enum.BagIndex.Backpack
 local REAGENTBANK_CONTAINER = Enum.BagIndex.Reagentbank
 local KEYRING_CONTAINER = Enum.BagIndex.Keyring
-local REAGENT_CONTAINER = Enum.BagIndex.ReagentBag
+local REAGENT_CONTAINER = E.Retail and Enum.BagIndex.ReagentBag or math.huge
 
 local BAG_FILTER_ASSIGN_TO = BAG_FILTER_ASSIGN_TO
 local BAG_FILTER_CLEANUP = BAG_FILTER_CLEANUP
@@ -191,11 +191,11 @@ B.numTrackedTokens = 0
 B.QuestSlots = {}
 B.ItemLevelSlots = {}
 B.BAG_FILTER_ICONS = {
-	[FILTER_FLAG_EQUIPMENT] = E.Media.Textures.ChestPlate,		-- Interface/ICONS/INV_Chest_Plate10
-	[FILTER_FLAG_CONSUMABLES] = E.Media.Textures.GreenPotion,	-- Interface/ICONS/INV_Potion_93
-	[FILTER_FLAG_TRADE_GOODS] = E.Media.Textures.FabricSilk,	-- Interface/ICONS/INV_Fabric_Silk_02
-	[FILTER_FLAG_JUNK] = E.Media.Textures.GoldCoins,			-- Interface/ICONS/INV_Misc_Coin_01
-	[FILTER_FLAG_QUEST] = E.Media.Textures.Scroll				-- Interface/ICONS/INV_Scroll_03
+	[FILTER_FLAG_EQUIPMENT] = E.Media.Textures.ChestPlate,		-- Interface\ICONS\INV_Chest_Plate10
+	[FILTER_FLAG_CONSUMABLES] = E.Media.Textures.GreenPotion,	-- Interface\ICONS\INV_Potion_93
+	[FILTER_FLAG_TRADE_GOODS] = E.Media.Textures.FabricSilk,	-- Interface\ICONS\INV_Fabric_Silk_02
+	[FILTER_FLAG_JUNK] = E.Media.Textures.GoldCoins,			-- Interface\ICONS\INV_Misc_Coin_01
+	[FILTER_FLAG_QUEST] = E.Media.Textures.Scroll				-- Interface\ICONS\INV_Scroll_03
 }
 
 local itemSpellID = {
@@ -312,7 +312,7 @@ function B:Tooltip_Show()
 end
 
 do
-	local function DisableFrame(frame)
+	local function DisableFrame(frame, container)
 		if not frame then return end
 
 		frame:UnregisterAllEvents()
@@ -321,11 +321,15 @@ do
 		frame:SetParent(E.HiddenFrame)
 		frame:ClearAllPoints()
 		frame:Point('BOTTOM')
+
+		if container then -- this will fix itemButton being nil inside of UpdateItemLayout when first accessing a vendor then adding a bag
+			frame:RegisterEvent('BAG_CONTAINER_UPDATE')
+		end
 	end
 
 	function B:DisableBlizzard()
 		DisableFrame(_G.BankFrame)
-		DisableFrame(_G.ContainerFrameCombinedBags)
+		DisableFrame(_G.ContainerFrameCombinedBags, true)
 
 		for i = 1, NUM_CONTAINER_FRAMES do
 			_G['ContainerFrame'..i]:Kill()
@@ -415,8 +419,13 @@ function B:UpdateItemDisplay()
 	end
 end
 
-function B:UpdateAllSlots(frame)
+function B:UpdateAllSlots(frame, first)
 	for _, bagID in next, frame.BagIDs do
+		local holder = first and frame.isBank and (bagID and bagID ~= BANK_CONTAINER) and frame.ContainerHolderByBagID[bagID]
+		if holder then -- updates the slot icons on first open
+			B:SetBagAssignments(holder)
+		end
+
 		B:UpdateBagSlots(frame, bagID)
 	end
 end
@@ -892,7 +901,7 @@ end
 function B:GetBagAssignedInfo(holder, isBank)
 	local active, icon, color = B:GetFilterFlagInfo(holder.BagID, isBank)
 
-	if holder.filterIcon and icon then
+	if holder.filterIcon then
 		holder.filterIcon:SetTexture(icon)
 		holder.filterIcon:SetShown(active and B.db.showAssignedIcon)
 	end
@@ -1160,6 +1169,16 @@ function B:UpdateLayout(frame)
 	end
 end
 
+function B:UpdateBankBagIcon(holder)
+	if not holder then return end
+
+	BankFrameItemButton_Update(holder)
+
+	local numSlots = GetNumBankSlots()
+	local color = ((holder.index - 1) <= numSlots) and 1 or 0.1
+	holder.icon:SetVertexColor(1, color, color)
+end
+
 function B:SetBagAssignments(holder, skip)
 	if not holder then return true end
 
@@ -1181,7 +1200,7 @@ function B:SetBagAssignments(holder, skip)
 
 	if frame.isBank and frame:IsShown() then
 		if holder.BagID ~= BANK_CONTAINER then
-			BankFrameItemButton_Update(holder)
+			B:UpdateBankBagIcon(holder)
 		end
 
 		local containerID = holder.index - 1
@@ -1632,8 +1651,9 @@ function B:ConstructContainerFrame(name, isBank)
 		end
 
 		holder.icon:SetTexCoord(unpack(E.TexCoords))
-		holder.icon:SetTexture(bagID == KEYRING_CONTAINER and 134237 or E.Media.Textures.Backpack) -- Interface/ICONS/INV_Misc_Key_03
+		holder.icon:SetTexture(bagID == KEYRING_CONTAINER and 134237 or E.Media.Textures.Backpack) -- Interface\ICONS\INV_Misc_Key_03
 		holder.icon:SetInside()
+
 		holder.IconBorder:SetAlpha(0)
 
 		holder.shownIcon = holder:CreateTexture(nil, 'OVERLAY', nil, 1)
@@ -1809,7 +1829,7 @@ function B:ConstructContainerFrame(name, isBank)
 			f.reagentToggle:Size(18)
 			f.reagentToggle:SetTemplate()
 			f.reagentToggle:Point('BOTTOMRIGHT', f.holderFrame, 'TOPRIGHT', 0, 3)
-			B:SetButtonTexture(f.reagentToggle, 132854) -- Interface/ICONS/INV_Enchant_DustArcane
+			B:SetButtonTexture(f.reagentToggle, 132854) -- Interface\ICONS\INV_Enchant_DustArcane
 			f.reagentToggle:StyleButton(nil, true)
 			f.reagentToggle.ttText = L["Show/Hide Reagents"]
 			f.reagentToggle:SetScript('OnEnter', B.Tooltip_Show)
@@ -1825,7 +1845,7 @@ function B:ConstructContainerFrame(name, isBank)
 			f.depositButton:Size(18)
 			f.depositButton:SetTemplate()
 			f.depositButton:Point('RIGHT', f.reagentToggle, 'LEFT', -5, 0)
-			B:SetButtonTexture(f.depositButton, 450905) -- Interface/ICONS/misc_arrowdown
+			B:SetButtonTexture(f.depositButton, 450905) -- Interface\ICONS\misc_arrowdown
 			f.depositButton:StyleButton(nil, true)
 			f.depositButton.ttText = L["Deposit Reagents"]
 			f.depositButton:SetScript('OnEnter', B.Tooltip_Show)
@@ -1883,7 +1903,7 @@ function B:ConstructContainerFrame(name, isBank)
 		f.purchaseBagButton:Size(18)
 		f.purchaseBagButton:SetTemplate()
 		f.purchaseBagButton:Point('RIGHT', f.bagsButton, 'LEFT', -5, 0)
-		B:SetButtonTexture(f.purchaseBagButton, 133784) -- Interface/ICONS/INV_Misc_Coin_01
+		B:SetButtonTexture(f.purchaseBagButton, 133784) -- Interface\ICONS\INV_Misc_Coin_01
 		f.purchaseBagButton:StyleButton(nil, true)
 		f.purchaseBagButton.ttText = L["Purchase Bags"]
 		f.purchaseBagButton:SetScript('OnEnter', B.Tooltip_Show)
@@ -1949,7 +1969,7 @@ function B:ConstructContainerFrame(name, isBank)
 			f.keyButton:Size(18)
 			f.keyButton:SetTemplate()
 			f.keyButton:Point('RIGHT', f.bagsButton, 'LEFT', -5, 0)
-			B:SetButtonTexture(f.keyButton, 134237) -- Interface/ICONS/INV_Misc_Key_03
+			B:SetButtonTexture(f.keyButton, 134237) -- Interface\ICONS\INV_Misc_Key_03
 			f.keyButton:StyleButton(nil, true)
 			f.keyButton.ttText = BINDING_NAME_TOGGLEKEYRING
 			f.keyButton:SetScript('OnEnter', B.Tooltip_Show)
@@ -1962,7 +1982,7 @@ function B:ConstructContainerFrame(name, isBank)
 		f.vendorGraysButton:Size(18)
 		f.vendorGraysButton:SetTemplate()
 		f.vendorGraysButton:Point('RIGHT', not E.Retail and f.keyButton or f.bagsButton, 'LEFT', -5, 0)
-		B:SetButtonTexture(f.vendorGraysButton, 133784) -- Interface/ICONS/INV_Misc_Coin_01
+		B:SetButtonTexture(f.vendorGraysButton, 133784) -- Interface\ICONS\INV_Misc_Coin_01
 		f.vendorGraysButton:StyleButton(nil, true)
 		f.vendorGraysButton.ttText = not E.Retail and L["Vendor / Delete Grays"] or L["Vendor Grays"]
 		f.vendorGraysButton.ttValue = B.GetGraysValue
@@ -2077,7 +2097,7 @@ function B:ConstructContainerButton(f, bagID, slotID)
 		slot.keyringTexture = slot:CreateTexture(nil, 'BORDER')
 		slot.keyringTexture:SetAlpha(0.5)
 		slot.keyringTexture:SetInside(slot)
-		slot.keyringTexture:SetTexture(130980) -- Interface/ContainerFrame/KeyRing-Bag-Icon
+		slot.keyringTexture:SetTexture(130980) -- Interface\ContainerFrame\KeyRing-Bag-Icon
 		slot.keyringTexture:SetTexCoord(unpack(E.TexCoords))
 		slot.keyringTexture:SetDesaturated(true)
 	end
@@ -2339,7 +2359,7 @@ function B:OpenBank()
 	B:ShowBankTab(B.BankFrame, E.Retail and IsShiftKeyDown())
 
 	if B.BankFrame.firstOpen then
-		B:UpdateAllSlots(B.BankFrame)
+		B:UpdateAllSlots(B.BankFrame, true)
 
 		if E.Retail then
 			B:UpdateBagSlots(B.BankFrame, REAGENTBANK_CONTAINER)

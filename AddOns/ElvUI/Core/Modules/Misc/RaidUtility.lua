@@ -14,7 +14,7 @@ local GameTooltip_Hide = GameTooltip_Hide
 local GetInstanceInfo = GetInstanceInfo
 local GetNumGroupMembers = GetNumGroupMembers
 local GetRaidRosterInfo = GetRaidRosterInfo
-local GetTexCoordsForRole = GetTexCoordsForRole
+local GetTexCoordsByGrid = GetTexCoordsByGrid
 local InCombatLockdown = InCombatLockdown
 local InitiateRolePoll = InitiateRolePoll
 local SecureHandlerSetFrameRef = SecureHandlerSetFrameRef
@@ -29,16 +29,30 @@ local PlaySound = PlaySound
 
 local SetRestrictPings = C_PartyInfo.SetRestrictPings
 local GetRestrictPings = C_PartyInfo.GetRestrictPings
-local DoCountdown = C_PartyInfo.DoCountdown
 
 local IG_MAINMENU_OPTION_CHECKBOX_ON = SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
 local PRIEST_COLOR = RAID_CLASS_COLORS.PRIEST
 local NUM_RAID_GROUPS = NUM_RAID_GROUPS
-local PANEL_HEIGHT = E.Retail and 180 or 130
+local PANEL_HEIGHT = E.Retail and 154 or 130
 local PANEL_WIDTH = 230
 local BUTTON_HEIGHT = 20
 
-local roles = { 'TANK', 'HEALER', 'DAMAGER' }
+-- GLOBALS: C_PartyInfo
+
+local roles = {
+	{ role = 'TANK' },
+	{ role = 'HEALER' },
+	{ role = 'DAMAGER' }
+}
+
+local function SetGrabCoords(data, xOffset, yOffset)
+	data.texA, data.texB, data.texC, data.texD = GetTexCoordsByGrid(xOffset, yOffset, 256, 256, 67, 67)
+end
+
+SetGrabCoords(roles[1], 1, 2)
+SetGrabCoords(roles[2], 2, 1)
+SetGrabCoords(roles[3], 2, 2)
+
 local ShowButton = CreateFrame('Button', 'RaidUtility_ShowButton', E.UIParent, 'UIMenuButtonStretchTemplate, SecureHandlerClickTemplate')
 ShowButton:SetMovable(true)
 ShowButton:SetClampedToScreen(true)
@@ -237,7 +251,7 @@ end
 
 function RU:OnClick_RaidCountdownButton()
 	if RU:CheckRaidStatus() then
-		DoCountdown(10)
+		C_PartyInfo.DoCountdown(10)
 	end
 end
 
@@ -356,10 +370,13 @@ function RU:Initialize()
 	RU.Buttons = {}
 	RU.CheckBoxes = {}
 
+	local hasCountdown = C_PartyInfo.DoCountdown
+	local countdownHeight = hasCountdown and 0 or 25
+
 	local RaidUtilityPanel = CreateFrame('Frame', 'RaidUtilityPanel', E.UIParent, 'SecureHandlerBaseTemplate')
 	RaidUtilityPanel:SetScript('OnMouseUp', RU.OnClick_RaidUtilityPanel)
 	RaidUtilityPanel:SetTemplate('Transparent')
-	RaidUtilityPanel:Size(PANEL_WIDTH, PANEL_HEIGHT)
+	RaidUtilityPanel:Size(PANEL_WIDTH, PANEL_HEIGHT - countdownHeight)
 	RaidUtilityPanel:Point('TOP', E.UIParent, 'TOP', -400, 1)
 	RaidUtilityPanel:SetFrameLevel(3)
 	RaidUtilityPanel.toggled = false
@@ -411,26 +428,28 @@ function RU:Initialize()
 	if E.Retail or E.Wrath then
 		local RoleIcons = CreateFrame('Frame', 'RaidUtilityRoleIcons', RaidUtilityPanel)
 		RoleIcons:Point('LEFT', RaidUtilityPanel, 'RIGHT', -1, 0)
-		RoleIcons:Size(36, PANEL_HEIGHT)
+		RoleIcons:Size(36, PANEL_HEIGHT - countdownHeight)
 		RoleIcons:SetTemplate('Transparent')
 		RoleIcons:RegisterEvent('PLAYER_ENTERING_WORLD')
 		RoleIcons:RegisterEvent('GROUP_ROSTER_UPDATE')
 		RoleIcons:SetScript('OnEvent', RU.OnEvent_RoleIcons)
 		RoleIcons.icons = {}
 
-		for i, role in next, roles do
-			local frame = CreateFrame('Frame', '$parent_'..role, RoleIcons)
+		for i, data in next, roles do
+			local frame = CreateFrame('Frame', '$parent_'..data.role, RoleIcons)
+
 			if i == 1 then
 				frame:Point('TOP', 0, -5)
 			else
-				frame:Point('TOP', _G['RaidUtilityRoleIcons_'..roles[i-1]], 'BOTTOM', 0, -8)
+				local previous = roles[i-1]
+				if previous and previous.role then
+					frame:Point('TOP', _G['RaidUtilityRoleIcons_'..previous.role], 'BOTTOM', 0, -8)
+				end
 			end
 
 			local texture = frame:CreateTexture(nil, 'OVERLAY')
 			texture:SetTexture(E.Media.Textures.RoleIcons) -- 337499
-
-			local texA, texB, texC, texD = GetTexCoordsForRole(role)
-			texture:SetTexCoord(texA, texB, texC, texD)
+			texture:SetTexCoord(data.texA, data.texB, data.texC, data.texD)
 			texture:Point('TOPLEFT', frame, 'TOPLEFT', -2, 2)
 			texture:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', 2, -2)
 			frame.texture = texture
@@ -440,37 +459,32 @@ function RU:Initialize()
 			Count:SetText(0)
 			frame.count = Count
 
-			frame.role = role
+			frame.role = data.role
 			frame:SetScript('OnEnter', RU.OnEnter_Role)
 			frame:SetScript('OnLeave', GameTooltip_Hide)
 			frame:Size(28)
 
-			RoleIcons.icons[role] = frame
+			RoleIcons.icons[data.role] = frame
 		end
 	end
 
 	local BUTTON_WIDTH = PANEL_WIDTH - 20
-	local DisbandRaidButton = RU:CreateUtilButton('RaidUtility_DisbandRaidButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH, BUTTON_HEIGHT, 'TOP', RaidUtilityPanel, 'TOP', 0, -5, L["Disband Group"])
+	local RaidControlButton = RU:CreateUtilButton('RaidUtility_RaidControlButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', RaidUtilityPanel, 'TOPLEFT', 10, -4, L["Raid Menu"])
+	RaidControlButton:SetScript('OnMouseUp', RU.OnClick_RaidControlButton)
+
+	local DisbandRaidButton = RU:CreateUtilButton('RaidUtility_DisbandRaidButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', RaidControlButton, 'TOPRIGHT', 3, 0, L["Disband Group"])
 	DisbandRaidButton:SetScript('OnMouseUp', RU.OnClick_DisbandRaidButton)
 
-	local ReadyCheckButton = RU:CreateUtilButton('RaidUtility_ReadyCheckButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH, BUTTON_HEIGHT, 'TOPLEFT', DisbandRaidButton, 'BOTTOMLEFT', 0, -5, _G.READY_CHECK)
+	local ReadyCheckButton = RU:CreateUtilButton('RaidUtility_ReadyCheckButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * (E.Classic and 1 or 0.49), BUTTON_HEIGHT, 'TOPLEFT', RaidControlButton, 'BOTTOMLEFT', 0, -5, _G.READY_CHECK)
 	ReadyCheckButton:SetScript('OnMouseUp', RU.OnClick_ReadyCheckButton)
 
 	local RoleCheckButton
 	if E.Retail or E.Wrath then
-		RoleCheckButton = RU:CreateUtilButton('RaidUtility_RoleCheckButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * (E.Wrath and 0.49 or 0.78), BUTTON_HEIGHT, 'TOPLEFT', ReadyCheckButton, 'BOTTOMLEFT', 0, -5, _G.ROLE_POLL)
+		RoleCheckButton = RU:CreateUtilButton('RaidUtility_RoleCheckButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', ReadyCheckButton, 'TOPRIGHT', 3, 0, _G.ROLE_POLL)
 		RoleCheckButton:SetScript('OnMouseUp', RU.OnClick_RoleCheckButton)
 	end
 
-	local RaidControlButton = RU:CreateUtilButton('RaidUtility_RaidControlButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * ((E.Retail or E.Wrath) and 0.49 or 1), BUTTON_HEIGHT, 'TOPLEFT', ((E.Retail or E.Wrath) and RoleCheckButton) or ReadyCheckButton, E.Wrath and 'TOPRIGHT' or 'BOTTOMLEFT', E.Wrath and 3 or 0, E.Wrath and 0 or -5, L["Raid Menu"])
-	RaidControlButton:SetScript('OnMouseUp', RU.OnClick_RaidControlButton)
-
-	if DoCountdown then
-		local RaidCountdownButton = RU:CreateUtilButton('RaidUtility_RaidCountdownButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', RaidControlButton, 'TOPRIGHT', 3, 0, _G.PLAYER_COUNTDOWN_BUTTON)
-		RaidCountdownButton:SetScript('OnMouseUp', RU.OnClick_RaidCountdownButton)
-	end
-
-	local MainTankButton = RU:CreateUtilButton('RaidUtility_MainTankButton', RaidUtilityPanel, 'SecureActionButtonTemplate, UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', E.Wrath and RoleCheckButton or RaidControlButton, 'BOTTOMLEFT', 0, -5, _G.MAINTANK)
+	local MainTankButton = RU:CreateUtilButton('RaidUtility_MainTankButton', RaidUtilityPanel, 'SecureActionButtonTemplate, UIMenuButtonStretchTemplate', BUTTON_WIDTH * 0.49, BUTTON_HEIGHT, 'TOPLEFT', ReadyCheckButton, 'BOTTOMLEFT', 0, -5, _G.MAINTANK)
 	MainTankButton:SetAttribute('type', 'maintank')
 	MainTankButton:SetAttribute('unit', 'target')
 	MainTankButton:SetAttribute('action', 'toggle')
@@ -480,7 +494,13 @@ function RU:Initialize()
 	MainAssistButton:SetAttribute('unit', 'target')
 	MainAssistButton:SetAttribute('action', 'toggle')
 
-	local EveryoneAssist = RU:CreateCheckBox('RaidUtility_EveryoneAssist', RaidUtilityPanel, nil, BUTTON_WIDTH, BUTTON_HEIGHT + 4, 'TOPLEFT', MainTankButton, 'BOTTOMLEFT', -4, -3, _G.ALL_ASSIST_LABEL_LONG, {'GROUP_ROSTER_UPDATE', 'PARTY_LEADER_CHANGED'}, RU.OnEvent_EveryoneAssist, RU.OnClick_EveryoneAssist)
+	local RaidCountdownButton
+	if hasCountdown then
+		RaidCountdownButton = RU:CreateUtilButton('RaidUtility_RaidCountdownButton', RaidUtilityPanel, 'UIMenuButtonStretchTemplate', BUTTON_WIDTH * (E.Retail and 0.78 or 1), BUTTON_HEIGHT, 'TOPLEFT', MainTankButton, 'BOTTOMLEFT', 0, -5, L["Countdown"])
+		RaidCountdownButton:SetScript('OnMouseUp', RU.OnClick_RaidCountdownButton)
+	end
+
+	local EveryoneAssist = RU:CreateCheckBox('RaidUtility_EveryoneAssist', RaidUtilityPanel, nil, BUTTON_WIDTH, BUTTON_HEIGHT + 4, 'TOPLEFT', RaidCountdownButton or MainTankButton, 'BOTTOMLEFT', -4, -3, _G.ALL_ASSIST_LABEL_LONG, {'GROUP_ROSTER_UPDATE', 'PARTY_LEADER_CHANGED'}, RU.OnEvent_EveryoneAssist, RU.OnClick_EveryoneAssist)
 
 	if SetRestrictPings then
 		RU:CreateCheckBox('RaidUtility_RestrictPings', RaidUtilityPanel, nil, BUTTON_WIDTH, BUTTON_HEIGHT + 4, 'TOPLEFT', EveryoneAssist, 'BOTTOMLEFT', 0, 0, _G.RAID_MANAGER_RESTRICT_PINGS, {'GROUP_ROSTER_UPDATE', 'PARTY_LEADER_CHANGED'}, RU.OnEvent_RestrictPings, RU.OnClick_RestrictPings)
@@ -492,7 +512,7 @@ function RU:Initialize()
 			local marker = _G.CompactRaidFrameManagerDisplayFrameLeaderOptionsRaidWorldMarkerButton
 			marker:SetParent(RaidUtilityPanel)
 			marker:ClearAllPoints()
-			marker:Point('TOPLEFT', RoleCheckButton, 'TOPRIGHT', 3, 0)
+			marker:Point('TOPLEFT', RaidCountdownButton, 'TOPRIGHT', 3, 0)
 			marker:Size(BUTTON_WIDTH * 0.2, BUTTON_HEIGHT)
 			marker:HookScript('OnEnter', RU.OnEnter_Button)
 			marker:HookScript('OnLeave', RU.OnLeave_Button)

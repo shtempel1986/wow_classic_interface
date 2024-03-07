@@ -27,6 +27,8 @@ local QuestieTracker = QuestieLoader:ImportModule("QuestieTracker");
 local QuestieShutUp = QuestieLoader:ImportModule("QuestieShutUp")
 ---@type Sounds
 local Sounds = QuestieLoader:ImportModule("Sounds")
+---@type AvailableQuests
+local AvailableQuests = QuestieLoader:ImportModule("AvailableQuests")
 
 QuestieOptions.tabs.general = { ... }
 local optionsDefaults = QuestieOptionsDefaults:Load()
@@ -267,6 +269,7 @@ function QuestieOptions.tabs.general:Initialize()
 
                             if not value then
                                 QuestieCoords.ResetMapText();
+                                QuestieCoords:ResetMiniWorldMapText();
                             end
                         end,
                     },
@@ -331,7 +334,7 @@ function QuestieOptions.tabs.general:Initialize()
                         get = function () return Questie.db.profile.lowLevelStyle end,
                         set = function (_, value)
                             Questie.db.profile.lowLevelStyle = value
-                            QuestieOptions.AvailableQuestRedraw();
+                            AvailableQuests.CalculateAndDrawAll()
                             Questie:Debug(Questie.DEBUG_DEVELOP, "Lowlevel Quests set to:", value)
                         end,
                     },
@@ -350,7 +353,7 @@ function QuestieOptions.tabs.general:Initialize()
                         get = function() return Questie.db.profile.manualLevelOffset end,
                         set = function(info, value)
                             Questie.db.profile.manualLevelOffset = value;
-                            QuestieOptionsUtils:Delay(0.3, QuestieOptions.AvailableQuestRedraw, "manualLevelOffset set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "manualLevelOffset set to " .. value)
                         end,
                     },
                     minLevelFilter = {
@@ -369,7 +372,7 @@ function QuestieOptions.tabs.general:Initialize()
                                 value = Questie.db.profile.maxLevelFilter
                             end
                             Questie.db.profile.minLevelFilter = value;
-                            QuestieOptionsUtils:Delay(0.3, QuestieOptions.AvailableQuestRedraw, "minLevelFilter set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "minLevelFilter set to " .. value)
                         end,
                     },
                     maxLevelFilter = {
@@ -392,7 +395,7 @@ function QuestieOptions.tabs.general:Initialize()
                                 value = Questie.db.profile.minLevelFilter
                             end
                             Questie.db.profile.maxLevelFilter = value;
-                            QuestieOptionsUtils:Delay(0.3, QuestieOptions.AvailableQuestRedraw, "maxLevelFilter set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "maxLevelFilter set to " .. value)
                         end,
                     },
                 },
@@ -658,7 +661,7 @@ _GetQuestSoundChoicesSort = function()
 end
 
 _GetObjectiveSoundChoices = function()
-    return {
+    local choices = {
         ["ObjectiveDefault"]   = "Default",
         ["Map Ping"]           = "Map Ping",
         ["Window Close"]       = "Window Close",
@@ -666,18 +669,21 @@ _GetObjectiveSoundChoices = function()
         ["Boat Docked"]        = "Boat Docked",
         ["Bell Toll Alliance"] = "Bell Toll Alliance",
         ["Bell Toll Horde"]    = "Bell Toll Horde",
-        ["Explosion"]          = "Explosion",
-        ["Shing!"]             = "Shing!",
-        ["Wham!"]              = "Wham!",
-        ["Simon Chime"]        = "Simon Chime",
-        ["War Drums"]          = "War Drums",
-        ["Humm"]               = "Humm",
-        ["Short Circuit"]      = "Short Circuit",
     }
+    if Questie.IsWotlk then
+        choices["Explosion"] = "Explosion"
+        choices["Shing!"] = "Shing!"
+        choices["Wham!"] = "Wham!"
+        choices["Simon Chime"] = "Simon Chime"
+        choices["War Drums"] = "War Drums"
+        choices["Humm"] = "Humm"
+        choices["Short Circuit"] = "Short Circuit"
+    end
+    return choices
 end
 
 _GetObjectiveSoundChoicesSort = function()
-    return {
+    local sorting = {
         "ObjectiveDefault",
         "Map Ping",
         "Window Close",
@@ -685,18 +691,21 @@ _GetObjectiveSoundChoicesSort = function()
         "Boat Docked",
         "Bell Toll Alliance",
         "Bell Toll Horde",
-        "Explosion",
-        "Shing!",
-        "Wham!",
-        "Simon Chime",
-        "War Drums",
-        "Humm",
-        "Short Circuit",
     }
+    if Questie.IsWotlk then
+        tinsert(sorting, "Explosion")
+        tinsert(sorting, "Shing!")
+        tinsert(sorting, "Wham!")
+        tinsert(sorting, "Simon Chime")
+        tinsert(sorting, "War Drums")
+        tinsert(sorting, "Humm")
+        tinsert(sorting, "Short Circuit")
+    end
+    return sorting
 end
 
 _GetObjectiveProgressSoundChoices = function()
-    return {
+    local choices = {
         ["ObjectiveProgress"]  = "Default",
         ["ObjectiveDefault"]   = "Objective Complete",
         ["Map Ping"]           = "Map Ping",
@@ -705,18 +714,21 @@ _GetObjectiveProgressSoundChoices = function()
         ["Boat Docked"]        = "Boat Docked",
         ["Bell Toll Alliance"] = "Bell Toll Alliance",
         ["Bell Toll Horde"]    = "Bell Toll Horde",
-        ["Explosion"]          = "Explosion",
-        ["Shing!"]             = "Shing!",
-        ["Wham!"]              = "Wham!",
-        ["Simon Chime"]        = "Simon Chime",
-        ["War Drums"]          = "War Drums",
-        ["Humm"]               = "Humm",
-        ["Short Circuit"]      = "Short Circuit",
     }
+    if Questie.IsWotlk then
+        choices["Explosion"] = "Explosion"
+        choices["Shing!"] = "Shing!"
+        choices["Wham!"] = "Wham!"
+        choices["Simon Chime"] = "Simon Chime"
+        choices["War Drums"] = "War Drums"
+        choices["Humm"] = "Humm"
+        choices["Short Circuit"] = "Short Circuit"
+    end
+    return choices
 end
 
 _GetObjectiveProgressSoundChoicesSort = function()
-    return {
+    local sorting = {
         "ObjectiveProgress",
         "ObjectiveDefault",
         "Map Ping",
@@ -725,12 +737,15 @@ _GetObjectiveProgressSoundChoicesSort = function()
         "Boat Docked",
         "Bell Toll Alliance",
         "Bell Toll Horde",
-        "Explosion",
-        "Shing!",
-        "Wham!",
-        "Simon Chime",
-        "War Drums",
-        "Humm",
-        "Short Circuit",
     }
+    if Questie.IsWotlk then
+        tinsert(sorting, "Explosion")
+        tinsert(sorting, "Shing!")
+        tinsert(sorting, "Wham!")
+        tinsert(sorting, "Simon Chime")
+        tinsert(sorting, "War Drums")
+        tinsert(sorting, "Humm")
+        tinsert(sorting, "Short Circuit")
+    end
+    return sorting
 end

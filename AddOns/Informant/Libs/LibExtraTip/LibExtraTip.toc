@@ -1,0 +1,15 @@
+## Title: LibExtraTip |cff224477(lib)
+## Notes: Assists in the management of additional tooltip information.
+##
+## Interface: 30402
+## LoadOnDemand: 0
+##
+## Version: 3.4.6975 (SwimmingSeadragon)
+## Revision: $Id: LibExtraTip.toc 6975 2023-08-28 00:00:20Z none $
+## Author: Norganna's AddOns
+## X-Part-Of: Libraries
+## X-Category: Library
+## X-URL: http://auctioneeraddon.com/
+## X-Feedback: https://auctioneeraddon.com/slack
+##
+Load.xml

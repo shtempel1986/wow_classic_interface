@@ -1463,9 +1463,7 @@ function ArkInventory.MenuItemOpen( frame )
 							local ifam = GetItemFamily( i.h ) or 0
 							ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s", ArkInventory.Localise["MENU_ITEM_DEBUG_FAMILY"], LIGHTYELLOW_FONT_COLOR_CODE, ifam ) )
 							
-							if not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.CURRENT ) then
-								ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["EXPANSION"], LIGHTYELLOW_FONT_COLOR_CODE, info.expansion or -1, _G[string.format( "EXPANSION_NAME%d", info.expansion )] or ArkInventory.Localise["UNKNOWN"] ) )
-							end
+							ArkInventory.Lib.Dewdrop:AddLine( "text", string.format( "%s: %s%s (%s)", ArkInventory.Localise["EXPANSION"], LIGHTYELLOW_FONT_COLOR_CODE, info.expansion or -1, _G[string.format( "EXPANSION_NAME%d", info.expansion )] or ArkInventory.Localise["UNKNOWN"] ) )
 							
 						elseif info.class == "battlepet" then
 							

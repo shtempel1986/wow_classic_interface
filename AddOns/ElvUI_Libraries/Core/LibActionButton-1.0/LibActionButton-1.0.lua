@@ -1,7 +1,7 @@
 -- License: LICENSE.txt
 
 local MAJOR_VERSION = "LibActionButton-1.0-ElvUI"
-local MINOR_VERSION = 47 -- the real minor version is 108
+local MINOR_VERSION = 50 -- the real minor version is 110
 
 local LibStub = LibStub
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
@@ -17,6 +17,12 @@ local WoWRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 local WoWClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 local WoWBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
+
+-- local IsHardcoreActive = C_GameRules and C_GameRules.IsHardcoreActive
+-- local IsEngravingEnabled = C_Engraving and C_Engraving.IsEngravingEnabled
+
+-- local WoWClassicHC = IsHardcoreActive and IsHardcoreActive()
+-- local WoWClassicSOD = IsEngravingEnabled and IsEngravingEnabled()
 
 -- Enable custom flyouts for WoW Retail
 local UseCustomFlyout = WoWRetail
@@ -44,6 +50,10 @@ local RANGE_INDICATOR = RANGE_INDICATOR
 local GameFontHighlightSmallOutline = GameFontHighlightSmallOutline
 local NumberFontNormalSmallGray = NumberFontNormalSmallGray
 local NumberFontNormal = NumberFontNormal
+
+local GetAuraDataByIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+local UnpackAuraData = AuraUtil and AuraUtil.UnpackAuraData
+local UnitAura = UnitAura
 
 -- GLOBALS: _G, GameTooltip, UIParent
 
@@ -567,6 +577,14 @@ do
 			SetCVar("ActionButtonUseKeyDown", "1")
 			reset = nil
 		end
+	end
+end
+
+local function GetAuraData(unitToken, index, filter)
+	if WoWRetail then
+		return UnpackAuraData(GetAuraDataByIndex(unitToken, index, filter))
+	else
+		return UnitAura(unitToken, index, filter)
 	end
 end
 
@@ -1759,7 +1777,7 @@ function UpdateAuraCooldowns(disable)
 	wipe(currentAuras)
 
 	local index = 1
-	local name, _, _, _, duration, expiration = UnitAura("target", index, filter)
+	local name, _, _, _, duration, expiration = GetAuraData("target", index, filter)
 	while name do
 		local buttons = AuraButtons.auras[name]
 		if buttons then
@@ -1775,7 +1793,7 @@ function UpdateAuraCooldowns(disable)
 		end
 
 		index = index + 1
-		name, _, _, _, duration, expiration = UnitAura("target", index, filter)
+		name, _, _, _, duration, expiration = GetAuraData("target", index, filter)
 	end
 
 	for button in next, previousAuras do
@@ -2636,11 +2654,11 @@ Action.GetSpellId              = function(self)
 	end
 end
 Action.GetLossOfControlCooldown = function(self) return GetActionLossOfControlCooldown(self._state_action) end
-if C_UnitAuras then
+if C_UnitAuras and C_UnitAuras.GetCooldownAuraBySpellID then
 	Action.GetPassiveCooldownSpellID = function(self)
 		local _actionType, actionID = GetActionInfo(self._state_action)
 		local onEquipPassiveSpellID
-		if actionID then
+		if actionID and C_ActionBar and C_ActionBar.GetItemActionOnEquipSpellID then
 			onEquipPassiveSpellID = C_ActionBar.GetItemActionOnEquipSpellID(self._state_action)
 		end
 		if onEquipPassiveSpellID then

@@ -31,7 +31,6 @@ local IsXPUserDisabled = IsXPUserDisabled
 local RequestBattlefieldScoreData = RequestBattlefieldScoreData
 local UIParent = UIParent
 local UIParentLoadAddOn = UIParentLoadAddOn
-local UnitAura = UnitAura
 local UnitFactionGroup = UnitFactionGroup
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitHasVehicleUI = UnitHasVehicleUI
@@ -40,6 +39,10 @@ local UnitInRaid = UnitInRaid
 local UnitIsMercenary = UnitIsMercenary
 local UnitIsPlayer = UnitIsPlayer
 local UnitIsUnit = UnitIsUnit
+
+local GetAuraDataByIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+local UnpackAuraData = AuraUtil and AuraUtil.UnpackAuraData
+local UnitAura = UnitAura
 
 local GetSpecialization = (E.Classic or E.Wrath) and LCS.GetSpecialization or GetSpecialization
 local GetSpecializationInfo = (E.Classic or E.Wrath) and LCS.GetSpecializationInfo or GetSpecializationInfo
@@ -168,7 +171,10 @@ E.SpecName = { -- english locale
 function E:GetDateTime(localTime, unix)
 	if not localTime then -- try to properly handle realm time
 		local dateTable = date('*t', GetServerTime())
-		dateTable.hour = GetGameTime() -- realm time since it doesnt match ServerTimeLocal
+
+		local hours, minutes = GetGameTime() -- realm time since it doesnt match ServerTimeLocal
+		dateTable.hour = hours
+		dateTable.min = minutes
 
 		if unix then
 			return time(dateTable)
@@ -272,6 +278,14 @@ do
 end
 
 do
+	function E:GetAuraData(unitToken, index, filter)
+		if E.Retail then
+			return UnpackAuraData(GetAuraDataByIndex(unitToken, index, filter))
+		else
+			return UnitAura(unitToken, index, filter)
+		end
+	end
+
 	local function FindAura(key, value, unit, index, filter, ...)
 		local name, _, _, _, _, _, _, _, _, spellID = ...
 
@@ -283,16 +297,16 @@ do
 			return ...
 		else
 			index = index + 1
-			return FindAura(key, value, unit, index, filter, UnitAura(unit, index, filter))
+			return FindAura(key, value, unit, index, filter, E:GetAuraData(unit, index, filter))
 		end
 	end
 
 	function E:GetAuraByID(unit, spellID, filter)
-		return FindAura('spellID', spellID, unit, 1, filter, UnitAura(unit, 1, filter))
+		return FindAura('spellID', spellID, unit, 1, filter, E:GetAuraData(unit, 1, filter))
 	end
 
 	function E:GetAuraByName(unit, name, filter)
-		return FindAura('name', name, unit, 1, filter, UnitAura(unit, 1, filter))
+		return FindAura('name', name, unit, 1, filter, E:GetAuraData(unit, 1, filter))
 	end
 end
 
@@ -951,7 +965,9 @@ function E:LoadAPI()
 							local localized = (x == 3 and female) or male
 							copy.className = localized
 
-							E.SpecInfoBySpecClass[name..' '..localized] = copy
+							if localized then
+								E.SpecInfoBySpecClass[name..' '..localized] = copy
+							end
 						end
 					end
 				end

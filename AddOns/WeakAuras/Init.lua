@@ -54,6 +54,7 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 --- @field ExecEnv table
 --- @field event_prototypes table<string, prototypeData>
 --- @field event_categories table<string, {name: string, default: string }>
+--- @field Features Features
 --- @field FindUnusedId fun(prefix: string?): string
 --- @field FixGroupChildrenOrderForGroup fun(data: auraData)
 --- @field frames table<string, table>
@@ -79,8 +80,7 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 --- @field non_transmissable_fields_v2000 table<string, non_transmissable_field>
 --- @field orientation_types table<string, string>
 --- @field orientation_with_circle_types table<string, string>
---- @field ParseNumber fun (numString: string|number): number?
---- @field point_types table<string, string>
+--- @field ParseNumber fun (numString: string|number): number?, string?
 --- @field PreShowModels fun()
 --- @field PrintHelp fun()
 --- @field QuotedString fun(input: string): string
@@ -118,6 +118,8 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 --- @field UpdatedTriggerState fun(id: auraId)
 --- @field validate fun(input: table, default:table)
 --- @field watched_trigger_events table<auraId, table<integer, table<integer, boolean>>>
+--- @field RegisterRegionType fun(regionType: string, createFunction: function, modifyFunction: function, defaults: table, properties: table|function|nil, validate: function?))
+
 
 --- @alias triggerTypes
 --- | "aura"
@@ -141,7 +143,7 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 --- @field instance_size table|nil
 --- @field itemName string?
 --- @field itemSetName string?
---- @field itemTypeName table|ni
+--- @field itemTypeName table|nil
 --- @field range number?l
 --- @field realSpellName string?
 --- @field rune number?
@@ -323,11 +325,6 @@ local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetad
 --- @field SerializeEx fun(self: LibSerialize,options: table, input: any)
 --- @field Deserialize fun(self: LibSerialize, input: string): table
 
---- @class LibClassicDurations
---- @field RegisterFrame fun(self: LibClassicDurations, frame: string)
---- @field Register fun(self: LibClassicDurations, frame: string)
---- @field GetAuraDurationByUnit fun(self: LibClassicDurations, unit: string, spellId: number, source: string?, name: string?)
-
 --- @class LibDeflate
 --- @field CompressDeflate fun(self: LibDeflate, input: string, options: table): string
 --- @field EncodeForPrint fun(self: LibDeflate, input: string): string)
@@ -359,8 +356,8 @@ WeakAuras.normalWidth = 1.3
 WeakAuras.halfWidth = WeakAuras.normalWidth / 2
 WeakAuras.doubleWidth = WeakAuras.normalWidth * 2
 local versionStringFromToc = GetAddOnMetadata("WeakAuras", "Version")
-local versionString = "5.8.7"
-local buildTime = "20231203164019"
+local versionString = "5.11.3"
+local buildTime = "20240306131028"
 
 local flavorFromToc = GetAddOnMetadata("WeakAuras", "X-Flavor")
 local flavorFromTocToNumber = {
@@ -371,10 +368,26 @@ local flavorFromTocToNumber = {
 }
 local flavor = flavorFromTocToNumber[flavorFromToc]
 
+
+if not versionString:find("beta", 1, true) then
+  WeakAuras.buildType = "release"
+else
+  WeakAuras.buildType = "beta"
+end
+
+--[=[@alpha@
+WeakAuras.buildType = "alpha"
+--@end-alpha@]=]
+
+--[=====[@experimental@
+WeakAuras.buildType = "pr"
+--@end-experimental@]=====]
+
 --[==[@debug@
-if versionStringFromToc == "5.8.7" then
+if versionStringFromToc == "5.11.3" then
   versionStringFromToc = "Dev"
   buildTime = "Dev"
+  WeakAuras.buildType = "dev"
 end
 --@end-debug@]==]
 
@@ -439,11 +452,6 @@ do
     "LibSerialize",
     "LibUIDropDownMenu-4.0"
   }
-  if WeakAuras.IsClassicEra() then
-    tinsert(LibStubLibs, "LibClassicSpellActionCount-1.0")
-    tinsert(LibStubLibs, "LibClassicCasterino")
-    tinsert(LibStubLibs, "LibClassicDurations")
-  end
   if WeakAuras.IsRetail() then
     tinsert(LibStubLibs, "LibSpecialization")
     AddonCompartmentFrame:RegisterAddon({
@@ -511,7 +519,8 @@ end
 function Private.RegisterRegionType(_, _, _ ,_)
 end
 
---- @type fun(regionType: string, createOptions: function, icon: string|function, displayName: string, createThumbnail: function?, modifyThumbnail: function?, description: string?, templates: table?, getAnchors: function?)
+--- @class Private
+--- @field RegisterRegionOptions fun(regionType: string, createOptions: function, icon: string|function, displayName: string, createThumbnail: function?, modifyThumbnail: function?, description: string?, templates: table?, getAnchors: function?)
 function Private.RegisterRegionOptions(_, _ , _ ,_ )
 end
 
@@ -527,9 +536,13 @@ end
 function Private.StopProfileAura(_)
 end
 
+--- @class Private
+--- @field StartProfileUID fun()
 function Private.StartProfileUID()
 end
 
+--- @class Private
+--- @field StopProfileUID fun()
 function Private.StopProfileUID()
 end
 

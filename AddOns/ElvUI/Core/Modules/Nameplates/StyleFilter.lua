@@ -21,7 +21,6 @@ local IsPlayerSpell = IsPlayerSpell
 local IsResting = IsResting
 local IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
 local UnitAffectingCombat = UnitAffectingCombat
-local UnitAura = UnitAura
 local UnitCanAttack = UnitCanAttack
 local UnitExists = UnitExists
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
@@ -102,7 +101,8 @@ NP.TriggerConditions = {
 		[8] = 'mythic+',
 		[23] = 'mythic',
 		[24] = 'timewalking',
-		[201] = 'normal', -- classic hardcore
+		[198] = 'normal', -- Classic: Season of Discovery
+		[201] = 'normal', -- Classic: Hardcore
 		-- raids
 		[7] = 'lfr',
 		[17] = 'lfr',
@@ -147,7 +147,9 @@ NP.TriggerConditions = {
 		[175] = 'legacy10normal',
 		[176] = 'legacy25normal',
 		[193] = 'legacy10heroic',
-		[194] = 'legacy25heroic'
+		[194] = 'legacy25heroic',
+		-- follower dungeon
+		[205] = 'follower'
 	}
 }
 
@@ -360,7 +362,7 @@ end
 
 function NP:StyleFilterDispelCheck(frame, filter)
 	local index = 1
-	local name, _, _, auraType, _, _, _, isStealable, _, spellID = UnitAura(frame.unit, index, filter)
+	local name, _, _, auraType, _, _, _, isStealable, _, spellID = E:GetAuraData(frame.unit, index, filter)
 	while name do
 		if filter == 'HELPFUL' then
 			if isStealable then
@@ -373,7 +375,7 @@ function NP:StyleFilterDispelCheck(frame, filter)
 		end
 
 		index = index + 1
-		name, _, _, auraType, _, _, _, isStealable, _, spellID = UnitAura(frame.unit, index, filter)
+		name, _, _, auraType, _, _, _, isStealable, _, spellID = E:GetAuraData(frame.unit, index, filter)
 	end
 end
 
@@ -382,7 +384,7 @@ function NP:StyleFilterAuraData(frame, filter, unit)
 
 	if unit then
 		local index = 1
-		local name, _, count, _, _, expiration, source, _, _, spellID, _, _, _, _, modRate = UnitAura(unit, index, filter)
+		local name, _, count, _, _, expiration, source, _, _, spellID, _, _, _, _, modRate = E:GetAuraData(unit, index, filter)
 		while name do
 			local info = temp[name] or temp[spellID]
 			if not info then info = {} end
@@ -393,7 +395,7 @@ function NP:StyleFilterAuraData(frame, filter, unit)
 			info[index] = { count = count, expiration = expiration, source = source, modRate = modRate }
 
 			index = index + 1
-			name, _, count, _, _, expiration, source, _, _, spellID, _, _, _, _, modRate = UnitAura(unit, index, filter)
+			name, _, count, _, _, expiration, source, _, _, spellID, _, _, _, _, modRate = E:GetAuraData(unit, index, filter)
 		end
 	end
 
@@ -1201,7 +1203,7 @@ function NP:StyleFilterConditionCheck(frame, filter, trigger)
 	if frame.Buffs_ and trigger.buffs then
 		-- Has Stealable
 		if trigger.buffs.hasStealable or trigger.buffs.hasNoStealable then
-			local isStealable = NP:StyleFilterDispelCheck(frame, filter)
+			local isStealable = NP:StyleFilterDispelCheck(frame, 'HELPFUL')
 			if (trigger.buffs.hasStealable and isStealable) or (trigger.buffs.hasNoStealable and not isStealable) then passed = true else return end
 		end
 
@@ -1218,7 +1220,7 @@ function NP:StyleFilterConditionCheck(frame, filter, trigger)
 	if frame.Debuffs_ and trigger.debuffs and trigger.debuffs.names and next(trigger.debuffs.names) then
 		-- Has Dispellable
 		if trigger.debuffs.hasDispellable or trigger.debuffs.hasNoDispellable then
-			local canDispel = NP:StyleFilterDispelCheck(frame, filter)
+			local canDispel = NP:StyleFilterDispelCheck(frame, 'HARMFUL')
 			if (trigger.debuffs.hasDispellable and canDispel) or (trigger.debuffs.hasNoDispellable and not canDispel) then passed = true else return end
 		end
 

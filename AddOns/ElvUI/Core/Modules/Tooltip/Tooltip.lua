@@ -38,7 +38,6 @@ local IsShiftKeyDown = IsShiftKeyDown
 local NotifyInspect = NotifyInspect
 local SetTooltipMoney = SetTooltipMoney
 local UIParent = UIParent
-local UnitAura = UnitAura
 local UnitBattlePetLevel = UnitBattlePetLevel
 local UnitBattlePetType = UnitBattlePetType
 local UnitClass = UnitClass
@@ -231,7 +230,7 @@ function TT:SetUnitText(tt, unit, isPlayerUnit)
 
 		local nameColor = E:ClassColor(class) or PRIEST_COLOR
 
-		if TT.db.playerTitles and pvpName then
+		if TT.db.playerTitles and pvpName and pvpName ~= '' then
 			name = pvpName
 		end
 
@@ -438,7 +437,7 @@ end
 
 function TT:AddMountInfo(tt, unit)
 	local index = 1
-	local name, _, _, _, _, _, _, _, _, spellID = UnitAura(unit, index, 'HELPFUL')
+	local name, _, _, _, _, _, _, _, _, spellID = E:GetAuraData(unit, index, 'HELPFUL')
 	while name do
 		local mountID = E.MountIDs[spellID]
 		if mountID then
@@ -461,7 +460,7 @@ function TT:AddMountInfo(tt, unit)
 			break
 		else
 			index = index + 1
-			name, _, _, _, _, _, _, _, _, spellID = UnitAura(unit, index, 'HELPFUL')
+			name, _, _, _, _, _, _, _, _, spellID = E:GetAuraData(unit, index, 'HELPFUL')
 		end
 	end
 end
@@ -826,7 +825,7 @@ end
 function TT:SetUnitAura(tt, unit, index, filter)
 	if not tt or tt:IsForbidden() then return end
 
-	local name, _, _, _, _, _, source, _, _, spellID = UnitAura(unit, index, filter)
+	local name, _, _, _, _, _, source, _, _, spellID = E:GetAuraData(unit, index, filter)
 	if not name then return end
 
 	local mountID, mountText = E.MountIDs[spellID]
@@ -897,9 +896,10 @@ function TT:SetToyByItemID(tt, id)
 end
 
 function TT:SetCurrencyToken(tt, index)
-	if tt:IsForbidden() then return end
+	if tt:IsForbidden() or not TT:IsModKeyDown() then return end
 
-	local id = TT:IsModKeyDown() and tonumber(strmatch(C_CurrencyInfo_GetCurrencyListLink(index),'currency:(%d+)'))
+	local link = index and C_CurrencyInfo_GetCurrencyListLink(index)
+	local id = link and tonumber(strmatch(link, 'currency:(%d+)'))
 	if not id then return end
 
 	tt:AddLine(' ')
@@ -1019,7 +1019,7 @@ function TT:Initialize()
 	local statusBar = GameTooltipStatusBar
 	statusBar:Height(TT.db.healthBar.height)
 	statusBar:SetScript('OnValueChanged', nil) -- Do we need to unset this?
-	statusBar:SetMinMaxValues(-0.00001, 1)
+
 	GameTooltip.StatusBar = statusBar
 
 	local statusText = statusBar:CreateFontString(nil, 'OVERLAY')

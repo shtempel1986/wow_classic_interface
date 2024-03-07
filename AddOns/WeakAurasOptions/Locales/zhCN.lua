@@ -14,6 +14,14 @@ local L = WeakAuras.L
 	L["%d |4aura:auras; added"] = "已添加%d个光环"
 	L["%d |4aura:auras; deleted"] = "已删除%d个光环"
 	L["%d |4aura:auras; modified"] = "已修改%d个光环"
+	--[[Translation missing --]]
+	L["%d |4aura:auras; with meta data modified"] = "%d |4aura:auras; with meta data modified"
+	--[[Translation missing --]]
+	L["%d displays loaded"] = "%d displays loaded"
+	--[[Translation missing --]]
+	L["%d displays not loaded"] = "%d displays not loaded"
+	--[[Translation missing --]]
+	L["%d displays on standby"] = "%d displays on standby"
 	L["%i auras selected"] = "已选中%i个光环"
 	L["%i."] = "%i"
 	L["%i. %s"] = "%i. %s"
@@ -43,6 +51,8 @@ local L = WeakAuras.L
 	L["%s %s, Lines: %d, Frequency: %0.2f, Length: %d, Thickness: %d"] = "%s %s，行数：%d，频率：%0.2f，长度：%d，粗细：%d"
 	L["%s %s, Particles: %d, Frequency: %0.2f, Scale: %0.2f"] = "%s %s，粒子数：%d，频率：%0.2f，缩放：%0.2f"
 	L["%s %u. Overlay Function"] = "%s %u. 覆盖层函数"
+	--[[Translation missing --]]
+	L["%s (%s)"] = "%s (%s)"
 	L["%s Alpha: %d%%"] = "%s 透明度：%d%%"
 	L["%s Color"] = "%s 颜色"
 	L["%s Custom Variables"] = "%s 自定义变量"
@@ -152,8 +162,7 @@ Enable this setting if you want this timer to be hidden, or when using a WeakAur
 	L["and rotated right"] = "并且向右旋转"
 	L["and with width |cFFFF0000%s|r and %s"] = "并且宽度|cFFFF0000%s|r 并且%s"
 	L["Angle"] = "角度"
-	--[[Translation missing --]]
-	L["Angle Between Auras"] = "Angle Between Auras"
+	L["Angle Between Auras"] = "光环间角度"
 	L["Animate"] = "动画"
 	L["Animated Expand and Collapse"] = "展开折叠动画"
 	L["Animates progress changes"] = "进度变化动画"
@@ -224,6 +233,8 @@ Off Screen]=] ] = "光环在屏幕外"
 	L["Can set to 0 if Columns * Width equal File Width"] = "如果列x宽度=文件宽度，可以设为0"
 	L["Can set to 0 if Rows * Height equal File Height"] = "如果行x高度=文件高度，可以设为0"
 	L["Cancel"] = "取消"
+	--[[Translation missing --]]
+	L["Case Insensitive"] = "Case Insensitive"
 	L["Cast by a Player Character"] = "玩家角色施放"
 	L["Categories to Update"] = "即将更新的类"
 	L["Center"] = "中间"
@@ -403,8 +414,7 @@ UNIT_POWER, UNIT_AURA PLAYER_TARGET_CHANGED]=]
 	L["Fallback"] = "后备"
 	L["Fallback Icon"] = "后备图标"
 	L["False"] = "假"
-	--[[Translation missing --]]
-	L["Fetch Affected/Unaffected Names and Units"] = "Fetch Affected/Unaffected Names and Units"
+	L["Fetch Affected/Unaffected Names and Units"] = "获取受影响/未受影响的单位名称与单位"
 	L["Fetch Raid Mark Information"] = "获取团队标记信息"
 	L["Fetch Role Information"] = "获取职责信息"
 	L["Fetch Tooltip Information"] = "获取鼠标提示信息"
@@ -431,6 +441,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Finish"] = "结束"
 	L["Finishing..."] = "即将完成"
 	L["Fire Orb"] = "火焰宝珠"
+	--[[Translation missing --]]
+	L["Flat Framelevels"] = "Flat Framelevels"
 	L["Font"] = "字体"
 	L["Font Size"] = "字体大小"
 	L["Foreground"] = "前景"
@@ -462,6 +474,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Grid direction"] = "盒方向"
 	L["Group"] = "组"
 	L["Group (verb)"] = "加入组"
+	--[[Translation missing --]]
+	L["Group Alpha"] = "Group Alpha"
 	L[ [=[Group and anchor each auras by frame.
 
 - Nameplates: attach to nameplates per unit.
@@ -516,6 +530,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Icon Source"] = "图标来源"
 	L["If"] = "如果"
 	L["If %s"] = "如果 %s"
+	--[[Translation missing --]]
+	L["If checked, then the combo box in the User settings will be sorted."] = "If checked, then the combo box in the User settings will be sorted."
 	L["If checked, then the user will see a multi line edit box. This is useful for inputting large amounts of text."] = "勾选后，用户可以看见一个多行的输入框，在输入大量文本时很有用。"
 	L["If checked, then this group will not merge with other group when selecting multiple auras."] = "勾选后，在选中多个光环的情况下，此组将不会和其他组合并。"
 	L["If checked, then this option group can be temporarily collapsed by the user."] = "勾选后，选项组可以临时被用户折叠"
@@ -582,6 +598,8 @@ Can use \ to escape -.]=] ] = [=[过滤格式：'名称'，'名称-服务器'，
 	L["Linked aura: "] = "关联光环："
 	L["Load"] = "载入"
 	L["Loaded"] = "已载入"
+	--[[Translation missing --]]
+	L["Loaded/Standby"] = "Loaded/Standby"
 	L["Lock Positions"] = "锁定位置"
 	L["Loop"] = "循环"
 	L["Low Mana"] = "低法力值"
@@ -829,12 +847,15 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Spark Settings"] = "闪光设置"
 	L["Spark Texture"] = "闪光材质"
 	L["Specialization"] = "专精"
+	L["Specific Currency ID"] = "特定货币ID"
 	L["Specific Unit"] = "指定单位"
 	L["Spell ID"] = "法术ID"
 	L["Spell Selection Filters"] = "法术选择过滤器"
 	L["Stack Count"] = "层数"
 	L["Stack Info"] = "层数信息"
 	L["Stagger"] = "交错"
+	--[[Translation missing --]]
+	L["Standby"] = "Standby"
 	L["Star"] = "星星"
 	L["Start"] = "开始"
 	L["Start Angle"] = "起始角度"
@@ -847,8 +868,7 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["Stop Sound"] = "停止播放声音"
 	L["Sub Elements"] = "子元素"
 	L["Sub Option %i"] = "子选项 %i"
-	--[[Translation missing --]]
-	L["Supports multiple entries, separated by commas"] = "Supports multiple entries, separated by commas"
+	L["Supports multiple entries, separated by commas"] = "支持多个条目，由英文逗号分隔。"
 	L["Swipe Overlay Settings"] = "冷却刷覆盖层设置"
 	L["Templates could not be loaded, the addon is %s"] = "无法载入Templates：%s"
 	L["Temporary Group"] = "临时组"
@@ -868,6 +888,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["The addon OmniCC is enabled. It might add cooldown numbers to the swipe. You can configure these in the OmniCC settings"] = "插件OmniCC已启用。它可能会向冷却刷添加冷却文本。你可以在OmniCC设置中调整。"
 	L["The duration of the animation in seconds."] = "动画持续秒数"
 	L["The duration of the animation in seconds. The finish animation does not start playing until after the display would normally be hidden."] = "动画时长秒时。直到显示内容可以被正常隐藏之后，结束动画才会播放。"
+	--[[Translation missing --]]
+	L["The group and all direct children will share the same base frame level."] = "The group and all direct children will share the same base frame level."
 	L["The type of trigger"] = "触发器类型"
 	L["Then "] = "然后"
 	L["Thickness"] = "粗细"
@@ -876,10 +898,8 @@ every 3 events starting from 2nd and ending at 11th: 2-11/3]=] ] = [=[事件发�
 	L["This adds %tooltip, %tooltip1, %tooltip2, %tooltip3 and %tooltip4 as text replacements and also allows filtering based on the tooltip content/values."] = "这将添加 %tooltip, %tooltip1, %tooltip2, %tooltip3, %tooltip4 作为文本替换，同时允许根据这些内容/值进行过滤。"
 	L[ [=[This aura contains custom Lua code.
 Make sure you can trust the person who sent it!]=] ] = "此光环包含自定义Lua代码。请确认你可以信任发送它的人！"
-	--[[Translation missing --]]
-	L["This aura is marked as an update to an aura '%s', but cannot be used to update that aura. This usually happens if an aura is moved out of a group."] = "This aura is marked as an update to an aura '%s', but cannot be used to update that aura. This usually happens if an aura is moved out of a group."
-	--[[Translation missing --]]
-	L["This aura is marked as an update to auras '%s', but cannot be used to update them. This usually happens if an aura is moved out of a group."] = "This aura is marked as an update to auras '%s', but cannot be used to update them. This usually happens if an aura is moved out of a group."
+	L["This aura is marked as an update to an aura '%s', but cannot be used to update that aura. This usually happens if an aura is moved out of a group."] = "此光环被标记为光环‘%s’的新版本，但无法用于更新该光环。此问题常见于该光环曾被移出组。"
+	L["This aura is marked as an update to auras '%s', but cannot be used to update them. This usually happens if an aura is moved out of a group."] = "此光环被标记为光环‘%s’的新版本，但无法用于更新这些光环。此问题常见于某些光环曾被移出组。"
 	L[ [=[This aura was created with a different version (%s) of World of Warcraft.
 It might not work correctly!]=] ] = "此光环在一个不同版本（%s）的魔兽世界中创建。它可能无法正常工作！"
 	L[ [=[This aura was created with a newer version of WeakAuras.
@@ -887,6 +907,8 @@ Upgrade your version of WeakAuras or wait for next release before installing thi
 在导入此光环前，请更新WeakAuras版本或等待下次发布。]=]
 	L["This display is currently loaded"] = "此显示内容已加载"
 	L["This display is not currently loaded"] = "此显示内容未加载"
+	--[[Translation missing --]]
+	L["This display is on standby, it will be loaded when needed."] = "This display is on standby, it will be loaded when needed."
 	L["This enables the collection of debug logs. Custom code can add debug information to the log through the function DebugPrint."] = "启用调试日志的收集。自定义代码可以使用DebugPrint函数向日志添加调试信息。"
 	L["This is a modified version of your aura, |cff9900FF%s.|r"] = "这是一个你光环的修改版本，|cff9900FF%s.|r"
 	L["This is a modified version of your group: |cff9900FF%s|r"] = "这是一个你群组的修改版本：|cff9900FF%s|r"

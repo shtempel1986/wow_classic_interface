@@ -38,7 +38,7 @@ function AuctionatorGroupsViewMixin:OnHide()
 end
 
 function AuctionatorGroupsViewMixin:UpdateCustomGroups()
-  self.groupDetails = CopyTable(AUCTIONATOR_SELLING_GROUPS.CustomGroups)
+  self.groupDetails = CopyTable({AUCTIONATOR_SELLING_GROUPS.CustomGroups[1]})
   for _, s in ipairs(Auctionator.Groups.Constants.DefaultGroups) do
     table.insert(self.groupDetails, s)
   end
@@ -185,9 +185,9 @@ function AuctionatorGroupsViewMixin:UpdateFromExisting()
     group:SetPoint("LEFT", self.groupInsetX, 0)
     group:SetPoint("RIGHT")
     group:Reset()
-    local isCustom = index <= #AUCTIONATOR_SELLING_GROUPS.CustomGroups
+    local isCustom = index == 1 -- Only the first group is custom FAVOURITES now
     group:SetName(groupDetails.name, isCustom)
-    if self.collapsing[index] or (self.originalOpen and Auctionator.Config.Get(Auctionator.Config.Options.SELLING_BAG_COLLAPSED)) then
+    if self.applyVisibility and (self.collapsing[index] or (self.originalOpen and Auctionator.Config.Get(Auctionator.Config.Options.SELLING_BAG_COLLAPSED))) then
       group:ToggleOpen(true)
     end
     table.insert(groups, group)
@@ -200,7 +200,7 @@ function AuctionatorGroupsViewMixin:UpdateFromExisting()
           table.insert(infos, info)
         end
       end
-      if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_FAVOURITES_SORT_OWNED) then
+      if self.applyVisibility and Auctionator.Config.Get(Auctionator.Config.Options.SELLING_FAVOURITES_SORT_OWNED) then
         table.sort(infos, function(a, b)
           if #a.locations > 0 and #b.locations == 0 then
             return true
@@ -213,7 +213,7 @@ function AuctionatorGroupsViewMixin:UpdateFromExisting()
       else
         table.sort(infos, function(a, b) return a.sortKey < b.sortKey end)
       end
-      if not Auctionator.Config.Get(Auctionator.Config.Options.SELLING_MISSING_FAVOURITES) then
+      if self.applyVisibility and not Auctionator.Config.Get(Auctionator.Config.Options.SELLING_MISSING_FAVOURITES) then
         infos = tFilter(infos, function(a) return #a.locations > 0 end, true)
       end
       local keyName = GetKeyName(groupDetails.name, isCustom)

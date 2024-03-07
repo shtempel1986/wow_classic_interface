@@ -83,6 +83,9 @@ local TitleIconVersion_Small = Enum.TitleIconVersion and Enum.TitleIconVersion.S
 local CHATCHANNELRULESET_MENTOR = Enum.ChatChannelRuleset and Enum.ChatChannelRuleset.Mentor
 local PLAYERMENTORSHIPSTATUS_NEWCOMER = Enum.PlayerMentorshipStatus and Enum.PlayerMentorshipStatus.Newcomer
 
+local SOUND_TUTORIAL_POPUP = SOUNDKIT.TUTORIAL_POPUP
+local SOUND_U_CHAT_SCROLL_BUTTON = SOUNDKIT.U_CHAT_SCROLL_BUTTON
+
 local NPEV2_CHAT_USER_TAG_GUIDE = gsub(NPEV2_CHAT_USER_TAG_GUIDE or '', '(|A.-|a).+', '%1') -- we only want the icon
 local SOCIAL_QUEUE_QUEUED_FOR = gsub(SOCIAL_QUEUE_QUEUED_FOR or '', ':%s?$', '') -- some language have `:` on end
 -- GLOBALS: ElvCharacterDB
@@ -325,33 +328,38 @@ do --this can save some main file locals
 		-- Simpy (5099: Myzrael)
 		z['Player-5099-01947A77']	= itsSimpy -- Warlock: Simpy
 		-- Luckyone Seasonal (5826: Lone Wolf EU)
-		z['Player-5826-0202765F']	= ElvBlue -- [Alliance] Hunter: Luckyone
-		z['Player-5826-020F7F10']	= ElvBlue -- [Alliance] Paladin: Unluckyone
+		z['Player-5826-0202765F']	= ElvBlue -- [Alliance] Hunter
+		z['Player-5826-020F7F10']	= ElvBlue -- [Alliance] Paladin
+		z['Player-5826-02172E79']	= ElvBlue -- [Alliance] Warlock
+		z['Player-5826-0234253E']	= ElvBlue -- [Alliance] Mage
+		z['Player-5826-02342508']	= ElvBlue -- [Alliance] Priest
+		z['Player-5826-023424EF']	= ElvBlue -- [Alliance] Druid
+		z['Player-5826-02342520']	= ElvBlue -- [Alliance] Rogue
+		z['Player-5826-02342556']	= ElvBlue -- [Alliance] Warrior
 		-- Luckyone Hardcore
 		z["Lucky-Nek'Rosh"]			= ElvBlue -- [Horde] Rogue
 		z["Luckyone-Nek'Rosh"]		= ElvBlue -- [Horde] Hunter
 		z["Unluckyone-Nek'Rosh"] 	= ElvBlue -- [Horde] Mage
 		z["Gigachad-Nek'Rosh"] 		= ElvBlue -- [Horde] Druid
-		z['Luckyone-Stitches']		= ElvBlue -- [Horde] Hunter
 		-- Luckyone Classic Era (5233: Firemaw)
 		z['Player-5233-01D22A72']	= ElvBlue -- [Horde] Hunter: Unluckyone
 		z['Player-5233-01D27011']	= ElvBlue -- [Horde] Druid: Luckydruid
 	elseif E.Wrath then
 		-- Simpy (4373: Myzrael)
-		z['Player-4373-011657A7']		= itsSimpy -- Paladin:		Cutepally
-		z['Player-4373-032FFEE2']		= itsSimpy -- Shaman:		Kalline
-		z['Player-4373-03351BC7']		= itsSimpy -- [Horde] DK:	Imsojelly
-		-- Luckyone (4476: Gehennas, 4440: Everlook)
-		z['Luckydruid-Firemaw']			= ElvBlue -- [Alliance] Druid
-		z['Unluckyone-Firemaw']			= ElvBlue -- [Alliance] Priest
-		z['Luckygrip-Firemaw']			= ElvBlue -- [Alliance] DK
-		z['Luckywl-Firemaw']			= ElvBlue -- [Alliance] Warlock
-		z['Luckym-Firemaw']				= ElvBlue -- [Alliance] Mage
-		z['Luckyw-Firemaw']				= ElvBlue -- [Alliance] Warrior
-		z['Luckyp-Firemaw']				= ElvBlue -- [Alliance] Paladin
-		z['Player-4476-03BF41C9']		= ElvBlue -- [Horde] Hunter: Luckyone
-		z['Player-4440-03AD654A']		= ElvBlue -- [Alliance] Rogue: Luckyrogue
-		z['Player-4440-03ADE2DF']		= ElvBlue -- [Alliance] Shaman: Luckykek
+		z['Player-4373-011657A7']	= itsSimpy -- Paladin:		Cutepally
+		z['Player-4373-032FFEE2']	= itsSimpy -- Shaman:		Kalline
+		z['Player-4373-03351BC7']	= itsSimpy -- [Horde] DK:	Imsojelly
+		-- Luckyone (4467: Firemaw, 4440: Everlook, 4476: Gehennas)
+		z['Player-4467-04540395']	= ElvBlue -- [Alliance] Druid
+		z['Player-4467-04542B4A']	= ElvBlue -- [Alliance] Priest
+		z['Player-4467-04571AA2']	= ElvBlue -- [Alliance] Warlock
+		z['Player-4467-04571A8D']	= ElvBlue -- [Alliance] DK
+		z['Player-4467-04571A9F']	= ElvBlue -- [Alliance] Mage
+		z['Player-4467-04571A98']	= ElvBlue -- [Alliance] Warrior
+		z['Player-4467-04571911']	= ElvBlue -- [Alliance] Paladin
+		z['Player-4440-03AD654A']	= ElvBlue -- [Alliance] Rogue
+		z['Player-4440-03ADE2DF']	= ElvBlue -- [Alliance] Shaman
+		z['Player-4476-03BF41C9']	= ElvBlue -- [Horde] Hunter
 		-- Repooc
 		z['Poocsdk-Mankrik']		= ElvBlue -- [Horde] DK
 		z['Repooc-Mankrik']			= ElvBlue
@@ -386,20 +394,20 @@ do --this can save some main file locals
 		z['Player-1401-041C0AE2']	= ElvGreen	-- [Alliance] Hunter:	Róhal
 		z['Player-1401-05CEABFA']	= ElvRed	-- [Alliance] DK:		Jahzzy
 		-- Luckyone (1598: LaughingSkull)
-		z['Player-1598-0F5E4639']	= ElvBlue -- [Alliance] Druid: 	Luckyone
-		z['Player-1598-0F3E51B0']	= ElvBlue -- [Alliance] Druid:	Luckydruid
-		z['Player-1598-0F46FF5A']	= ElvBlue -- [Horde] Evoker: 	Luckyevoker
-		z['Player-1598-0BFF3341']	= ElvBlue -- [Horde] DH: 		Luckydh
-		z['Player-1598-0BD22704']	= ElvBlue -- [Horde] Priest: 	Luckypriest
-		z['Player-1598-0BEFA545']	= ElvBlue -- [Horde] Monk: 		Luckymonkas
-		z['Player-1598-0E1A06DE']	= ElvBlue -- [Horde] Rogue: 	Luckyrogue
-		z['Player-1598-0BF2E377']	= ElvBlue -- [Horde] Hunter: 	Luckyhunter
-		z['Player-1598-0BF18248']	= ElvBlue -- [Horde] DK: 		Luckydk
-		z['Player-1598-0BFABB95']	= ElvBlue -- [Horde] Mage: 		Luckymage
-		z['Player-1598-0E67511D']	= ElvBlue -- [Horde] Paladin: 	Luckypala
-		z['Player-1598-0C0DD01B']	= ElvBlue -- [Horde] Warlock: 	Luckywl
-		z['Player-1598-0BF8013A']	= ElvBlue -- [Horde] Warrior: 	Notlucky
-		z['Player-1598-0BF56103']	= ElvBlue -- [Horde] Shaman: 	Unluckyone
+		z['Player-1598-0F5E4639']	= ElvBlue -- [Alliance] Druid: Luckyone
+		z['Player-1598-0F3E51B0']	= ElvBlue -- [Alliance] Druid: Luckydruid
+		z['Player-1598-0F46FF5A']	= ElvBlue -- [Horde] Evoker
+		z['Player-1598-0BFF3341']	= ElvBlue -- [Horde] DH
+		z['Player-1598-0BD22704']	= ElvBlue -- [Horde] Priest
+		z['Player-1598-0BEFA545']	= ElvBlue -- [Horde] Monk
+		z['Player-1598-0E1A06DE']	= ElvBlue -- [Horde] Rogue
+		z['Player-1598-0BF2E377']	= ElvBlue -- [Horde] Hunter
+		z['Player-1598-0BF18248']	= ElvBlue -- [Horde] DK
+		z['Player-1598-0BFABB95']	= ElvBlue -- [Horde] Mage
+		z['Player-1598-0E67511D']	= ElvBlue -- [Horde] Paladin
+		z['Player-1598-0C0DD01B']	= ElvBlue -- [Horde] Warlock
+		z['Player-1598-0BF8013A']	= ElvBlue -- [Horde] Warrior
+		z['Player-1598-0BF56103']	= ElvBlue -- [Horde] Shaman
 		-- Repooc
 		z['Sifpooc-Stormrage']		= itsPooc	-- [Alliance] DH
 		z['Fragmented-Stormrage']	= itsPooc	-- [Alliance] Warlock
@@ -797,6 +805,7 @@ function CH:StyleChat(frame)
 	frame:SetMaxLines(CH.db.maxLines)
 	frame:SetFading(CH.db.fade)
 
+	tab:SetScript('OnClick', CH.Tab_OnClick)
 	tab.Text:FontTemplate(LSM:Fetch('font', CH.db.tabFont), CH.db.tabFontSize, CH.db.tabFontOutline)
 
 	if not frame.isDocked then
@@ -1831,8 +1840,8 @@ function CH:MessageFormatter(frame, info, chatType, chatGroup, chatTarget, chann
 	end
 
 	local showLink = 1
-	local isMonster = strsub(chatType, 1, 7) == 'MONSTER'
-	if isMonster or strsub(chatType, 1, 9) == 'RAID_BOSS' then
+	local bossMonster = strsub(chatType, 1, 9) == 'RAID_BOSS' or strsub(chatType, 1, 7) == 'MONSTER'
+	if bossMonster then
 		showLink = nil
 
 		-- fix blizzard formatting errors from localization strings
@@ -1903,7 +1912,7 @@ function CH:MessageFormatter(frame, info, chatType, chatGroup, chatTarget, chann
 
 	-- Player Flags
 	local pflag = GetPFlag(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
-	if not isMonster then
+	if not bossMonster then
 		local chatIcon, pluginChatIcon = specialChatIcons[arg12] or specialChatIcons[playerName], CH:GetPluginIcon(arg12, playerName)
 		if type(chatIcon) == 'function' then
 			local icon, prettify, var1, var2, var3 = chatIcon()
@@ -2860,8 +2869,8 @@ function CH:SocialQueueMessage(guid, message)
 	if RecentSocialQueue(TIME, message) then return end
 	socialQueueCache[guid] = {TIME, message}
 
-	--UI_71_SOCIAL_QUEUEING_TOAST = 79739; appears to have no sound?
-	PlaySound(7355) --TUTORIAL_POPUP
+	-- UI_71_SOCIAL_QUEUEING_TOAST = 79739; appears to have no sound?
+	PlaySound(SOUND_TUTORIAL_POPUP)
 
 	E:Print(format('|Hsqu:%s|h%s|h', guid, strtrim(message)))
 end
@@ -3553,7 +3562,7 @@ function CH:FCF_Close(fallback)
 	CH:PostChatClose(self) -- also call this since it won't call from blizzard in this case
 end
 
---Same reason as CH.FCF_Close
+--Same reason as CH.FCF_Close (see note)
 function CH:FCF_PopInWindow(fallback)
 	if fallback then self = fallback end
 	if not self or self == CH then self = _G.FCF_GetCurrentChatFrame() end
@@ -3562,6 +3571,55 @@ function CH:FCF_PopInWindow(fallback)
 	--Restore any chats this frame had to the DEFAULT_CHAT_FRAME
 	_G.FCF_RestoreChatsToFrame(_G.DEFAULT_CHAT_FRAME, self)
 	CH.FCF_Close(self) -- use ours to fix close chat bug
+end
+
+-- Same reason as CH.FCF_Close (see note) but in order to fix close by middle clicking
+function CH:FCF_Tab_OnClick(button)
+	local chat = self and CH:GetOwner(self)
+	if not chat then return end
+
+	if button == 'RightButton' then -- If Rightclick bring up the options menu
+		chat:StopMovingOrSizing()
+
+		_G.CURRENT_CHAT_FRAME_ID = self:GetID()
+
+		local tabName = self:GetName()
+		_G.ToggleDropDownMenu(1, nil, _G[tabName..'DropDown'], tabName, 0, 0)
+	elseif button == 'MiddleButton' then
+		if (E.Retail or (chat ~= _G.DEFAULT_CHAT_FRAME and not _G.IsCombatLog(chat))) and not _G.IsBuiltinChatWindow(chat) then -- Dynamic between classic/wrath/retail ~Simpy
+			if not chat.isTemporary then
+				CH.FCF_PopInWindow(self, chat)
+				return
+			elseif chat.chatType == 'WHISPER' or chat.chatType == 'BN_WHISPER' then
+				CH.FCF_PopInWindow(self, chat)
+				return
+			elseif chat.chatType == 'PET_BATTLE_COMBAT_LOG' then
+				CH.FCF_Close(chat)
+			else
+				GMError(format('Unhandled temporary window type. chatType: %s, chatTarget %s', tostring(chat.chatType), tostring(chat.chatTarget)))
+			end
+		end
+	else
+		_G.CloseDropDownMenus() -- Close all dropdowns
+		_G.SELECTED_CHAT_FRAME = chat -- If frame is docked assume that a click is to select a chat window, not drag it
+
+		if chat.isDocked and _G.FCFDock_GetSelectedWindow(_G.GENERAL_CHAT_DOCK) ~= chat then
+			_G.FCF_SelectDockFrame(chat)
+		end
+
+		if GetCVar('chatStyle') ~= 'classic' then
+			_G.ChatEdit_SetLastActiveWindow(chat.editBox)
+		end
+
+		chat:ResetAllFadeTimes()
+
+		_G.FCF_FadeInChatFrame(chat)
+	end
+end
+
+function CH:Tab_OnClick(button)
+	CH.FCF_Tab_OnClick(self, button)
+	PlaySound(SOUND_U_CHAT_SCROLL_BUTTON)
 end
 
 do

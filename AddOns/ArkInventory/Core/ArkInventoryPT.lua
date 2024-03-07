@@ -31,7 +31,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Item Enhancement.New"] = "",
 	["ArkInventory.System.Item Enhancement.PTBase"] = "",
 	
-	["ArkInventory.System.Equipment.Cosmetic.Dragonflight"] = "198776",
+	["ArkInventory.System.Equipment.Cosmetic.Dragonflight"] = "198776,208831",
 	["ArkInventory.System.Equipment.Cosmetic.Other"] = "6833,6835,13544,34086,34087,44731,45067,186515",
 	
 	["ArkInventory.System.Pet.Parts.Salverun"] = "206009,206010,206011,206012,206013,206014,206015,206016,206017,206021",
@@ -44,6 +44,9 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Pet.New"] = "127751,175141,180368,187431,187508",
 	["ArkInventory.System.Pet.PTBase"] = "m,Misc.Minipet,ArkInventory.Consumable.Pet",
 	
+	["ArkInventory.System.Mount.Parts.Mimiron's Jumpjets"] = "208984,209781,209055",
+	["ArkInventory.System.Mount.Parts.Gooey Snailemental"] = "204352",
+	["ArkInventory.System.Mount.Parts.Ochre Dreamtalon"] = "210457,209416,208644,208646,208647",
 	["ArkInventory.System.Mount.Parts.Mossy Mammoth"] = "204360,204363,204364,204366,204367,204369,204371,204372,204374,204375",
 	["ArkInventory.System.Mount.Parts.Renewed Magmammoth"] = "209419",
 	["ArkInventory.System.Mount.Parts.Ivory Traders Ottuk"] = "193633,193696,193708",
@@ -70,7 +73,9 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Key.Other"] = "159826",
 	["ArkInventory.System.Key.PTBase"] = "m,Misc.Key",
 	
+	["ArkInventory.System.Quest.Dragonflight.Secrets of Azeroth"] = "",
 	["ArkInventory.System.Quest.Dragonflight.Emerald Dream.Dreamseed"] = "208066,208067,208047",
+	["ArkInventory.System.Quest.Dragonflight.Emerald Dream.Other"] = "208757",
 	["ArkInventory.System.Quest.Dragonflight.Ohnahran Plains.Honor Our Ancestors"] = "202070,202071",
 	["ArkInventory.System.Quest.Dragonflight.The Waking Shores.Tale of the Phoenix"] = "199177,202062,199080",
 	["ArkInventory.System.Quest.Dragonflight.The Waking Shores.Forgotten Dragon Treasure"] = "195884,195542",
@@ -116,6 +121,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	
 	
 	-- used for both item to currency mappings (itemid:currencyid), and just knowing what items are currencies
+	["ArkInventory.System.Currency.Dragonflight.Mysterious Fragments"] = "205223:2657,212687:2657,212762:2657,212769:2657,212773:2657,212976:2657,212977:2657,212978:2657,213023:2657,213024:2657,213025:2657,213192:2657,213204:2657,213208:2657,213215:2657,213357:2657,213382:2657,213389:2657,213536:2657", 
 	["ArkInventory.System.Currency.Dragonflight.Paracausal Flakes"] = "208945:2594",
 	["ArkInventory.System.Currency.Dragonflight.Flightstones"] = "210180:2245",
 	["ArkInventory.System.Currency.Dragonflight.Whelplings Dreaming Crests"] = "210917:2706",
@@ -276,7 +282,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Explosives"] = "m,Misc.Explosives.Engineering,Misc.Explosives.Other",
 	["ArkInventory.Consumable.Explosives and Devices"] = "m,ArkInventory.Consumable.Explosives,ArkInventory.Consumable.Devices",
 	
-	["ArkInventory.Consumable.Treasure.Dragonflight"] = "191294,194540,198843,198852,198854,199061,199062,199065,199066,199067,199068,200738",
+	["ArkInventory.Consumable.Treasure.Dragonflight"] = "191294,191304,194540,198843,198852,198854,199061,199062,199065,199066,199067,199068,200738",
 	
 	["ArkInventory.Consumable.Pet.Stone.Quality.All"] = "92742,98715,137627",
 	["ArkInventory.Consumable.Pet.Stone.Quality.Aquatic"] = "92679,137391",
@@ -313,7 +319,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	
 	["ArkInventory.Consumable.Reputation.Dragonflight.Dream Wardens"] = "210421:1883,210730:1883,210757:1883,210847:1883,210921:1883,210950:1883,210951:1883,210952:1883,210954:1883,210957:1883,210958:1883,210959:1883,210997:1883,211353:1883,211366:1883,211369:1883,211370:1883,211371:1883,211372:1883,211374:1883,211377:1883,211379:1883,211380:1883,211416:1883,211417:1883",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Soridormi"] = "208952:2553",
-	["ArkInventory.Consumable.Reputation.Dragonflight.Loamm Niffen"] = "205249:2564,205250:2564,205251:2564,205253:2564,205342:2564,205365:2564,205989:2564,205991:2564",
+	["ArkInventory.Consumable.Reputation.Dragonflight.Loamm Niffen"] = "205249:2564,205250:2564,205251:2564,205253:2564,205342:2564,205365:2564,205985:2564,205989:2564,205991:2564",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Dragonscale Expedition"] = "192055:2507,200285:2507,200443:2507,201782:2507,201921:2507,202871:2507,205254:2507",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Iskaara Tuskaar"] = "200071:2511,200287:2511,200449:2511,200453:2511,201783:2511,201922:2511,202854:2511",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Maruuk Centaur"] = "200093:2503,200288:2503,200447:2503,200454:2503,201923:2503,202872:2503",
@@ -456,7 +462,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Skill.Cooking.Other"] = "86425,86468",
 	["ArkInventory.Skill.Cooking.PTBase"] = "m,Tradeskill.Tool.Cooking,ArkInventory.Tradegoods.Cooking",
 	["ArkInventory.Skill.Enchanting.Dragonflight.Knowledge"] = "193900,193901,194702,198520,198610,198675,198689,198967,198968,200976,201012,201013,201272,201283,201356,201709",
-	["ArkInventory.Skill.Enchanting.Dragonflight.Disenchant"] = "198799,198800,200939,200940,200941,200942,200943,200945,200946,200947,201357,201358,201359,204990,204999,205001,205213,210228,210231",
+	["ArkInventory.Skill.Enchanting.Dragonflight.Disenchant"] = "198799,198800,200939,200940,200941,200942,200943,200945,200946,200947,201357,201358,201359,204990,204999,205001,205213,210228,210231,210234",
 	["ArkInventory.Skill.Enchanting.BFA.Iwens Enchanting Rod"] = "168125,168126,168127",
 	["ArkInventory.Skill.Enchanting.Shadowlands"] = "190336",
 	["ArkInventory.Skill.Enchanting.Legion"] = "124444",
