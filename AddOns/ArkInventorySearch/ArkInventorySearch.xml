@@ -243,7 +243,7 @@
           </OnVerticalScroll>
           
           <OnShow>
-            ArkInventorySearch.Frame_Table_Refresh( self )
+            ArkInventorySearch.Frame_Table_Refresh( )
           </OnShow>
           
         </Scripts>
@@ -312,28 +312,27 @@
             <Size x="2" y="20" />
             
             <Anchors>
-              <Anchor point="LEFT" x="80" y="0" />
+              <Anchor point="LEFT" x="90" y="0" />
               <Anchor point="RIGHT" relativeTo="$parentClear" relativePoint="LEFT" x="-2" y="0" />
             </Anchors>
             
             <Scripts>
               
               <OnLoad>
-                ArkInventory.UiSetEditBoxLabel( self, string.format( "%s:", ArkInventory.Localise["SEARCH"] ) )
+                ArkInventory.UiSetEditBoxLabel( self, ArkInventory.Localise["SEARCH_LOADING"] )
               </OnLoad>
               
               <OnShow>
                 self:SetFocus( )
               </OnShow>
               
-              <OnCursorChanged>
-                ArkInventorySearch.Frame_Table_Refresh( self )
-              </OnCursorChanged>
-              
               <OnEnterPressed>
                 self:ClearFocus( )
-                ArkInventorySearch.Frame_Table_Refresh( self )
               </OnEnterPressed>
+              
+              <OnTextChanged>
+                ArkInventorySearch.Frame_Table_Refresh( )
+              </OnTextChanged>
               
             </Scripts>
             

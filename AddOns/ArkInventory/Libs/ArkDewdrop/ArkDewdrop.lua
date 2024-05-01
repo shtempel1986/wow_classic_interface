@@ -4,9 +4,6 @@ Name: ArkDewdrop
 Description: A library to provide a dropdown menu interface.
 
 License: LGPL v2.1 (this file specifically)
-
-$Revision: 2757 $
-$Date: 2020-10-29 23:06:20 +1100 (Thu, 29 Oct 2020) $
 ]]
 
 --[[
@@ -21,7 +18,7 @@ License: LGPL v2.1
 ]]
 
 local libname = "ArkDewdrop"
-local libversion = 30110
+local libversion = 30111
 local lib = LibStub:NewLibrary( libname, libversion )
 
 if not lib then
@@ -670,56 +667,38 @@ local function AcquireButton( level )
 		button:SetScript("OnClick", function(self)
 			if not self.disabled then
 				if self.hasColorSwatch then
+					
 					local func = button.colorFunc
-					local hasOpacity = self.hasOpacity
-					local self = self
-					for k in pairs(tmpt) do
-						tmpt[k] = nil
-					end
-					for i = 1, 1000 do
-						local x = self['colorArg'..i]
-						if x == nil then
-							break
-						else
-							tmpt[i] = x
-						end
-					end
-					ColorPickerFrame.func = function()
+					local info = { }
+					info.r = self.r
+					info.g = self.g
+					info.b = self.b
+					info.hasOpacity = self.hasOpacity
+					info.opacity = self.hasOpacity and self.opacity or 1
+					info.extraInfo = nil
+					
+					info.swatchFunc = function()
 						if func then
 							local r,g,b = ColorPickerFrame:GetColorRGB()
-							local a = hasOpacity and 1 - OpacitySliderFrame:GetValue() or nil
-							local n = #tmpt
-							tmpt[n+1] = r
-							tmpt[n+2] = g
-							tmpt[n+3] = b
-							tmpt[n+4] = a
-							func(unpack(tmpt))
-							tmpt[n+1] = nil
-							tmpt[n+2] = nil
-							tmpt[n+3] = nil
-							tmpt[n+4] = nil
+							local a = info.hasOpacity and ColorPickerFrame:GetColorAlpha() or 1
+							func(r,g,b,a)
 						end
 					end
-					ColorPickerFrame.hasOpacity = self.hasOpacity
-					ColorPickerFrame.opacityFunc = ColorPickerFrame.func
-					ColorPickerFrame.opacity = 1 - self.opacity
-					ColorPickerFrame:SetColorRGB(self.r, self.g, self.b)
-					local r, g, b, a = self.r, self.g, self.b, self.opacity
-					ColorPickerFrame.cancelFunc = function()
+					
+					info.opacityFunc = function() end
+					
+					info.cancelFunc = function()
 						if func then
-							local n = #tmpt
-							tmpt[n+1] = r
-							tmpt[n+2] = g
-							tmpt[n+3] = b
-							tmpt[n+4] = a
-							func(unpack(tmpt))
-							for i = 1, n+4 do
-								tmpt[i] = nil
-							end
+							local r,g,b,a = ColorPickerFrame:GetPreviousValues()
+							func(r,g,b,a)
 						end
 					end
+					
 					lib:Close(1)
+					
+					ColorPickerFrame:SetupColorPickerAndShow(info)
 					ShowUIPanel(ColorPickerFrame)
+					
 				elseif self.func then
 					local level = self.level
 					if type(self.func) == "string" then
@@ -3157,7 +3136,9 @@ function lib:AddLine(...)
 		button.r = info.r or 1
 		button.g = info.g or 1
 		button.b = info.b or 1
-		button.colorSwatch.texture:SetVertexColor(button.r, button.g, button.b)
+		button.hasOpacity = info.hasOpacity
+		button.opacity = info.opacity or 1
+		button.colorSwatch.texture:SetColorTexture(button.r, button.g, button.b, opacity)
 		button.checked = false
 		button.func = nil
 		button.colorFunc = info.colorFunc
@@ -3171,8 +3152,6 @@ function lib:AddLine(...)
 			button[k] = x
 			i = i + 1
 		end
-		button.hasOpacity = info.hasOpacity
-		button.opacity = info.opacity or 1
 	else
 		button.colorSwatch:Hide()
 		button.colorSwatch.texture:Hide()

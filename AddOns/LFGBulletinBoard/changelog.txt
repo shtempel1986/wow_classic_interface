@@ -2,8 +2,22 @@
 
 Group Bulletin Board 	
 
-3.12
-- Support for new patch by BJ Thompson. Give the man a bj for supporting the add-on
+3.20
+- Fixed the addon breaking for some people
+
+3.19
+- Hiding wotlk and tbc panels for SoD
+
+3.18
+- SoD P3
+
+3.17
+- Logic to reset turn on all filters after reseting them
+
+3.16
+- New travel category thanks to surgioclemente. Enables all summoning related things to be moved there
+- Some cleanup of wotlk, classic code
+- hopefully fixes SM bugs
 
 3.11
 - Added realm to character names in request list

@@ -1,4 +1,20 @@
-﻿# 3.10.23 (20-JAN-2024)
+﻿# 3.10.26 (20-MAR-2024)
+ - changed - (retail) toc updated to 100206
+ - changed - (classic) toc updated to 11501
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1871 - issue with INVTYPE_NON_EQUIP_IGNORE
+
+# 3.10.25 (07-MAR-2024)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1829 - issue with add fields in config pages accepting a dropped item but not being able to handle it, they will now ignore it unless it can be used (adding an item to a custom category)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1867 - menu library issue with ColorPickerFrame
+ - changed - the search window should now load a bit faster, and should update significantly faster
+ - changed - switch character menu layout to accomodate people with characters on lots of servers
+
+# 3.10.24 (30-JAN-2024)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1855 - issue with TRADE_SKILL_ITEM_CRAFTED_RESULT event in non dragonflight clients
+ - added - holding the shift key down when opening the mailbox will stop any automatic send actions from being run
+ - updated - category for some items
+
+# 3.10.23 (20-JAN-2024)
  - changed - (retail) toc updated to 100205
  - fixed - should now ignore red text for old equip bonus
  - fixed - https://github.com/arkayenro/arkinventory/issues/1852 - issue with nil reputation cache
@@ -35,7 +51,7 @@
  - changed - holding the CTRL key when using the mount summon macro, or clicking on the mount icon, allows you to use the other type of mount
  - fixed - https://github.com/arkayenro/arkinventory/issues/1832 - issue with tooltip code when its not meant to be processed
  - fixed - https://github.com/arkayenro/arkinventory/issues/1831 - issue with automatic mail send action
- - fixed - https://github.com/arkayenro/arkinventory/issues/1813 - currency will no longer be scanned while mounted (to help with dragriding races).  will be scanned (up to) five seconds after dismounting (if there was an update while you were mounted)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1813 - currency will no longer be scanned while mounted (to help with dragonriding races).  will be scanned (up to) five seconds after dismounting (if there was an update while you were mounted)
  - added - addon icons
  - updated - category for some items
 

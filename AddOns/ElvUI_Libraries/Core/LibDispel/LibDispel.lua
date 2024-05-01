@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibDispel-1.0", 5
+local MAJOR, MINOR = "LibDispel-1.0", 6
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -7,9 +7,9 @@ local Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
 local next = next
-
-local IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
+local CreateFrame = CreateFrame
 local IsPlayerSpell = IsPlayerSpell
+local IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
 
 local GetCVar = C_CVar.GetCVar
 local SetCVar = C_CVar.SetCVar
@@ -50,7 +50,7 @@ if Retail then
 	BlockList[108220] = "Deep Corruption"
 	BlockList[116095] = "Disable" -- slow
 
-	-- Bleed spells updated January 19th 2024 by Simpy for Patch 10.2.5
+	-- Bleed spells updated March 30th 2024 by Simpy for Patch 10.2.6
 	--- Combined lists (without duplicates, filter requiring either main or effect bleed):
 	----> Apply Aura
 	-----> Mechanic Bleeding: https://www.wowhead.com/spells/mechanic:15?filter=109;6;0
@@ -864,6 +864,7 @@ if Retail then
 	BleedList[371472] = "Rake"
 	BleedList[372224] = "Dragonbone Axe"
 	BleedList[372397] = "Vicious Bite"
+	BleedList[372404] = "Rend"
 	BleedList[372570] = "Bold Ambush"
 	BleedList[372718] = "Earthen Shards"
 	BleedList[372796] = "Blazing Rush"
@@ -883,6 +884,7 @@ if Retail then
 	BleedList[377609] = "Dragon Rend"
 	BleedList[377732] = "Jagged Bite"
 	BleedList[378020] = "Gash Frenzy"
+	BleedList[378118] = "Knocked Down"
 	BleedList[381575] = "Lacerate"
 	BleedList[381628] = "Internal Bleeding"
 	BleedList[381672] = "Mutilated Flesh"
@@ -1115,7 +1117,14 @@ do
 		end
 	end
 
-	local frame = CreateFrame('Frame')
+	-- setup events
+	if not lib.frame then
+		lib.frame = CreateFrame('Frame')
+	else -- we are resetting it
+		lib.frame:UnregisterAllEvents()
+	end
+
+	local frame = lib.frame
 	frame:SetScript('OnEvent', UpdateDispels)
 	frame:RegisterEvent('CHARACTER_POINTS_CHANGED')
 	frame:RegisterEvent('PLAYER_LOGIN')

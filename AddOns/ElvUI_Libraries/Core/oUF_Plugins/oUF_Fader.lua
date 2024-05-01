@@ -69,7 +69,7 @@ local function CanGlide()
 	return canGlide
 end
 
-local function Update(self, _, unit)
+local function Update(self, event, unit)
 	local element = self.Fader
 	if self.isForced or (not element or not element.count or element.count <= 0) then
 		self:SetAlpha(1)
@@ -82,7 +82,7 @@ local function Update(self, _, unit)
 	end
 
 	-- try to get the unit from the parent
-	if not unit then
+	if event == 'PLAYER_CAN_GLIDE_CHANGED' or not unit then
 		unit = self.unit
 	end
 
@@ -113,7 +113,7 @@ local function Update(self, _, unit)
 		(element.Focus and not oUF.isClassic and UnitExists('focus')) or
 		(element.Health and UnitHealth(unit) < UnitHealthMax(unit)) or
 		(element.Power and (PowerTypesFull[powerType] and UnitPower(unit) < UnitPowerMax(unit))) or
-		(element.Vehicle and (oUF.isRetail or oUF.isWrath) and UnitHasVehicleUI(unit)) or
+		(element.Vehicle and (oUF.isRetail or oUF.isCata) and UnitHasVehicleUI(unit)) or
 		(element.DynamicFlight and oUF.isRetail and not CanGlide()) or
 		(element.Hover and GetMouseFocus() == (self.__faderobject or self))
 	then
@@ -312,10 +312,9 @@ if oUF.isRetail then
 	tinsert(options.Casting.events, 'UNIT_SPELLCAST_EMPOWER_STOP')
 	options.DynamicFlight = {
 		enable = function(self)
-			self:RegisterEvent('PLAYER_GAINS_VEHICLE_DATA', Update, true)
-			self:RegisterEvent('PLAYER_LOSES_VEHICLE_DATA', Update, true)
+			self:RegisterEvent('PLAYER_CAN_GLIDE_CHANGED', Update, true)
 		end,
-		events = {'PLAYER_GAINS_VEHICLE_DATA','PLAYER_LOSES_VEHICLE_DATA'}
+		events = {'PLAYER_CAN_GLIDE_CHANGED'}
 	}
 end
 
@@ -328,7 +327,7 @@ if not oUF.isClassic then
 	}
 end
 
-if oUF.isRetail or oUF.isWrath then
+if oUF.isRetail or oUF.isCata then
 	options.Vehicle = {
 		enable = function(self)
 			self:RegisterEvent('UNIT_ENTERED_VEHICLE', Update, true)

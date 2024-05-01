@@ -13,6 +13,8 @@ local type = _G.type
 local error = _G.error
 local table = _G.table
 
+local ItemStringPattern = "(|h%[.-%]|h)"
+
 local config = {
 	me = ArkInventory.GetPlayerCodex( ),
 	catset = {
@@ -4184,7 +4186,15 @@ function ArkInventory.ConfigInternalSortMethod( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.ConfigInternalSortMethodAdd( v )
+				
 			end,
 		},
 		list_sort = {
@@ -4610,8 +4620,16 @@ function ArkInventory.ConfigInternalCategoryRule( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalCategoryRuleAdd( v )
+				
 			end,
 		},
 		list_sort = {
@@ -4866,8 +4884,16 @@ function ArkInventory.ConfigInternalCategoryAction( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalCategoryActionAdd( v )
+				
 			end,
 		},
 		list_sort = {
@@ -5178,9 +5204,17 @@ function ArkInventory.ConfigInternalCategoryset( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalCategorysetAdd( v )
 				ArkInventory.ConfigRefresh( )
+				
 			end,
 		},
 		list_sort = {
@@ -5609,8 +5643,16 @@ function ArkInventory.ConfigInternalCategoryCustom( path )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalCategoryCustomAdd( v )
+				
 			end,
 		},
 		action_sort = {
@@ -5846,8 +5888,19 @@ function ArkInventory.ConfigInternalCategoryCustomListItem( path )
 				
 				ArkInventory.Lib.Dewdrop:Close( )
 				
-				if tonumber( v ) then
+				local v = string.trim( v )
+				
+				if string.match( v, "^(item:%d+:%d+)$" ) then
+					v = v
+				elseif string.match( v, "^(%d+)$" ) then
 					v = string.format( "item:%s:0", v )
+				else
+					local m = string.match( v, "item:(%d+)" )
+					if m then
+						v = string.format( "item:%s:0", m )
+					else
+						return
+					end
 				end
 				
 				if ArkInventory.ConfigInternalCategoryCustomItemCategorySet( v, config.category.custom.selected ) then
@@ -6115,9 +6168,17 @@ function ArkInventory.ConfigInternalDesign( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalDesignAdd( v )
 				ArkInventory.ConfigRefresh( )
+				
 			end,
 		},
 		list_sort = {
@@ -10176,8 +10237,16 @@ function ArkInventory.ConfigInternalProfile( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalProfileAdd( v )
+				
 			end,
 		},
 		list_sort = {
@@ -11092,9 +11161,17 @@ function ArkInventory.ConfigInternalAccount( )
 				return ""
 			end,
 			set = function( info, v )
+				
+				local v = string.trim( v )
+				
+				if string.match( v, ItemStringPattern ) then
+					return
+				end
+				
 				ArkInventory.Lib.Dewdrop:Close( )
 				ArkInventory.ConfigInternalAccountAdd( v )
 				ArkInventory.ConfigRefresh( )
+				
 			end,
 		},
 		list_sort = {

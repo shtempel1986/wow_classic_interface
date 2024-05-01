@@ -10,10 +10,12 @@ function ArkInventorySearch:OnEnable( )
 	
 	ArkInventory.Search.frame = ARKINV_Search
 	
-	ArkInventorySearch.rebuild = true
+	ArkInventorySearch.rebuild = 1
 	ArkInventorySearch.cycle = 0
 	ArkInventorySearch.SourceTable = { }
+	
 	ArkInventorySearch.cache = { }
+	ArkInventorySearch.PlayerItemsReady = { } -- player_id = true|nil
 	
 end
 
@@ -192,15 +194,12 @@ function ArkInventorySearch.Frame_Table_Reset( f )
 	
 end
 
-function ArkInventorySearch.Frame_Table_Refresh( frame )
+function ArkInventorySearch.Frame_Table_Refresh( )
 	
+	local frame = ARKINV_SearchFrameView --TableScroll / SearchFilter
 	local thread_id = ArkInventory.Global.Thread.Format.Search
-	ArkInventorySearch.cycle = 0
 	
-	if not frame:IsVisible( ) then
-		--ArkInventory.OutputThread( thread_id, " aborting, not visible" )
-		--return
-	end
+	ArkInventorySearch.cycle = 0
 	
 	if not ArkInventory.Global.Thread.Use then
 		local tz = debugprofilestop( )
@@ -208,10 +207,6 @@ function ArkInventorySearch.Frame_Table_Refresh( frame )
 		ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 		tz = debugprofilestop( ) - tz
 		ArkInventory.OutputThread( string.format( "%s dead after %0.0fms", thread_id, tz ) )
-		return
-	end
-	
-	if ArkInventory.ThreadRunning( thread_id ) then
 		return
 	end
 	
@@ -226,104 +221,84 @@ function ArkInventorySearch.Frame_Table_Refresh( frame )
 	
 end
 
+
 function ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 	
-	local f = frame:GetParent( ):GetParent( ):GetParent( ):GetName( )
-	f = string.format( "%s%s", f, "View" )
+	if not frame:IsVisible( ) then
+		ArkInventory.OutputDebug( "abort - search window is closed" )
+		return
+	end
 	
-	ArkInventorySearch.Frame_Table_Reset( f )
+	local f = frame:GetName( )
 	
 	local filter = _G[string.format( "%s%s", f, "SearchFilter" )]:GetText( )
 	filter = ArkInventory.Search.CleanText( filter )
-	--ArkInventory.Output( "table refresh, search filter = [", filter, "]" )
 	
-	ArkInventory.Table.Wipe( ArkInventorySearch.SourceTable )
-	local c = 0
+	ArkInventory.OutputDebug( "search refresh: thread = [", thread_id, "], filter = [", filter, "], items not ready = [", ArkInventorySearch.rebuild, "], cycle = [", ArkInventorySearch.cycle, "]" )
 	
-	local tt = { }
-	local class, name, txt, texture, q, info
+	local label = _G[string.format( "%s%s", f, "SearchFilterLabel" )]
+	label:SetText( ArkInventory.Localise["SEARCH_LOADING"] )
 	
+	
+	local id, name, txt, info
+	local item_not_ready = string.format( " %s", ArkInventory.Localise["ITEM_NOT_READY"] )
+	local me = ArkInventory.GetPlayerCodex( )
 	ArkInventorySearch.rebuild = 0
 	
-	for p, pd in ArkInventory.spairs( ArkInventory.db.player.data ) do
+	ArkInventory.OutputDebug( "search - building cache - start" )
+	
+	for p, pd in pairs( ArkInventory.db.player.data ) do
 		
-		for l, ld in pairs( pd.location ) do
+		local PlayerItemsReadyCheck = true
+		if p == me.player.data.info.player_id or not ArkInventorySearch.PlayerItemsReady[p] then
 			
-			if ( not ArkInventory.Global.Location[l].excludeFromGlobalSearch ) and ArkInventory.ClientCheck( ArkInventory.Global.Location[l].proj ) then
+			ArkInventory.OutputDebug( "search - player [", p, "]" )
+			
+			for l, ld in pairs( pd.location ) do
 				
-				for b, bd in pairs( ld.bag ) do
+				if ( not ArkInventory.Global.Location[l].excludeFromGlobalSearch ) and ArkInventory.ClientCheck( ArkInventory.Global.Location[l].proj ) then
 					
-					for s, sd in pairs( bd.slot ) do
+					for b, bd in pairs( ld.bag ) do
 						
-						if sd.h then
+						for s, sd in pairs( bd.slot ) do
 							
-							local id = ArkInventory.ObjectIDSearch( sd.h )
-							
-							if not ArkInventorySearch.cache[id] then
+							if sd.h then
 								
-								info = ArkInventory.GetObjectInfo( id )
-								class = info.class
-								texture = info.texture
-								name = info.name
-								q = info.q
+								id = ArkInventory.ObjectIDSearch( sd.h )
 								
-								if name and name ~= ArkInventory.Localise["DATA_NOT_READY"] then
-									txt = ArkInventory.Search.GetContent( id )
-									ArkInventorySearch.cache[id] = { name = name, txt = txt, texture = texture, q = q, info = info }
-								else
-									name = ""
+								if not ArkInventorySearch.cache[id] then
+									ArkInventorySearch.cache[id] = { ready = false }
+								end
+								
+								if not ArkInventorySearch.cache[id].ready then
+									
+									info = ArkInventory.GetObjectInfo( id )
+									name = info.name
 									txt = ""
-									if not ( class == "empty" or class == "copper" ) then
-										--ArkInventory.Output( "not found ", id )
-										ArkInventorySearch.rebuild = ArkInventorySearch.rebuild + 1
+									
+									if info.ready then
+										
+										txt = ArkInventory.Search.GetContent( id )
+										
+										ArkInventorySearch.cache[id].ready = info.ready
+										
+									else
+										
+										name = item_not_ready
+										
+										if not ( info.class == "empty" or info.class == "copper" ) then
+											PlayerItemsReadyCheck = false
+											ArkInventorySearch.rebuild = ArkInventorySearch.rebuild + 1
+										end
+										
 									end
-								end
-								
-							else
-								
-								class = ArkInventorySearch.cache[id].info.osd.class
-								texture = ArkInventorySearch.cache[id].texture
-								name = ArkInventorySearch.cache[id].name
-								q = ArkInventorySearch.cache[id].q
-								txt = ArkInventorySearch.cache[id].txt
-								
-							end
-							
-							
-							
-							local ignore = false
-							
-							--ArkInventory.Output( "[", filter, "] [", name, "] [", txt, "]" )
-							if class == "empty" or class == "copper" then
-								ignore = true
-							end
-							
-							if not ignore and filter ~= "" and txt ~= "" then
-								if not string.find( txt, filter, nil, true ) then
-									ignore = true
-								end
-							end
-							
-							if not ignore then
-								
-								if not tt[id] then
 									
-									tt[id] = true
-									
-									c = c + 1
-									ArkInventorySearch.SourceTable[c] = { id = id, sorted = name, name = name, h = id, q = q, t = texture }
-									
-									--if name == "" then
-										--ArkInventory.Output2( id, " / ", txt )
-									--end
+									ArkInventorySearch.cache[id].name = name
+									ArkInventorySearch.cache[id].txt = txt
+									ArkInventorySearch.cache[id].info = info
 									
 								end
 								
-							end
-							
-							if thread_id then
-								--ArkInventory.Output( p, " - ", l, ".", b )
-								ArkInventory.ThreadYield( thread_id )
 							end
 							
 						end
@@ -332,37 +307,87 @@ function ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 					
 				end
 				
+				if thread_id then
+					ArkInventory.ThreadYield( thread_id )
+				end
+				
+			end
+			
+			if PlayerItemsReadyCheck then
+				ArkInventorySearch.PlayerItemsReady[p] = true
 			end
 			
 		end
 		
 	end
 	
-	if not frame:IsVisible( ) then
-		--ArkInventory.Output( "abort - window closed" )
-		return
+	ArkInventory.OutputDebug( "search thread ", thread_id, " cache loaded - items not ready [", ArkInventorySearch.rebuild, "]" )
+	
+	
+	ArkInventory.OutputDebug( "search - source table - start" )
+	
+	local c = 0
+	local ignore = false
+	ArkInventory.Table.Wipe( ArkInventorySearch.SourceTable )
+	
+	for id, entry in pairs( ArkInventorySearch.cache ) do
+		
+		--ArkInventory.Output( "[", filter, "] [", name, "] [", txt, "]" )
+		
+		ignore = false
+		
+		if entry.info.class == "empty" or entry.info.class == "copper" then
+			ignore = true
+		end
+		
+		if not ignore and filter ~= "" and entry.txt ~= "" then
+			if not string.find( entry.txt, filter, nil, true ) then
+				ignore = true
+			end
+		end
+		
+		if not ignore then
+			c = c + 1
+			ArkInventorySearch.SourceTable[c] = { id = id, sorted = entry.name, name = entry.name, h = id, q = entry.info.q, t = entry.info.texture }
+		end
+		
 	end
+	
+	if thread_id then
+		ArkInventory.ThreadYield( thread_id )
+	end
+	
+	ArkInventory.OutputDebug( "search - source table - end" )
+	
+	
+	ArkInventory.OutputDebug( "search - build table - start" )
+	
+	ArkInventorySearch.Frame_Table_Reset( f )
+	if #ArkInventorySearch.SourceTable > 0 then
+		table.sort( ArkInventorySearch.SourceTable, function( a, b ) return a.sorted < b.sorted end )
+		ArkInventorySearch.Frame_Table_Scroll( )
+	end
+	
+	ArkInventory.OutputDebug( "search - build table - end" )
+	
+	
+	label:SetText( string.format( "%s:", ArkInventory.Localise["SEARCH"] ) )
+	
 	
 	if ArkInventorySearch.rebuild > 0 then
 		ArkInventorySearch.cycle = ArkInventorySearch.cycle + 1
 		if ArkInventorySearch.cycle < 100 then
-			--ArkInventory.Output( "cycle ", ArkInventorySearch.cycle, ": ", ArkInventorySearch.rebuild, " empty entries, rebuilding" )
+			ArkInventory.OutputDebug( "cycle ", ArkInventorySearch.cycle, ": ", ArkInventorySearch.rebuild, " items not ready, rebuilding" )
 			return ArkInventorySearch.Frame_Table_Refresh_Threaded( frame, thread_id )
 		end
 	end
 	
-	if #ArkInventorySearch.SourceTable > 0 then
-		table.sort( ArkInventorySearch.SourceTable, function( a, b ) return a.sorted < b.sorted end )
-		ArkInventorySearch.Frame_Table_Scroll( frame )
-	end
-	
 end
 
-function ArkInventorySearch.Frame_Table_Scroll( frame )
+function ArkInventorySearch.Frame_Table_Scroll( )
 	
-	local f = frame:GetParent( ):GetParent( ):GetParent( ):GetName( )
-
-	f = string.format( "%s%s", f, "View" )
+	local frame = ARKINV_SearchFrameView
+	local f = frame:GetName( )
 	
 	local ft = string.format( "%s%s", f, "Table" )
 	local fs = string.format( "%s%s", f, "Search" )

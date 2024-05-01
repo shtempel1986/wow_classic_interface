@@ -16,14 +16,16 @@ function SlashCmdList.NWBASTVCMD(msg, editBox)
 	WorldMapFrame:SetMapID(1434);
 end
 
---This may need to adjusted for DST we'll see whe it ticks over.
+--These times are adjusted if DST is active in the getTimeLeft() func.
+local isUS;
 local region = GetCurrentRegion();
 if (region == 1 and string.match(NWB.realm, "(AU)")) then
 	--OCE.
-	calcStart = 1707260400; --Date and time (GMT): Tuesday, February 6, 2024 11:00:00 PM
+	calcStart = 1707264000; --Date and time (GMT): Wednesday, February 7, 2024 12:00:00 AM
 elseif (region == 1) then
 	--US.
-	calcStart = 1707260400; --OCE and US are the same? (unlike dmf)
+	isUS = true;
+	calcStart = 1707264000; --Date and time (GMT):Wednesday, February 7, 2024 12:00:00 AM; --OCE and US different.
 elseif (region == 2) then
 	--Korea.
 	calcStart = 1707256800; --Date and time (GMT): Tuesday, February 6, 2024 10:00:00 PM --KR starts 1h before OCE/US.
@@ -42,9 +44,18 @@ calcStart = calcStart - 3600; --Stv runs 1 hour before ashenvale.
 local function getTimeLeft()
 	local timeLeft, type;
 	if (calcStart) then
-		local utc = time(date("*t"));
-		local secondsSinceFirstReset = utc - calcStart;
-		local timestamp = calcStart + ((math.floor(secondsSinceFirstReset / 10800) + 1) * 10800);
+		local start = calcStart;
+		local isDST = NWB:isDST();
+		if (isDST) then
+			if (isUS) then
+				start = start + 3600;
+			else
+				start = start - 3600;
+			end
+		end
+		local utc = GetServerTime();
+		local secondsSinceFirstReset = utc - start;
+		local timestamp = start + ((math.floor(secondsSinceFirstReset / 10800) + 1) * 10800);
 		local timeLeft = timestamp - utc;
 		local realTimeLeft = timeLeft;
 		if (timeLeft > 9000) then
@@ -93,7 +104,7 @@ function NWB:getStranglethornTimeString(isShort, veryShort)
 			end
 		end
 	end
-	return text, timeLeft, timestamp, realTimeLeft;
+	return text, timeLeft, timestamp, realTimeLeft, type;
 end
 
 function NWB:addStranglethornMinimapString(tooltip, noTopSeperator, noBottomSeperator)
@@ -150,7 +161,11 @@ function NWB:checkStranglethornTimer()
 		if (NWB.db.global.guild10) then
 			local msg = string.format(L["stranglethornStartSoon"], "15 " .. L["minutes"]) .. ".";
 			if (IsInGuild()) then
-				NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.67);
+				if (isUS) then
+					NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.69);
+				else
+					NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.67);
+				end
 			else
 				NWB:print(msg, nil, "[NWB]");
 			end
@@ -162,7 +177,11 @@ function NWB:checkStranglethornTimer()
 		--Just tie it to guild10 settings.
 		if (NWB.db.global.guild10) then
 			if (IsInGuild()) then
-				NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.68);
+				if (isUS) then
+					NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.69);
+				else
+					NWB:sendGuildMsg(msg, "guild10", nil, "[NWB]", 2.68);
+				end
 			else
 				NWB:print(msg, nil, "[NWB]");
 			end
@@ -262,7 +281,7 @@ function NWB:createStranglethornMarker(type, data)
 					obj.timerFrame:SetHeight(obj.timerFrame.fs:GetStringHeight() + 12);
 				end
 			end)
-				obj.timerFrame:SetScript("OnEnter", function(self)
+			obj.timerFrame:SetScript("OnEnter", function(self)
 				obj.tooltip:Show();
 			end)
 			obj.timerFrame:SetScript("OnLeave", function(self)
@@ -329,19 +348,20 @@ function NWB:refreshStranglethornMarkers(updateOnly)
 	end
 	--If we're looking at the capital city map.
 	if (NWB.faction == "Horde" and WorldMapFrame and WorldMapFrame:GetMapID() == 1454) then
-		mapMarkerTypes = {
+		--This is now attached to the ashenvale city markers.
+		--[[mapMarkerTypes = {
 			["Alliance"] = {x = 15, y = 92, mapID = 1454, icon = "Interface\\worldstateframe\\alliancetower.blp"},
 			["Horde"] = {x = 20, y = 92, mapID = 1454, icon = "Interface\\worldstateframe\\hordetower.blp"},
 		};
 		_G["AllianceNWBStranglethornMap"].fsBottom:ClearAllPoints();
-		_G["AllianceNWBStranglethornMap"].fsBottom:SetPoint("BOTTOM", 28, -45);
+		_G["AllianceNWBStranglethornMap"].fsBottom:SetPoint("BOTTOM", 28, -45);]]
 	elseif (NWB.faction == "Alliance" and WorldMapFrame and WorldMapFrame:GetMapID() == 1453) then
-		mapMarkerTypes = {
+		--[[mapMarkerTypes = {
 			["Alliance"] = {x = 14, y = 92, mapID = 1453, icon = "Interface\\worldstateframe\\alliancetower.blp"},
 			["Horde"] = {x = 19, y = 92, mapID = 1453, icon = "Interface\\worldstateframe\\hordetower.blp"},
 		};
 		_G["AllianceNWBStranglethornMap"].fsBottom:ClearAllPoints();
-		_G["AllianceNWBStranglethornMap"].fsBottom:SetPoint("BOTTOM", 28, -45);
+		_G["AllianceNWBStranglethornMap"].fsBottom:SetPoint("BOTTOM", 28, -45);]]
 	else
 		mapMarkerTypes = {
 			["Alliance"] = {x = 78, y = 90, mapID = 1434, icon = "Interface\\worldstateframe\\alliancetower.blp"},
@@ -398,8 +418,8 @@ local function chatMsgLoot(...)
  		--Self receive single loot "You create: [Item]"
     	local itemLink, amount = strmatch(msg, string.gsub(LOOT_ITEM_CREATED_SELF, "%%s", "(.+)"));
     end
-    if (itemLink) then
-    	if (string.match(itemLink, "item:213168")) then
+    if (itemLink) then --Copper Blood Coin and Copper Massacre Coin.
+    	if (string.match(itemLink, "item:213168") or string.match(itemLink, "item:221364")) then
     		if (amount) then
 	    		amount = tonumber(amount);
 	    	end
@@ -431,7 +451,7 @@ local function addBossMarker(x, y)
 		lastSeenBoss = GetServerTime();
 		if (GetServerTime() - lastBossMsg  > 3600) then
 			lastBossMsg = GetServerTime(); --This is also set in mouseover so no msg if we see it ourself.
-			local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+			local _, _, zone = NWB:GetPlayerZonePosition();
 			if (zone == 1434) then
 				NWB:print(L["stvBossSpotted"]);
 				local colorTable = {r = NWB.db.global.middleColorR, g = NWB.db.global.middleColorG, b = NWB.db.global.middleColorB, id = 41, sticky = 0};
@@ -459,7 +479,7 @@ local function getStvPos(zoneID)
 	if (not NWB.stvRunning) then
 		return;
 	end
-	local x, y, zone = NWB.dragonLib:GetPlayerZonePosition();
+	local x, y, zone = NWB:GetPlayerZonePosition();
 	if (validateStv(zoneID) and zoneID and x and y and zone == 1434) then
 		NWB:updateStvBoss(zoneID, x, y);
 		return zoneID, x, y;
@@ -634,7 +654,7 @@ local function parseGUID(unit)
 	if (NWB.stvRunning) then
 		local guid = UnitGUID(unit);
 		if (guid) then
-			local _, _, zone = NWB.dragonLib:GetPlayerZonePosition();
+			local _, _, zone = NWB:GetPlayerZonePosition();
 			if (zone == 1434) then
 				local unitType, _, _, _, zoneID, npcID = strsplit("-", guid);
 				if (unitType == "Creature" and npcID) then

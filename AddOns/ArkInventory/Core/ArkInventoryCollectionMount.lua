@@ -27,7 +27,6 @@ local collection = {
 	usable = { }, -- [mta] = { } array of all mounts of that type that you can use at the location you called it, updated via LDB
 	
 	cachespell = { }, -- spellId = MountId
-	cachedragon = { }, -- spellId = MountId
 	
 --	filter = {
 --		ignore = false,
@@ -1301,7 +1300,9 @@ function ArkInventory.Collection.Mount.GetUsable( mta )
 end
 
 function ArkInventory.Collection.Mount.isDragonridingAvailable( )
-	--for spellID, mountID in pairs( collection.cachedragon ) do
+	
+--	return IsAdvancedFlyableArea() and IsOutdoors()
+	
 	local DragonRidingMounts = C_MountJournal.GetCollectedDragonridingMounts( )
 	for _, mountID in pairs( DragonRidingMounts ) do
 		local isUsable, useError = C_MountJournal.GetMountUsabilityByID( mountID, IsIndoors( ) )
@@ -1309,7 +1310,8 @@ function ArkInventory.Collection.Mount.isDragonridingAvailable( )
 			ArkInventory.OutputDebug( "dragonriding mount [", mountID, "] is usable here" )
 			return true
 		else
-			--ArkInventory.OutputDebug( "dragonriding mount [", mountID, "] is not usable here [", useError, "]" )
+			ArkInventory.OutputDebug( "dragonriding mount [", mountID, "] is not usable here [", useError, "]" )
+			return false
 		end
 	end
 end
@@ -1695,10 +1697,6 @@ local function Scan_Threaded( thread_id )
 			c[i].isDragonriding = isDragonriding
 			
 			collection.cachespell[spellID] = i
-			
-			if isDragonriding then
-				collection.cachedragon[spellID] = i
-			end
 			
 			c[i].link = GetSpellLink( spellID )
 			

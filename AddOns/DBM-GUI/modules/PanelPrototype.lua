@@ -29,7 +29,7 @@ local function parseDescription(name, usesHTML)
 			if spellId < 0 then
 			    return "$journal:" .. -spellId
 			end
-			spellName = DBM:GetSpellInfo(spellId)
+			spellName = DBM:GetSpellName(spellId)
 			if not spellName then
 				spellName = CL.UNKNOWN
 				DBM:Debug("Spell ID does not exist: " .. spellId)
@@ -611,6 +611,7 @@ function PanelPrototype:CreateAbility(titleText, icon, spellID, isPrivate)
 	button:SetPoint("LEFT", title, -15, 0)
 	button:Show()
 	button:SetSize(18, 18)
+	button:SetScript('OnClick', function () end)
 	button.toggle:SetNormalTexture(area.hidden and 130838 or 130821) -- "Interface\\Buttons\\UI-PlusButton-UP", "Interface\\Buttons\\UI-MinusButton-UP"
 	button.toggle:SetPushedTexture(area.hidden and 130836 or 130820) -- "Interface\\Buttons\\UI-PlusButton-DOWN", "Interface\\Buttons\\UI-MinusButton-DOWN"
 	button.toggle:Show()

@@ -4,13 +4,12 @@ local MC = E:GetModule('ModuleCopy')
 local D = E:GetModule('Distributor')
 local S = E:GetModule('Skins')
 
-local GetAddOnMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
 -- GLOBALS: ElvDB
 
 local ACH = E.Libs.ACH
 local L = E.Libs.ACL:GetLocale('ElvUI', E.global.general.locale)
 local C = {
-	version = tonumber(GetAddOnMetadata('ElvUI_Options', 'Version')),
+	version = E:ParseVersionString('ElvUI_Options'),
 	Blank = function() return '' end,
 	SearchCache = {},
 	SearchText = '',
@@ -138,7 +137,7 @@ end
 
 E.Libs.AceConfig:RegisterOptionsTable('ElvUI', E.Options)
 E.Libs.AceConfigDialog:SetDefaultSize('ElvUI', E:Config_GetDefaultSize())
-E.Options.name = format('%s: |cff99ff33%.2f|r', L["Version"], E.version)
+E.Options.name = format('%s: |cff99ff33%s|r', L["Version"], E.versionString)
 
 local DEVELOPERS = {
 	'Tukz',
@@ -266,9 +265,9 @@ for index, data in next, {
 	{ key = 'discord',		name = L["Discord"],				url = 'https://discord.tukui.org' },
 	{ key = 'issues',		name = L["Ticket Tracker"],			url = 'https://github.com/tukui-org/ElvUI/issues' },
 	{ key = 'wiki',			name = L["Wiki"],					url = 'https://github.com/tukui-org/ElvUI/wiki' },
-	{ key = 'dev',			name = L["Development Version"],	url = 'https://github.com/tukui-org/ElvUI/archive/refs/heads/development.zip' },
-	{ key = 'ptr',			name = L["PTR Version"],			url = 'https://github.com/tukui-org/ElvUI/archive/refs/heads/ptr.zip' },
-	{ key = 'changelog',	name = L["Changelog"],				url = 'https://github.com/tukui-org/ElvUI/blob/development/CHANGELOG.md' },
+	{ key = 'dev',			name = L["Development Version"],	url = 'https://api.tukui.org/v1/download/dev/elvui/main' },
+	{ key = 'ptr',			name = L["PTR Version"],			url = 'https://api.tukui.org/v1/download/dev/elvui/ptr' },
+	{ key = 'changelog',	name = L["Changelog"],				url = 'https://github.com/tukui-org/ElvUI/blob/main/CHANGELOG.md' },
 	{ key = 'customTexts',	name = L["Custom Texts"],			url = 'https://github.com/tukui-org/ElvUI/wiki/custom-texts' },
 	{ key = 'paging',		name = L["Action Paging"],			url = 'https://github.com/tukui-org/ElvUI/wiki/paging' },
 	{ key = 'performance',	name = L["Performance"],			url = 'https://github.com/tukui-org/ElvUI/wiki/performance-optimization' },
@@ -312,7 +311,7 @@ E.Options.args.profiles.args.private.order = 2
 
 E.Libs.AceConfig:RegisterOptionsTable('ElvProfiles', E.Options.args.profiles.args.profile)
 
-if E.Retail or E.Wrath then
+if E.Retail or E.Cata or E.ClassicSOD then
 	E.Libs.DualSpec:EnhanceOptions(E.Options.args.profiles.args.profile, E.data)
 end
 

@@ -1,5 +1,5 @@
 ## Interface: 30403
-## Version: 1.7.0
+## Version: 1.7.2
 ## Title: Vendor Price
 ## Notes: Displays the price of an item when not at a vendor
 ## Author: Ketho, Icesythe7

@@ -448,6 +448,7 @@ if E.ClassicSOD then
 	-- Whitelist World Event Auras
 	Whitelist[433804] = List(6) -- Blood for the Blood Loa
 	Whitelist[441785] = List(6) -- Drained of Blood
+	Whitelist[437751] = List(6) -- Bruised
 	Whitelist[436351] = List(6) -- Zandalari Ward
 	Whitelist[429959] = List(2) -- Well-Rested
 	-- Priest Rune Meditations
@@ -660,6 +661,30 @@ if E.ClassicSOD then
 	RaidDebuffs[438732] = List(2) -- Toxic Ventilation
 	RaidDebuffs[438735] = List(2) -- High Voltage!
 	RaidDebuffs[438720] = List(2) -- Freezing
+	----------------------------------------------------------
+	---------------------- Sunken Temple ---------------------
+	----------------------------------------------------------
+	-- Atal'alarion
+	RaidDebuffs[437617] = List(2) -- Demolishing Smash
+	-- Festering Rotslime
+	RaidDebuffs[438142] = List(3) -- Gunk
+	-- Atal'ai Defenders
+	RaidDebuffs[446354] = List(2) -- Shield Slam
+	RaidDebuffs[446373] = List(2) -- Corrupted Slam
+	-- Dreamscythe and Weaver
+	RaidDebuffs[442622] = List(2) -- Acid Breath
+	-- Jammal'an and Ogom
+	RaidDebuffs[437868] = List(3) -- Agonizing Weakness
+	RaidDebuffs[437847] = List(6) -- Mortal Lash
+	-- Morphaz and Hazzas
+	RaidDebuffs[445158] = List(2) -- Lucid Dreaming
+	RaidDebuffs[445555] = List(3) -- On Fire!!
+	-- Shade of Eranikus
+	RaidDebuffs[437390] = List(6) -- Lethargic Poison
+	RaidDebuffs[437324] = List(2) -- Deep Slumber
+	-- Avatar of Hakkar
+	RaidDebuffs[444255] = List(6) -- Corrupted Blood
+	RaidDebuffs[444165] = List(5) -- Skeletal
 end
 
 --[[
@@ -723,6 +748,19 @@ if E.ClassicSOD then
 	RaidBuffs[436837] = List(2) -- Widget Fortress
 	-- Mekgineer Thermaplugg
 	RaidBuffs[438715] = List(2) -- Furnace Surge
+	----------------------------------------------------------
+	---------------------- Sunken Temple ---------------------
+	----------------------------------------------------------
+	-- Atal'ai Defenders
+	RaidBuffs[446356] = List(2) -- Improved Blocking
+	-- Dreamscythe and Weaver
+	RaidBuffs[443302] = List(6) -- Emerald Ward
+	-- Jammal'an and Ogom
+	RaidBuffs[437791] = List(6) -- Ritual Leader
+	-- Shade of Eranikus
+	RaidBuffs[437410] = List(6) -- Deep Slumber
+	-- Avatar of Hakkar
+	RaidBuffs[443917] = List(2) -- Tides of Blood
 end
 
 G.unitframe.aurawatch = {
@@ -902,6 +940,7 @@ G.unitframe.ChannelTicks = {
 if E.ClassicSOD then
 	G.unitframe.ChannelTicks[402261] = 3 -- Penance (DPS)
 	G.unitframe.ChannelTicks[402277] = 3 -- Penance (Healing)
+	G.unitframe.ChannelTicks[413259] = 5 -- Mind Sear (Rune)
 end
 
 -- Spells that chain, second step

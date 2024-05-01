@@ -4,15 +4,16 @@ local S = E:GetModule('Skins')
 local _G = _G
 local next = next
 local unpack, pairs = unpack, pairs
+local hooksecurefunc = hooksecurefunc
 
 local HasPetUI = HasPetUI
 local GetNumFactions = GetNumFactions
 local GetPetHappiness = GetPetHappiness
-local GetItemQualityColor = GetItemQualityColor
 local GetInventoryItemQuality = GetInventoryItemQuality
 local FauxScrollFrame_GetOffset = FauxScrollFrame_GetOffset
 
-local hooksecurefunc = hooksecurefunc
+local GetItemQualityColor = (C_Item and C_Item.GetItemQualityColor) or GetItemQualityColor
+
 local NUM_FACTIONS_DISPLAYED = NUM_FACTIONS_DISPLAYED
 local CHARACTERFRAME_SUBFRAMES = CHARACTERFRAME_SUBFRAMES
 
@@ -23,6 +24,36 @@ local ResistanceCoords = {
 	{ 0.21875, 0.8125, 0.36328125, 0.4375},		--Frost
 	{ 0.21875, 0.8125, 0.4765625, 0.55078125},	--Shadow
 }
+
+local function ReputationFrameUpdate()
+	local factionOffset = FauxScrollFrame_GetOffset(_G.ReputationListScrollFrame)
+	local numFactions = GetNumFactions()
+
+	for i = 1, NUM_FACTIONS_DISPLAYED do
+		local factionIndex = factionOffset + i
+		if factionIndex <= numFactions then
+			local factionHeader = _G['ReputationHeader'..i]
+			if factionHeader.isCollapsed then
+				factionHeader:SetNormalTexture(E.Media.Textures.PlusButton)
+			else
+				factionHeader:SetNormalTexture(E.Media.Textures.MinusButton)
+			end
+		end
+	end
+end
+
+local function PaperDollItemSlotButtonUpdate(frame)
+	if not frame.SetBackdropBorderColor then return end
+
+	local id = frame:GetID()
+	local rarity = id and GetInventoryItemQuality('player', id)
+	if rarity and rarity > 1 then
+		local r, g, b = GetItemQualityColor(rarity)
+		frame:SetBackdropBorderColor(r, g, b)
+	else
+		frame:SetBackdropBorderColor(unpack(E.media.bordercolor))
+	end
+end
 
 local function HandleTabs()
 	local lastTab
@@ -128,8 +159,6 @@ function S:CharacterFrame()
 			slot:SetTemplate(nil, true, true)
 			slot:StyleButton()
 
-			slot.characterSlot = true -- for color function
-
 			S:HandleIcon(icon)
 			icon:SetInside()
 
@@ -139,17 +168,7 @@ function S:CharacterFrame()
 		end
 	end
 
-	hooksecurefunc('PaperDollItemSlotButton_Update', function(frame)
-		if frame.characterSlot then
-			local rarity = GetInventoryItemQuality('player', frame:GetID())
-			if rarity and rarity > 1 then
-				local r, g, b = GetItemQualityColor(rarity)
-				frame:SetBackdropBorderColor(r, g, b)
-			else
-				frame:SetBackdropBorderColor(unpack(E.media.bordercolor))
-			end
-		end
-	end)
+	hooksecurefunc('PaperDollItemSlotButton_Update', PaperDollItemSlotButtonUpdate)
 
 	-- PetPaperDollFrame
 	_G.PetPaperDollFrame:StripTextures()
@@ -222,23 +241,7 @@ function S:CharacterFrame()
 		factionWar.Icon:SetTexture([[Interface\Buttons\UI-CheckBox-SwordCheck]])
 	end
 
-	hooksecurefunc('ReputationFrame_Update', function()
-		local numFactions = GetNumFactions()
-		local factionIndex, factionHeader
-		local factionOffset = FauxScrollFrame_GetOffset(_G.ReputationListScrollFrame)
-
-		for i = 1, NUM_FACTIONS_DISPLAYED, 1 do
-			factionHeader = _G['ReputationHeader'..i]
-			factionIndex = factionOffset + i
-			if factionIndex <= numFactions then
-				if factionHeader.isCollapsed then
-					factionHeader:SetNormalTexture(E.Media.Textures.PlusButton)
-				else
-					factionHeader:SetNormalTexture(E.Media.Textures.MinusButton)
-				end
-			end
-		end
-	end)
+	hooksecurefunc('ReputationFrame_Update', ReputationFrameUpdate)
 
 	_G.ReputationListScrollFrame:StripTextures()
 	S:HandleScrollBar(_G.ReputationListScrollFrameScrollBar)

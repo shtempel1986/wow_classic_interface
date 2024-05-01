@@ -221,9 +221,8 @@ function S:FriendsFrame()
 		button.icon:Point('LEFT', 45, 0)
 		button.icon:Size(15)
 		button.icon:SetTexture([[Interface\WorldStateFrame\Icons-Classes]])
+		button.icon:CreateBackdrop(nil, true, nil, nil, nil, nil, nil, button.icon)
 
-		button:CreateBackdrop(nil, true)
-		button.backdrop:SetAllPoints(button.icon)
 		S:HandleButtonHighlight(button)
 
 		level:ClearAllPoints()
@@ -304,9 +303,7 @@ function S:FriendsFrame()
 		button.icon:Point('LEFT', 48, 0)
 		button.icon:Size(15)
 		button.icon:SetTexture([[Interface\WorldStateFrame\Icons-Classes]])
-
-		button:CreateBackdrop(nil, true)
-		button.backdrop:SetAllPoints(button.icon)
+		button.icon:CreateBackdrop(nil, true, nil, nil, nil, nil, nil, button.icon)
 
 		S:HandleButtonHighlight(button)
 		S:HandleButtonHighlight(statusButton)
@@ -352,7 +349,7 @@ function S:FriendsFrame()
 				end
 			end
 		else
-			for i = 1, _G.GUILDMEMBERS_TO_DISPLAY, 1 do
+			for i = 1, _G.GUILDMEMBERS_TO_DISPLAY do
 				local button = _G['GuildFrameGuildStatusButton'..i]
 				local _, _, _, _, class, _, _, _, online = GetGuildRosterInfo(button.guildIndex)
 

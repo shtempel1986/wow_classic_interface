@@ -21,9 +21,6 @@ local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
 local GetCursorMoney = GetCursorMoney
 local GetInventoryItemTexture = GetInventoryItemTexture
-local GetItemInfo = GetItemInfo
-local GetItemQualityColor = GetItemQualityColor
-local GetItemSpell = GetItemSpell
 local GetKeyRingSize = GetKeyRingSize
 local GetMoney = GetMoney
 local GetNumBankSlots = GetNumBankSlots
@@ -67,23 +64,26 @@ local C_NewItems_RemoveNewItem = C_NewItems.RemoveNewItem
 local C_Item_IsBound = C_Item.IsBound
 
 local GetCVarBool = C_CVar.GetCVarBool
-local SetCurrencyBackpack = SetCurrencyBackpack or (C_CurrencyInfo and C_CurrencyInfo.SetCurrencyBackpack)
-local SortBags = SortBags or (C_Container and C_Container.SortBags)
-local SortBankBags = SortBankBags or (C_Container and C_Container.SortBankBags)
-local SortReagentBankBags = SortReagentBankBags or (C_Container and C_Container.SortReagentBankBags)
-local SplitContainerItem = SplitContainerItem or (C_Container and C_Container.SplitContainerItem)
-local SetItemSearch = SetItemSearch or (C_Container and C_Container.SetItemSearch)
-local GetBagSlotFlag = GetBagSlotFlag or (C_Container and C_Container.GetBagSlotFlag)
-local SetBagSlotFlag = SetBagSlotFlag or (C_Container and C_Container.SetBagSlotFlag)
-local ContainerIDToInventoryID = ContainerIDToInventoryID or (C_Container and C_Container.ContainerIDToInventoryID)
-local GetBackpackAutosortDisabled = GetBackpackAutosortDisabled or (C_Container and C_Container.GetBackpackAutosortDisabled)
-local GetBankAutosortDisabled = GetBankAutosortDisabled or (C_Container and C_Container.GetBankAutosortDisabled)
-local GetContainerItemCooldown = GetContainerItemCooldown or (C_Container and C_Container.GetContainerItemCooldown)
-local GetContainerNumFreeSlots = GetContainerNumFreeSlots or (C_Container and C_Container.GetContainerNumFreeSlots)
-local GetContainerNumSlots = GetContainerNumSlots or (C_Container and C_Container.GetContainerNumSlots)
-local SetBackpackAutosortDisabled = SetBackpackAutosortDisabled or (C_Container and C_Container.SetBackpackAutosortDisabled)
-local SetInsertItemsLeftToRight = SetInsertItemsLeftToRight or (C_Container and C_Container.SetInsertItemsLeftToRight)
-local UseContainerItem = UseContainerItem or (C_Container and C_Container.UseContainerItem)
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemSpell = (C_Item and C_Item.GetItemSpell) or GetItemSpell
+local GetItemQualityColor = (C_Item and C_Item.GetItemQualityColor) or GetItemQualityColor
+local SetCurrencyBackpack = (C_CurrencyInfo and C_CurrencyInfo.SetCurrencyBackpack) or SetCurrencyBackpack
+local SortBags = (C_Container and C_Container.SortBags) or SortBags
+local SortBankBags = (C_Container and C_Container.SortBankBags) or SortBankBags
+local SortReagentBankBags = (C_Container and C_Container.SortReagentBankBags) or SortReagentBankBags
+local SplitContainerItem = (C_Container and C_Container.SplitContainerItem) or SplitContainerItem
+local SetItemSearch = (C_Container and C_Container.SetItemSearch) or SetItemSearch
+local GetBagSlotFlag = (C_Container and C_Container.GetBagSlotFlag) or GetBagSlotFlag
+local SetBagSlotFlag = (C_Container and C_Container.SetBagSlotFlag) or SetBagSlotFlag
+local ContainerIDToInventoryID = (C_Container and C_Container.ContainerIDToInventoryID) or ContainerIDToInventoryID
+local GetBackpackAutosortDisabled = (C_Container and C_Container.GetBackpackAutosortDisabled) or GetBackpackAutosortDisabled
+local GetBankAutosortDisabled = (C_Container and C_Container.GetBankAutosortDisabled) or GetBankAutosortDisabled
+local GetContainerItemCooldown = (C_Container and C_Container.GetContainerItemCooldown) or GetContainerItemCooldown
+local GetContainerNumFreeSlots = (C_Container and C_Container.GetContainerNumFreeSlots) or GetContainerNumFreeSlots
+local GetContainerNumSlots = (C_Container and C_Container.GetContainerNumSlots) or GetContainerNumSlots
+local SetBackpackAutosortDisabled = (C_Container and C_Container.SetBackpackAutosortDisabled) or SetBackpackAutosortDisabled
+local SetInsertItemsLeftToRight = (C_Container and C_Container.SetInsertItemsLeftToRight) or SetInsertItemsLeftToRight
+local UseContainerItem = (C_Container and C_Container.UseContainerItem) or UseContainerItem
 
 local CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y = CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y
 local IG_BACKPACK_CLOSE = SOUNDKIT.IG_BACKPACK_CLOSE
@@ -244,12 +244,12 @@ B.IsEquipmentSlot = {
 	INVTYPE_RANGEDRIGHT = true,
 }
 
-if E.Wrath then
+if E.Cata then
 	B.IsEquipmentSlot.INVTYPE_RELIC = true
 end
 
 local bagIDs, bankIDs = {0, 1, 2, 3, 4}, { -1 }
-local bankOffset, maxBankSlots = (E.Classic or E.Wrath) and 4 or 5, E.Classic and 10 or E.Wrath and 11 or 12
+local bankOffset, maxBankSlots = (E.Classic or E.Cata) and 4 or 5, E.Classic and 10 or E.Cata and 11 or 12
 local bankEvents = {'BAG_UPDATE_DELAYED', 'BAG_UPDATE', 'BAG_CLOSED', 'BANK_BAG_SLOT_FLAGS_UPDATED', 'PLAYERBANKBAGSLOTS_CHANGED', 'PLAYERBANKSLOTS_CHANGED'}
 local bagEvents = {'BAG_UPDATE_DELAYED', 'BAG_UPDATE', 'BAG_CLOSED', 'ITEM_LOCK_CHANGED', 'BAG_SLOT_FLAGS_UPDATED', 'QUEST_ACCEPTED', 'QUEST_REMOVED'}
 local presistentEvents = {
@@ -347,7 +347,7 @@ do
 
 		if #search > MIN_REPEAT_CHARACTERS then
 			local repeating = true
-			for i = 1, MIN_REPEAT_CHARACTERS, 1 do
+			for i = 1, MIN_REPEAT_CHARACTERS do
 				local x, y = 0-i, -1-i
 				if strsub(search, x, x) ~= strsub(search, y, y) then
 					repeating = false
@@ -421,7 +421,7 @@ end
 
 function B:UpdateAllSlots(frame, first)
 	for _, bagID in next, frame.BagIDs do
-		local holder = first and frame.isBank and (bagID and bagID ~= BANK_CONTAINER) and frame.ContainerHolderByBagID[bagID]
+		local holder = first and frame.ContainerHolderByBagID[bagID]
 		if holder then -- updates the slot icons on first open
 			B:SetBagAssignments(holder)
 		end
@@ -1151,11 +1151,6 @@ function B:PLAYER_AVG_ITEM_LEVEL_UPDATE()
 	end
 end
 
-function B:PLAYER_ENTERING_WORLD(event)
-	B:UpdateLayout(B.BagFrame)
-	B:UnregisterEvent(event)
-end
-
 function B:UpdateLayouts()
 	B:Layout()
 	B:Layout(true)
@@ -1328,7 +1323,7 @@ function B:UpdateTokens()
 		button.currencyID = info.currencyTypesID
 		button:Show()
 
-		if button.currencyID and E.Wrath then
+		if button.currencyID and E.Cata then
 			local tokens = _G.TokenFrameContainer.buttons
 			if tokens then
 				for _, token in next, tokens do
@@ -1470,12 +1465,8 @@ function B:VendorGrayCheck()
 	end
 
 	-- our sell grays
-	local value = B:GetGraysValue()
-	if value == 0 then
+	if B:GetGraysValue() == 0 then
 		E:Print(L["No gray items to delete."])
-	elseif not _G.MerchantFrame:IsShown() and not E.Retail then
-		E.PopupDialogs.DELETE_GRAYS.Money = value
-		E:StaticPopup_Show('DELETE_GRAYS')
 	else
 		B:VendorGrays()
 	end
@@ -1994,7 +1985,7 @@ function B:ConstructContainerFrame(name, isBank)
 		f.editBox:Point('BOTTOMLEFT', f.holderFrame, 'TOPLEFT', E.Border, 4)
 		f.editBox:Point('RIGHT', f.vendorGraysButton, 'LEFT', -5, 0)
 
-		if E.Retail or E.Wrath then
+		if E.Retail or E.Cata then
 			--Currency
 			f.currencyButton = CreateFrame('Frame', nil, f)
 			f.currencyButton:Point('BOTTOM', 0, -6)
@@ -2249,7 +2240,7 @@ function B:OpenBags()
 	if B.BagFrame:IsShown() then return end
 
 	if B.BagFrame.firstOpen then
-		B:UpdateAllSlots(B.BagFrame)
+		B:UpdateAllSlots(B.BagFrame, true)
 		B.BagFrame.firstOpen = nil
 	end
 
@@ -2719,7 +2710,6 @@ B.QuestKeys = {
 }
 
 B.AutoToggleEvents = {
-	guildBank = { GUILDBANKFRAME_OPENED = 'OpenBags', GUILDBANKFRAME_CLOSED = 'CloseBags' },
 	auctionHouse = { AUCTION_HOUSE_SHOW = 'OpenBags', AUCTION_HOUSE_CLOSED = 'CloseBags' },
 	professions = { TRADE_SKILL_SHOW = 'OpenBags', TRADE_SKILL_CLOSE = 'CloseBags' },
 	trade = { TRADE_SHOW = 'OpenBags', TRADE_CLOSED = 'CloseBags' },
@@ -2790,6 +2780,19 @@ function B:GetBagFlagMenu(flag, text)
 	end
 
 	return menu
+end
+
+function B:GuildBankShow()
+	local frame = _G.GuildBankFrame
+	if frame and frame:IsShown() and B.db.autoToggle.guildBank then
+		B:OpenBags()
+	end
+end
+
+function B:ADDON_LOADED(_, addon)
+	if addon == 'Blizzard_GuildBankUI' then
+		_G.GuildBankFrame:HookScript('OnShow', B.GuildBankShow)
+	end
 end
 
 function B:Initialize()
@@ -2924,7 +2927,7 @@ function B:Initialize()
 	B.BagFrame = B:ConstructContainerFrame('ElvUI_ContainerFrame')
 	B.BankFrame = B:ConstructContainerFrame('ElvUI_BankContainerFrame', true)
 
-	if E.Wrath then
+	if E.Cata then
 		B:SecureHook('BackpackTokenFrame_Update', 'UpdateTokens')
 	elseif E.Retail then
 		B:RawHook('TokenFrame_SetTokenWatched', 'TokenFrame_SetTokenWatched', true)
@@ -2945,7 +2948,7 @@ function B:Initialize()
 	B:DisableBlizzard()
 	B:UpdateGoldText()
 
-	B:RegisterEvent('PLAYER_ENTERING_WORLD')
+	B:RegisterEvent('ADDON_LOADED')
 	B:RegisterEvent('PLAYER_MONEY', 'UpdateGoldText')
 	B:RegisterEvent('PLAYER_TRADE_MONEY', 'UpdateGoldText')
 	B:RegisterEvent('TRADE_MONEY_CHANGED', 'UpdateGoldText')

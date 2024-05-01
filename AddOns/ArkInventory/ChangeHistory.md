@@ -1,7 +1,6 @@
-# 3.10.24 (30-JAN-2024)
- - fixed - https://github.com/arkayenro/arkinventory/issues/1855 - issue with TRADE_SKILL_ITEM_CRAFTED_RESULT event in non dragonflight clients
- - added - holding the shift key down when opening the mailbox will stop any automatic send actions from being run
- - updated - category for some items
+# 3.10.27 (20-MAR-2024)
+ - fixed - https://github.com/arkayenro/arkinventory/issues/1871 - updated object code to handle any new INVTYPE values better
+
 
 
 # known issues

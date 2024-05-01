@@ -557,8 +557,8 @@ UIDropDownMenu_Initialize(dropDown3, function(self, level, menuList)
     info.tooltipText = "\nThis is the ammo you currently are saving along with your equipment sets.\n\nIf you want to save another type of ammo, please select one below.\n\nIMPORTANT: The ammo you will select will be remembered permanently (and used to save a set) until you change it again.\n\nNOTE: Seeing duplicates means you have multiple stacks of that certain ammo in your inventory. It doesn't matter which one you pick, what's important is the name.\n\nSelecting this will revert the saved ammo to \"No Ammo\"."
     UIDropDownMenu_AddButton(info)
     for bag = 0, NUM_BAG_SLOTS do
-        for slot = 1, GetContainerNumSlots(bag) do
-            local itemID = GetContainerItemID(bag, slot)
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local itemID = C_Container.GetContainerItemID(bag, slot)
             if itemID and AmmoList[itemID] then
                 info.func = self.SetValue
                 local sName, sLink, iRarity, iLevel, iMinLevel, sType, sSubType, iStackCount = GetItemInfo(itemID);

@@ -1,7 +1,38 @@
--- License: LICENSE.txt
+--[[
+LibDualSpec-1.0 - Adds dual spec support to individual AceDB-3.0 databases
+Copyright (C) 2009-2024 Adirelle
 
--- Don't load unless we are Retail or Wrath Classic
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and WOW_PROJECT_ID ~= WOW_PROJECT_WRATH_CLASSIC then return end
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Redistribution of a stand alone version is strictly prohibited without
+      prior written authorization from the LibDualSpec project manager.
+    * Neither the name of the LibDualSpec authors nor the names of its contributors
+      may be used to endorse or promote products derived from this software without
+      specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--]]
+
+-- Only load in Classic Era on Season of Discovery realms
+if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC and C_Seasons.GetActiveSeason() ~= 2 then return end
 
 local MAJOR, MINOR = "LibDualSpec-1.0", 22
 assert(LibStub, MAJOR.." requires LibStub")
@@ -18,7 +49,7 @@ lib.registry = lib.registry or {}
 lib.options = lib.options or {}
 lib.mixin = lib.mixin or {}
 lib.upgrades = lib.upgrades or {}
-lib.currentSpec = lib.currentSpec or 0
+lib.currentSpec = tonumber(lib.currentSpec) or 0
 
 if minor and minor < 15 then
 	lib.talentsLoaded, lib.talentGroup = nil, nil
@@ -315,7 +346,12 @@ for i = 1, numSpecs do
 			local specIndex = tonumber(info[#info]:sub(-1))
 			local highPointsSpentIndex = nil
 			for treeIndex = 1, 3 do
-				local name, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, false, false, specIndex)
+				local name, pointsSpent, previewPointsSpent, _
+				if WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC then
+					_, name, _, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, nil, nil, specIndex)
+				else
+					name, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, nil, nil, specIndex)
+				end
 				if name then
 					local displayPointsSpent = pointsSpent + previewPointsSpent
 					points[treeIndex] = displayPointsSpent
@@ -396,21 +432,23 @@ end
 -- Inspection
 -- ----------------------------------------------------------------------------
 
-local function iterator(registry, key)
-	local data
-	key, data = next(registry, key)
-	if key then
-		return key, data.name
+do
+	local function iterator(t, key)
+		local data
+		key, data = next(t, key)
+		if key then
+			return key, data.name
+		end
 	end
-end
 
---- Iterate through enhanced AceDB3.0 instances.
--- The iterator returns (instance, name) pairs where instance and name are the
--- arguments that were provided to lib:EnhanceDatabase.
--- @name LibDualSpec:IterateDatabases
--- @return Values to be used in a for .. in .. do statement.
-function lib:IterateDatabases()
-	return iterator, lib.registry
+	--- Iterate through enhanced AceDB3.0 instances.
+	-- The iterator returns (instance, name) pairs where instance and name are the
+	-- arguments that were provided to lib:EnhanceDatabase.
+	-- @name LibDualSpec:IterateDatabases
+	-- @return Values to be used in a for .. in .. do statement.
+	function lib:IterateDatabases()
+		return iterator, lib.registry
+	end
 end
 
 -- ----------------------------------------------------------------------------
@@ -418,7 +456,7 @@ end
 -- ----------------------------------------------------------------------------
 
 local function eventHandler(self, event)
-	local spec = tonumber(GetSpecialization() or 0)
+	local spec = GetSpecialization() or 0
 	-- Newly created characters start at 5 instead of 1 in 9.0.1.
 	if spec == 5 or not CanPlayerUseTalentSpecUI() then
 		spec = 0
@@ -464,3 +502,4 @@ if IsLoggedIn() then
 else
 	lib.eventFrame:RegisterEvent("PLAYER_LOGIN")
 end
+

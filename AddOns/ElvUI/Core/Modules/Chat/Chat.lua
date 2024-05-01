@@ -150,7 +150,6 @@ local historyTypes = { -- most of these events are set in FindURL_Events, this i
 	CHAT_MSG_BN_WHISPER_INFORM	= 'WHISPER',
 	CHAT_MSG_GUILD				= 'GUILD',
 	CHAT_MSG_GUILD_ACHIEVEMENT	= 'GUILD',
-	CHAT_MSG_GUILD_DEATHS 		= E.ClassicHC and 'GUILD' or nil,
 	CHAT_MSG_PARTY			= 'PARTY',
 	CHAT_MSG_PARTY_LEADER	= 'PARTY',
 	CHAT_MSG_RAID			= 'RAID',
@@ -165,7 +164,7 @@ local historyTypes = { -- most of these events are set in FindURL_Events, this i
 	CHAT_MSG_EMOTE			= 'EMOTE' -- this never worked, check it sometime
 }
 
-if not (E.Retail or E.Wrath) then
+if not (E.Retail or E.Cata) then
 	CH.BNGetFriendInfo = _G.BNGetFriendInfo
 	CH.BNGetFriendInfoByID = _G.BNGetFriendInfoByID
 	CH.BNGetFriendGameAccountInfo = _G.BNGetFriendGameAccountInfo
@@ -310,8 +309,8 @@ do --this can save some main file locals
 		local MelColors = function(t) return specialText(t, 0.98,0.31,0.43, 0.97,0.78,0.13, 0.31,0.76,0.43, 0.49,0.48,0.97, 0.07,0.69,0.92) end
 		--Thradex: summer without you
 		local ThradexColors = function(t) return specialText(t, 0.00,0.60,0.09, 0.22,0.65,0.90, 0.22,0.65,0.90, 1.00,0.74,0.27, 1.00,0.66,0.00, 1.00,0.50,0.20, 0.92,0.31,0.23) end
-		--Repooc: Monk, Demon Hunter, Paladin, Warlock colors
-		local PoocsColors = function(t) return specialText(t, 0,1,0.6, 0.64,0.19,0.79, 0.96,0.55,0.73, 0.53,0.53,0.93) end
+		--Repooc: Something to change it up a little
+		local PoocsColors = function(t) return specialText(t, 0.9,0.8,0.5) end
 
 		itsSimpy = function() return ElvSimpy, SimpyColors end
 		itsElv = function() return ElvBlue, ElvColors end
@@ -324,194 +323,201 @@ do --this can save some main file locals
 	local z = {}
 	specialChatIcons = z
 
-	if E.Classic then
-		-- Simpy (5099: Myzrael)
-		z['Player-5099-01947A77']	= itsSimpy -- Warlock: Simpy
-		-- Luckyone Seasonal (5826: Lone Wolf EU)
-		z['Player-5826-0202765F']	= ElvBlue -- [Alliance] Hunter
-		z['Player-5826-020F7F10']	= ElvBlue -- [Alliance] Paladin
-		z['Player-5826-02172E79']	= ElvBlue -- [Alliance] Warlock
-		z['Player-5826-0234253E']	= ElvBlue -- [Alliance] Mage
-		z['Player-5826-02342508']	= ElvBlue -- [Alliance] Priest
-		z['Player-5826-023424EF']	= ElvBlue -- [Alliance] Druid
-		z['Player-5826-02342520']	= ElvBlue -- [Alliance] Rogue
-		z['Player-5826-02342556']	= ElvBlue -- [Alliance] Warrior
-		-- Luckyone Hardcore
-		z["Lucky-Nek'Rosh"]			= ElvBlue -- [Horde] Rogue
-		z["Luckyone-Nek'Rosh"]		= ElvBlue -- [Horde] Hunter
-		z["Unluckyone-Nek'Rosh"] 	= ElvBlue -- [Horde] Mage
-		z["Gigachad-Nek'Rosh"] 		= ElvBlue -- [Horde] Druid
-		-- Luckyone Classic Era (5233: Firemaw)
-		z['Player-5233-01D22A72']	= ElvBlue -- [Horde] Hunter: Unluckyone
-		z['Player-5233-01D27011']	= ElvBlue -- [Horde] Druid: Luckydruid
-	elseif E.Wrath then
-		-- Simpy (4373: Myzrael)
-		z['Player-4373-011657A7']	= itsSimpy -- Paladin:		Cutepally
-		z['Player-4373-032FFEE2']	= itsSimpy -- Shaman:		Kalline
-		z['Player-4373-03351BC7']	= itsSimpy -- [Horde] DK:	Imsojelly
-		-- Luckyone (4467: Firemaw, 4440: Everlook, 4476: Gehennas)
-		z['Player-4467-04540395']	= ElvBlue -- [Alliance] Druid
-		z['Player-4467-04542B4A']	= ElvBlue -- [Alliance] Priest
-		z['Player-4467-04571AA2']	= ElvBlue -- [Alliance] Warlock
-		z['Player-4467-04571A8D']	= ElvBlue -- [Alliance] DK
-		z['Player-4467-04571A9F']	= ElvBlue -- [Alliance] Mage
-		z['Player-4467-04571A98']	= ElvBlue -- [Alliance] Warrior
-		z['Player-4467-04571911']	= ElvBlue -- [Alliance] Paladin
-		z['Player-4440-03AD654A']	= ElvBlue -- [Alliance] Rogue
-		z['Player-4440-03ADE2DF']	= ElvBlue -- [Alliance] Shaman
-		z['Player-4476-03BF41C9']	= ElvBlue -- [Horde] Hunter
-		-- Repooc
-		z['Poocsdk-Mankrik']		= ElvBlue -- [Horde] DK
-		z['Repooc-Mankrik']			= ElvBlue
-	elseif E.Retail then
-		-- Elv
-		z['Elv-Spirestone']			= itsElv
-		z['Elvz-Spirestone']		= itsElv
-		z['Fleshlite-Spirestone']	= itsElv
-		z['Elvidan-Spirestone']		= itsElv
-		z['Elvilas-Spirestone']		= itsElv
-		z['Fraku-Spirestone']		= itsElv
-		z['Jarvix-Spirestone']		= itsElv
-		z['Watermelon-Spirestone']	= itsElv
-		z['Zinxbe-Spirestone']		= itsElv
-		z['Whorlock-Spirestone']	= itsElv
-		-- Blazeflack
-		z['Blazii-Silvermoon']		= ElvBlue -- Priest
-		z['Chazii-Silvermoon']		= ElvBlue -- Shaman
-		-- Merathilis (1401: Shattrath/Garrosh)
-		z['Player-1401-04217BB2']	= ElvPurple	-- [Alliance] Warlock:	Asragoth
-		z['Player-1401-0421EB9F']	= ElvBlue	-- [Alliance] Warrior:	Brìtt
-		z['Player-1401-0421F909']	= ElvRed	-- [Alliance] Paladin:	Damará
-		z['Player-1401-0421EC36']	= ElvBlue	-- [Alliance] Priest:	Jazira
-		z['Player-1401-041CD0A6']	= ElvYellow	-- [Alliance] Rogue:	Jústice
-		z['Player-1401-041E4D64']	= ElvGreen	-- [Alliance] Monk:		Maithilis
-		z['Player-1401-0648F4AD']	= ElvPurple	-- [Alliance] DH:		Mattdemôn
-		z['Player-1401-0421F27B']	= ElvBlue	-- [Alliance] Mage:		Melisendra
-		z['Player-1401-04221546']	= ElvOrange	-- [Alliance] Druid:	Merathilis
-		z['Player-1401-04221344']	= ElvBlue	-- [Alliance] Shaman:	Merathilîs
-		z['Player-1401-0A80006F']	= ElvBlue	-- [Alliance] Shaman:	Ronan
-		z['Player-1401-0A4C8DF4']	= ElvGreen	-- [Alliance] Evoker:	Meravoker
-		z['Player-1401-041C0AE2']	= ElvGreen	-- [Alliance] Hunter:	Róhal
-		z['Player-1401-05CEABFA']	= ElvRed	-- [Alliance] DK:		Jahzzy
-		-- Luckyone (1598: LaughingSkull)
-		z['Player-1598-0F5E4639']	= ElvBlue -- [Alliance] Druid: Luckyone
-		z['Player-1598-0F3E51B0']	= ElvBlue -- [Alliance] Druid: Luckydruid
-		z['Player-1598-0F46FF5A']	= ElvBlue -- [Horde] Evoker
-		z['Player-1598-0BFF3341']	= ElvBlue -- [Horde] DH
-		z['Player-1598-0BD22704']	= ElvBlue -- [Horde] Priest
-		z['Player-1598-0BEFA545']	= ElvBlue -- [Horde] Monk
-		z['Player-1598-0E1A06DE']	= ElvBlue -- [Horde] Rogue
-		z['Player-1598-0BF2E377']	= ElvBlue -- [Horde] Hunter
-		z['Player-1598-0BF18248']	= ElvBlue -- [Horde] DK
-		z['Player-1598-0BFABB95']	= ElvBlue -- [Horde] Mage
-		z['Player-1598-0E67511D']	= ElvBlue -- [Horde] Paladin
-		z['Player-1598-0C0DD01B']	= ElvBlue -- [Horde] Warlock
-		z['Player-1598-0BF8013A']	= ElvBlue -- [Horde] Warrior
-		z['Player-1598-0BF56103']	= ElvBlue -- [Horde] Shaman
-		-- Repooc
-		z['Sifpooc-Stormrage']		= itsPooc	-- [Alliance] DH
-		z['Fragmented-Stormrage']	= itsPooc	-- [Alliance] Warlock
-		z['Dapooc-Stormrage']		= itsPooc	-- [Alliance] Druid
-		z['Poocvoker-Stormrage']	= itsPooc	-- [Alliance] Evoker
-		z['Sifupooc-Stormrage']		= itsPooc	-- [Alliance] Monk
-		z['Pooc-Stormrage']			= itsPooc	-- [Alliance] Paladin
-		z['Repøøc-Stormrage']		= itsPooc	-- [Alliance] Shaman
-		-- Simpy (1168: Cenarius, 125: Cenarion Circle)
-		z['Player-1168-069A1283']	= itsSimpy -- Hunter:	Arieva
-		z['Player-1168-0698394A']	= itsSimpy -- Rogue:	Buddercup
-		z['Player-1168-069A3A12']	= itsSimpy -- Paladin:	Cutepally
-		z['Player-1168-0A99F54B']	= itsSimpy -- Mage:		Cuddle
-		z['Player-1168-0680170F']	= itsSimpy -- DK:		Ezek
-		z['Player-1168-06981C6F']	= itsSimpy -- Warrior:	Glice
-		z['Player-1168-0698066B']	= itsSimpy -- Shaman:	Kalline
-		z['Player-1168-06989ADF']	= itsSimpy -- Druid:	Puttietat
-		z['Player-1168-069837CD']	= itsSimpy -- Warlock:	Simpy
-		z['Player-1168-06984CD4']	= itsSimpy -- Monk:		Twigly
-		z['Player-1168-0A98C560']	= itsSimpy -- [Horde] Evoker:	Imsofire
-		z['Player-1168-090A34ED']	= itsSimpy -- [Horde] Shaman:	Imsobeefy
-		z['Player-1168-090A34E6']	= itsSimpy -- [Horde] Priest:	Imsocheesy
-		z['Player-1168-069838E1']	= itsSimpy -- [Horde] DK:		Imsojelly
-		z['Player-1168-0870FBCE']	= itsSimpy -- [Horde] Druid:	Imsojuicy
-		z['Player-1168-07C00783']	= itsSimpy -- [Horde] DH:		Imsopeachy
-		z['Player-1168-07B41C4C']	= itsSimpy -- [Horde] Paladin:	Imsosalty
-		z['Player-1168-0870F320']	= itsSimpy -- [Horde] Mage:		Imsospicy
-		z['Player-1168-0A395531']	= itsSimpy -- [Horde] Hunter:	Imsonutty
-		z['Player-1168-0A395540']	= itsSimpy -- [Horde] Monk:		Imsotasty
-		z['Player-1168-0A39554F']	= itsSimpy -- [Horde] Warlock:	Imsosaucy
-		z['Player-1168-0A395551']	= itsSimpy -- [Horde] Rogue:	Imsodrippy
-		z['Player-125-0A62DE05']	= itsSimpy -- [RP] Evoker:	Lumee
-		z['Player-125-09A7F9ED']	= itsSimpy -- [RP] Warrior:	Bunne
-		z['Player-125-09A8CC43']	= itsSimpy -- [RP] Monk:	Loppie
-		z['Player-125-09A7EB72']	= itsSimpy -- [RP] Mage:	Loppybunny
-		z['Player-125-09A7DAD9']	= itsSimpy -- [RP] DH:		Rubee
-		z['Player-125-09A8E282']	= itsSimpy -- [RP] Priest:	Wennie
-		-- Melbelle (Simpys Bestie)
-		z['Melbelle-Bladefist']		= itsMel -- Hunter
-		z['Deathchaser-Bladefist']	= itsMel -- DH
-		z['Alyosha-Cenarius']		= itsMel -- Warrior
-		z['Dãwn-Cenarius']			= itsMel -- Paladin
-		z['Faelen-Cenarius']		= itsMel -- Rogue
-		z['Freckles-Cenarius']		= itsMel -- DK
-		z['Lõvi-Cenarius']			= itsMel -- Priest
-		z['Melbelle-Cenarius']		= itsMel -- Druid
-		z['Perìwìnkle-Cenarius']	= itsMel -- Shaman
-		z['Pìper-Cenarius']			= itsMel -- Warlock
-		z['Spãrkles-Cenarius']		= itsMel -- Mage
-		z['Mellybear-Cenarius']		= itsMel -- Hunter
-		z['Zuria-Cenarius']			= itsMel -- DH
-		z['Tinybubbles-Cenarius']	= itsMel -- Monk
-		z['Alykat-Cenarius']		= itsMel -- [Horde] Druid
-		z['Alybones-Cenarius']		= itsMel -- [Horde] DK
-		z['Alyfreeze-Cenarius']		= itsMel -- [Horde] Mage
-		z['Alykins-Cenarius']		= itsMel -- [Horde] DH
-		z['Alyrage-Cenarius']		= itsMel -- [Horde] Warrior
-		z['Alysneaks-Cenarius']		= itsMel -- [Horde] Rogue
-		z['Alytotes-Cenarius']		= itsMel -- [Horde] Shaman
-		-- Thradex (Simpys Buddy)
-		z['Foam-Area52']			= itsThradex -- Horde
-		z['Gur-Area52']				= itsThradex -- Horde
-		z['Archmage-Area52']		= itsThradex -- Horde
-		z['Counselor-Area52']		= itsThradex -- Horde
-		z['Psychiatrist-Area52']	= itsThradex -- Horde
-		z['Monk-CenarionCircle']	= itsThradex
-		z['Thradex-Stormrage']		= itsThradex
-		z['Wrecked-Stormrage']		= itsThradex
-		z['Tb-Stormrage']			= itsThradex
-		-- AcidWeb
-		z['Livarax-BurningLegion']		= Gem
-		z['Filevandrel-BurningLegion']	= Gem
-		z['Akavaya-BurningLegion']		= Gem
-		z['Athyneos-BurningLegion']		= Gem
-		-- Affinity
-		z['Affinichi-Illidan']		= Bathrobe
-		z['Affinitii-Illidan']		= Bathrobe
-		z['Affinity-Illidan']		= Bathrobe
-		z['Uplift-Illidan']			= Bathrobe
-		-- Tirain (NOTE: lol)
-		z['Tierone-Spirestone']		= TyroneBiggums
-		z['Tirain-Spirestone']		= TyroneBiggums
-		z['Sinth-Spirestone']		= TyroneBiggums
-		z['Tee-Spirestone']			= TyroneBiggums
-		z['Teepac-Area52']			= TyroneBiggums
-		z['Teekettle-Area52']		= TyroneBiggums
-		-- Mis (NOTE: I will forever have the picture you accidently shared of the manikin wearing a strapon burned in my brain)
-		z['Twunk-Area52']			= itsMis
-		z['Twunkie-Area52']			= itsMis
-		z['Misoracle-Area52']		= itsMis
-		z['Mismayhem-Area52']		= itsMis
-		z['Misdîrect-Area52']		= itsMis
-		z['Misdecay-Area52']		= itsMis
-		z['Mislust-Area52'] 		= itsMis
-		z['Misdivine-Area52']		= itsMis
-		z['Mislight-Area52']		= itsMis
-		z['Misillidan-Spirestone']	= itsMis
-		z['Mispel-Spirestone']		= itsMis
-		--Bladesdruid
-		z['Bladedemonz-Spirestone']	= SuperBear
-		z['Bladesdruid-Spirestone']	= SuperBear
-		z['Rollerblade-Spirestone']	= SuperBear
-		--Bozaum
-		z['Bozaum-Spirestone']		= Beer
+	local portal = GetCVar('portal')
+	if portal == 'US' then
+		if E.Classic then
+			-- Simpy (5099: Myzrael)
+			z['Player-5099-01947A77']	= itsSimpy -- Warlock: Simpy
+		elseif E.Cata then
+			-- Simpy (4373: Myzrael)
+			z['Player-4373-011657A7']	= itsSimpy -- Paladin:		Cutepally
+			z['Player-4373-032FFEE2']	= itsSimpy -- Shaman:		Kalline
+			z['Player-4373-03351BC7']	= itsSimpy -- [Horde] DK:	Imsojelly
+			-- Repooc
+			z['Poocsdk-Mankrik']		= ElvBlue -- [Horde] DK
+			z['Repooc-Mankrik']			= ElvBlue
+		elseif E.Retail then
+			-- Elv
+			z['Elv-Spirestone']			= itsElv
+			z['Elvz-Spirestone']		= itsElv
+			z['Fleshlite-Spirestone']	= itsElv
+			z['Elvidan-Spirestone']		= itsElv
+			z['Elvilas-Spirestone']		= itsElv
+			z['Fraku-Spirestone']		= itsElv
+			z['Jarvix-Spirestone']		= itsElv
+			z['Watermelon-Spirestone']	= itsElv
+			z['Zinxbe-Spirestone']		= itsElv
+			z['Whorlock-Spirestone']	= itsElv
+			-- Repooc
+			z['Sifpooc-Stormrage']		= itsPooc	-- [Alliance] DH
+			z['Fragmented-Stormrage']	= itsPooc	-- [Alliance] Warlock
+			z['Dapooc-Stormrage']		= itsPooc	-- [Alliance] Druid
+			z['Poocvoker-Stormrage']	= itsPooc	-- [Alliance] Evoker
+			z['Sifupooc-Stormrage']		= itsPooc	-- [Alliance] Monk
+			z['Pooc-Stormrage']			= itsPooc	-- [Alliance] Paladin
+			z['Repøøc-Stormrage']		= itsPooc	-- [Alliance] Shaman
+			-- Simpy (1168: Cenarius, 125: Cenarion Circle)
+			z['Player-1168-069A1283']	= itsSimpy -- Hunter:	Arieva
+			z['Player-1168-0698394A']	= itsSimpy -- Rogue:	Buddercup
+			z['Player-1168-069A3A12']	= itsSimpy -- Paladin:	Cutepally
+			z['Player-1168-0A99F54B']	= itsSimpy -- Mage:		Cuddle
+			z['Player-1168-0680170F']	= itsSimpy -- DK:		Ezek
+			z['Player-1168-06981C6F']	= itsSimpy -- Warrior:	Glice
+			z['Player-1168-0698066B']	= itsSimpy -- Shaman:	Kalline
+			z['Player-1168-06989ADF']	= itsSimpy -- Druid:	Puttietat
+			z['Player-1168-069837CD']	= itsSimpy -- Warlock:	Simpy
+			z['Player-1168-06984CD4']	= itsSimpy -- Monk:		Twigly
+			z['Player-1168-0A98C560']	= itsSimpy -- [Horde] Evoker:	Imsofire
+			z['Player-1168-090A34ED']	= itsSimpy -- [Horde] Shaman:	Imsobeefy
+			z['Player-1168-090A34E6']	= itsSimpy -- [Horde] Priest:	Imsocheesy
+			z['Player-1168-069838E1']	= itsSimpy -- [Horde] DK:		Imsojelly
+			z['Player-1168-0870FBCE']	= itsSimpy -- [Horde] Druid:	Imsojuicy
+			z['Player-1168-07C00783']	= itsSimpy -- [Horde] DH:		Imsopeachy
+			z['Player-1168-07B41C4C']	= itsSimpy -- [Horde] Paladin:	Imsosalty
+			z['Player-1168-0870F320']	= itsSimpy -- [Horde] Mage:		Imsospicy
+			z['Player-1168-0A395531']	= itsSimpy -- [Horde] Hunter:	Imsonutty
+			z['Player-1168-0A395540']	= itsSimpy -- [Horde] Monk:		Imsotasty
+			z['Player-1168-0A39554F']	= itsSimpy -- [Horde] Warlock:	Imsosaucy
+			z['Player-1168-0A395551']	= itsSimpy -- [Horde] Rogue:	Imsodrippy
+			z['Player-125-0A62DE05']	= itsSimpy -- [RP] Evoker:	Lumee
+			z['Player-125-09A7F9ED']	= itsSimpy -- [RP] Warrior:	Bunne
+			z['Player-125-09A8CC43']	= itsSimpy -- [RP] Monk:	Loppie
+			z['Player-125-09A7EB72']	= itsSimpy -- [RP] Mage:	Loppybunny
+			z['Player-125-09A7DAD9']	= itsSimpy -- [RP] DH:		Rubee
+			z['Player-125-09A8E282']	= itsSimpy -- [RP] Priest:	Wennie
+			-- Melbelle (Simpys Bestie)
+			z['Melbelle-Bladefist']		= itsMel -- Hunter
+			z['Deathchaser-Bladefist']	= itsMel -- DH
+			z['Alyosha-Cenarius']		= itsMel -- Warrior
+			z['Dãwn-Cenarius']			= itsMel -- Paladin
+			z['Faelen-Cenarius']		= itsMel -- Rogue
+			z['Freckles-Cenarius']		= itsMel -- DK
+			z['Lõvi-Cenarius']			= itsMel -- Priest
+			z['Melbelle-Cenarius']		= itsMel -- Druid
+			z['Perìwìnkle-Cenarius']	= itsMel -- Shaman
+			z['Pìper-Cenarius']			= itsMel -- Warlock
+			z['Spãrkles-Cenarius']		= itsMel -- Mage
+			z['Mellybear-Cenarius']		= itsMel -- Hunter
+			z['Zuria-Cenarius']			= itsMel -- DH
+			z['Tinybubbles-Cenarius']	= itsMel -- Monk
+			z['Alykat-Cenarius']		= itsMel -- [Horde] Druid
+			z['Alybones-Cenarius']		= itsMel -- [Horde] DK
+			z['Alyfreeze-Cenarius']		= itsMel -- [Horde] Mage
+			z['Alykins-Cenarius']		= itsMel -- [Horde] DH
+			z['Alyrage-Cenarius']		= itsMel -- [Horde] Warrior
+			z['Alysneaks-Cenarius']		= itsMel -- [Horde] Rogue
+			z['Alytotes-Cenarius']		= itsMel -- [Horde] Shaman
+			-- Thradex (Simpys Buddy)
+			z['Foam-Area52']			= itsThradex -- Horde
+			z['Gur-Area52']				= itsThradex -- Horde
+			z['Archmage-Area52']		= itsThradex -- Horde
+			z['Counselor-Area52']		= itsThradex -- Horde
+			z['Psychiatrist-Area52']	= itsThradex -- Horde
+			z['Monk-CenarionCircle']	= itsThradex
+			z['Thradex-Stormrage']		= itsThradex
+			z['Wrecked-Stormrage']		= itsThradex
+			z['Tb-Stormrage']			= itsThradex
+			-- Affinity
+			z['Affinichi-Illidan']		= Bathrobe
+			z['Affinitii-Illidan']		= Bathrobe
+			z['Affinity-Illidan']		= Bathrobe
+			z['Uplift-Illidan']			= Bathrobe
+			-- Tirain (NOTE: lol)
+			z['Tierone-Spirestone']		= TyroneBiggums
+			z['Tirain-Spirestone']		= TyroneBiggums
+			z['Sinth-Spirestone']		= TyroneBiggums
+			z['Tee-Spirestone']			= TyroneBiggums
+			z['Teepac-Area52']			= TyroneBiggums
+			z['Teekettle-Area52']		= TyroneBiggums
+			-- Mis (NOTE: I will forever have the picture you accidently shared of the manikin wearing a strapon burned in my brain)
+			z['Twunk-Area52']			= itsMis
+			z['Twunkie-Area52']			= itsMis
+			z['Misoracle-Area52']		= itsMis
+			z['Mismayhem-Area52']		= itsMis
+			z['Misdîrect-Area52']		= itsMis
+			z['Misdecay-Area52']		= itsMis
+			z['Mislust-Area52'] 		= itsMis
+			z['Misdivine-Area52']		= itsMis
+			z['Mislight-Area52']		= itsMis
+			z['Misillidan-Spirestone']	= itsMis
+			z['Mispel-Spirestone']		= itsMis
+			--Bladesdruid
+			z['Bladedemonz-Spirestone']	= SuperBear
+			z['Bladesdruid-Spirestone']	= SuperBear
+			z['Rollerblade-Spirestone']	= SuperBear
+			--Bozaum
+			z['Bozaum-Spirestone']		= Beer
+		end
+	elseif portal == 'EU' then
+		if E.Classic then
+			-- Luckyone Seasonal (5826: Lone Wolf EU, 5827: Living Flame EU)
+			z['Player-5826-0202765F']	= ElvBlue -- [Alliance] Hunter
+			z['Player-5826-020F7F10']	= ElvBlue -- [Alliance] Paladin
+			z['Player-5826-02172E79']	= ElvBlue -- [Alliance] Warlock
+			z['Player-5826-0234253E']	= ElvBlue -- [Alliance] Mage
+			z['Player-5826-02342508']	= ElvBlue -- [Alliance] Priest
+			z['Player-5826-023424EF']	= ElvBlue -- [Alliance] Druid
+			z['Player-5826-02342520']	= ElvBlue -- [Alliance] Rogue
+			z['Player-5826-02342556']	= ElvBlue -- [Alliance] Warrior
+			z['Player-5827-02331C4B']	= ElvBlue -- [Horde] Shaman
+			-- Luckyone Hardcore
+			z["Lucky-Nek'Rosh"]			= ElvBlue -- [Horde] Rogue
+			z["Luckyone-Nek'Rosh"]		= ElvBlue -- [Horde] Hunter
+			z["Unluckyone-Nek'Rosh"] 	= ElvBlue -- [Horde] Mage
+			z["Gigachad-Nek'Rosh"] 		= ElvBlue -- [Horde] Druid
+			-- Luckyone Classic Era (5233: Firemaw)
+			z['Player-5233-01D22A72']	= ElvBlue -- [Horde] Hunter: Unluckyone
+			z['Player-5233-01D27011']	= ElvBlue -- [Horde] Druid: Luckydruid
+		elseif E.Cata then
+			-- Luckyone (4467: Firemaw, 4440: Everlook, 4476: Gehennas)
+			z['Player-4467-04540395']	= ElvBlue -- [Alliance] Druid
+			z['Player-4467-04542B4A']	= ElvBlue -- [Alliance] Priest
+			z['Player-4467-04571AA2']	= ElvBlue -- [Alliance] Warlock
+			z['Player-4467-04571A8D']	= ElvBlue -- [Alliance] DK
+			z['Player-4467-04571A9F']	= ElvBlue -- [Alliance] Mage
+			z['Player-4467-04571A98']	= ElvBlue -- [Alliance] Warrior
+			z['Player-4467-04571911']	= ElvBlue -- [Alliance] Paladin
+			z['Player-4440-03AD654A']	= ElvBlue -- [Alliance] Rogue
+			z['Player-4440-03ADE2DF']	= ElvBlue -- [Alliance] Shaman
+			z['Player-4476-03BF41C9']	= ElvBlue -- [Horde] Hunter
+		elseif E.Retail then
+			-- Blazeflack
+			z['Blazii-Silvermoon']		= ElvBlue -- Priest
+			z['Chazii-Silvermoon']		= ElvBlue -- Shaman
+			-- Merathilis (1401: Shattrath/Garrosh)
+			z['Player-1401-04217BB2']	= ElvPurple	-- [Alliance] Warlock:	Asragoth
+			z['Player-1401-0421EB9F']	= ElvBlue	-- [Alliance] Warrior:	Brìtt
+			z['Player-1401-0421F909']	= ElvRed	-- [Alliance] Paladin:	Damará
+			z['Player-1401-0421EC36']	= ElvBlue	-- [Alliance] Priest:	Jazira
+			z['Player-1401-0A9B0131']	= ElvYellow	-- [Alliance] Rogue:	Anonia
+			z['Player-1401-041E4D64']	= ElvGreen	-- [Alliance] Monk:		Maithilis
+			z['Player-1401-0648F4AD']	= ElvPurple	-- [Alliance] DH:		Mattdemôn
+			z['Player-1401-0421F27B']	= ElvBlue	-- [Alliance] Mage:		Melisendra
+			z['Player-1401-04221546']	= ElvOrange	-- [Alliance] Druid:	Merathilis
+			z['Player-1401-04221344']	= ElvBlue	-- [Alliance] Shaman:	Merathilîs
+			z['Player-1401-0A80006F']	= ElvBlue	-- [Alliance] Shaman:	Ronan
+			z['Player-1401-0A4C8DF4']	= ElvGreen	-- [Alliance] Evoker:	Meravoker
+			z['Player-1401-041C0AE2']	= ElvGreen	-- [Alliance] Hunter:	Róhal
+			z['Player-1401-05CEABFA']	= ElvRed	-- [Alliance] DK:		Jahzzy
+			-- Luckyone (1598: LaughingSkull)
+			z['Player-1598-0F5E4639']	= ElvBlue -- [Alliance] Druid: Luckyone
+			z['Player-1598-0F3E51B0']	= ElvBlue -- [Alliance] Druid: Luckydruid
+			z['Player-1598-0F46FF5A']	= ElvBlue -- [Horde] Evoker
+			z['Player-1598-0BFF3341']	= ElvBlue -- [Horde] DH
+			z['Player-1598-0BD22704']	= ElvBlue -- [Horde] Priest
+			z['Player-1598-0BEFA545']	= ElvBlue -- [Horde] Monk
+			z['Player-1598-0E1A06DE']	= ElvBlue -- [Horde] Rogue
+			z['Player-1598-0BF2E377']	= ElvBlue -- [Horde] Hunter
+			z['Player-1598-0BF18248']	= ElvBlue -- [Horde] DK
+			z['Player-1598-0BFABB95']	= ElvBlue -- [Horde] Mage
+			z['Player-1598-0E67511D']	= ElvBlue -- [Horde] Paladin
+			z['Player-1598-0C0DD01B']	= ElvBlue -- [Horde] Warlock
+			z['Player-1598-0BF8013A']	= ElvBlue -- [Horde] Warrior
+			z['Player-1598-0BF56103']	= ElvBlue -- [Horde] Shaman
+			-- Sneaky Darth
+			z['Player-1925-05F494A6']	= ElvPurple
+			z['Player-1925-05F495A1']	= ElvPurple
+		end
 	end
 end
 
@@ -598,7 +604,17 @@ end
 function CH:CopyButtonOnMouseUp(btn)
 	local chat = self:GetParent()
 	if btn == 'RightButton' and chat:GetID() == 1 then
-		ToggleFrame(_G.ChatMenu)
+		local menu = _G.ChatMenu
+		menu:ClearAllPoints()
+
+		local point = E:GetScreenQuadrant(self)
+		if strfind(point, 'LEFT') then
+			menu:SetPoint('BOTTOMLEFT', self, 'TOPRIGHT')
+		else
+			menu:SetPoint('BOTTOMRIGHT', self, 'TOPLEFT')
+		end
+
+		ToggleFrame(menu)
 	else
 		CH:CopyChat(chat)
 	end
@@ -636,7 +652,7 @@ do
 			local MIN_REPEAT_CHARACTERS = CH.db.numAllowedCombatRepeat
 			if len > MIN_REPEAT_CHARACTERS then
 				local repeatChar = true
-				for i = 1, MIN_REPEAT_CHARACTERS, 1 do
+				for i = 1, MIN_REPEAT_CHARACTERS do
 					local first = -1 - i
 					if strsub(text,-i,-i) ~= strsub(text,first,first) then
 						repeatChar = false
@@ -819,23 +835,6 @@ function CH:StyleChat(frame)
 	frame:SetClampedToScreen(false)
 	frame:StripTextures(true)
 
-	_G[name..'ButtonFrame']:Kill()
-
-	local scroll = frame.ScrollBar
-	if scroll then
-		scroll:Kill()
-	end
-
-	local scrollToBottom = frame.ScrollToBottomButton
-	if scrollToBottom then
-		scrollToBottom:Kill()
-	end
-
-	local scrollTex = _G[name..'ThumbTexture']
-	if scrollTex then
-		scrollTex:Kill()
-	end
-
 	--Character count
 	local editbox = frame.editBox
 	local charCount = editbox:CreateFontString(nil, 'ARTWORK')
@@ -878,10 +877,32 @@ function CH:StyleChat(frame)
 		c:Kill()
 	end
 
-	_G[name..'EditBoxLeft']:Kill()
-	_G[name..'EditBoxMid']:Kill()
-	_G[name..'EditBoxRight']:Kill()
+	-- stuff to hide
+	local scrollBar = frame.ScrollBar
+	if scrollBar then scrollBar:Kill() end
 
+	local scrollToBottom = frame.ScrollToBottomButton
+	if scrollToBottom then scrollToBottom:Kill() end
+
+	local buttonFrame = _G[name..'ButtonFrame']
+	if buttonFrame then buttonFrame:Kill() end
+
+	local thumbTexture = _G[name..'ThumbTexture']
+	if thumbTexture then thumbTexture:Kill() end
+
+	local minimize = _G[name..'MinimizeButton']
+	if minimize then minimize:Kill() end
+
+	local editLeft = _G[name..'EditBoxLeft']
+	if editLeft then editLeft:Kill() end
+
+	local editMid = _G[name..'EditBoxMid']
+	if editMid then editMid:Kill() end
+
+	local editRight = _G[name..'EditBoxRight']
+	if editRight then editRight:Kill() end
+
+	-- editbox stuff
 	editbox:SetAltArrowKeyMode(CH.db.useAltKey)
 	editbox:SetAllPoints(_G.LeftChatDataPanel)
 	editbox:HookScript('OnTextChanged', CH.EditBoxOnTextChanged)
@@ -1134,9 +1155,18 @@ function CH:ChatEdit_DeactivateChat(editbox)
 	if style == 'im' then editbox:Hide() end
 end
 
-function CH:UpdateEditboxAnchors(event, cvar, value)
-	if event and cvar ~= 'chatStyle' then return
-	elseif not cvar then value = GetCVar('chatStyle') end
+function CH:CVAR_UPDATE(_, cvar, value)
+	if cvar == 'chatStyle' then
+		CH:UpdateEditboxAnchors(cvar, value)
+	elseif cvar == 'textToSpeech' then
+		CH:RepositionOverflowButton()
+	end
+end
+
+function CH:UpdateEditboxAnchors(cvar, value)
+	if not cvar then
+		value = GetCVar('chatStyle')
+	end
 
 	local classic = value == 'classic'
 	local leftChat = classic and _G.LeftChatPanel
@@ -1754,25 +1784,18 @@ function CH:ChatFrame_ReplaceIconAndGroupExpressions(message, noIconReplacement,
 end
 
 -- copied from ChatFrame.lua
-local function GetPFlag(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
-	-- Renaming for clarity:
-	local specialFlag = arg6
-	local zoneChannelID = arg7
-	--local localChannelID = arg8
-
+local function GetPFlag(specialFlag, zoneChannelID, localChannelID)
 	if specialFlag ~= '' then
 		if specialFlag == 'GM' or specialFlag == 'DEV' then
 			-- Add Blizzard Icon if this was sent by a GM/DEV
 			return [[|TInterface\ChatFrame\UI-ChatIcon-Blizz:12:20:0:0:32:16:4:28:0:16|t ]]
-		elseif E.Retail then
-			if specialFlag == 'GUIDE' then
-				if _G.ChatFrame_GetMentorChannelStatus(CHATCHANNELRULESET_MENTOR, GetChannelRulesetForChannelID(zoneChannelID)) == CHATCHANNELRULESET_MENTOR then
-					return NPEV2_CHAT_USER_TAG_GUIDE
-				end
-			elseif specialFlag == 'NEWCOMER' then
-				if _G.ChatFrame_GetMentorChannelStatus(PLAYERMENTORSHIPSTATUS_NEWCOMER, GetChannelRulesetForChannelID(zoneChannelID)) == PLAYERMENTORSHIPSTATUS_NEWCOMER then
-					return _G.NPEV2_CHAT_USER_TAG_NEWCOMER
-				end
+		elseif specialFlag == 'GUIDE' and E.Retail then
+			if _G.ChatFrame_GetMentorChannelStatus(CHATCHANNELRULESET_MENTOR, GetChannelRulesetForChannelID(zoneChannelID)) == CHATCHANNELRULESET_MENTOR then
+				return NPEV2_CHAT_USER_TAG_GUIDE
+			end
+		elseif specialFlag == 'NEWCOMER' and E.Retail then
+			if _G.ChatFrame_GetMentorChannelStatus(PLAYERMENTORSHIPSTATUS_NEWCOMER, GetChannelRulesetForChannelID(zoneChannelID)) == PLAYERMENTORSHIPSTATUS_NEWCOMER then
+				return _G.NPEV2_CHAT_USER_TAG_NEWCOMER
 			end
 		else
 			return _G['CHAT_FLAG_'..specialFlag]
@@ -1911,7 +1934,7 @@ function CH:MessageFormatter(frame, info, chatType, chatGroup, chatTarget, chann
 	end
 
 	-- Player Flags
-	local pflag = GetPFlag(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
+	local pflag = GetPFlag(arg6, arg7, arg8)
 	if not bossMonster then
 		local chatIcon, pluginChatIcon = specialChatIcons[arg12] or specialChatIcons[playerName], CH:GetPluginIcon(arg12, playerName)
 		if type(chatIcon) == 'function' then
@@ -1958,7 +1981,7 @@ function CH:MessageFormatter(frame, info, chatType, chatGroup, chatTarget, chann
 		end
 	else
 		if not showLink or arg2 == '' then
-			if chatType == 'TEXT_EMOTE' or chatType == 'GUILD_DEATHS' then
+			if chatType == 'TEXT_EMOTE' then
 				body = message
 			else
 				body = format(_G['CHAT_'..chatType..'_GET']..message, pflag..arg2, arg2)
@@ -2426,8 +2449,6 @@ function CH:SetupChat()
 		end
 	end
 
-	CH:ToggleHyperlink(CH.db.hyperlinkHover)
-
 	local chat = _G.GeneralDockManager.primary
 	_G.GeneralDockManager:ClearAllPoints()
 	_G.GeneralDockManager:Point('BOTTOMLEFT', chat, 'TOPLEFT', 0, 3)
@@ -2436,12 +2457,18 @@ function CH:SetupChat()
 	_G.GeneralDockManagerScrollFrame:Height(22)
 	_G.GeneralDockManagerScrollFrameChild:Height(22)
 
+	_G.CHAT_FONT_HEIGHTS = CH.FontHeights
+	_G.ChatFrameMenuButton:Kill()
+
+	CH:ToggleHyperlink(CH.db.hyperlinkHover)
+	CH:StyleOverflowButton()
+	CH:PositionChats()
+
+	_G.TextToSpeechButtonFrame:Hide()
+
 	if E.Retail then
 		_G.QuickJoinToastButton:Hide()
 	end
-
-	CH:StyleOverflowButton()
-	CH:PositionChats()
 
 	if not CH.HookSecured then
 		CH:SecureHook('FCF_OpenTemporaryWindow', 'SetupChat')
@@ -2946,7 +2973,6 @@ local FindURL_Events = {
 	'CHAT_MSG_BN_WHISPER_INFORM',
 	'CHAT_MSG_BN_INLINE_TOAST_BROADCAST',
 	'CHAT_MSG_GUILD_ACHIEVEMENT',
-	E.ClassicHC and 'CHAT_MSG_GUILD_DEATHS' or nil,
 	'CHAT_MSG_GUILD',
 	'CHAT_MSG_PARTY',
 	'CHAT_MSG_PARTY_LEADER',
@@ -3067,7 +3093,8 @@ function CH:DefaultSmileys()
 end
 
 local channelButtons = {
-	_G.ChatFrameChannelButton,
+	_G.TextToSpeechButton, -- text to speech
+	_G.ChatFrameChannelButton -- main voice button
 }
 
 if E.Retail then
@@ -3101,16 +3128,72 @@ function CH:RepositionOverflowButton()
 	_G.GeneralDockManagerOverflowButtonList:SetFrameLevel(5)
 	_G.GeneralDockManagerOverflowButton:ClearAllPoints()
 
+	-- handle the overflow placement
 	if CH.db.pinVoiceButtons and not CH.db.hideVoiceButtons then
-		_G.GeneralDockManagerOverflowButton:Point('RIGHT', channelButtons[(E.Retail and channelButtons[3]:IsShown() and 3) or 1], 'LEFT', -4, 0)
+		_G.GeneralDockManagerOverflowButton:Point('RIGHT', channelButtons[(E.Retail and channelButtons[4]:IsShown() and 4) or 2], 'LEFT', -4, 0)
 	else
 		_G.GeneralDockManagerOverflowButton:Point('RIGHT', _G.GeneralDockManager, 'RIGHT', -4, 0)
+	end
+
+	-- handle buttons placement on the voice panel
+	if not CH.db.hideVoiceButtons then
+		local button1 = channelButtons[1] -- text to speech
+		local button2 = channelButtons[2] -- main voice button
+		local ttsEnabled = GetCVarBool('textToSpeech')
+
+		if CH.db.pinVoiceButtons then
+			button1:ClearAllPoints()
+			button2:ClearAllPoints()
+
+			if ttsEnabled then
+				button1:Point('RIGHT', _G.GeneralDockManager, 'RIGHT', 2, 0)
+				button2:Point('RIGHT', button1, 'LEFT')
+			else
+				button2:Point('RIGHT', _G.GeneralDockManager, 'RIGHT', 2, 0)
+			end
+		else
+			button1:ClearAllPoints()
+			button1:Point('TOP', CH.VoicePanel, 0, -2)
+
+			button2:ClearAllPoints()
+			if ttsEnabled then
+				button2:Point('TOP', button1, 'BOTTOM', 0, -2)
+			else
+				button2:Point('TOP', CH.VoicePanel, 0, -2)
+			end
+
+			CH.VoicePanel:Size(30, ttsEnabled and 114 or 86)
+		end
+	end
+
+	local ChatAlertFrame = _G.ChatAlertFrame
+	if ChatAlertFrame then
+		ChatAlertFrame:ClearAllPoints()
+		ChatAlertFrame:Point('BOTTOMRIGHT', _G.GeneralDockManager, 'TOPRIGHT', 3, 3)
 	end
 end
 
 function CH:UpdateVoiceChatIcons()
 	for _, button in ipairs(channelButtons) do
 		button.Icon:SetDesaturated(CH.db.desaturateVoiceIcons)
+	end
+end
+
+do -- securely lock the atlas texture; we need this cause its not shown on init login
+	local ttsAtlas = 'chatframe-button-icon-TTS'
+	local function lockAtlas(icon, atlas)
+		if atlas ~= ttsAtlas then
+			icon:SetAtlas(ttsAtlas)
+		end
+	end
+
+	function CH:HandleTextToSpeechButton(button)
+		button.highlightAtlas = nil -- hide the highlight
+
+		if button.Icon and not button.Icon.isHookedAtlas then
+			hooksecurefunc(button.Icon, 'SetAtlas', lockAtlas)
+			button.Icon.isHookedAtlas = true
+		end
 	end
 end
 
@@ -3121,14 +3204,14 @@ function CH:HandleChatVoiceIcons()
 		end
 	elseif CH.db.pinVoiceButtons then
 		for index, button in ipairs(channelButtons) do
-			S:HandleButton(button, nil, nil, true)
-			button.Icon:SetDesaturated(CH.db.desaturateVoiceIcons)
-			button:ClearAllPoints()
-
 			if index == 1 then
-				button:Point('RIGHT', _G.GeneralDockManager, 'RIGHT', 2, 0)
+				CH:HandleTextToSpeechButton(button)
 			else
-				button:Point('RIGHT', channelButtons[index-1], 'LEFT')
+				S:HandleButton(button, nil, nil, true)
+			end
+
+			if button.Icon then
+				button.Icon:SetDesaturated(CH.db.desaturateVoiceIcons)
 			end
 		end
 
@@ -3165,7 +3248,6 @@ function CH:CreateChatVoicePanel()
 	local Holder = CreateFrame('Frame', 'ElvUIChatVoicePanel', E.UIParent)
 	Holder:ClearAllPoints()
 	Holder:Point('BOTTOMLEFT', _G.LeftChatPanel, 'TOPLEFT', 0, 1)
-	Holder:Size(30, 86)
 	Holder:SetTemplate('Transparent', nil, true)
 	Holder:SetBackdropColor(CH.db.panelColor.r, CH.db.panelColor.g, CH.db.panelColor.b, CH.db.panelColor.a)
 	E:CreateMover(Holder, 'SocialMenuMover', _G.BINDING_HEADER_VOICE_CHAT, nil, nil, nil, nil, nil, 'chat')
@@ -3175,15 +3257,19 @@ function CH:CreateChatVoicePanel()
 	Holder:SetScript('OnLeave', CH.LeaveVoicePanel)
 	CH.LeaveVoicePanel(Holder)
 
-	channelButtons[1]:ClearAllPoints()
-	channelButtons[1]:Point('TOP', Holder, 'TOP', 0, -2)
+	for index, button in ipairs(channelButtons) do
+		if index == 1 then
+			CH:HandleTextToSpeechButton(button)
+		else
+			S:HandleButton(button, nil, nil, true)
+		end
 
-	for _, button in ipairs(channelButtons) do
-		S:HandleButton(button, nil, nil, true)
-		button.Icon:SetParent(button)
-		button.Icon:SetDesaturated(CH.db.desaturateVoiceIcons)
+		if button.Icon then
+			button.Icon:SetParent(button)
+			button.Icon:SetDesaturated(CH.db.desaturateVoiceIcons)
+		end
+
 		button:SetParent(Holder)
-
 		button:HookScript('OnEnter', CH.EnterVoicePanel)
 		button:HookScript('OnLeave', CH.LeaveVoicePanel)
 	end
@@ -3191,9 +3277,6 @@ function CH:CreateChatVoicePanel()
 	if E.Retail then
 		CH:SetupQuickJoin(Holder)
 	end
-
-	_G.ChatAlertFrame:ClearAllPoints()
-	_G.ChatAlertFrame:Point('BOTTOM', channelButtons[1], 'TOP', 1, 3)
 end
 
 function CH:SetupQuickJoin(holder)
@@ -3665,9 +3748,6 @@ function CH:Initialize()
 	if not ElvCharacterDB.ChatEditHistory then ElvCharacterDB.ChatEditHistory = {} end
 	if not ElvCharacterDB.ChatHistoryLog or not CH.db.chatHistory then ElvCharacterDB.ChatHistoryLog = {} end
 
-	_G.CHAT_FONT_HEIGHTS = CH.FontHeights
-	_G.ChatFrameMenuButton:Kill()
-
 	CH:SetupChat()
 	CH:DefaultSmileys()
 	CH:UpdateChatKeywords()
@@ -3702,8 +3782,8 @@ function CH:Initialize()
 	CH:RegisterEvent('UPDATE_FLOATING_CHAT_WINDOWS', 'SetupChat')
 	CH:RegisterEvent('GROUP_ROSTER_UPDATE', 'CheckLFGRoles')
 	CH:RegisterEvent('PLAYER_REGEN_DISABLED', 'ChatEdit_PleaseUntaint')
-	CH:RegisterEvent('CVAR_UPDATE', 'UpdateEditboxAnchors')
 	CH:RegisterEvent('PET_BATTLE_CLOSE')
+	CH:RegisterEvent('CVAR_UPDATE')
 
 	if E.Retail then
 		CH:RegisterEvent('SOCIAL_QUEUE_UPDATE', 'SocialQueueEvent')

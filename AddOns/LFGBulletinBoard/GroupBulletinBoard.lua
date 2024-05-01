@@ -36,9 +36,10 @@ GBB.LFG_Timer=0
 GBB.LFG_UPDATETIME=10
 GBB.TBCDUNGEONBREAK = 50
 GBB.WOTLKDUNGEONBREAK = 81
-GBB.DUNGEONBREAK = 25
+GBB.DUNGEONBREAK = 28
 GBB.COMBINEMSGTIMER=10
 GBB.MAXCOMPACTWIDTH=350
+GBB.ShouldReset = false
 
 -- Tools
 -------------------------------------------------------------------------------------
@@ -240,7 +241,7 @@ end
 
 function GBB.BtnSettings(button )
 	if button == "LeftButton" then
-		GBB.Options.Open(2)
+		GBB.Options.Open(1)
 	else
 		GBB.Popup_Minimap("cursor",false)
 		--GBB.Options.Open(1)
@@ -376,11 +377,6 @@ function GBB.Popup_Minimap(frame,notminimap)
 	end
 
 	GBB.PopupDynamic:AddItem(GBB.L["HeaderSettings"],false, GBB.Options.Open, 1)
-
-	GBB.PopupDynamic:AddItem(GBB.L["WotlkPanelFilter"], false, GBB.Options.Open, 2)
-
-
-	GBB.PopupDynamic:AddItem(GBB.L["PanelAbout"], false, GBB.Options.Open, 7)
 	
 	GBB.PopupDynamic:AddItem("",true)
 	GBB.PopupDynamic:AddItem(GBB.L["CboxNotifyChat"],false,GBB.DB,"NotifyChat")
@@ -577,7 +573,6 @@ function GBB.Init()
 	GBB.Initalized=true
 	
 	GBB.PopupDynamic=GBB.Tool.CreatePopup(GBB.OptionsUpdate)
-	
 	-- Get build version to check against classic
 	local version, build, date, tocversion = GetBuildInfo()
 

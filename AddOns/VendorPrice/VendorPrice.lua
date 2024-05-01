@@ -1,14 +1,20 @@
 VendorPrice = {}
 local VP = VendorPrice
 
-local isVanilla = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-local isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+VP.isVanilla = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+VP.isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+
+if not VP.isVanilla and not VP.isWrath then
+	return
+end
 
 local SELL_PRICE_TEXT = format("%s:", SELL_PRICE)
 local overridePrice
 
 local CharacterBags = {}
-for i = CONTAINER_BAG_OFFSET+1, 23 do
+-- CONTAINER_BAG_OFFSET is 19 on classic and 30 on retail
+-- but classic uses slot 31 to 34 for bags
+for i = 31, 34 do
 	CharacterBags[i] = true
 end
 
@@ -66,9 +72,9 @@ function VP:SetPrice(tt, hasWrathTooltip, source, count, item, isOnTooltipSetIte
 			if sellPrice and sellPrice > 0 and not CheckRecipe(tt, classID, isOnTooltipSetItem) then
 				local isShift = IsShiftKeyDown() and count > 1
 				local displayPrice = isShift and sellPrice or sellPrice * count
-				if isVanilla then
+				if self.isVanilla then
 					SetTooltipMoney(tt, displayPrice, nil, SELL_PRICE_TEXT)
-				elseif isWrath then
+				elseif self.isWrath then
 					if hasWrathTooltip then
 						if isShift then
 							overridePrice = displayPrice

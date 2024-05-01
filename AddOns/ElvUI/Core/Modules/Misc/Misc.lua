@@ -17,7 +17,6 @@ local CanGuildBankRepair = CanGuildBankRepair
 local CanMerchantRepair = CanMerchantRepair
 local GetGuildBankWithdrawMoney = GetGuildBankWithdrawMoney
 local GetInstanceInfo = GetInstanceInfo
-local GetItemInfo = GetItemInfo
 local GetNumGroupMembers = GetNumGroupMembers
 local GetQuestItemInfo = GetQuestItemInfo
 local GetQuestItemLink = GetQuestItemLink
@@ -38,7 +37,6 @@ local SendChatMessage = SendChatMessage
 local StaticPopup_Hide = StaticPopup_Hide
 local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
 local UninviteUnit = UninviteUnit
-local UnitExists = UnitExists
 local UnitGUID = UnitGUID
 local UnitInRaid = UnitInRaid
 local UnitName = UnitName
@@ -46,18 +44,21 @@ local IsInGuild = IsInGuild
 local PlaySound = PlaySound
 local GetNumFactions = GetNumFactions
 local GetFactionInfo = GetFactionInfo
+local UnitIsGroupLeader = UnitIsGroupLeader
 local GetWatchedFactionInfo = GetWatchedFactionInfo
 local ExpandAllFactionHeaders = ExpandAllFactionHeaders
 local SetWatchedFactionIndex = SetWatchedFactionIndex
 local GetCurrentCombatTextEventInfo = GetCurrentCombatTextEventInfo
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
 local IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
 local LeaveParty = C_PartyInfo.LeaveParty or LeaveParty
 local IsFriend = C_FriendList.IsFriend
 
 local LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY = LE_GAME_ERR_GUILD_NOT_ENOUGH_MONEY
 local LE_GAME_ERR_NOT_ENOUGH_MONEY = LE_GAME_ERR_NOT_ENOUGH_MONEY
+local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
 local MAX_PARTY_MEMBERS = MAX_PARTY_MEMBERS
 local UNKNOWN = UNKNOWN
 
@@ -72,7 +73,7 @@ end
 
 local BOOST_THANKSFORPLAYING_SMALLER = SOUNDKIT.UI_70_BOOST_THANKSFORPLAYING_SMALLER
 local INTERRUPT_MSG = L["Interrupted %s's |cff71d5ff|Hspell:%d:0|h[%s]|h|r!"]
-if not (E.Retail or E.Wrath) then
+if not (E.Retail or E.Cata) then
 	INTERRUPT_MSG = INTERRUPT_MSG:gsub('|cff71d5ff|Hspell:%%d:0|h(%[%%s])|h|r','%1')
 end
 
@@ -118,8 +119,14 @@ function M:COMBAT_LOG_EVENT_UNFILTERED()
 		inRaid = false --IsInRaid() returns true for arenas and they should not be considered a raid
 	end
 
+	local name, msg = destName or UNKNOWN
+	if E.locale == 'msMX' or E.locale == 'esES' or E.locale == 'ptBR' then -- name goes after
+		msg = (E.Retail or E.Cata) and format(INTERRUPT_MSG, spellID, spellName, name) or format(INTERRUPT_MSG, spellName, name)
+	else
+		msg = (E.Retail or E.Cata) and format(INTERRUPT_MSG, name, spellID, spellName) or format(INTERRUPT_MSG, name, spellName)
+	end
+
 	local channel = E.db.general.interruptAnnounce
-	local msg = (E.Retail or E.Wrath) and format(INTERRUPT_MSG, destName or UNKNOWN, spellID, spellName) or format(INTERRUPT_MSG, destName or UNKNOWN, spellName)
 	if channel == 'PARTY' then
 		SendChatMessage(msg, inPartyLFG and 'INSTANCE_CHAT' or 'PARTY')
 	elseif channel == 'RAID' then
@@ -218,17 +225,24 @@ end
 function M:DisbandRaidGroup()
 	if InCombatLockdown() then return end -- Prevent user error in combat
 
-	if UnitInRaid('player') then
-		for i = 1, GetNumGroupMembers() do
-			local name, _, _, _, _, _, _, online = GetRaidRosterInfo(i)
-			if online and name ~= E.myname then
-				UninviteUnit(name)
+	local myIndex = UnitInRaid('player')
+	if myIndex then
+		local _, myRank = GetRaidRosterInfo(myIndex)
+		if myRank == 2 then -- real raid leader
+			for i = 1, GetNumGroupMembers() do
+				if i ~= myIndex then -- dont kick yourself
+					local name = GetRaidRosterInfo(i)
+					if name then
+						UninviteUnit(name)
+					end
+				end
 			end
 		end
-	else
+	elseif not myIndex and UnitIsGroupLeader('player', LE_PARTY_CATEGORY_HOME) then
 		for i = MAX_PARTY_MEMBERS, 1, -1 do
-			if UnitExists('party'..i) then
-				UninviteUnit(UnitName('party'..i))
+			local name = UnitName('party'..i)
+			if name then
+				UninviteUnit(name)
 			end
 		end
 	end

@@ -1,6 +1,6 @@
 # Auctionator
 
-## [10.2.27](https://github.com/Auctionator/Auctionator/tree/10.2.27) (2024-03-02)
-[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.2.26...10.2.27) 
+## [10.2.36](https://github.com/Auctionator/Auctionator/tree/10.2.36) (2024-04-28)
+[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.2.35...10.2.36) 
 
-- [Fixes #1487] Selling: Option to select last item used on reopening broke  
+- Patch so that Auctionator passes checks for Cataclysm on Curseforge  

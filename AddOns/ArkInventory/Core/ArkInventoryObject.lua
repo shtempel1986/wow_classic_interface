@@ -2,6 +2,8 @@
 local cacheObjectStringStandard = { }
 local cacheObjectStringDecode = { }
 
+local equiplocwarningsent = { }
+
 local TooltipStockCaptureSeperator = ""
 if LARGE_NUMBER_SEPERATOR ~= "" then
 	TooltipStockCaptureSeperator = LARGE_NUMBER_SEPERATOR .. "?"
@@ -191,7 +193,7 @@ local function helper_UpdateObjectInfo( info, thread_id )
 
 		--ArkInventory.OutputDebug( "name is [", info.name, "] for ", key, " / ", info.ready )
 		if info.name == ArkInventory.Localise["DATA_NOT_READY"] then
-			ArkInventory.OutputDebug( "name is [", info.name, "] for ", key, " / ", info.ready )
+			--ArkInventory.OutputDebug( "name is [", info.name, "] for ", key, " / ", info.ready )
 			info.ready = false
 		end
 		
@@ -212,6 +214,22 @@ local function helper_UpdateObjectInfo( info, thread_id )
 				
 				local ilvl
 				local stock = -1
+				
+				
+				-- clear unknown equipment types so they arent seen as equipable and warn user about it
+				if ArkInventory.Const.Slot.INVTYPE_SortOrder[info.equiploc] then
+					if ArkInventory.Const.Slot.INVTYPE_SortOrder[info.equiploc] <= 0 then
+						info.equiploc = ""
+					end
+				else
+					if info.equiploc ~= "" then
+						if not equiplocwarningsent[info.equiploc] then
+							equiplocwarningsent[info.equiploc] = true
+							ArkInventory.OutputWarning( "Equipment Location [", info.equiploc, "] is not coded, please let the author know." )
+						end
+						info.equiploc = ""
+					end
+				end
 				
 				if info.equiploc == "INVTYPE_BAG" then
 					
@@ -440,6 +458,10 @@ function ArkInventory:EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET( ... )
 		scanning = false
 	else
 		ArkInventory:SendMessage( "EVENT_ARKINV_GETOBJECTINFO_QUEUE_UPDATE_BUCKET", "BUSY" )
+	end
+	
+	if ArkInventorySearch then
+		--ArkInventorySearch.Frame_Table_Refresh( )
 	end
 	
 end

@@ -2,16 +2,13 @@ local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule('Skins')
 
 local _G = _G
-local unpack = unpack
-local select = select
-local ipairs = ipairs
-local next = next
-local rad = rad
+local unpack, select = unpack, select
+local ipairs, next, rad = ipairs, next, rad
+local hooksecurefunc = hooksecurefunc
 
 local CreateFrame = CreateFrame
-local GetItemInfo = GetItemInfo
-local hooksecurefunc = hooksecurefunc
-local GetItemQualityColor = GetItemQualityColor
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemQualityColor = (C_Item and C_Item.GetItemQualityColor) or GetItemQualityColor
 
 local lootQuality = {
 	['loottab-set-itemborder-white'] = nil, -- dont show white
@@ -231,15 +228,18 @@ function S:Blizzard_EncounterJournal()
 	end
 
 	_G.EncounterJournalMonthlyActivitiesTab:ClearAllPoints()
-	_G.EncounterJournalSuggestTab:ClearAllPoints()
-	_G.EncounterJournalDungeonTab:ClearAllPoints()
-	_G.EncounterJournalRaidTab:ClearAllPoints()
-	_G.EncounterJournalLootJournalTab:ClearAllPoints()
-
 	_G.EncounterJournalMonthlyActivitiesTab:Point('TOPLEFT', _G.EncounterJournal, 'BOTTOMLEFT', -3, 0)
+
+	_G.EncounterJournalSuggestTab:ClearAllPoints()
 	_G.EncounterJournalSuggestTab:Point('LEFT', _G.EncounterJournalMonthlyActivitiesTab, 'RIGHT', -5, 0)
+
+	_G.EncounterJournalDungeonTab:ClearAllPoints()
 	_G.EncounterJournalDungeonTab:Point('LEFT', _G.EncounterJournalSuggestTab, 'RIGHT', -5, 0)
+
+	_G.EncounterJournalRaidTab:ClearAllPoints()
 	_G.EncounterJournalRaidTab:Point('LEFT', _G.EncounterJournalDungeonTab, 'RIGHT', -5, 0)
+
+	_G.EncounterJournalLootJournalTab:ClearAllPoints()
 	_G.EncounterJournalLootJournalTab:Point('LEFT', _G.EncounterJournalRaidTab, 'RIGHT', -5, 0)
 
 	--Encounter Info Frame
@@ -248,13 +248,14 @@ function S:Blizzard_EncounterJournal()
 
 	EncounterInfo.encounterTitle:Kill()
 
+	EncounterInfo.leftShadow:SetAlpha(0) -- dont kill these
+	EncounterInfo.rightShadow:SetAlpha(0) -- it will taint
+
 	EncounterInfo.instanceButton.icon:Size(32)
 	EncounterInfo.instanceButton.icon:SetTexCoord(0, 1, 0, 1)
 	EncounterInfo.instanceButton:SetNormalTexture(E.ClearTexture)
 	EncounterInfo.instanceButton:SetHighlightTexture(E.ClearTexture)
 
-	EncounterInfo.leftShadow:Kill()
-	EncounterInfo.rightShadow:Kill()
 	EncounterInfo.model.dungeonBG:Kill()
 	_G.EncounterJournalEncounterFrameInfoBG:Height(385)
 	_G.EncounterJournalEncounterFrameInfoModelFrameShadow:Kill()
@@ -380,6 +381,7 @@ function S:Blizzard_EncounterJournal()
 
 	if E.private.skins.parchmentRemoverEnable then
 		EJ.MonthlyActivitiesFrame.Bg:SetAlpha(0)
+		EJ.MonthlyActivitiesFrame.ThemeContainer:SetAlpha(0)
 		_G.EncounterJournalInstanceSelectBG:SetAlpha(0)
 
 		local suggestFrame = EJ.suggestFrame

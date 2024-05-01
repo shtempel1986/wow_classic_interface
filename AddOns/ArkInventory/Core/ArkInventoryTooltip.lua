@@ -259,7 +259,6 @@ local function helper_TooltipSetHyperlink( tooltip, h )
 		elseif osd.class == "currency" then
 			
 			if tooltip then
-				--tooltip:SetCurrencyByID( osd.id, osd.amount )
 				ArkInventory.CrossClient.TooltipSetCurrencyByID( tooltip, osd.id, osd.amount )
 			end
 			

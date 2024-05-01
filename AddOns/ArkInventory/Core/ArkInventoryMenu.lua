@@ -818,10 +818,11 @@ function ArkInventory.MenuBarOpen( frame )
 						"b", codex.layout.bar.data[bar_id].background.colour.b,
 						"opacity", codex.layout.bar.data[bar_id].background.colour.a,
 						"colorFunc", function( r, g, b, a )
-							codex.layout.bar.data[bar_id].background.colour.r = r
-							codex.layout.bar.data[bar_id].background.colour.g = g
-							codex.layout.bar.data[bar_id].background.colour.b = b
-							codex.layout.bar.data[bar_id].background.colour.a = a
+							--ArkInventory.Output( "background = [", r, "] [", g, "] [", b, "] [", a, "]")
+							codex.layout.bar.data[bar_id].background.colour.r = r or 0
+							codex.layout.bar.data[bar_id].background.colour.g = g or 0
+							codex.layout.bar.data[bar_id].background.colour.b = b or 0
+							codex.layout.bar.data[bar_id].background.colour.a = a or 1
 							ArkInventory.Frame_Main_Generate( nil, ArkInventory.Const.Window.Draw.Restart )
 						end
 					)
@@ -3145,28 +3146,16 @@ function ArkInventory.MenuSwitchCharacter( offset, level, value, frame )
 			)
 			
 		end
-
+		
 		if not ArkInventory.Table.IsEmpty( realms ) then
-			
-			table.sort( realms )
 			
 			ArkInventory.Lib.Dewdrop:AddLine( )
 			
-			for k in ArkInventory.spairs( realms, function( a, b ) return ( a < b ) end ) do
-			
-				ArkInventory.Lib.Dewdrop:AddLine(
-					"text", k,
-					--"tooltipTitle", "",
-					--"tooltipText", "",
-					--"isRadio", true,
-					--"checked", codex.player.data.info.player_id == tp.info.player_id,
-					--"notClickable", codex.player.data.info.player_id == tp.info.player_id,
-					--"closeWhenClicked", true,
-					"hasArrow", true,
-					"value", string.format( "SWITCH_REALM_%s", k )
-				)
-				
-			end
+			ArkInventory.Lib.Dewdrop:AddLine(
+				"text", ArkInventory.Localise["OTHER"],
+				"hasArrow", true,
+				"value", "OTHER_REALMS"
+			)
 			
 		end
 		
@@ -3233,7 +3222,41 @@ function ArkInventory.MenuSwitchCharacter( offset, level, value, frame )
 			end
 			
 		end
+		
+		
+		if value == "OTHER_REALMS" then
 			
+			local realms = { }
+			
+			for n, tp in ArkInventory.spairs( ArkInventory.db.player.data, function( a, b ) return ( a < b ) end ) do
+				
+				if tp.info.account_id ~= codex.player.data.info.account_id and not ArkInventory.Global.Location[loc_id].isAccount then
+					
+				elseif tp.info.class ~= ArkInventory.Const.Class.Guild and loc_id == ArkInventory.Const.Location.Vault then
+					
+				elseif tp.info.class ~= ArkInventory.Const.Class.Account and ArkInventory.Global.Location[loc_id].isAccount then
+					
+				elseif tp.location[loc_id].slot_count == 0 then
+					
+				elseif tp.info.realm ~= codex.player.data.info.realm then
+					if not ArkInventory.Global.Location[loc_id].isAccount then
+						realms[tp.info.realm] = true
+					end
+				end
+				
+			end
+			
+			for k in ArkInventory.spairs( realms, function( a, b ) return ( a < b ) end ) do
+				
+				ArkInventory.Lib.Dewdrop:AddLine(
+					"text", k,
+					"hasArrow", true,
+					"value", string.format( "SWITCH_REALM_%s", k )
+				)
+				
+			end
+			
+		end
 		
 		local realm = string.match( value, "^SWITCH_REALM_(.+)" )
 		if realm then
@@ -3246,17 +3269,11 @@ function ArkInventory.MenuSwitchCharacter( offset, level, value, frame )
 				
 				if ( loc_id == ArkInventory.Const.Location.Vault ) and ( tp.info.class ~= ArkInventory.Const.Class.Guild ) then
 					show = false
-				end
-				
-				if ( loc_id == ArkInventory.Const.Location.Pet ) and ( tp.info.class ~= ArkInventory.Const.Class.Account ) then
+				elseif ( loc_id == ArkInventory.Const.Location.Pet ) and ( tp.info.class ~= ArkInventory.Const.Class.Account ) then
 					show = false
-				end
-				
-				if ( loc_id == ArkInventory.Const.Location.Mount ) and ( tp.info.class ~= ArkInventory.Const.Class.Account ) then
+				elseif ( loc_id == ArkInventory.Const.Location.Mount ) and ( tp.info.class ~= ArkInventory.Const.Class.Account ) then
 					show = false
-				end
-				
-				if tp.location[loc_id].slot_count == 0 or tp.info.realm ~= realm then
+				elseif tp.location[loc_id].slot_count == 0 or tp.info.realm ~= realm then
 					show = false
 				end
 				
@@ -3271,7 +3288,6 @@ function ArkInventory.MenuSwitchCharacter( offset, level, value, frame )
 						"hasArrow", true,
 						"isRadio", true,
 						"checked", codex.player.data.info.player_id == tp.info.player_id,
-						--"notClickable", codex.player.data.info.player_id == tp.info.player_id,
 						"closeWhenClicked", true,
 						"func", function( )
 							ArkInventory.Frame_Main_Show( loc_id, tp.info.player_id )
@@ -3285,7 +3301,7 @@ function ArkInventory.MenuSwitchCharacter( offset, level, value, frame )
 			
 			
 			if count == 0 then
-			
+				
 				ArkInventory.Lib.Dewdrop:AddLine(
 					"text", "no data availale",
 					"disabled", true

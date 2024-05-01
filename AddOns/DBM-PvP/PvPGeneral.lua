@@ -13,7 +13,7 @@ local playerFaction = GetPlayerFactionGroup("player")
 local DBM5Protocol = "1" -- DBM protocol version
 local DBM5Prefix = UnitName("player") .. "-" .. GetRealmName() .. "\t" .. DBM5Protocol .. "\t" -- Name-Realm\tProtocol version\t
 
-mod:SetRevision("20240302224145")
+mod:SetRevision("20240405150659")
 mod:SetZone(DBM_DISABLE_ZONE_DETECTION)
 mod:RegisterEvents(
 	"ZONE_CHANGED_NEW_AREA",
@@ -261,6 +261,12 @@ do
 		DBM.InfoFrame:SetColumns(1)
 	end
 
+	function healthTracker:ShowInfoFrame()
+		if not DBM.InfoFrame:IsShown() then
+			DBM.InfoFrame:Show(9, "function", function() return self:updateInfoFrame() end, false, false)
+		end
+	end
+
 	local trackers = {} ---@type HealthTracker[]
 	--- Only a single health tracker can be active at a time.
 	function mod:NewHealthTracker(syncChannels, scanNameplates)
@@ -405,14 +411,15 @@ do
 	end
 
 	function mod:CHAT_MSG_BG_SYSTEM_NEUTRAL(msg)
-		if self.Options.TimerStart and msg:find(L.BgStart120) then
-			startTimer:Update(isClassic and 1.5 or 0, 120)
-		elseif self.Options.TimerStart and (msg:find(L.BgStart60) or msg == L.ArenaStart60 or msg:find(L.ArenaStart60)) then
-			startTimer:Update(isClassic and 61.5 or 60, 120)
-		elseif self.Options.TimerStart and (msg:find(L.BgStart30) or msg == L.ArenaStart30 or msg:find(L.ArenaStart30)) then
-			startTimer:Update(isClassic and 91.5 or 90, 120)
+		-- in Classic era the chat msg is about 1.5 seconds early
+		if self.Options.TimerStart and (msg:find(L.BgStart120) or msg:find(L.BgStart120era)) then
+			startTimer:Update(0, 120)
+		elseif self.Options.TimerStart and (msg:find(L.BgStart60) or msg:find(L.BgStart60era) or msg == L.ArenaStart60 or msg:find(L.ArenaStart60)) then
+			startTimer:Update(isClassic and 58.5 or 60, 120)
+		elseif self.Options.TimerStart and (msg:find(L.BgStart30) or msg:find(L.BgStart30era) or msg == L.ArenaStart30 or msg:find(L.ArenaStart30)) then
+			startTimer:Update(isClassic and 88.5 or 90, 120)
 		elseif self.Options.TimerStart and (msg == L.ArenaStart15 or msg:find(L.ArenaStart15)) then
-			startTimer:Update(isClassic and 106.5 or 105, 120)
+			startTimer:Update(isClassic and 103.5 or 105, 120)
 		elseif not isClassic and (msg == L.Vulnerable1 or msg == L.Vulnerable2 or msg:find(L.Vulnerable1) or msg:find(L.Vulnerable2)) then
 			vulnerableTimer:Start()
 		end

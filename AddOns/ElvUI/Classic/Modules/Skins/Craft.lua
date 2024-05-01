@@ -3,14 +3,15 @@ local S = E:GetModule('Skins')
 
 local _G = _G
 local unpack = unpack
+local hooksecurefunc = hooksecurefunc
 
-local GetItemInfo = GetItemInfo
 local GetCraftNumReagents = GetCraftNumReagents
-local GetItemQualityColor = GetItemQualityColor
 local GetCraftItemLink = GetCraftItemLink
 local GetCraftReagentInfo = GetCraftReagentInfo
 local GetCraftReagentItemLink = GetCraftReagentItemLink
-local hooksecurefunc = hooksecurefunc
+
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemQualityColor = (C_Item and C_Item.GetItemQualityColor) or GetItemQualityColor
 
 function S:SkinCraft()
 	if not (E.private.skins.blizzard.enable and E.private.skins.blizzard.craft) then return end
@@ -117,7 +118,7 @@ function S:SkinCraft()
 		end
 
 		local numReagents = GetCraftNumReagents(id)
-		for i = 1, numReagents, 1 do
+		for i = 1, numReagents do
 			local _, _, reagentCount, playerReagentCount = GetCraftReagentInfo(id, i)
 			local reagentLink = GetCraftReagentItemLink(id, i)
 			local icon = _G['CraftReagent'..i..'IconTexture']

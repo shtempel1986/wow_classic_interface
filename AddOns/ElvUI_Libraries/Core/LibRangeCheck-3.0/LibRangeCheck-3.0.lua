@@ -39,8 +39,8 @@ License: MIT
 --
 -- @class file
 -- @name LibRangeCheck-3.0
-local MAJOR_VERSION = "LibRangeCheck-3.0"
-local MINOR_VERSION = 13
+local MAJOR_VERSION = "LibRangeCheck-3.0-ElvUI"
+local MINOR_VERSION = 16 -- real minor version: 13
 
 -- GLOBALS: LibStub, CreateFrame
 
@@ -50,49 +50,56 @@ if not lib then
   return
 end
 
-local isRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-local isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
-local isEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-
 local next = next
 local type = type
 local wipe = wipe
-local print = print
+local floor = floor
 local pairs = pairs
+local print = print
 local ipairs = ipairs
 local tinsert = tinsert
 local tremove = tremove
+local strsplit = strsplit
 local tostring = tostring
 local setmetatable = setmetatable
-local BOOKTYPE_SPELL = BOOKTYPE_SPELL
-local GetSpellInfo = GetSpellInfo
-local GetSpellBookItemName = GetSpellBookItemName
-local GetNumSpellTabs = GetNumSpellTabs
-local GetSpellTabInfo = GetSpellTabInfo
-local GetItemInfo = GetItemInfo
-local UnitCanAttack = UnitCanAttack
-local UnitCanAssist = UnitCanAssist
-local UnitExists = UnitExists
-local UnitIsUnit = UnitIsUnit
-local UnitGUID = UnitGUID
-local InCombatLockdown = InCombatLockdown
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+
 local CheckInteractDistance = CheckInteractDistance
-local IsSpellInRange = IsSpellInRange
-local IsItemInRange = IsItemInRange
-local UnitClass = UnitClass
-local UnitRace = UnitRace
 local GetInventoryItemLink = GetInventoryItemLink
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetNumSpellTabs = GetNumSpellTabs
+local GetSpellBookItemName = GetSpellBookItemName
+local GetSpellInfo = GetSpellInfo
+local GetSpellTabInfo = GetSpellTabInfo
 local GetTime = GetTime
-local HandSlotId = GetInventorySlotInfo("HANDSSLOT")
-local math_floor = math.floor
+local InCombatLockdown = InCombatLockdown
+local IsItemInRange = IsItemInRange
+local IsSpellInRange = IsSpellInRange
+local UnitCanAssist = UnitCanAssist
+local UnitCanAttack = UnitCanAttack
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitGUID = UnitGUID
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitIsUnit = UnitIsUnit
 local UnitIsVisible = UnitIsVisible
+local UnitRace = UnitRace
+
+local C_Timer = C_Timer
 local Item = Item
 
-local C_Timer_NewTicker = C_Timer.NewTicker
+local BOOKTYPE_SPELL = BOOKTYPE_SPELL
+local HandSlotId = GetInventorySlotInfo("HANDSSLOT")
+
+local isRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
+local isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
+local isEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+local isCata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
+
+local IsEngravingEnabled = C_Engraving and C_Engraving.IsEngravingEnabled
+local isEraSOD = IsEngravingEnabled and IsEngravingEnabled()
 
 local InCombatLockdownRestriction
-if isRetail or isEra then
+if isRetail or isEra or isCata then
   InCombatLockdownRestriction = function(unit) return InCombatLockdown() and not UnitCanAttack("player", unit) end
 else
   InCombatLockdownRestriction = function() return false end
@@ -127,6 +134,7 @@ local InteractLists = {
 }
 
 local MeleeRange = 2
+local MatchSpellByID = {} -- specific matching to avoid incorrect index
 local FriendSpells, HarmSpells, ResSpells, PetSpells = {}, {}, {}, {}
 
 for _, n in ipairs({ "EVOKER", "DEATHKNIGHT", "DEMONHUNTER", "DRUID", "HUNTER", "SHAMAN", "MAGE", "PALADIN", "PRIEST", "WARLOCK", "WARRIOR", "MONK", "ROGUE" }) do
@@ -187,6 +195,13 @@ tinsert(FriendSpells.MAGE, 475) -- Remove Curse (40 yards, level 28)
 
 if not isRetail then
   tinsert(FriendSpells.MAGE, 130) -- Slow Fall (40 yards, level 12)
+end
+
+if isEraSOD then
+  MatchSpellByID[401417] = true -- Regeneration (Rune): Conflicts with Racial Passive on Trolls
+
+  tinsert(FriendSpells.MAGE, 401417) -- Regeneration (40 yards)
+  tinsert(FriendSpells.MAGE, 412510) -- Mass Regeneration (40 yards)
 end
 
 tinsert(HarmSpells.MAGE, 44614) -- Flurry (40 yards)
@@ -548,7 +563,7 @@ local checkers_Spell = setmetatable({}, {
     return func
   end,
 })
-local checkers_SpellWithMin = {} -- see getCheckerForSpellWithMinRange()
+
 local checkers_Item = setmetatable({}, {
   __index = function(t, item)
     local func = function(unit, skipInCombatCheck)
@@ -562,6 +577,7 @@ local checkers_Item = setmetatable({}, {
     return func
   end,
 })
+
 local checkers_Interact = setmetatable({}, {
   __index = function(t, index)
     local func = function(unit, skipInCombatCheck)
@@ -573,6 +589,42 @@ local checkers_Interact = setmetatable({}, {
     end
     t[index] = func
     return func
+  end,
+})
+
+local checkers_SpellWithMin = setmetatable({}, {
+  __index = function(t, key, value)
+    if key == 'MinInteractList' then
+      return value
+    else
+      local which, id = strsplit(':', key)
+      local isInteract = which == 'interact'
+
+      local func = function(unit, skipInCombatCheck)
+        if isInteract then
+          local interactCheck = checkers_Interact[id]
+          if interactCheck and interactCheck(unit, skipInCombatCheck) then
+            return true
+          end
+        else
+          local spellCheck = checkers_Spell[id]
+          if spellCheck and spellCheck(unit) then
+            return true
+          elseif t.MinInteractList then -- fallback to try interact when a spell failed
+            for index in pairs(t.MinInteractList) do
+              local interactCheck = checkers_Interact[index]
+              if interactCheck and interactCheck(unit, skipInCombatCheck) then
+                return true
+              end
+            end
+          end
+        end
+      end
+
+      t[id] = func
+
+      return func
+    end
   end,
 })
 
@@ -605,57 +657,30 @@ local function getNumSpells()
 end
 
 -- return the spellIndex of the given spell by scanning the spellbook
-local function findSpellIdx(spellName)
+local function findSpellIdx(spellName, sid)
   if not spellName or spellName == "" then
     return nil
   end
+
   for i = 1, getNumSpells() do
-    local spell = GetSpellBookItemName(i, BOOKTYPE_SPELL)
-    if spell == spellName then
+    local name, _, id = GetSpellBookItemName(i, BOOKTYPE_SPELL)
+    if sid == id or (spellName == name and not MatchSpellByID[id]) then
       return i
     end
   end
+
   return nil
 end
 
 local function fixRange(range)
   if range then
-    return math_floor(range + 0.5)
+    return floor(range + 0.5)
   end
 end
 
 local function getSpellData(sid)
   local name, _, _, _, minRange, range = GetSpellInfo(sid)
-  return name, fixRange(minRange), fixRange(range), findSpellIdx(name)
-end
-
-local function findMinRangeChecker(origMinRange, origRange, spellList)
-  for i = 1, #spellList do
-    local sid = spellList[i]
-    local name, minRange, range, spellIdx = getSpellData(sid)
-    if range and spellIdx and origMinRange <= range and range <= origRange and minRange == 0 then
-      return checkers_Spell[findSpellIdx(name)]
-    end
-  end
-end
-
-local function getCheckerForSpellWithMinRange(spellIdx, minRange, range, spellList)
-  local checker = checkers_SpellWithMin[spellIdx]
-  if checker then
-    return checker
-  end
-  local minRangeChecker = findMinRangeChecker(minRange, range, spellList)
-  if minRangeChecker then
-    checker = function(unit)
-      if IsSpellInRange(spellIdx, BOOKTYPE_SPELL, unit) == 1 then
-        return true
-      elseif minRangeChecker(unit) then
-        return true, true
-      end
-    end
-    checkers_SpellWithMin[spellIdx] = checker
-    return checker
-  end
+  return name, fixRange(minRange), fixRange(range), findSpellIdx(name, sid)
 end
 
 -- minRange should be nil if there's no minRange, not 0
@@ -688,6 +713,7 @@ local function createCheckerList(spellList, itemList, interactList)
     end
   end
 
+  local minInteract
   if spellList then
     for i = 1, #spellList do
       local sid = spellList[i]
@@ -704,11 +730,14 @@ local function createCheckerList(spellList, itemList, interactList)
         end
 
         if minRange then
-          local checker = getCheckerForSpellWithMinRange(spellIdx, minRange, range, spellList)
-          if checker then
-            addChecker(res, range, minRange, checker, "spell:" .. sid .. ":" .. tostring(name))
-            addChecker(resInCombat, range, minRange, checker, "spell:" .. sid .. ":" .. tostring(name))
+          if not checkers_SpellWithMin.MinInteractList then
+            checkers_SpellWithMin.MinInteractList = interactList
           end
+
+          addChecker(res, range, minRange, checkers_SpellWithMin["spell:"..spellIdx], "spell:" .. sid .. ":" .. tostring(name))
+          addChecker(resInCombat, range, minRange, checkers_SpellWithMin["spell:"..spellIdx], "spell:" .. sid .. ":" .. tostring(name))
+
+          minInteract = true
         else
           addChecker(res, range, minRange, checkers_Spell[spellIdx], "spell:" .. sid .. ":" .. tostring(name))
           addChecker(resInCombat, range, minRange, checkers_Spell[spellIdx], "spell:" .. sid .. ":" .. tostring(name))
@@ -717,9 +746,16 @@ local function createCheckerList(spellList, itemList, interactList)
     end
   end
 
-  if interactList and not next(res) then
+  if interactList and (minInteract or not next(res)) then
+    local _, playerClass = UnitClass("player")
     for index, range in pairs(interactList) do
-      addChecker(res, range, nil, checkers_Interact[index], "interact:" .. index)
+      if minInteract then -- spells have min range, step to use interact as a fallback when close
+        if not (playerClass == "WARRIOR" and index == 4) then -- warrior: skip Follow 28, so it will use Charge 25
+          addChecker(res, range, nil, checkers_SpellWithMin["interact:"..index], "interact:" .. index)
+        end
+      else
+        addChecker(res, range, nil, checkers_Interact[index], "interact:" .. index)
+      end
     end
   end
 
@@ -746,7 +782,7 @@ end
 local function getRangeWithCheckerList(unit, checkerList)
   local lo, hi = 1, #checkerList
   while lo <= hi do
-    local mid = math_floor((lo + hi) / 2)
+    local mid = floor((lo + hi) / 2)
     local rc = checkerList[mid]
     if rc.checker(unit, true) then
       lo = mid + 1
@@ -959,10 +995,8 @@ lib.CHECKERS_CHANGED = "CHECKERS_CHANGED"
 lib.MeleeRange = MeleeRange
 
 function lib:findSpellIndex(spell)
-  if type(spell) == "number" then
-    spell = GetSpellInfo(spell)
-  end
-  return findSpellIdx(spell)
+  local name, _, _, _, _, _, sid = GetSpellInfo(spell)
+  return findSpellIdx(name, sid)
 end
 
 -- returns the range estimate as a string
@@ -1341,7 +1375,7 @@ end
 -- << load-time initialization
 
 local function invalidateRangeFive()
-    invalidateRangeCache(5)
+  invalidateRangeCache(5)
 end
 
 function lib:activate()
@@ -1353,11 +1387,11 @@ function lib:activate()
     frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
     frame:RegisterEvent("SPELLS_CHANGED")
 
-    if isEra or isWrath then
+    if isEra or isCata then
       frame:RegisterEvent("CVAR_UPDATE")
     end
 
-    if isRetail or isWrath then
+    if isRetail or isCata then
       frame:RegisterEvent("PLAYER_TALENT_UPDATE")
     end
 
@@ -1369,7 +1403,7 @@ function lib:activate()
   end
 
   if not self.cacheResetTimer then
-    self.cacheResetTimer = C_Timer_NewTicker(5, invalidateRangeFive)
+    self.cacheResetTimer = C_Timer.NewTicker(5, invalidateRangeFive)
   end
 
   initItemRequests()

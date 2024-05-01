@@ -121,7 +121,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	
 	
 	-- used for both item to currency mappings (itemid:currencyid), and just knowing what items are currencies
-	["ArkInventory.System.Currency.Dragonflight.Mysterious Fragments"] = "205223:2657,212687:2657,212762:2657,212769:2657,212773:2657,212976:2657,212977:2657,212978:2657,213023:2657,213024:2657,213025:2657,213192:2657,213204:2657,213208:2657,213215:2657,213357:2657,213382:2657,213389:2657,213536:2657", 
+	["ArkInventory.System.Currency.Dragonflight.Mysterious Fragments"] = "205223:2657,212687:2657,212762:2657,212769:2657,212773:2657,212976:2657,212977:2657,212978:2657,213020:2657,213023:2657,213024:2657,213025:2657,213192:2657,213204:2657,213208:2657,213215:2657,213357:2657,213382:2657,213389:2657,213536:2657", 
 	["ArkInventory.System.Currency.Dragonflight.Paracausal Flakes"] = "208945:2594",
 	["ArkInventory.System.Currency.Dragonflight.Flightstones"] = "210180:2245",
 	["ArkInventory.System.Currency.Dragonflight.Whelplings Dreaming Crests"] = "210917:2706",
@@ -150,7 +150,10 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Currency.Outland.Haala"] = "26044,26045",
 	["ArkInventory.System.Currency.Classic.Other"] = "",
 	["ArkInventory.System.Currency.PVP"] = "137642",
-	["ArkInventory.System.Currency.Other"] = "21100:CoinOfAncestry,71083:DarkmoonGameToken,22523:InsigniaOfTheDawn,122618:MisprintedDraenicCoin",
+	["ArkInventory.System.Currency.Event.Love Is In The Air"] = "49927",
+	["ArkInventory.System.Currency.Event.Lunar Festival"] = "21100",
+	["ArkInventory.System.Currency.Event.Darkmoon Faire"] = "71083",
+	["ArkInventory.System.Currency.Other"] = "22523:InsigniaOfTheDawn,122618:MisprintedDraenicCoin",
 	
 	-- uncut gems
 	["ArkInventory.Mat.ByType.Gems.Shadowlands"] = "173109,173110,173108",
@@ -649,8 +652,8 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.BonusID.Timewarped"] = "615,645,692,3502,3589,3623,3625,3627,5130,5132,5372,5463,5473,5475,5477,6311,6312,6314,6355,6424,6426,6428,6432,7191,7247,7464,7465,7756",
 	
 	-- cross reference tables
-	["ArkInventory.System.XREF.Currency"] = "m,ArkInventory.System.Currency.Dragonflight,ArkInventory.System.Currency.Shadowlands,ArkInventory.System.Currency.BFA,ArkInventory.System.Currency.Legion,ArkInventory.System.Currency.Draenor,ArkInventory.System.Currency.Pandaria,ArkInventory.System.Currency.Cataclysm,ArkInventory.System.Currency.Northrend,ArkInventory.System.Currency.Outland,ArkInventory.System.Currency.Classic,ArkInventory.System.Currency.PVP,ArkInventory.System.Currency.Other",
-	["ArkInventory.System.XREF.Reputation"] = "m,ArkInventory.Consumable.Reputation.Dragonflight,ArkInventory.Consumable.Reputation.Shadowlands,ArkInventory.Consumable.Reputation.BFA,ArkInventory.Consumable.Reputation.Legion,ArkInventory.Consumable.Reputation.Draenor,ArkInventory.Consumable.Reputation.Pandaria,ArkInventory.Consumable.Reputation.Cataclysm,ArkInventory.Consumable.Reputation.Northrend,ArkInventory.Consumable.Reputation.Outland,ArkInventory.Consumable.Reputation.Classic,ArkInventory.Consumable.Reputation.Other",
+	["ArkInventory.System.XREF.Currency"] = "m,ArkInventory.System.Currency",
+	["ArkInventory.System.XREF.Reputation"] = "m,ArkInventory.Consumable.Reputation",
 	
 	["ArkInventory.System.XREF.Tradeskill.Archaeology"] = "",
 	["ArkInventory.System.XREF.Tradeskill.Alchemy"] = "m,Tradeskill.RecipeLinks.Alchemy",

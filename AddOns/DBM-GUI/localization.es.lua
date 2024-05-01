@@ -72,7 +72,7 @@ L.UseSoundChannel			= "Canal de audio para alertas"
 L.UseMasterChannel			= "Canal de audio principal"
 L.UseDialogChannel			= "Canal de audio de diálogo"
 L.UseSFXChannel				= "Canal de audio de efectos de sonido"
-L.Latency_Text				= "Latencia máxima para sincronización: %d"
+L.Latency_Text				= "Latencia máx. para sincronización: %d"
 
 L.Button_RangeFrame			= "Mostrar/ocultar\nmarco de distancia"
 L.Button_InfoFrame			= "Mostrar/ocultar\nmarco de información"
@@ -93,12 +93,12 @@ L.Editbox_WindowWidth		= "Horizontal"
 L.Editbox_WindowHeight		= "Vertical"
 
 L.UIGroupingOptions					= "Opciones de agrupación de IU (cambiarlas requiere recargar la IU para cualquier módulo que ya esté cargado)"
-L.GroupOptionsExcludeIcon			= "Excluir que las opciones 'Establecer icono activado' se agrupen por hechizo (en su lugar, se agruparán en su propia categoría 'Iconos')"
+L.GroupOptionsExcludeIcon			= "Excluir que las opciones 'Establecer icono activado' se agrupan por hechizo (en su lugar, se agruparán en su propia categoría 'Iconos')"
 L.AutoExpandSpellGroups				= "Expandir opciones automáticamente que están agrupadas por hechizo"
 L.ShowWAKeys						= "Mostrar las claves de WeakAuras junto a los nombres de los hechizos para ayudar a escribir WeakAuras usando los activadores de módulos de Jefe."
 L.ShowSpellDescWhenExpanded	= "Continuar mostrando la descripción del hechizo cuando se expanden los grupos."--Might not be used
-L.NoDescription						= "Esta habilidad no tiene descripción."
-L.CustomOptions						= "Esta categoría contiene opciones personalizadas para una habilidad o evento que no tiene ningún hechizo o ID de diario propio. Estas opciones se han agrupado utilizando una identificación manual personalizada para facilitar la creación de WeakAuras."
+L.NoDescription						= "Esta facultad no tiene descripción."
+L.CustomOptions						= "Esta categoría contiene opciones personalizadas para una facultad o evento que no tiene ningún hechizo o ID de diario propio. Estas opciones se han agrupado utilizando una identificación manual personalizada para facilitar la creación de WeakAuras."
 
 --
 
@@ -111,24 +111,24 @@ L.AdvancedAutologBosses		= "Registrar encuentros automáticamente con Transcript
 --Auto Logging: Global filter Options
 L.Area_AutoLoggingFilters	= "Filtros del registro automático"
 L.RecordOnlyBosses			= "Registrar solo encuentros de jefe (excluye todos los combates contra enemigos que no son jefes; escribe '/dbm pull' antes de iniciar un encuentro para registrar el uso previo de pociones)"
-L.DoNotLogLFG				= "No registras Buscar Grupo o Buscar Banda (contenido en cola)"
+L.DoNotLogLFG				= "No registrar grupos del buscador de mazmorras o buscador de bandas"
 --
 L.Area_AutoLoggingContent			= "Contenido del registro automático"
 L.LogCurrentMythicRaids				= "Bandas míticos de nivel actual"--Retail Only
-L.LogCurrentRaids					= "Bandas no míticas de nivel actual (heroico, normal y buscar bandas si el filtro está desactivado)"
---L.LogTWRaids						= "Timewalking or Chromie Time raids"--Retail Only
+L.LogCurrentRaids					= "Bandas no míticas de nivel actual (heroico, normal y buscador de bandas si el filtro está desactivado)"
+L.LogTWRaids						= "Bandas de Paseo en el tiempo o Tiempo de Cromi"--Retail Only
 L.LogTrivialRaids					= "Bandas triviales (de bajo nivel)"
 L.LogCurrentMPlus					= "Mazmorras M+ de nivel actual"--Retail Only
 L.LogCurrentMythicZero				= "Mazmorras Mítica 0 de nivel actual"--Retail Only
---L.LogTWDungeons						= "Timewalking or Chromie Time dungeons"--Retail Only
-L.LogCurrentHeroic					= "Mazmorras heroicas de nivel actual (Nota: si estás haciendo mazmorra por cola y quieres que se registre, desactiva el filtro Buscar Grupo)"
+L.LogTWDungeons						= "Mazmorras de Paseo en el tiempo o Tiempo de Cromi"--Retail Only
+L.LogCurrentHeroic					= "Mazmorras heroicas de nivel actual (Nota: si estás haciendo mazmorras mediante la función de cola y deseas que se registren, desactiva el filtro 'Buscar Grupo'.)"
 
 -- Panel: Extra Features
 L.Panel_ExtraFeatures		= "Funciones adicionales"
 
-L.Area_SoundAlerts			= "Opciones de alertas de sonido e iluminación del icono del juego"
+L.Area_SoundAlerts			= "Opciones de alertas de sonido y destello del icono del juego"
 L.LFDEnhance				= "Reproducir sonido de comprobación de banda y destellar icono del juego para avisos del buscador de mazmorra/banda/grupo y campos de batalla por el canal de audio general o de diálogo (en otras palabras, reproduce el sonido aunque el canal de efectos de sonido esté desactivado, y en general suena más alto)"
-L.WorldBossNearAlert		= "Reproducir sonido de comprobación de banda y destellar icono del juego cuando haya un jefe de mundo cerca"
+L.WorldBossNearAlert		= "Reproducir sonido de comprobación de banda y destellar icono del juego cuando haya un jefe del mundo cerca"
 L.RLReadyCheckSound			= "Reproducir sonido por el canal de audio general o de diálogo y destellar el icono del juego cuando se haga una comprobación de banda"
 L.AFKHealthWarning			= "Reproducir sonido de alerta y destellar el icono del juego si tu salud se reduce mientras estás ausente"
 L.AutoReplySound			= "Reproducir sonido de alerta y destellar el icono del juego al recibir respuestas automáticas de DBM por susurro"
@@ -171,7 +171,7 @@ L.SelectModProfileCopyNote	= "Copiar notas de"
 L.SelectModProfileDelete	= "Borrar configuración de"
 
 L.Area_ImportExportProfile			= "Importar/Exportar perfiles"
-L.ImportExportInfo					= "La importación sobrescribirá su perfil actual, hágalo bajo su propio riesgo."
+L.ImportExportInfo					= "La importación sobrescribirá tu perfil actual, hazlo bajo tu propio riesgo."
 L.ButtonImportProfile				= "Importar perfil"
 L.ButtonExportProfile				= "Exportar perfil"
 
@@ -229,7 +229,7 @@ L.SpecialWarnSoundOption	= "Sonido predeterminado"
 L.SpecialWarnHeader1		= "Tipo 1: Opciones para avisos de prioridad normal relevantes a ti o a tus acciones"
 L.SpecialWarnHeader2		= "Tipo 2: Opciones para avisos de prioridad normal relevantes a todos los jugadores"
 L.SpecialWarnHeader3		= "Tipo 3: Opciones para avisos de alta prioridad"
-L.SpecialWarnHeader4		= "Tipo 4: Opciones para avisos especiales de huida con alta prioridad"
+L.SpecialWarnHeader4		= "Tipo 4: Opciones para avisos especiales de correr con alta prioridad"
 L.SpecialWarnHeader5		= "Tipo 5: Opciones para avisos con notas que contienen tu nombre"
 
 -- Panel: Generalwarnings
@@ -255,8 +255,8 @@ L.ShowGuildMessagesPlus		= "Mostrar también mensajes de inicio, victoria y derr
 L.Area_ChatAlerts			= "Opciones de alertas adicionales"
 L.RoleSpecAlert				= "Mostrar mensaje de alerta al unirte a una banda cuando tu especialización de botín no coincida con tu especialización actual"
 L.CheckGear					= "Mostrar mensaje de alerta al iniciar un encuentro cuando tu nivel de equipo sea como mínimo 40 niveles menor que el de tu inventario o no tengas equipada un arma principal"
-L.WorldBossAlert			= "Mostrar mensaje de alerta cuando un amigo o miembro de hermandad inicie un encuentro contra un jefe de mundo (impreciso si el jugador en combate está en otro reino)"
-L.WorldBuffAlert			= "Mostrar mensaje de alerta y temporizador cuando un beneficio mundial empieza en tu reino"
+L.WorldBossAlert			= "Mostrar mensaje de alerta cuando un amigo o miembro de hermandad inicie un encuentro contra un jefe del mundo (impreciso si el jugador en combate está en otro reino)"
+L.WorldBuffAlert			= "Mostrar mensaje de alerta y temporizador cuando un beneficio del mundo empieza en tu reino"
 
 L.Area_BugAlerts			= "Opciones de alertas de informes de fallos"
 L.BadTimerAlert				= "Mostrar mensaje en el chat cuando DBM detecte un temporizador erróneo"
@@ -273,18 +273,18 @@ L.MissingVoicePack			= "Paquete de voz faltante (%s)"
 L.Area_CountdownOptions		= "Opciones de cuenta atrás"
 L.Area_VoicePackReplace		= "Opciones de reemplazo de paquetes de voz (que suenan paquetes de voz, cuando están activados, silencian y reemplazan)"
 L.VPReplaceNote				= "Nota: Los paquetes de voz nunca cambian ni eliminan los sonidos de avisos.\nSimplemente se silencian cuando el paquete de voz los reemplaza."
-L.ReplacesAnnounce					= "Reemplazar los sonidos de anuncio (Nota: muy pocos usan paquetes de voz, excepto para cambios de fase y bichos.)"
-L.ReplacesSA1						= "Reemplazar los sonidos del anuncio especial 1 (personal también conocido como 'pvpflag' que no son de huida)"
-L.ReplacesSA2						= "Reemplazar los sonidos del anuncio especial 2 (todos también conocidos como 'cuidado')"
-L.ReplacesSA3						= "Reemplazar los sonidos del anuncio especial 3 (alta prioridad también conocido como 'airhorn')"
-L.ReplacesSA4						= "Reemplazar los sonidos del anuncio especial 4 (huida de alta prioridad)"
-L.ReplacesGTFO						= "Reemplazar los sonidos de huida del anuncio especial"
-L.ReplacesCustom					= "Reemplazar los sonidos de anuncios especiales personalizados establecidos por el usuario (no recomendado)"
-L.Area_VoicePackAdvOptions			= "Opciones avanzadas del paquete de voz"
+L.ReplacesAnnounce			= "Reemplazar los sonidos de anuncio (Nota: muy pocos usan paquetes de voz, excepto para cambios de fase y bichos.)"
+L.ReplacesSA1				= "Reemplazar los sonidos del anuncio especial 1 (personal también conocido como 'pvpflag' que no son de correr)"
+L.ReplacesSA2				= "Reemplazar los sonidos del anuncio especial 2 (todos también conocidos como 'cuidado')"
+L.ReplacesSA3				= "Reemplazar los sonidos del anuncio especial 3 (alta prioridad también conocido como 'airhorn')"
+L.ReplacesSA4				= "Reemplazar los sonidos del anuncio especial 4 (correr de alta prioridad)"
+L.ReplacesGTFO				= "Reemplazar los sonidos de correr del anuncio especial"
+L.ReplacesCustom			= "Reemplazar los sonidos de anuncios especiales personalizados establecidos por el usuario (no recomendado)"
+L.Area_VoicePackAdvOptions	= "Opciones avanzadas del paquete de voz"
 L.SpecWarn_AlwaysVoice		= "Reproducir siempre todas las alertas de voz (ignora las opciones de jefe; útil para líderes de banda)"
-L.VPDontMuteSounds					= "Desactivar el silenciamiento de los sonidos de alerta habituales cuando utiliza el paquete de voz (utilícelo solo si deseas escuchar AMBOS durante las alertas)"
-L.Area_VPLearnMore					= "Obten más información sobre los paquetes de voz y cómo utilizar estas opciones"
-L.VPLearnMore						= "|cFF73C2FBhttps://github.com/DeadlyBossMods/DBM-Retail/wiki/%5BGuide%5D-DBM-&-Voicepacks#2022-update|r"
+L.VPDontMuteSounds			= "Desactivar el silenciamiento de los sonidos de alerta habituales cuando utiliza el paquete de voz (utilícelo solo si deseas escuchar AMBOS durante las alertas)"
+L.Area_VPLearnMore			= "Obten más información sobre los paquetes de voz y cómo utilizar estas opciones"
+L.VPLearnMore				= "|cFF73C2FBhttps://github.com/DeadlyBossMods/DBM-Retail/wiki/%5BGuide%5D-DBM-&-Voicepacks#2022-update|r"
 L.Area_BrowseOtherVP		= "Explora otros paquetes de voz en Curse"
 L.BrowseOtherVPs			= "|cFF73C2FBhttps://www.curseforge.com/wow/addons/search?search=dbm+voice|r"
 L.Area_BrowseOtherCT		= "Explora otros paquetes de voz de cuenta atrás en Curse"
@@ -325,24 +325,24 @@ L.Slider_BarWidth 			= "Anchura de barras: %d"
 L.Slider_BarScale 			= "Escala de barras: %0.2f"
 L.BarSaturation				= "Saturación de barras para temporizadores pequeños (cuando las barras grandes están desactivadas): %0.2f"
 --Types
-L.BarStartColorAdd			= "Color inicial (esbirros)"
-L.BarEndColorAdd			= "Color final (esbirros)"
-L.BarStartColorAOE			= "Color inicial (áreas)"
-L.BarEndColorAOE			= "Color final (áreas)"
-L.BarStartColorDebuff		= "Color inicial (dirigido)"
-L.BarEndColorDebuff			= "Color final (dirigido)"
-L.BarStartColorInterrupt	= "Color inicial (cortar)"
-L.BarEndColorInterrupt		= "Color final (cortar)"
-L.BarStartColorRole			= "Color inicial (rol)"
-L.BarEndColorRole			= "Color final (rol)"
-L.BarStartColorPhase		= "Color inicial (fase)"
-L.BarEndColorPhase			= "Color final (fase)"
-L.BarStartColorUI			= "Color inicial (usuario)"
-L.BarEndColorUI				= "Color final (usuario)"
-L.BarStartColorI2			= "Color inicial 8 (usuario)"
-L.BarEndColorI2				= "Color final 8 (usuario)"
+L.BarStartColorAdd			= "Color inicial 1 (esbirros)"
+L.BarEndColorAdd			= "Color final 1 (esbirros)"
+L.BarStartColorAOE			= "Color inicial 2 (áreas)"
+L.BarEndColorAOE			= "Color final 2 (áreas)"
+L.BarStartColorDebuff		= "Color inicial 3 (objetivo)"
+L.BarEndColorDebuff			= "Color final 3 (objetivo)"
+L.BarStartColorInterrupt	= "Color inicial 4 (interrumpir)"
+L.BarEndColorInterrupt		= "Color final 4 (interrumpir)"
+L.BarStartColorRole			= "Color inicial 5 (rol)"
+L.BarEndColorRole			= "Color final 5 (rol)"
+L.BarStartColorPhase		= "Color inicial 6 (fase)"
+L.BarEndColorPhase			= "Color final 6 (fase)"
+L.BarStartColorUI			= "Color inicial 7 (importante)"
+L.BarEndColorUI				= "Color final 7 (importante)"
+L.BarStartColorI2			= "Color inicial 8 (importante)"
+L.BarEndColorI2				= "Color final 8 (importante)"
 --Type 7 options
-L.Bar7Header				= "Opciones de barras de usuario"
+L.Bar7Header				= "Opciones de barras importantes"
 L.Bar7ForceLarge			= "Utilizar siempre barras grandes"
 L.Bar7CustomInline			= "Utilizar icono '!' personalizado"
 --Dropdown Options
@@ -353,12 +353,12 @@ L.CBTTargeted				= "Objetivo"
 L.CBTInterrupt				= "Interrumpir"
 L.CBTRole					= "Rol"
 L.CBTPhase					= "Fase"
-L.CBTImportant				= "Importante (usuario)"
+L.CBTImportant				= "Importante"
 --Dropdown Options
 L.SAOne						= "Sonido global 1 (personal)"
 L.SATwo						= "Sonido global 2 (todos)"
 L.SAThree					= "Global Sound 3 (acción de alta prioridad)"
-L.SAFour					= "Global Sound 4 (huida de alta prioridad)"
+L.SAFour					= "Global Sound 4 (correr de alta prioridad)"
 L.ColorDropGeneric			= "Genérico (original)"
 L.ColorDrop1				= "Color 1"
 L.ColorDrop2				= "Color 2"
@@ -398,15 +398,15 @@ L.NoBarFade					= "Utilizar color inicial y color final para barras pequeñas y 
 L.BarInlineIcons			= "Iconos en barras"
 L.DisableRightClickBar		= "Desactivar clic derecho para cancelar temporizadores"
 L.ShortTimerText			= "Texto de temporizador breve"
-L.KeepBar					= "Mantener hasta que se lance la habilidad"
+L.KeepBar					= "Mantener hasta que se lance la facultad"
 L.KeepBar2					= "(siempre que el módulo lo permita)"
-L.FadeBar					= "Desteñir barras de habilidades lejanas"
-L.BarSkin					= "Skin de barra"
+L.FadeBar					= "Desteñir barras de facultades lejanas"
+L.BarSkin					= "Estilo de barra"
 
 -- Panel: Pull, Break, Combat
-L.Panel_PullBreakCombat				= "Inicio y descanso"
+L.Panel_PullBreakCombat		= "Inicio y descanso"
 
-L.Area_SoundOptions					= "Opciones de sonido"
+L.Area_SoundOptions			= "Opciones de sonido"
 
 -- Tab: Global Disables & Filters
 L.TabCategory_Filters	 	= "Filtros globales"
@@ -432,8 +432,8 @@ L.SpamBlockNoCountdowns				= "Desactivar sonidos de cuenta atrás"
 
 L.Area_SpamFilter_Nameplates	= "Opciones de filtro y desactivación global de placa de nombre"
 L.SpamBlockNoNameplate			= "Ocultar auras de placas de nombres (las desactiva por completo)"
-L.SpamBlockNoNameplateCD		= "Ocultar iconos de placas de nombre para tiempos de reutilización de habilidades"
-L.SpamBlockNoBossGUIDs			= "Ocultar iconos de placas de nombre para tiempos de reutilización de habilidades para jefes enemigos.\n(Aún verás iconos de bichos o jefes de múltiples objetivos si está activado.)"
+L.SpamBlockNoNameplateCD		= "Ocultar iconos de placas de nombre para tiempos de reutilización de facultades"
+L.SpamBlockNoBossGUIDs			= "Ocultar iconos de placas de nombre para tiempos de reutilización de facultades para jefes enemigos.\n(Aún verás iconos de bichos o jefes de múltiples objetivos si está activado.)"
 
 
 L.Area_SpamFilter_Misc		= "Opciones de filtros globales varios"
@@ -443,17 +443,16 @@ L.SpamBlockNoInfoFrame		= "Ocultar marcos de información"
 L.SpamBlockNoHudMap			= "Ocultar indicadores"
 L.SpamBlockNoYells			= "Desactivar envío automático de mensajes en el chat"
 L.SpamBlockNoNoteSync		= "Rechazar automáticamente notas compartidas"
-L.SpamBlockAutoGossip		= "No manejar automáticamente los diálogos de chismes."
+L.SpamBlockAutoGossip		= "No manejar automáticamente los diálogos."
 
 L.Area_Restore				= "Opciones de restauración"
 L.SpamBlockNoIconRestore	= "Restaurar iconos al acabar el encuentro"
-L.SpamBlockNoRangeRestore	= "Mantener los marcos de distancia cuando los módulos intenten esconderlos"
+L.SpamBlockNoRangeRestore	= "Mantener los marcos de distancia cuando los módulos intenten ocultarlos"
 
 L.Area_PullTimer			= "Opciones de filtros de inicio de encuentro, descanso, y personalizados"
 L.DontShowPTNoID			= "Ocultar temporizadores de inicio de encuentro que se inician en zonas distintas"
 L.DontShowPT				= "Ocultar barras de temporizadores de inicio de encuentro y descanso"
 L.DontShowPTText			= "Ocultar anuncios de temporizadores de inicio de encuentro y descanso"
-L.DontShowPTCountdownText	= "Ocultar texto de cuenta atrás de temporizadores de inicio de encuentro, descanso, y personalizados"
 L.DontPlayPTCountdown		= "Desactivar sonidos de cuenta atrás de temporizadores de inicio de encuentro, descanso, y personalizados"
 L.PT_Threshold				= "Ocultar temporizadores por encima de: %d s"
 
@@ -484,17 +483,17 @@ L.Area_BInterruptFilterFooter		= "Si no se selecciona ningún filtro, se muestra
 L.Area_TInterruptFilter				= "Opciones de filtro de interrupción de bichos"--Reuses above 3 strings
 
 -- Panel: DBM Handholding
-L.Panel_HandFilter					= "Reducir la sujeción del DBM"
+L.Panel_HandFilter					= "Reducir la sujeción de DBM"
 L.Area_SpamFilter_SpecRoleFilters	= "Filtros de tipo de anuncio especial (controla cuánta comunicación realiza DBM)"
 L.SpamSpecInformationalOnly			= "Remover todo el texto instructivo/alertas de los anuncios especiales (requiere recarga de la interfaz de usuario). Las alertas seguirán mostrando y reproduciendo audio, pero serán genéricas y no directivas."
 L.SpamSpecRoleDispel				= "Filtrar las alertas 'disipar' por completo (sin texto ni sonido)"
 L.SpamSpecRoleInterrupt				= "Filtrar las alertas 'interrumpir' por completo (sin texto ni sonido)"
 L.SpamSpecRoleDefensive				= "Filtrar las alertas 'defensiva' por completo (sin texto ni sonido)"
-L.SpamSpecRoleTaunt					= "Filtrar las alertas 'irritar' por completo (sin texto ni sonido)"
+L.SpamSpecRoleTaunt					= "Filtrar las alertas 'provocar' por completo (sin texto ni sonido)"
 L.SpamSpecRoleSoak					= "Filtrar las alertas 'daño' por completo (sin texto ni sonido)"
 L.SpamSpecRoleStack					= "Filtrar las alertas 'acumulaciones de perjuicios' por completo (sin texto ni sonido)"
-L.SpamSpecRoleSwitch				= "Filtrar las alertas de 'cambio de objetivo' y 'bichos' (sin texto ni sonido)"
-L.SpamSpecRoleGTFO					= "Filtrar las alertas 'huida' por completo (sin texto ni sonido)"
+L.SpamSpecRoleSwitch				= "Filtrar las alertas 'cambia de objetivo' y 'bichos' (sin texto ni sonido)"
+L.SpamSpecRoleGTFO					= "Filtrar las alertas 'correr' por completo (sin texto ni sonido)"
 
 -- Panel: Blizzard Features
 L.Panel_HideBlizzard				= "Bloquear funciones de Blizzard"
@@ -550,7 +549,7 @@ L.ReceivingFooter					= "Las anulaciones de opciones de iconos y burbujas de cha
 L.ReceivingFooter2					= "Si activas estas opciones, es entre tú y líder de banda si tu configuración causa conflicto con su intención."--NYI
 L.ReceivingFooter3					= "Si activas 'reemplazar mi configuración de módulo', tu configuración original se perderá al anularla."--NYI
 
-L.TabFooter							= "Todas las opciones en este panel solo funcionan si eres líder de grupo en un grupo que no es de mazmorra/buscar banda"
+L.TabFooter							= "Todas las opciones en este panel solo funcionan si eres líder de grupo en un grupo que no es de mazmorra/buscador de banda"
 
 -- Panel: Privacy
 L.Tab_Privacy 				= "Controles de privacidad"
@@ -560,7 +559,7 @@ L.WhisperStats 				= "Incluir estadísticas de victoria y derrota en las respues
 L.DisableStatusWhisper 		= "Desactivar susurros automáticos de estado de encuentro del grupo o banda para todos los jugadores (requiere ser el líder). Solo se aplica a bandas en dificultad normal, heroica y mítica, y a mazmorras de piedra angular."
 L.Area_SyncMessages			= "Opciones de sincronización de addons"
 L.DisableGuildStatus 		= "Desactivar mensajes de hermandad de estado de encuentro del grupo o banda para todos los jugadores (requiere ser el líder)."
-L.EnableWBSharing 			= "Compartir tus inicios y victorias de encuentros con jefes de mundo con tu hermandad y amigos de Battle.net que estén en el mismo reino que tú"
+L.EnableWBSharing 			= "Compartir tus inicios y victorias de encuentros con jefes del mundo con tu hermandad y amigos de Battle.net que están en el mismo reino que tú"
 
 -- Tab: Frames & Integrations
 L.TabCategory_Frames		= "Marcos e integración"
@@ -577,7 +576,7 @@ L.Area_NPStyle				= "Contorno (solo cuando DBM controla las placas de nombres)"
 L.NPAuraText				= "Mostrar texto del temporizador en los iconos de la placa de nombre"
 L.NPAuraSize				= "Tamaño del aura: %d"
 L.NPIcon_BarOffSetX 		= "Desplazamiento del icono X: %d"
-L.NPIcon_BarOffSetY 		= "Desplazamiento del icono X Y: %d"
+L.NPIcon_BarOffSetY 		= "Desplazamiento del icono Y: %d"
 L.NPIcon_GrowthDirection 	= "Dirección de crecimiento del icono"
 L.NPIcon_Spacing		 	= "Espaciado del icono: %d"
 L.NPIcon_MaxTextLen		 	= "Longitud del texto máx.: %d"
