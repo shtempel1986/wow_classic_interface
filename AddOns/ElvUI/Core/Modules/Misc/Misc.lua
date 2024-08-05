@@ -1,7 +1,6 @@
 local E, L, V, P, G = unpack(ElvUI)
 local M = E:GetModule('Misc')
 local B = E:GetModule('Bags')
-local CH = E:GetModule('Chat')
 
 local _G = _G
 local next = next
@@ -45,14 +44,14 @@ local PlaySound = PlaySound
 local GetNumFactions = GetNumFactions
 local GetFactionInfo = GetFactionInfo
 local UnitIsGroupLeader = UnitIsGroupLeader
-local GetWatchedFactionInfo = GetWatchedFactionInfo
 local ExpandAllFactionHeaders = ExpandAllFactionHeaders
 local SetWatchedFactionIndex = SetWatchedFactionIndex
 local GetCurrentCombatTextEventInfo = GetCurrentCombatTextEventInfo
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 
-local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
-local IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+local GetGameAccountInfoByGUID = C_BattleNet.GetGameAccountInfoByGUID
+local GetItemInfo = C_Item.GetItemInfo
+local IsAddOnLoaded = C_AddOns.IsAddOnLoaded
 local LeaveParty = C_PartyInfo.LeaveParty or LeaveParty
 local IsFriend = C_FriendList.IsFriend
 
@@ -147,7 +146,8 @@ function M:COMBAT_TEXT_UPDATE(_, messagetype)
 
 	if messagetype == 'FACTION' then
 		local faction, rep = GetCurrentCombatTextEventInfo()
-		if faction ~= 'Guild' and faction ~= GetWatchedFactionInfo() and rep > 0 then
+		local data = (rep and rep > 0) and (faction ~= 'Guild') and E:GetWatchedFactionInfo()
+		if data and faction ~= data.name then
 			ExpandAllFactionHeaders()
 
 			for i = 1, GetNumFactions() do
@@ -268,7 +268,7 @@ function M:AutoInvite(event, _, _, _, _, _, _, inviterGUID)
 		local queueButton = M:GetQueueStatusButton() -- don't auto accept during a queue
 		if queueButton and queueButton:IsShown() then return end
 
-		if CH.BNGetGameAccountInfoByGUID(inviterGUID) or IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
+		if GetGameAccountInfoByGUID(inviterGUID) or IsFriend(inviterGUID) or IsGuildMember(inviterGUID) then
 			hideStatic = true
 			AcceptGroup()
 		end
@@ -308,13 +308,14 @@ function M:QUEST_COMPLETE()
 	local bestValue, bestItem = 0
 	for i = 1, numQuests do
 		local questLink = GetQuestItemLink('choice', i)
-		local _, _, amount = GetQuestItemInfo('choice', i)
-		local itemSellPrice = questLink and select(11, GetItemInfo(questLink))
-
-		local totalValue = (itemSellPrice and itemSellPrice * amount) or 0
-		if totalValue > bestValue then
-			bestValue = totalValue
-			bestItem = i
+		local sellPrice = questLink and select(11, GetItemInfo(questLink))
+		if sellPrice and sellPrice > 0 then
+			local _, _, amount = GetQuestItemInfo('choice', i)
+			local totalValue = (amount and amount > 0) and (sellPrice * amount) or 0
+			if totalValue > bestValue then
+				bestValue = totalValue
+				bestItem = i
+			end
 		end
 	end
 
@@ -323,6 +324,7 @@ function M:QUEST_COMPLETE()
 		if btn and btn.type == 'choice' then
 			M.QuestRewardGoldIconFrame:ClearAllPoints()
 			M.QuestRewardGoldIconFrame:Point('TOPRIGHT', btn, 'TOPRIGHT', -2, -2)
+			M.QuestRewardGoldIconFrame:SetFrameStrata('HIGH')
 			M.QuestRewardGoldIconFrame:Show()
 		end
 	end
@@ -374,7 +376,6 @@ function M:Initialize()
 
 	do	-- questRewardMostValueIcon
 		local MostValue = CreateFrame('Frame', 'ElvUI_QuestRewardGoldIconFrame', _G.QuestInfoRewardsFrame)
-		MostValue:SetFrameStrata('HIGH')
 		MostValue:Size(19)
 		MostValue:Hide()
 

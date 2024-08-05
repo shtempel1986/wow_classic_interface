@@ -9,7 +9,6 @@ local core = LibStub("AceAddon-3.0"):GetAddon("SilverDragon")
 local module = core:NewModule("LDB", "AceEvent-3.0")
 
 local dataobject, tooltip
-local rares_seen = {}
 
 local default_help = {
 	"Right-click to open settings",
@@ -21,7 +20,7 @@ end
 function module:OnInitialize()
 	self.db = core.db:RegisterNamespace("LDB", {
 		profile = {
-			minimap = {},
+			minimap = {showInCompartment=true},
 			worldmap = true,
 			mounts = true,
 			tooltip = "always",
@@ -31,7 +30,7 @@ function module:OnInitialize()
 	self:SetupDataObject()
 	self:SetupWorldMap()
 
-	if IsAddOnLoaded("Blizzard_Collections") then
+	if C_AddOns.IsAddOnLoaded("Blizzard_Collections") then
 		self:SetupMounts()
 	else
 		self:RegisterEvent("ADDON_LOADED")
@@ -111,7 +110,7 @@ function module:OnInitialize()
 					mounts = {
 						type = "toggle",
 						name = "Show on the mount list",
-						desc = "Toggle showing the icon in the map list",
+						desc = "Toggle showing the icon in the mount list",
 						get = function() return self.db.profile.mounts end,
 						set = function(info, v)
 							self.db.profile.mounts = v
@@ -185,14 +184,6 @@ function module:SetupDataObject()
 		if self.db.profile.show_lastseen then
 			dataobject.text = core:GetMobLabel(id)
 		end
-		table.insert(rares_seen, {
-			id = id,
-			zone = zone,
-			x = x,
-			y = y,
-			source = source,
-			when = time(),
-		})
 	end)
 
 	if icon then
@@ -202,7 +193,7 @@ end
 
 function module:SetupWorldMap()
 	local button
-	if WorldMapFrame.AddOverlayFrame then
+	if WorldMapFrame.AddOverlayFrame and WorldMapFrame.NavBar then
 		-- This taints currently:
 		-- button = WorldMapFrame:AddOverlayFrame(nil, "Button", "RIGHT", WorldMapFrame.NavBar, "RIGHT", -4, 0)
 		-- so for now just do this:
@@ -214,7 +205,9 @@ function module:SetupWorldMap()
 	else
 		-- classic!
 		button = CreateFrame("Button", nil, WorldMapFrame)
-		button:SetPoint("TOPRIGHT", -45, -2)
+		button:SetFrameLevel(5)
+		button:SetPoint("RIGHT", WorldMapFrame.MaximizeMinimizeFrame, "LEFT", 4, 0)
+
 		hooksecurefunc(WorldMapFrame, "OnMapChanged", function()
 			button:Refresh()
 		end)
@@ -502,8 +495,9 @@ do
 				end
 			end
 		end
-		if not _G.TooltipDataProcessor then
+		if not _G.C_TooltipInfo then
 			-- if that exists it'll already have magically handled the gametooltip
+			-- Cata-classic has TooltipDataProcessor, but doesn't actually use the new tooltips
 			core:GetModule("Tooltip"):UpdateTooltip(mobid, true, true)
 		end
 		GameTooltip:AddLine("Left-click to focus on the map", 0, 1, 1)
@@ -665,12 +659,13 @@ do
 		end
 
 		if options.recent then
-			if #rares_seen > 0 then
+			local history = core:GetModule("History", true)
+			if history and #history:GetRares() > 0 then
 				if options.nearby then
 					tooltip:AddHeader("Seen this session")
 				end
 				tooltip:AddHeader("Name", "Zone", "Coords", "When", "Source")
-				for i,rare in ipairs(rares_seen) do
+				for i, rare in ipairs(history:GetRares()) do
 					tooltip:AddLine(
 						core:GetMobLabel(rare.id) or core:NameForMob(rare.id) or UNKNOWN,
 						core.zone_names[rare.zone] or UNKNOWN,

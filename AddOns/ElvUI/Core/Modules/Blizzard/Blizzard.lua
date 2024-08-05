@@ -101,8 +101,11 @@ function BL:ObjectiveTracker_AutoHide()
 	if not tracker.AutoHider then
 		tracker.AutoHider = CreateFrame('Frame', nil, tracker, 'SecureHandlerStateTemplate')
 		tracker.AutoHider:SetAttribute('_onstate-objectiveHider', 'if newstate == 1 then self:Hide() else self:Show() end')
-		tracker.AutoHider:SetScript('OnHide', BL.ObjectiveTracker_AutoHideOnHide)
-		tracker.AutoHider:SetScript('OnShow', BL.ObjectiveTracker_AutoHideOnShow)
+
+		if not E.Retail then -- 11.0 this is broken
+			tracker.AutoHider:SetScript('OnHide', BL.ObjectiveTracker_AutoHideOnHide)
+			tracker.AutoHider:SetScript('OnShow', BL.ObjectiveTracker_AutoHideOnShow)
+		end
 	end
 
 	if E.db.general.objectiveFrameAutoHide then
@@ -130,19 +133,10 @@ function BL:Initialize()
 
 	BL:RegisterEvent('ADDON_LOADED')
 
-	if not E.Retail then
-		BL:KillBlizzard()
-	else
-		BL:DisableHelpTip()
-		BL:DisableTutorials()
-		BL:SkinBlizzTimers()
-		BL:HandleTalkingHead()
-		BL:HandleAddonCompartment()
+	BL:SkinBlizzTimers()
 
-		E:CreateMover(_G.LossOfControlFrame, 'LossControlMover', L["Loss Control Icon"])
-
-		--Add (+X%) to quest rewards experience text
-		BL:SecureHook('QuestInfo_Display', 'QuestXPPercent')
+	if not E.Classic then
+		BL:PositionVehicleFrame()
 
 		if not E:IsAddOnEnabled('SimplePowerBar') then
 			BL:PositionAltPowerBar()
@@ -150,8 +144,18 @@ function BL:Initialize()
 		end
 	end
 
-	if E.Cata then
-		BL:PositionVehicleFrame()
+	if not E.Retail then
+		BL:KillBlizzard()
+	else
+		BL:DisableHelpTip()
+		BL:DisableTutorials()
+		BL:HandleTalkingHead()
+		BL:HandleAddonCompartment()
+
+		E:CreateMover(_G.LossOfControlFrame, 'LossControlMover', L["Loss Control Icon"])
+
+		--Add (+X%) to quest rewards experience text
+		BL:SecureHook('QuestInfo_Display', 'QuestXPPercent')
 	end
 
 	if E.Classic then

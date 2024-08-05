@@ -1,8 +1,18 @@
 # TomTom
 
-## [v3.6.0-release](https://github.com/jnwhiteh/TomTom/tree/v3.6.0-release) (2024-04-22)
-[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v3.6.0-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
+## [v4.0.1-release](https://github.com/jnwhiteh/TomTom/tree/v4.0.1-release) (2024-07-26)
+[Full Changelog](https://github.com/jnwhiteh/TomTom/commits/v4.0.1-release) [Previous Releases](https://github.com/jnwhiteh/TomTom/releases)
 
+- Update HereBeDragons embedded library  
+- Update for 11.x codebranch  
+- Better defaults for distance units  
+     - Default to yards in the US  
+     - Default to km/m elsewhere  
+     - Provide options for yards/meters only  
+- Declare UnitGUID global  
+- Add units for waypoint arrow (metric, imperial)  
+- Update TOC for 10.2.7  
+- Update TOC for Cataclysm Classic  
 - Support 11.0 by removing some broken functionality  
 - Update TOC for 10.2.6  
 - Update toc for 10.2.5 and 1.15.0  
@@ -688,10 +698,3 @@
 - * Updated to Astrolabe-coroutine branch  
 - * Fix for WorldMap dots, since they were using the wrong texture  
 - * Parent world map icons to the WorldMapDetailFrame  
-- Added in TTA. May need tweaking for cosmetic value.  
-- * Fix for minimap/world textures  
-- * Fix for the crazy arrow  
-- * Fix for the crazy arrow  
-- .toc update  
-- * Updated to Dongle-1.1  
-- * Added a compat version of TomTom:AddZWaypoint(c,z,x,y,desc) that works with other zones  

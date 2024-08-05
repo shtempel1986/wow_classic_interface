@@ -1,8 +1,8 @@
---	07.03.2024
+--	03.08.2024
 
 local GlobalAddonName, MRT = ...
 
-MRT.V = 4840
+MRT.V = 4890
 MRT.T = "R"
 
 MRT.Slash = {}			--> функции вызова из коммандной строки
@@ -32,6 +32,7 @@ MRT.locale = GetLocale()
 do
 	local version, buildVersion, buildDate, uiVersion = GetBuildInfo()
 	
+	MRT.clientBuildVersion = buildVersion
 	MRT.clientUIinterface = uiVersion
 	local expansion,majorPatch,minorPatch = (version or "5.0.0"):match("^(%d+)%.(%d+)%.(%d+)")
 	MRT.clientVersion = (expansion or 0) * 10000 + (majorPatch or 0) * 100 + (minorPatch or 0)
@@ -54,8 +55,15 @@ elseif MRT.clientVersion < 50000 then
 	MRT.isLK = true
 	MRT.isCata = true
 	MRT.T = "Cataclysm"
-elseif MRT.clientVersion >= 100000 then
-	MRT.is10 = true
+elseif MRT.clientVersion < 60000 then
+	MRT.isClassic = true
+	MRT.isBC = true
+	MRT.isLK = true
+	MRT.isCata = true
+	MRT.isMoP = true
+	MRT.T = "Pandaria"
+elseif MRT.clientVersion >= 110000 then
+	MRT.is11 = true
 end
 -------------> smart DB <-------------
 MRT.SDB = {}
@@ -751,6 +759,16 @@ MRT.frame:SetScript("OnEvent",function (self, event, ...)
 
 		MRT.AddonLoaded = true
 
+		if not MRT.isClassic then
+			if not VMRT.Addon.EJ_CHECK_VER or VMRT.Addon.EJ_CHECK_VER ~= MRT.clientUIinterface or (((type(IsTestBuild)=="function" and IsTestBuild()) or (type(IsBetaBuild)=="function" and IsBetaBuild())) and VMRT.Addon.EJ_CHECK_VER_PTR ~= MRT.clientBuildVersion) then
+				C_Timer.After(10,function()
+					MRT.F.EJ_AutoScan()
+				end)
+			else
+				MRT.F.EJ_LoadData()
+			end
+		end
+
 		return true	
 	end
 end)
@@ -839,6 +857,9 @@ local function send(self)
 		sendLimit[p] = (sendLimit[p] or SEND_LIMIT) + floor((t - (sendPrev[p] or 0))/1000)
 		if sendLimit[p] > SEND_LIMIT then
 			sendLimit[p] = SEND_LIMIT
+		elseif sendLimit[p] < -30 and sendPrev[p] and t < sendPrev[p] then
+			sendPrev[p] = t
+			sendLimit[p] = 0
 		end
 		if sendLimit[p] > 0 then
 			local cp = 1

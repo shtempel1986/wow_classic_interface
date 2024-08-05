@@ -2,9 +2,29 @@
 -- forcibly load required libraries if not already loaded - required when running disembedded (some curse users)
 
 local function loadExternal( ... )
-	if not IsAddOnLoaded( ... ) then
-		LoadAddOn( ... )
+	
+	local function myLoadAddOn( ... )
+		if C_AddOns and C_AddOns.LoadAddOn then
+			return C_AddOns.LoadAddOn( ... )
+		else
+			return LoadAddOn( ... )
+		end
 	end
+	
+	local function myIsAddOnLoaded( ... )
+		if C_AddOns and C_AddOns.IsAddOnLoaded then
+			return C_AddOns.IsAddOnLoaded( ... )
+		else
+			return IsAddOnLoaded( ... )
+		end
+	end
+
+	
+	
+	if not myIsAddOnLoaded( ... ) then
+		myLoadAddOn( ... )
+	end
+	
 end
 
 

@@ -1,4 +1,4 @@
-local _G = _G
+﻿local _G = _G
 local select = _G.select
 local pairs = _G.pairs
 local ipairs = _G.ipairs
@@ -255,9 +255,16 @@ function ArkInventory.spairs( tbl, cf )
 	
 end
 
-
-
-
+function ArkInventory.rpairs( tbl )
+	
+	return function( tbl, i )
+		i = i - 1
+		if i ~= 0 then
+			return i, tbl[i]
+		end
+	end, tbl, #tbl + 1
+	
+end
 
 function ArkInventory.OutputSerialize( d )
 	if d == nil then
@@ -316,20 +323,11 @@ function ArkInventory.Output( ... )
 		return
 	end
 	
-	ArkInventory:Print( ArkInventory.OutputBuild( ... ) )
+	local msg = ArkInventory.OutputBuild( ... )
+	ArkInventory:Print( msg )
 	
-end
-
-function ArkInventory.Output2( ... )
-	if ArkInventory.Global.Debug2 then
-		ArkInventory.Output( "|cff17ffc1", ... ) -- fffff99a
-	end
-end
-
-function ArkInventory.OutputThread( ... )
-	if ArkInventory.db.option.thread.debug then
-		ArkInventory.Output( "|cffffff9aTHREAD> ", ... )
-	end
+	return msg
+	
 end
 
 function ArkInventory.OutputDebugConfig( )
@@ -344,9 +342,7 @@ function ArkInventory.OutputDebugConfig( )
 	
 end
 
-function ArkInventory.OutputDebug( ... )
-	
-	if ArkInventory.db and not ArkInventory.db.option.ui.debug.enable then return end
+function ArkInventory.OutputDebugFrame( ... )
 	
 	local obj = _G[ArkInventory.Const.Frame.Debug.Name]
 	if not obj then
@@ -368,12 +364,30 @@ function ArkInventory.OutputDebug( ... )
 	
 end
 
+function ArkInventory.OutputDebug( ... )
+	if ArkInventory.db and ArkInventory.db.option.ui.debug.enable then
+		ArkInventory.OutputDebugFrame( ... )
+	end
+end
+
+function ArkInventory.OutputThread( ... )
+	if ArkInventory.db and ArkInventory.db.option.thread.debug then
+		if ArkInventory.Global.Thread.Use then
+			ArkInventory.OutputDebugFrame( "THREAD> ", ... )
+		else
+			ArkInventory.OutputDebugFrame( "NON-THREAD> ", ... )
+		end
+	end
+end
+
 function ArkInventory.OutputWarning( ... )
-	ArkInventory.Output( "|cfffa8000WARNING> ", ... )
+	-- localise not used here because they can be before those are loaded
+	ArkInventory.Output( ORANGE_FONT_COLOR_CODE, "WARNING> ", ... )
 end
 
 function ArkInventory.OutputError( ... )
-	ArkInventory.Output( RED_FONT_COLOR_CODE, ERROR_CAPS, "> ", ... )
+	-- localise not used here because they can be before those are loaded
+	return ArkInventory.Output( RED_FONT_COLOR_CODE, "ERROR> ", ... )
 end
 
 function ArkInventory.OutputDebugModeSet( value )
@@ -407,6 +421,9 @@ ArkInventory.ENUM = {
 			VENDOR = 1,
 			MAIL = 2,
 			MOVE = 3,
+			USE = 4,
+			DELETE = 5,
+			SCRAP = 6,
 		},
 	},
 	ANCHOR = {
@@ -423,11 +440,34 @@ ArkInventory.ENUM = {
 	},
 	BAG = {
 		INDEX = {
-			BACKPACK = BACKPACK_CONTAINER or ( Enum.BagIndex and Enum.BagIndex.Backpack ) or 0,
-			BANK = BANK_CONTAINER or ( Enum.BagIndex and Enum.BagIndex.Bank ) or -1,
-			REAGENTBANK = REAGENTBANK_CONTAINER or ( Enum.BagIndex and Enum.BagIndex.Reagentbank ) or -3,
-			REAGENTBAG = ( Enum.BagIndex and Enum.BagIndex.Reagentbag ) or 5,
-			KEYRING = KEYRING_CONTAINER or ( Enum.BagIndex and Enum.BagIndex.Keyring ) or -2
+			
+			BACKPACK = Enum.BagIndex.Backpack or 0,
+			BAG_1 = Enum.BagIndex.Bag_1 or 1,
+			BAG_2 = Enum.BagIndex.Bag_2 or 2,
+			BAG_3 = Enum.BagIndex.Bag_3 or 3,
+			BAG_4 = Enum.BagIndex.Bag_4 or 4,
+			REAGENTBAG_1 = Enum.BagIndex.ReagentBag or 5,
+			
+			KEYRING = Enum.BagIndex.Keyring or -2,
+			
+			BANK = Enum.BagIndex.Bank or -1,
+			BANKBAG_1 = Enum.BagIndex.BankBag_1 or 6,
+			BANKBAG_2 = Enum.BagIndex.BankBag_2 or 7,
+			BANKBAG_3 = Enum.BagIndex.BankBag_3 or 8,
+			BANKBAG_4 = Enum.BagIndex.BankBag_4 or 9,
+			BANKBAG_5 = Enum.BagIndex.BankBag_5 or 10,
+			BANKBAG_6 = Enum.BagIndex.BankBag_6 or 11,
+			BANKBAG_7 = Enum.BagIndex.BankBag_7 or 12,
+			REAGENTBANK_1 = Enum.BagIndex.Reagentbank or -3,
+			ACCOUNTBANK = Enum.BagIndex.Accountbanktab or -5,
+			ACCOUNTBANK_1 = Enum.BagIndex.AccountBankTab_1 or 13,
+			ACCOUNTBANK_2 = Enum.BagIndex.AccountBankTab_2 or 14,
+			ACCOUNTBANK_3 = Enum.BagIndex.AccountBankTab_3 or 15,
+			ACCOUNTBANK_4 = Enum.BagIndex.AccountBankTab_4 or 16,
+			ACCOUNTBANK_5 = Enum.BagIndex.AccountBankTab_5 or 17,
+			
+			CURRENCY = -4,
+			
 		},
 		OPENCLOSE = {
 			NO = 0,
@@ -437,13 +477,6 @@ ArkInventory.ENUM = {
 	},
 	BATTLEPET = {
 		ENEMY = LE_BATTLE_PET_ENEMY or 2,
-	},
-	BIND = { -- ITEM_BINDx
-		NEVER = 0,
-		USE = 1,
-		EQUIP = 2,
-		PICKUP = 3,
-		ACCOUNT = 4,
 	},
 	BUTTONID = {
 		MainMenu = 0,
@@ -464,6 +497,7 @@ ArkInventory.ENUM = {
 	},
 	EXPANSION = {
 		--CURRENT = set elsewhere,
+		WARWITHIN = 10,
 		DRAGONFLIGHT = LE_EXPANSION_DRAGONFLIGHT or 9,
 		SHADOWLANDS = LE_EXPANSION_SHADOWLANDS or 8,
 		BFA = LE_EXPANSION_BATTLE_FOR_AZEROTH or 7,
@@ -476,18 +510,26 @@ ArkInventory.ENUM = {
 		CLASSIC = LE_EXPANSION_CLASSIC or 0,
 	},
 	ITEM = {
+		BINDING = { -- dont change these values unless you erase all the saved data, and make sure the localisation for ITEM_BINDINGx is updated to match
+			NEVER = 0,
+			USE = 1,
+			EQUIP = 2,
+			PICKUP = 3,
+			ACCOUNT = 4,
+			ACCOUNTEQUIP = 5,
+		},
 		QUALITY = {
 			MISSING = -2,
 			UNKNOWN = -1,
-			POOR = ( Enum.ItemQuality and Enum.ItemQuality.Poor ) or LE_ITEM_QUALITY_POOR or 0,
-			STANDARD = ( Enum.ItemQuality and Enum.ItemQuality.Standard ) or LE_ITEM_QUALITY_COMMON or 1,
-			GOOD = ( Enum.ItemQuality and Enum.ItemQuality.Good )or LE_ITEM_QUALITY_UNCOMMON or 2,
-			RARE = ( Enum.ItemQuality and Enum.ItemQuality.Rare ) or LE_ITEM_QUALITY_RARE or 3,
-			EPIC = ( Enum.ItemQuality and Enum.ItemQuality.Epic ) or LE_ITEM_QUALITY_EPIC or 4,
-			LEGENDARY = ( Enum.ItemQuality and Enum.ItemQuality.Legendary ) or LE_ITEM_QUALITY_LEGENDARY or 5,
-			ARTIFACT = ( Enum.ItemQuality and Enum.ItemQuality.Artifact ) or LE_ITEM_QUALITY_ARTIFACT or 6,
-			HEIRLOOM = ( Enum.ItemQuality and Enum.ItemQuality.Heirloom ) or LE_ITEM_QUALITY_HEIRLOOM or 7,
-			WOWTOKEN = ( Enum.ItemQuality and Enum.ItemQuality.WoWToken ) or LE_ITEM_QUALITY_WOWTOKEN or 8,
+			POOR = Enum.ItemQuality.Poor or 0,
+			STANDARD = Enum.ItemQuality.Standard or 1,
+			GOOD = Enum.ItemQuality.Good or 2,
+			RARE = Enum.ItemQuality.Rare or 3,
+			EPIC = Enum.ItemQuality.Epic or 4,
+			LEGENDARY = Enum.ItemQuality.Legendary or 5,
+			ARTIFACT = Enum.ItemQuality.Artifact or 6,
+			HEIRLOOM = Enum.ItemQuality.Heirloom or 7,
+			WOWTOKEN = Enum.ItemQuality.WoWToken or 8,
 		},
 		TYPE = {
 			UNKNOWN = {
@@ -497,11 +539,12 @@ ArkInventory.ENUM = {
 				PARENT = -1,
 			},
 			CONSUMABLE = {
-				PARENT = LE_ITEM_CLASS_CONSUMABLE or Enum.ItemClass.Consumable or 0,
+				PARENT = Enum.ItemClass.Consumable or 0,
 				EXPLOSIVES_AND_DEVICES = 0,
 				POTION = Enum.ItemConsumableSubclass.Potion or 1,
 				ELIXIR = Enum.ItemConsumableSubclass.Elixir or 2,
-				FLASK = 3 or Enum.ItemConsumableSubclass.Flask or 3,
+				-- the Enum.ItemConsumableSubclass is broken, its missing Flask, so none of these can be used or the categories will be wrong.
+				FLASK = 3 or Enum.ItemConsumableSubclass.Flask or 3,  -- /dump GetItemInfo(13510) flask of the titans, check 13th return
 				SCROLL = 4 or Enum.ItemConsumableSubclass.Scroll or 4,
 				FOOD_AND_DRINK = 5 or Enum.ItemConsumableSubclass.Fooddrink or 5,
 				ITEM_ENHANCEMENT = 6 or Enum.ItemConsumableSubclass.Itemenhancement or 6,
@@ -525,67 +568,67 @@ ArkInventory.ENUM = {
 				REAGENT = 11,
 			},
 			WEAPON = {
-				PARENT = LE_ITEM_CLASS_WEAPON or Enum.ItemClass.Weapon or 2,
-				AXE1H = LE_ITEM_WEAPON_AXE1H or Enum.ItemWeaponSubclass.Axe1H or 0,
-				AXE2H = LE_ITEM_WEAPON_AXE2H or Enum.ItemWeaponSubclass.Axe2H or 1,
-				BOW = LE_ITEM_WEAPON_BOWS or Enum.ItemWeaponSubclass.Bows or 2,
-				GUN = LE_ITEM_WEAPON_GUNS or Enum.ItemWeaponSubclass.Guns or 3,
-				MACE1H = LE_ITEM_WEAPON_MACE1H or Enum.ItemWeaponSubclass.Mace1H or 4,
-				MACE2H = LE_ITEM_WEAPON_MACE2H or Enum.ItemWeaponSubclass.Mace2H or 5,
-				POLEARM = LE_ITEM_WEAPON_POLEARM or Enum.ItemWeaponSubclass.Polearm or 6,
-				SWORD1H = LE_ITEM_WEAPON_SWORD1H or Enum.ItemWeaponSubclass.Sword1H or 7,
-				SWORD2H = LE_ITEM_WEAPON_SWORD2H or Enum.ItemWeaponSubclass.Sword2H or 8,
-				WARGLAIVE = LE_ITEM_WEAPON_WARGLAIVE or Enum.ItemWeaponSubclass.Warglaive or 9,
-				STAFF = LE_ITEM_WEAPON_STAFF or Enum.ItemWeaponSubclass.Staff or 10,
-				EXOTIC1H = LE_ITEM_WEAPON_EXOTIC1H or Enum.ItemWeaponSubclass.Bearclaw or 11,
-				EXOTIC2H = LE_ITEM_WEAPON_EXOTIC2H or Enum.ItemWeaponSubclass.Catclaw or 12,
-				FIST = LE_ITEM_WEAPON_UNARMED or Enum.ItemWeaponSubclass.Unarmed or 13,
-				GENERIC = LE_ITEM_WEAPON_GENERIC or Enum.ItemWeaponSubclass.Generic or 14,
-				DAGGER = LE_ITEM_WEAPON_DAGGER or Enum.ItemWeaponSubclass.Dagger or 15,
-				THROWN = LE_ITEM_WEAPON_THROWN or Enum.ItemWeaponSubclass.Thrown or 16,
-				SPEAR = LE_ITEM_WEAPON_SPEAR or Enum.ItemWeaponSubclass.Obsolete3 or 17,
-				CROSSBOW = LE_ITEM_WEAPON_CROSSBOW or Enum.ItemWeaponSubclass.Crossbow or 18,
-				WAND = LE_ITEM_WEAPON_WAND or Enum.ItemWeaponSubclass.Wand or 19,
-				FISHING = LE_ITEM_WEAPON_FISHINGPOLE or Enum.ItemWeaponSubclass.Fishingpole or 20,
+				PARENT = Enum.ItemClass.Weapon or 2,
+				AXE1H = Enum.ItemWeaponSubclass.Axe1H or 0,
+				AXE2H = Enum.ItemWeaponSubclass.Axe2H or 1,
+				BOW = Enum.ItemWeaponSubclass.Bows or 2,
+				GUN = Enum.ItemWeaponSubclass.Guns or 3,
+				MACE1H = Enum.ItemWeaponSubclass.Mace1H or 4,
+				MACE2H = Enum.ItemWeaponSubclass.Mace2H or 5,
+				POLEARM = Enum.ItemWeaponSubclass.Polearm or 6,
+				SWORD1H = Enum.ItemWeaponSubclass.Sword1H or 7,
+				SWORD2H = Enum.ItemWeaponSubclass.Sword2H or 8,
+				WARGLAIVE = Enum.ItemWeaponSubclass.Warglaive or 9,
+				STAFF = Enum.ItemWeaponSubclass.Staff or 10,
+				EXOTIC1H = Enum.ItemWeaponSubclass.Bearclaw or 11,
+				EXOTIC2H = Enum.ItemWeaponSubclass.Catclaw or 12,
+				FIST = Enum.ItemWeaponSubclass.Unarmed or 13,
+				GENERIC = Enum.ItemWeaponSubclass.Generic or 14,
+				DAGGER = Enum.ItemWeaponSubclass.Dagger or 15,
+				THROWN = Enum.ItemWeaponSubclass.Thrown or 16,
+				SPEAR = Enum.ItemWeaponSubclass.Obsolete3 or 17,
+				CROSSBOW = Enum.ItemWeaponSubclass.Crossbow or 18,
+				WAND = Enum.ItemWeaponSubclass.Wand or 19,
+				FISHING = Enum.ItemWeaponSubclass.Fishingpole or 20,
 			},
 			GEM = {
-				PARENT = LE_ITEM_CLASS_GEM or Enum.ItemClass.Gem or 3,
-				INTELLECT = LE_ITEM_GEM_INTELLECT or Enum.ItemGemSubclass.Intellect or 0,
-				AGILITY = LE_ITEM_GEM_AGILITY or Enum.ItemGemSubclass.Agility or 1,
-				STRENGTH = LE_ITEM_GEM_STRENGTH or Enum.ItemGemSubclass.Strength or 2,
-				STAMINA = LE_ITEM_GEM_STAMINA or Enum.ItemGemSubclass.Stamina or 3,
-				SPIRIT = LE_ITEM_GEM_SPIRIT or Enum.ItemGemSubclass.Spirit or 4,
-				CRITICALSTRIKE = LE_ITEM_GEM_CRITICALSTRIKE or Enum.ItemGemSubclass.Criticalstrike or 5,
-				MASTERY = LE_ITEM_GEM_MASTERY or Enum.ItemGemSubclass.Mastery or 6,
-				HASTE = LE_ITEM_GEM_HASTE or Enum.ItemGemSubclass.Haste or 7,
-				VERSATILITY = LE_ITEM_GEM_VERSATILITY or Enum.ItemGemSubclass.Versatility or 8,
-				OTHER = LE_ITEM_GEM_OTHER or Enum.ItemGemSubclass.Other or 9,
-				MULTIPLESTATS = LE_ITEM_GEM_MULTIPLESTATS or Enum.ItemGemSubclass.Multiplestats or 10,
-				ARTIFACTRELIC = LE_ITEM_GEM_ARTIFACTRELIC or Enum.ItemGemSubclass.Artifactrelic or 11,
+				PARENT = Enum.ItemClass.Gem or 3,
+				INTELLECT = Enum.ItemGemSubclass.Intellect or 0,
+				AGILITY = Enum.ItemGemSubclass.Agility or 1,
+				STRENGTH = Enum.ItemGemSubclass.Strength or 2,
+				STAMINA = Enum.ItemGemSubclass.Stamina or 3,
+				SPIRIT = Enum.ItemGemSubclass.Spirit or 4,
+				CRITICALSTRIKE = Enum.ItemGemSubclass.Criticalstrike or 5,
+				MASTERY = Enum.ItemGemSubclass.Mastery or 6,
+				HASTE = Enum.ItemGemSubclass.Haste or 7,
+				VERSATILITY = Enum.ItemGemSubclass.Versatility or 8,
+				OTHER = Enum.ItemGemSubclass.Other or 9,
+				MULTIPLESTATS = Enum.ItemGemSubclass.Multiplestats or 10,
+				ARTIFACTRELIC = Enum.ItemGemSubclass.Artifactrelic or 11,
 			},
 			ARMOR = {
-				PARENT = LE_ITEM_CLASS_ARMOR or Enum.ItemClass.Armor or 4,
-				GENERIC = LE_ITEM_ARMOR_GENERIC or Enum.ItemArmorSubclass.Generic or 0,
-				CLOTH = LE_ITEM_ARMOR_CLOTH or Enum.ItemArmorSubclass.Cloth or 1,
-				LEATHER = LE_ITEM_ARMOR_LEATHER or Enum.ItemArmorSubclass.Leather or 2,
-				MAIL = LE_ITEM_ARMOR_MAIL or Enum.ItemArmorSubclass.Mail or 3,
-				PLATE = LE_ITEM_ARMOR_PLATE or Enum.ItemArmorSubclass.Plate or 4,
-				COSMETIC = LE_ITEM_ARMOR_COSMETIC or Enum.ItemArmorSubclass.Cosmetic or 5,
+				PARENT = Enum.ItemClass.Armor or 4,
+				GENERIC = Enum.ItemArmorSubclass.Generic or 0,
+				CLOTH = Enum.ItemArmorSubclass.Cloth or 1,
+				LEATHER = Enum.ItemArmorSubclass.Leather or 2,
+				MAIL = Enum.ItemArmorSubclass.Mail or 3,
+				PLATE = Enum.ItemArmorSubclass.Plate or 4,
+				COSMETIC = Enum.ItemArmorSubclass.Cosmetic or 5,
 				--BUCKLER = LE_ITEM_ARMOR_BUCKLER,
-				SHIELD = LE_ITEM_ARMOR_SHIELD or Enum.ItemArmorSubclass.Shield or 6,
-				LIBRAM = LE_ITEM_ARMOR_LIBRAM or Enum.ItemArmorSubclass.Libram or 7,
-				IDOL = LE_ITEM_ARMOR_IDOL or Enum.ItemArmorSubclass.Idol or 8,
-				TOTEM = LE_ITEM_ARMOR_TOTEM or Enum.ItemArmorSubclass.Totem or 9,
-				SIGIL = LE_ITEM_ARMOR_SIGIL or Enum.ItemArmorSubclass.Sigil or 10,
-				RELIC = LE_ITEM_ARMOR_RELIC or Enum.ItemArmorSubclass.Relic or 11,
+				SHIELD = Enum.ItemArmorSubclass.Shield or 6,
+				LIBRAM = Enum.ItemArmorSubclass.Libram or 7,
+				IDOL = Enum.ItemArmorSubclass.Idol or 8,
+				TOTEM = Enum.ItemArmorSubclass.Totem or 9,
+				SIGIL = Enum.ItemArmorSubclass.Sigil or 10,
+				RELIC = Enum.ItemArmorSubclass.Relic or 11,
 			},
 			REAGENT = {
-				PARENT = LE_ITEM_CLASS_REAGENT or Enum.ItemClass.Reagent or 5,
+				PARENT = Enum.ItemClass.Reagent or 5,
 				REAGENT = Enum.ItemReagentSubclass.Reagent or 0,
 				KEYSTONE = Enum.ItemReagentSubclass.Keystone or 1,
 			},
 			PROJECTILE = {
-				PARENT = LE_ITEM_CLASS_PROJECTILE or Enum.ItemClass.Projectile or 6,
+				PARENT = Enum.ItemClass.Projectile or 6,
 				WAND = 0,
 				BOLT = 1,
 				ARROW = 2,
@@ -593,7 +636,7 @@ ArkInventory.ENUM = {
 				THROWN = 4,
 			},
 			TRADEGOODS = {
-				PARENT = LE_ITEM_CLASS_TRADEGOODS or Enum.ItemClass.Tradegoods or 7,
+				PARENT = Enum.ItemClass.Tradegoods or 7,
 				TRADEGOODS = 0,
 				PARTS = 1,
 				EXPLOSIVES = 2,
@@ -614,54 +657,54 @@ ArkInventory.ENUM = {
 				EXPLOSIVES_AND_DEVICES = 17,
 			},
 			ITEM_ENHANCEMENT = {
-				PARENT = LE_ITEM_CLASS_ITEM_ENHANCEMENT or Enum.ItemClass.ItemEnhancement or 8,
+				PARENT = Enum.ItemClass.ItemEnhancement or 8,
 			},
 			RECIPE = {
-				PARENT = LE_ITEM_CLASS_RECIPE or Enum.ItemClass.Recipe or 9,
-				BOOK = LE_ITEM_RECIPE_BOOK or Enum.ItemRecipeSubclass.Book or 0,
-				LEATHERWORKING = LE_ITEM_RECIPE_LEATHERWORKING or Enum.ItemRecipeSubclass.Leatherworking or 1,
-				TAILORING = LE_ITEM_RECIPE_TAILORING or Enum.ItemRecipeSubclass.Tailoring or 2,
-				ENGINEERING = LE_ITEM_RECIPE_ENGINEERING or Enum.ItemRecipeSubclass.Engineering or 3,
-				BLACKSMITHING = LE_ITEM_RECIPE_BLACKSMITHING or Enum.ItemRecipeSubclass.Blacksmithing or 4,
-				COOKING = LE_ITEM_RECIPE_COOKING or Enum.ItemRecipeSubclass.Cooking or 5,
-				ALCHEMY = LE_ITEM_RECIPE_ALCHEMY or Enum.ItemRecipeSubclass.Alchemy or 6,
-				FIRST_AID = LE_ITEM_RECIPE_FIRST_AID or Enum.ItemRecipeSubclass.FirstAid or 7,
-				ENCHANTING = LE_ITEM_RECIPE_ENCHANTING or Enum.ItemRecipeSubclass.Enchanting or 8,
-				FISHING = LE_ITEM_RECIPE_FISHING or Enum.ItemRecipeSubclass.Fishing or 9,
-				JEWELCRAFTING = LE_ITEM_RECIPE_JEWELCRAFTING or Enum.ItemRecipeSubclass.Jewelcrafting or 10,
-				INSCRIPTION = LE_ITEM_RECIPE_INSCRIPTION or Enum.ItemRecipeSubclass.Inscription or 11,
+				PARENT = Enum.ItemClass.Recipe or 9,
+				BOOK = Enum.ItemRecipeSubclass.Book or 0,
+				LEATHERWORKING = Enum.ItemRecipeSubclass.Leatherworking or 1,
+				TAILORING = Enum.ItemRecipeSubclass.Tailoring or 2,
+				ENGINEERING = Enum.ItemRecipeSubclass.Engineering or 3,
+				BLACKSMITHING = Enum.ItemRecipeSubclass.Blacksmithing or 4,
+				COOKING = Enum.ItemRecipeSubclass.Cooking or 5,
+				ALCHEMY = Enum.ItemRecipeSubclass.Alchemy or 6,
+				FIRST_AID = Enum.ItemRecipeSubclass.FirstAid or 7,
+				ENCHANTING = Enum.ItemRecipeSubclass.Enchanting or 8,
+				FISHING = Enum.ItemRecipeSubclass.Fishing or 9,
+				JEWELCRAFTING = Enum.ItemRecipeSubclass.Jewelcrafting or 10,
+				INSCRIPTION = Enum.ItemRecipeSubclass.Inscription or 11,
 			},
 			QUIVER = {
-				PARENT = LE_ITEM_CLASS_QUIVER or Enum.ItemClass.Quiver or 11,
+				PARENT = Enum.ItemClass.Quiver or 11,
 				-- QUIVER = 0,
 				-- BOLT = 1,
 				QUIVER = 2,
 				AMMO = 3,
 			},
 			QUEST = {
-				PARENT = LE_ITEM_CLASS_QUESTITEM or Enum.ItemClass.Questitem or 12,
+				PARENT = Enum.ItemClass.Questitem or 12,
 				QUEST = 0,
 			},
 			KEY = {
-				PARENT = LE_ITEM_CLASS_KEY or Enum.ItemClass.Key or 13,
+				PARENT = Enum.ItemClass.Key or 13,
 				KEY = 0,
 				LOCKPICK = 1,
 			},
 			MISC = {
-				PARENT = LE_ITEM_CLASS_MISCELLANEOUS or Enum.ItemClass.Miscellaneous or 15,
-				JUNK = LE_ITEM_MISCELLANEOUS_JUNK or Enum.ItemMiscellaneousSubclass.Junk or 0,
-				REAGENT = LE_ITEM_MISCELLANEOUS_REAGENT or Enum.ItemMiscellaneousSubclass.Reagent or 1,
-				PET = LE_ITEM_MISCELLANEOUS_COMPANION_PET or Enum.ItemMiscellaneousSubclass.CompanionPet or 2,
-				HOLIDAY = LE_ITEM_MISCELLANEOUS_HOLIDAY or Enum.ItemMiscellaneousSubclass.Holiday or 3,
-				OTHER = LE_ITEM_MISCELLANEOUS_OTHER or Enum.ItemMiscellaneousSubclass.Other or 4,
-				MOUNT = LE_ITEM_MISCELLANEOUS_MOUNT or Enum.ItemMiscellaneousSubclass.Mount or 5,
-				MOUNT_EQUIPMENT = LE_ITEM_MISCELLANEOUS_MOUNT_EQUIPMENT or Enum.ItemMiscellaneousSubclass.MountEquipment or 6,
+				PARENT = Enum.ItemClass.Miscellaneous or 15,
+				JUNK = Enum.ItemMiscellaneousSubclass.Junk or 0,
+				REAGENT = Enum.ItemMiscellaneousSubclass.Reagent or 1,
+				PET = Enum.ItemMiscellaneousSubclass.CompanionPet or 2,
+				HOLIDAY = Enum.ItemMiscellaneousSubclass.Holiday or 3,
+				OTHER = Enum.ItemMiscellaneousSubclass.Other or 4,
+				MOUNT = Enum.ItemMiscellaneousSubclass.Mount or 5,
+				MOUNT_EQUIPMENT = Enum.ItemMiscellaneousSubclass.MountEquipment or 6,
 			},
 			GLYPH = {
-				PARENT = LE_ITEM_CLASS_GLYPH or Enum.ItemClass.Glyph or 16,
+				PARENT = Enum.ItemClass.Glyph or 16,
 			},
 			BATTLEPET = {
-				PARENT = LE_ITEM_CLASS_BATTLEPET or Enum.ItemClass.Battlepet or 17,
+				PARENT = Enum.ItemClass.Battlepet or 17,
 				HUMANOID = 0, -- [163]
 				DRAGONKIN = 1, -- [164]
 				FLYING = 2, -- [165]
@@ -674,7 +717,7 @@ ArkInventory.ENUM = {
 				MECHANICAL = 9, -- [172]
 			},
 			WOW_TOKEN = {
-				PARENT = ITEM_CLASS_WOW_TOKEN or Enum.ItemClass.WoWToken or 18,
+				PARENT = Enum.ItemClass.WoWToken or 18,
 				WOWTOKEN = 0, -- [174]
 			},
 		},
@@ -695,6 +738,12 @@ ArkInventory.ENUM = {
 		ONOPEN = 2,
 		MANUAL = 3,
 	},
+	TIMERUNNINGSEASON = {  -- id = expansion
+		[1] = LE_EXPANSION_MISTS_OF_PANDARIA or 4,
+	},
+	TIMERUNNINGSEASONID = {
+		PANDARIA = 1,
+	},
 }
 
 
@@ -712,7 +761,7 @@ ArkInventory.Const = { -- constants
 		
 		CLIENT = {
 			ID = nil,
-			NAME = "",
+			NAME = _G[string.format( "EXPANSION_NAME%s", GetExpansionLevel( ) )],
 			EXPANSION = { },
 			PTR = 0.1,
 			BETA = 0.2,
@@ -767,6 +816,9 @@ ArkInventory.Const = { -- constants
 			REAGENTBANK = {
 				NUM_SLOTS = 7 * 7 * 2,
 			},
+			ACCOUNTBANK = {
+				NUM_SLOTS = 7 * 7 * 2,
+			},
 			GUILDBANK = {
 				NUM_TABS = MAX_GUILDBANK_TABS,
 				WIDTH = NUM_GUILDBANK_COLUMNS or 14,
@@ -775,7 +827,7 @@ ArkInventory.Const = { -- constants
 				LOG_TIME_PREPEND = GUILD_BANK_LOG_TIME_PREPEND or "|cff009999  ",
 			},
 			VOIDSTORAGE = {
-				NUM_SLOT_MAX = VOID_STORAGE_MAX or 80,
+				SLOTS_PER_TAB = VOID_STORAGE_MAX or 80,
 				NUM_PAGES = VOID_STORAGE_PAGES or 2,
 			},
 			PET = {
@@ -823,10 +875,6 @@ ArkInventory.Const = { -- constants
 				TYPEID = 6,
 				SUBTYPEID = 7,
 			},
-			GETSPELLINFO = {
-				NAME = 1,
-				TEXTURE = 3,
-			}
 		},
 		
 	},
@@ -884,6 +932,12 @@ ArkInventory.Const = { -- constants
 			MinHeight = 100,
 			MinWidth = 400,
 		},
+		BarPopup = {
+			Name = "ARKINV_PopupBarFrame",
+		},
+		Match = {
+			Frame = "ARKINV_Frame(%d+)",
+		},
 	},
 	
 	Event = {
@@ -916,15 +970,22 @@ ArkInventory.Const = { -- constants
 		Reputation = 16,
 		MountEquipment = 17,
 		TradeskillEquipment = 18,
+		ReagentBank = 19,
+		AccountBank = 20,
+		ReagentBag = 21,
+		AccountReputation = 22,
+		AccountCurrency = 23,
 	},
 	
-	Offset = {
+	Offset = { -- faux blizzard bag ids for locations that dont have bags
 		Vault = 1000,
 		Mailbox = 2000,
 		Wearing = 3000,
 		Pet = 4000,
 		Currency = 5000,
+		AccountCurrency = 5020,
 		Mount = 6000,
+		MountEquipment = 6100,
 		Auction = 7000,
 		--Spellbook = 8000,
 		Tradeskill = 1400,
@@ -932,7 +993,7 @@ ArkInventory.Const = { -- constants
 		Toybox = 1200,
 		Heirloom = 1300,
 		Reputation = 1600,
-		MountEquipment = 6100,
+		AccountReputation = 1620,
 		TradeskillEquipment = 1420,
 	},
 	
@@ -978,6 +1039,7 @@ ArkInventory.Const = { -- constants
 			Reagent = 27,
 			Heirloom = 28,
 			Reputation = 29,
+			AccountBank = 30,
 		},
 		
 		New = {
@@ -1035,6 +1097,14 @@ ArkInventory.Const = { -- constants
 			["INVTYPE_BAG"] = 0,
 			["INVTYPE_QUIVER"] = 0,
 		},
+		
+		Stack = {
+			Mode = {
+				Limit = 1,
+				Compress = 2,
+			},
+		},
+		
 		
 	},
 	
@@ -1212,6 +1282,8 @@ ArkInventory.Const = { -- constants
 		Config = [[Interface\Garrison\Garr_TimerFill-Upgrade]],
 		Blueprint = [[Interface\ICONS\INV_Scroll_05]],
 		
+		TimeRunnerText = CreateAtlasMarkup( "timerunning-glues-icon", 12, 12 ),
+		
 	},
 	
 	SortKeys = { -- true = keep, false = remove
@@ -1252,6 +1324,8 @@ ArkInventory.Const = { -- constants
 			[402] = "a", -- flying, dragonriding
 			[424] = "a", -- flying, dragonriding (has animations)
 			[426] = "a", -- flying, dragonriding
+			[436] = "a", -- flying + underwater
+			[437] = "a", -- flying
 			
 			[230] = "l", -- land
 			[241] = "l", -- qiraji battletank
@@ -1309,7 +1383,6 @@ ArkInventory.Const = { -- constants
 			CanLearnOtherSecondary = 4,
 		},
 		StyleDefault = "Smiley Face",
-		SharedMediaType = "arkinventory-icons-transmog",
 	},
 	
 	Class = {
@@ -1338,8 +1411,6 @@ ArkInventory.Const = { -- constants
 			Short = 2, -- stops at the first blank line
 		},
 	},
-	
-	CategoryTypes = { "SYSTEM", "CONSUMABLE", "TRADEGOODS", "SKILL", "CLASS", "EMPTY", "CUSTOM", "RULE", },
 	
 	--Tradeskill = { }, -- created elsewhere (needs localise which isnt available here)
 	
@@ -1424,11 +1495,15 @@ ArkInventory.Const = { -- constants
 --			[870] = true, -- Pandaria (appears to be working now)
 		},
 		Dragonriding = { }, -- list of mount spells populated via mount scan
+		Mode = {
+			Steady = 1,
+			Skyriding = 2,
+		},
 	},
 	
 	YieldAfter = 25,
 	
-	ObjectDataMaxAttempts = 10,
+	ObjectDataMaxAttempts = 5,
 	
 	ClassArmor = {
 		[ArkInventory.ENUM.ITEM.TYPE.ARMOR.CLOTH] = { MAGE = 1, PRIEST = 1, WARLOCK = 1 },
@@ -1441,6 +1516,32 @@ ArkInventory.Const = { -- constants
 		Min = 0.01,
 		Max = 60,
 	},
+	
+	ItemFrameType = {
+		Normal = "",
+		Tainted = "Tainted",
+		Popup = "Popup",
+	},
+	
+	DragonRaceItem = 191140,
+	DragonRaceAura = 369968,
+	
+	SharedMedia = {
+		Type = {
+			EmptySlot = "arkinventory-icons-emptyslot",
+			Transmog = "arkinventory-icons-transmog",
+		},
+		Name = {
+			None = "None",
+			Solid = "Solid",
+		},
+		Default = {
+			EmptySlot = "Icon 1",
+		},
+	},
+	
+	
+	
 }
 
 

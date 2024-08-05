@@ -38,7 +38,7 @@ function rule.execute_example1( ... )
 		local arg = select( ax, ... ) -- select the argument were going to work with
 		
 		-- this code checks item quality, either as text or as a number
-		-- your best bet is to check the existing system rules to find one thats close to what you need an modify it to suit your needs
+		-- your best bet is to check the existing system rules to find one thats close to what you need and modify it to suit your needs
 		-- all you have to do is ensure that you return true (matched your criteria) or false (failed to match)
 		
 		if type( arg ) == "number" then
@@ -87,7 +87,7 @@ function rule.execute_example2( ... )
 		local arg = select( ax, ... ) -- select the argument were going to work with
 		
 		-- this code checks item quality, either as text or as a number
-		-- your best bet is to check the existing system rules to find one thats close to what you need an modify it to suit your needs
+		-- your best bet is to check the existing system rules to find one thats close to what you need and modify it to suit your needs
 		-- all you have to do is ensure that you return true (matched your criteria) or false (failed to match)
 		
 		if type( arg ) == "number" then

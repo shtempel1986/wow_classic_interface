@@ -1,4 +1,6 @@
-local TOCNAME,GBB=...
+local TOCNAME,
+	---@class Addon_GroupBulletinBoard : Addon_Localization, Addon_CustomFilters, Addon_Dungeons, Addon_Tags, Addon_Options, Addon_Tool
+	GBB = ...;
 
 GroupBulletinBoard_Addon=GBB
 
@@ -25,7 +27,7 @@ local PartyChangeEvent={ "GROUP_JOINED", "GROUP_ROSTER_UPDATE", "RAID_ROSTER_UPD
 -- GBB.RequestForPopup
 
 -- GBB.DataBrockerInitalized
-GBB.MSGPREFIX="GBB: "
+GBB.MSGPREFIX="LFG Bulletin Board: "
 GBB.TAGBAD="---"
 GBB.TAGSEARCH="+++"
 
@@ -41,6 +43,7 @@ GBB.COMBINEMSGTIMER=10
 GBB.MAXCOMPACTWIDTH=350
 GBB.ShouldReset = false
 
+local isClassicEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 -- Tools
 -------------------------------------------------------------------------------------
 
@@ -57,53 +60,62 @@ end
 function GBB.Split(msg)
 	return GBB.Tool.Split( string.gsub(string.lower(msg), "[%p%s%c]", "+") , "+")
 end
-function GBB.SplitNoNb(msg)
-	local msgOrg=string.lower(msg)
-	msg=string.gsub(string.lower(msg), "[´`]","'")
-	msg=string.gsub(msg,"''","'")
-	local msg2=GBB.Tool.stripChars(msg)
+
+---Splits a message into multiple parts, removing punctuation and whitespace.
+---@param msg string The message to split.
+---@return string[] A table of strings, each representing a word from the message.
+function GBB.GetMessageWordList(msg)
+	local message = string.lower(msg)
+	local validatedMessage = string.gsub(message, "[´`]","'")
+	validatedMessage =  string.gsub(validatedMessage,"''","'")
+	local strippedMessage = GBB.Tool.stripChars(validatedMessage)
 	
-	local result= GBB.Tool.iMerge( 	
-								GBB.Tool.Split( string.gsub(msgOrg, "[%p%s%c]", "+") , "+"),
-								GBB.Tool.Split( string.gsub(msgOrg, "[%p%c]", "") , " "),
-								-- GBB.Tool.Split( string.gsub(msgOrg, "[%c%s]", "+") , "+"), 
-								GBB.Tool.Split( string.gsub(msgOrg, "[%p%s%c%d]", "+") , "+"),
-								
-								GBB.Tool.Split( string.gsub(msg, "[%p%s%c]", "+") , "+"),
-								GBB.Tool.Split( string.gsub(msg, "[%p%c]", "") , " "),
-								-- GBB.Tool.Split( string.gsub(msg, "[%c%s]", "+") , "+"), 
-								GBB.Tool.Split( string.gsub(msg, "[%p%s%c%d]", "+") , "+"),
-								
-								GBB.Tool.Split( string.gsub(msg2, "[%p%s%c]", "+") , "+"),
-								GBB.Tool.Split( string.gsub(msg2, "[%p%c]", "") , " "),
-								-- GBB.Tool.Split( string.gsub(msg2, "[%c%s]", "+") , "+"), 
-								GBB.Tool.Split( string.gsub(msg2, "[%p%s%c%d]", "+") , "+")
-								
-								)
-	local add={}
+	local results = GBB.Tool.iMerge( 	
+		GBB.Tool.Split( string.gsub(message, "[%p%s%c]", "+") , "+"),
+		GBB.Tool.Split( string.gsub(message, "[%p%c]", "") , " "),
+		-- GBB.Tool.Split( string.gsub(message, "[%c%s]", "+") , "+"), 
+		GBB.Tool.Split( string.gsub(message, "[%p%s%c%d]", "+") , "+"),
+		
+		GBB.Tool.Split( string.gsub(validatedMessage, "[%p%s%c]", "+") , "+"),
+		GBB.Tool.Split( string.gsub(validatedMessage, "[%p%c]", "") , " "),
+		-- GBB.Tool.Split( string.gsub(validatedMessage, "[%c%s]", "+") , "+"), 
+		GBB.Tool.Split( string.gsub(validatedMessage, "[%p%s%c%d]", "+") , "+"),
+		
+		GBB.Tool.Split( string.gsub(strippedMessage, "[%p%s%c]", "+") , "+"),
+		GBB.Tool.Split( string.gsub(strippedMessage, "[%p%c]", "") , " "),
+		-- GBB.Tool.Split( string.gsub(stippedMessage, "[%c%s]", "+") , "+"), 
+		GBB.Tool.Split( string.gsub(strippedMessage, "[%p%s%c%d]", "+") , "+")
+	);
+	local additionalResults = {}
 	
 	--[[
 	local lastTag
 	for it,tag in ipairs(GBB.Tool.Split( string.gsub(msg, "[%p%c%s]", "+") , "+")) do
 		
 		if lastTag~=nil then
-			tinsert(add,lastTag.."X"..tag)
+			tinsert(additionalResults, lastTag.."X"..tag)
 		end
 		lastTag=tag
 	end
 	]]--
 	
-	for it,tag in ipairs(result) do		
-		-- lastTag=tag
-		for is,suffix in ipairs(GBB.suffixTags) do
-			if tag~=suffix and string.sub(tag,-string.len(suffix))==suffix then				
-				tinsert(add,string.sub(tag,1,-string.len(suffix)-1))
-				tinsert(add,suffix)
+	-- split words with suffixes and add them to the results
+	for _, word in ipairs(results) do
+		for _, suffix in ipairs(GBB.suffixTags) do
+			local suffixLength = string.len(suffix)
+			--trim end of word with the length of current suffix
+			local wordEnding = word:sub(-suffixLength)
+			if word ~= suffix 
+			and wordEnding == suffix 
+			then				
+				local baseWord = word:sub(1, -suffixLength - 1)
+				tinsert(additionalResults, baseWord);
+				tinsert(additionalResults, suffix)
 			end
 		end
 	end
 	
-	result=GBB.Tool.iMerge(result,add)
+	results=GBB.Tool.iMerge(results,additionalResults)
 	--[[for it,tag in ipairs(result) do
 		if string.len(tag)==1 then
 			result[it]=nil
@@ -111,7 +123,7 @@ function GBB.SplitNoNb(msg)
 	end
 	]]--
 	
-	return result	
+	return results	
 end
 
 function GBB.LevelRange(dungeon,short)
@@ -125,6 +137,7 @@ function GBB.LevelRange(dungeon,short)
 	return ""
 end
 
+---@return boolean `true` if the dungeon should be tracked on bulletin board, `false` otherwise.
 function GBB.FilterDungeon(dungeon, isHeroic, isRaid)
 	if dungeon == nil then return false end
 	if isHeroic == nil then isHeroic = false end
@@ -132,10 +145,21 @@ function GBB.FilterDungeon(dungeon, isHeroic, isRaid)
 
 	-- If the user is within the level range, or if they're max level and it's heroic.
 	local inLevelRange = (not isHeroic and GBB.dungeonLevel[dungeon][1] <= GBB.UserLevel and GBB.UserLevel <= GBB.dungeonLevel[dungeon][2]) or (isHeroic and GBB.UserLevel == 80)
+
+	-- return `false` if not checked in preferences
+	if not GBB.DBChar["FilterDungeon"..dungeon] then return false end;
 	
-	return GBB.DBChar["FilterDungeon"..dungeon] and 
-		(isRaid or ((GBB.DBChar["HeroicOnly"] == false or isHeroic) and (GBB.DBChar["NormalOnly"] == false or isHeroic == false))) and
-		(GBB.DBChar.FilterLevel == false or inLevelRange)
+	-- return `false` if not prefferd difficulty
+	local showHeroicOnly = GBB.DBChar["HeroicOnly"] == true
+	local showNormalOnly = GBB.DBChar["NormalOnly"] == true
+	if showHeroicOnly and isHeroic == false then return false end;
+	if showNormalOnly and isHeroic then return false end;
+
+	-- return `false` if not in level range specified
+	if GBB.DBChar.FilterLevel and not inLevelRange then return false end;
+
+	-- return `true` otherwise
+	return true;
 end
 
 function GBB.formatTime(sec) 
@@ -151,24 +175,91 @@ function GBB.PhraseChannelList(...)
 	return t
 end
 
+local addonLinkStub = "\124Haddon:%s:%s\124h[%s]\124h\124r"
+local gotoSettingsArg1 = "GBB_GOTO_CHAT_SETTINGS"
+local linkDisplayStr = (function() 
+	local str = { -- todo move to Localization.lua
+        ["enUS"] = "Click Here to Reorder Chat Channels!",
+        ["deDE"] = "Klicken Sie hier, um die Chat-Kanäle neu zu ordnen!",
+        ["esES"] = "¡Haz clic aquí para reordenar los canales del chat!",
+        ["esMX"] = "¡Haz clic aquí para reordenar los canales de chat!",
+        ["frFR"] = "Cliquez ici pour réorganiser les canaux de discussion !",
+        ["koKR"] = "여기를 클릭하여 채팅 채널을 재정렬하십시오!",
+        ["ptBR"] = "Clique aqui para reordenar os canais de bate-papo!",
+        ["ruRU"] = "Щелкните здесь, чтобы изменить порядок каналов чата!",
+        ["zhCN"] = "点击此处重新排序聊天频道！",
+        ["zhTW"] = "點擊這裡重新排序聊天頻道！",
+    }
+	return str[GetLocale()] or str["enUS"]
+end)()
 function GBB.JoinLFG()
-	if GBB.Initalized==true and GBB.LFG_Successfulljoined==false then 
-		if GBB.L["lfg_channel"]~=nil and GBB.L["lfg_channel"]~="" then 
-			local id,name=GetChannelName(GBB.L["lfg_channel"])
-			if  id~=nil and id >0  then 
-				--DEFAULT_CHAT_FRAME:AddMessage("Success join lfg-channel")
-				GBB.LFG_Successfulljoined=true
+	if GBB.Initalized and not GBB.LFG_Successfulljoined then 
+		if GBB.L["lfg_channel"] and GBB.L["lfg_channel"] ~= "" then
+			local id, _ = GetChannelName(GBB.L["lfg_channel"])
+			if id and id > 0 then
+				GBB.LFG_Successfulljoined = true
 			else
-				--DEFAULT_CHAT_FRAME:AddMessage("try join lfg-channel")
-				JoinChannelByName(GBB.L["lfg_channel"])
-			end	
+				-- related issue: #247, wait for player to join any game channel before joining lfg channel.
+				-- note: this will still join LFG in `/1` if the slot is empty. 
+				local general, localDefense = EnumerateServerChannels()
+				local generalID = general and GetChannelName(general)
+				local tradeOrDefenseID = localDefense and GetChannelName(localDefense) -- trade in main cities.
+				if (generalID and generalID > 0) or (tradeOrDefenseID and tradeOrDefenseID > 0) then
+					local numChannelsJoined = C_ChatInfo.GetNumActiveChannels() or 0
+					local nextAvailableChannelIndex = numChannelsJoined + 1
+					for i = 1, numChannelsJoined do
+						if not C_ChatInfo.GetChannelInfoFromIdentifier(i) then
+							nextAvailableChannelIndex = i
+							break
+						end
+					end
+					local _, name 
+					if nextAvailableChannelIndex > 1 then 
+						_, name = JoinPermanentChannel(GBB.L["lfg_channel"])
+					else
+						_, name = JoinTemporaryChannel(GBB.L["lfg_channel"]);
+					end
+					local info = C_ChatInfo.GetChannelInfoFromIdentifier(name or "")
+					if info then
+						-- notify user that the addon has joined the channel.
+						DEFAULT_CHAT_FRAME:AddMessage(
+							GBB.MSGPREFIX..CHAT_YOU_JOINED_NOTICE:format(
+								info.localID,
+								("%d. %s"):format(info.localID, info.name)
+							), Chat_GetChannelColor(ChatTypeInfo["CHANNEL"])
+						)
+					else
+						-- notify user that the addon failed to join the channel.
+						DEFAULT_CHAT_FRAME:AddMessage(
+							GBB.MSGPREFIX..CHAT_INVALID_NAME_NOTICE..": ".. GBB.L["lfg_channel"],
+							Chat_GetChannelColor(ChatTypeInfo["CHANNEL"])
+						)
+					end
+					if generalID ~= 1 then -- prompt user to reorder chat channels
+						local link = WrapTextInColorCode(
+							addonLinkStub:format(TOCNAME, gotoSettingsArg1, linkDisplayStr), 
+							CreateColor(Chat_GetChannelColor(ChatTypeInfo["SYSTEM"])):GenerateHexColor()
+						)
+						DEFAULT_CHAT_FRAME:AddMessage(GBB.MSGPREFIX..link)
+					end
+				end
+			end
 		else
-			-- missing localization
 			GBB.LFG_Successfulljoined=true
-			--DEFAULT_CHAT_FRAME:AddMessage("Channel not definied for "..GetLocale())
 		end
 	end
 end
+hooksecurefunc("SetItemRef", function(link)
+	local linkType, addon, arg1 = strsplit(":", link)
+	if linkType == "addon" and addon == TOCNAME then
+		if arg1 == gotoSettingsArg1 then
+			ShowUIPanel(ChatConfigFrame)
+			PlaySound(SOUNDKIT.IG_MAINMENU_OPTION)
+			ChatConfigFrame.ChatTabManager:UpdateSelection(1); -- General tab
+			ChatConfigCategoryFrameButton3:Click() -- Channels category
+		end
+	end
+end)
 
 function GBB.BtnSelectChannel()
 	if UIDROPDOWNMENU_OPEN_MENU ~=  GBB.FramePullDownChannel then 
@@ -190,8 +281,7 @@ end
 function GBB.ResetWindow()
 	GroupBulletinBoardFrame:ClearAllPoints()
 	GroupBulletinBoardFrame:SetPoint("Center", UIParent, "Center", 0, 0)
-	GroupBulletinBoardFrame:SetWidth(300)
-	GroupBulletinBoardFrame:SetHeight(170)
+	GroupBulletinBoardFrame:SetSize(GroupBulletinBoardFrame:GetResizeBounds())
 	GBB.SaveAnchors()
 	GBB.ResizeFrameList()
 end
@@ -241,7 +331,7 @@ end
 
 function GBB.BtnSettings(button )
 	if button == "LeftButton" then
-		GBB.Options.Open(1)
+		GBB.OptionsBuilder.OpenCategoryPanel(1)
 	else
 		GBB.Popup_Minimap("cursor",false)
 		--GBB.Options.Open(1)
@@ -254,35 +344,43 @@ end
 
 
 --Tag Lists
--------------------------------------------------------------------------------------
+---------------------------------------------------
+
+---Sets the `GBB.tagList` table, specified by locale. 
+---@param loc string The locale to create the tag list for.
 function GBB.CreateTagListLOC(loc)
-	for id,tag in pairs(GBB.badTagsLoc[loc]) do
+	for _,tag in pairs(GBB.badTagsLoc[loc]) do
 		if GBB.DB.OnDebug and GBB.tagList[tag]~=nil then
 			print(GBB.MSGPREFIX.."DoubleTag:"..tag.." - "..GBB.tagList[tag].." / "..GBB.TAGBAD)
-		end		
+		end	
 		GBB.tagList[tag]=GBB.TAGBAD		
 	end
 	
-	for id,tag in pairs(GBB.searchTagsLoc[loc]) do
+	for _, tag in pairs(GBB.searchTagsLoc[loc]) do
 		if GBB.DB.OnDebug and GBB.tagList[tag]~=nil then
 			print(GBB.MSGPREFIX.."DoubleTag:"..tag.." - "..GBB.tagList[tag].." / "..GBB.TAGSEARCH)
 		end
 		GBB.tagList[tag]=GBB.TAGSEARCH		
 	end
 	
-	for id,tag in pairs(GBB.suffixTagsLoc[loc]) do
+	for _, tag in pairs(GBB.suffixTagsLoc[loc]) do
 		if GBB.DB.OnDebug and tContains(GBB.suffixTags,tag) then
 			print(GBB.MSGPREFIX.."DoubleSuffix:"..tag)
 		end	
-		if tContains(GBB.suffixTags,tag)==false then tinsert(GBB.suffixTags,tag) end
+		
+		if not tContains(GBB.suffixTags,tag) then 
+			tinsert(GBB.suffixTags,tag) 
+		end
 	end
 	
-	for dungeon,tags in pairs(GBB.dungeonTagsLoc[loc]) do
-		for id,tag in pairs(tags) do
+	for dungeonKey, tagList in pairs(GBB.dungeonTagsLoc[loc]) do
+		---@cast tagList string[]
+		---@cast dungeonKey string
+		for _, tag in pairs(tagList) do
 			if GBB.DB.OnDebug and GBB.tagList[tag]~=nil then
-				print(GBB.MSGPREFIX.."DoubleTag:"..tag.." - "..GBB.tagList[tag].." / "..dungeon)
+				print(GBB.MSGPREFIX.."DoubleTag:"..tag.." - "..GBB.tagList[tag].." / "..dungeonKey)
 			end
-			GBB.tagList[tag]=dungeon
+			GBB.tagList[tag] = dungeonKey
 		end
 	end
 
@@ -317,6 +415,12 @@ function GBB.CreateTagList ()
 	end
 	if GBB.DB.TagsZhcn then
 		GBB.CreateTagListLOC("zhCN")
+	end
+	if GBB.DB.TagsPortuguese then
+		GBB.CreateTagListLOC("ptBR")
+	end
+	if GBB.DB.TagsSpanish then
+		GBB.CreateTagListLOC("esES")
 	end
 	if GBB.DB.TagsCustom then
 		GBB.searchTagsLoc["custom"]=GBB.Split(GBB.DB.Custom.Search)
@@ -376,7 +480,10 @@ function GBB.Popup_Minimap(frame,notminimap)
 		return
 	end
 
-	GBB.PopupDynamic:AddItem(GBB.L["HeaderSettings"],false, GBB.Options.Open, 1)
+	GBB.PopupDynamic:AddItem(GBB.L["HeaderSettings"],false, GBB.OptionsBuilder.OpenCategoryPanel, 1)
+	
+	GBB.PopupDynamic:AddItem("",true)
+	GBB.PopupDynamic:AddItem(GBB.L["CboxFilterTravel"],false,GBB.DBChar,"FilterDungeonTRAVEL")
 	
 	GBB.PopupDynamic:AddItem("",true)
 	GBB.PopupDynamic:AddItem(GBB.L["CboxNotifyChat"],false,GBB.DB,"NotifyChat")
@@ -394,8 +501,8 @@ function GBB.Popup_Minimap(frame,notminimap)
 end
 
 function GBB.Init()
-	GroupBulletinBoardFrame:SetResizeBounds(300,170)	
-	
+	GroupBulletinBoardFrame:SetResizeBounds(400,170)	
+	GroupBulletinBoardFrame:SetClampedToScreen(true)
 	GBB.UserLevel=UnitLevel("player")
 	GBB.UserName=(UnitFullName("player"))
 	GBB.ServerName=GetRealmName()
@@ -431,12 +538,23 @@ function GBB.Init()
 	GBB.DB.showminimapbutton=nil
 	GBB.DB.minimapPos=nil
 	
+	GBB.InitializeCustomFilters();
+	
 	-- Get localize and Dungeon-Information
 	GBB.L = GBB.LocalizationInit()	
 	GBB.dungeonNames = GBB.GetDungeonNames()
+	-- Add custom categories to `dungeonNames`
+	MergeTable(GBB.dungeonNames, GBB.GetCustomFilterNames());
+	-- add custom categories to levels table
+	MergeTable(GBB.dungeonLevel, GBB.GetAllCustomFilterLevels());
+	-- add custom categories to `dungeonSort` (adds internally)
+	local additionalCategories = GBB.GetCustomFilterKeys();
+	GBB.dungeonSort = GBB.GetDungeonSort(additionalCategories);
 	GBB.RaidList = GBB.GetRaids()
-	--GBB.dungeonLevel
-	GBB.dungeonSort = GBB.GetDungeonSort()	
+
+	-- Add tags for custom categories into `dungeonTagsLoc`. 
+	-- Must do before the call to `GBB.CreateTagList()` below
+	GBB.SyncCustomFilterTags(GBB.dungeonTagsLoc);
 
 	-- Reset Request-List
 	GBB.RequestList={}
@@ -508,8 +626,8 @@ function GBB.Init()
 				GBB.ResetWindow()
 				GBB.ShowWindow()
 			end},
-		{{"config","setup","options"},GBB.L["SlashConfig"],GBB.Options.Open,1},
-		{"about",GBB.L["SlashAbout"],GBB.Options.Open,7},
+		{{"config","setup","options"},GBB.L["SlashConfig"],GBB.OptionsBuilder.OpenCategoryPanel,1},
+		{"about",GBB.L["SlashAbout"],GBB.OptionsBuilder.OpenCategoryPanel,7},
 		{"",GBB.L["SlashDefault"],GBB.ToggleWindow},
 		{"chat","",{
 			{{"organize", "clean"},GBB.L["SlashChatOrganizer"],function()
@@ -545,6 +663,29 @@ function GBB.Init()
 			_, GBB.DB.AnnounceChannel = GetChannelList()
 		end
 	end
+	
+	---@type EditBox # making this local isnt required, just here for the luals linter
+	local GroupBulletinBoardFrameResultsFilter = _G["GroupBulletinBoardFrameResultsFilter"];
+	GroupBulletinBoardFrameResultsFilter.filterPatterns = { };
+	GroupBulletinBoardFrameResultsFilter:SetFontObject(GBB.DB.FontSize);
+	GroupBulletinBoardFrameResultsFilter:SetTextColor(1, 1, 1, 1);
+	GroupBulletinBoardFrameResultsFilter:HookScript("OnTextChanged", function(self) 
+		GBB.UpdateList()
+		-- cache filters early
+		self.filterPatterns = { };
+		local filterText = self:GetText()
+		if filterText == "" or not filterText then return end -- filter is off
+		
+		for pattern in string.gmatch(filterText, "([^, ]+)") do
+			table.insert(self.filterPatterns, pattern);
+		end
+		-- i think its possible to increase performance a bit more by caching the lists associated with the last N searches to reduce calls to string.gmatch (specially when deleting text).
+	end);
+	
+	---@return string[] # returns empty table if no text is set in editbox
+	function GroupBulletinBoardFrameResultsFilter:GetFilters() 
+		return self.filterPatterns
+	end
 
 	GroupBulletinBoardFrameSelectChannel:SetText(GBB.DB.AnnounceChannel)
 
@@ -573,23 +714,41 @@ function GBB.Init()
 	GBB.Initalized=true
 	
 	GBB.PopupDynamic=GBB.Tool.CreatePopup(GBB.OptionsUpdate)
-	-- Get build version to check against classic
-	local version, build, date, tocversion = GetBuildInfo()
-
 	GBB.InitGroupList()
-	if string.sub(version, 1, 2) == "1." then
-		GBB.Tool.AddTab(GroupBulletinBoardFrame,GBB.L.TabRequest,GroupBulletinBoardFrame_ScrollFrame)
-	else
-		GBB.Tool.AddTab(GroupBulletinBoardFrame,GBB.L.TabRequest,GroupBulletinBoardFrame_ScrollFrame)
-		GBB.Tool.AddTab(GroupBulletinBoardFrame,GBB.L.TabLfg,GroupBulletinBoardFrame_LfgFrame)
-		GBB.Tool.AddTab(GroupBulletinBoardFrame,GBB.L.TabGroup,GroupBulletinBoardFrame_GroupFrame)
+
+	if isClassicEra then
+		GBB.Tool.AddTab(GroupBulletinBoardFrame, GBB.L.TabRequest, GroupBulletinBoardFrame_ScrollFrame);
+		
+		-- GBB.Tool.AddTab(GroupBulletinBoardFrame, GBB.L.TabGroup, GroupBulletinBoardFrame_GroupFrame);
+		GroupBulletinBoardFrame_GroupFrame:Hide()
+		
+		-- Group Finder doesnt exist in classic era
+		GroupBulletinBoardFrame_LfgFrame:Hide()
+	else -- cata client
+		-- Hide all tabs except requests for the time being
+		
+		GBB.Tool.AddTab(GroupBulletinBoardFrame, GBB.L.TabRequest, GroupBulletinBoardFrame_ScrollFrame);
+
+		-- GBB.Tool.AddTab(GroupBulletinBoardFrame, GBB.L.TabGroup, GroupBulletinBoardFrame_GroupFrame);
+		GroupBulletinBoardFrame_GroupFrame:Hide()
+		
+		-- GBB.Tool.AddTab(GroupBulletinBoardFrame, GBB.L.TabLfg, GroupBulletinBoardFrame_LfgFrame);
+		GroupBulletinBoardFrame_LfgFrame:Hide()
 	end
 	GBB.Tool.SelectTab(GroupBulletinBoardFrame,1)
-	if GBB.DB.EnableGroup then
-		GBB.Tool.TabShow(GroupBulletinBoardFrame, 3)
-	else		
-		GBB.Tool.TabHide(GroupBulletinBoardFrame, 3)
+	local enableGroupVar = GBB.OptionsBuilder.GetSavedVarHandle(GBB.DB, "EnableGroup")
+	local refreshGroupTab = function(isEnabled) -- previously done in `GBB.OptionsUpdate()`
+		if isEnabled then
+			-- Shows all active tabs.
+			GBB.Tool.TabShow(GroupBulletinBoardFrame)
+		else -- note: only the request-list tab is currently active on cata & era.
+			GBB.Tool.SelectTab(GroupBulletinBoardFrame, 1)
+			-- hide the "Remember past group members" aka "EnableGroup" tab should be the last tab
+			GBB.Tool.TabHide(GroupBulletinBoardFrame, isClassicEra and 2 or 3)
+		end
 	end
+	enableGroupVar:AddUpdateHook(refreshGroupTab)
+	refreshGroupTab(enableGroupVar:GetValue()) -- run once to match the set state.
 	
 	GBB.Tool.TabOnSelect(GroupBulletinBoardFrame,3,GBB.UpdateGroupList)
 	GBB.Tool.TabOnSelect(GroupBulletinBoardFrame,2,GBB.UpdateLfgTool)
@@ -669,11 +828,11 @@ local function Event_CHAT_MSG_SYSTEM(arg1)
 		
 		if info~="" then
 			local txt
-			
 			if class and class~="" then 
-				txt="|Hplayer:"..name.."|h"..GBB.Tool.IconClass[class]..
-				"|c"..GBB.Tool.ClassColor[class].colorStr ..
-				name.."|r"..symbol.."|h"
+				txt="|Hplayer:"..name.."|h"
+					..(GBB.Tool.GetClassIcon(class) or "")
+					.."|c"..GBB.Tool.ClassColor[class].colorStr .. name.."|r"
+					..symbol.."|h";
 			else
 				txt="|Hplayer:"..name.."|h"..name..symbol.."|h"
 			end
@@ -757,7 +916,7 @@ function GBB.OnUpdate(elapsed)
 		end;
 
 		if GBB.ElapsedSinceLfgUpdate > 18 and GBB.Tool.GetSelectedTab(GroupBulletinBoardFrame)==2 and GroupBulletinBoardFrame:IsVisible() then
-			LFGBrowseFrameRefreshButton:Click()
+			-- LFGListFrame.SearchPanel.RefreshButton:Click() -- hwevent protected
 			GBB.UpdateLfgTool()
 			GBB.ElapsedSinceLfgUpdate = 0
 		else

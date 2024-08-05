@@ -1,1 +1,1 @@
-svn:https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+https://www.curseforge.com/wow/addons/callbackhandler

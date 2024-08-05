@@ -1,1 +1,1 @@
-svn:https://repos.wowace.com/wow/libstub/trunk
+https://www.curseforge.com/wow/addons/libstub

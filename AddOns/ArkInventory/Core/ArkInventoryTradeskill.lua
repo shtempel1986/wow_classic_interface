@@ -311,7 +311,7 @@ local function helper_GoodToScan1( )
 	if not ArkInventory.Tradeskill.IsReady( ) then return end
 	
 	local loc_id = ArkInventory.Const.Location.Tradeskill
-	if not ArkInventory.Global.Location[loc_id].proj then
+	if not ArkInventory.ClientCheck( ArkInventory.Global.Location[loc_id].ClientCheck ) then
 		ArkInventory.OutputDebug( "TRADESKILL: SCAN ABORTED> tradeskill location is not supported in this expansion" )
 		return
 	end
@@ -357,7 +357,7 @@ local function helper_GoodToScan2( )
 	
 	if C_TradeSkillUI.IsTradeSkillLinked( ) then
 		
-		local codex = ArkInventory.GetPlayerCodex( )
+		local codex = ArkInventory.Codex.GetPlayer( )
 		local link, linkedPlayerName = C_TradeSkillUI.GetTradeSkillListLink( )
 		
 		local osd = ArkInventory.ObjectStringDecode( link )
@@ -449,7 +449,7 @@ local function Scan_UI( )
 	
 	if not helper_GoodToScan2( ) then return end
 	
-	local codex = ArkInventory.GetPlayerCodex( )
+	local codex = ArkInventory.Codex.GetPlayer( )
 	local link, linkedPlayerName = C_TradeSkillUI.GetTradeSkillListLink( )
 	local info = ArkInventory.CrossClient.UIGetProfessionInfo( )
 	
@@ -700,20 +700,12 @@ local function Scan( )
 	ArkInventory.OutputDebug( "TRADESKILL: SCAN START" )
 	
 	local thread_id = ArkInventory.Global.Thread.Format.Tradeskill
-	local thread_function = function ( )
+	
+	local thread_func = function( )
 		Scan_Threaded( thread_id )
 	end
 	
-	if ArkInventory.Global.Thread.Use then
-		ArkInventory.ThreadStart( thread_id, thread_function )
-	else
-		local tz = debugprofilestop( )
-		ArkInventory.OutputThread( thread_id, " start" )
-		thread_function( )
-		tz = debugprofilestop( ) - tz
-		ArkInventory.OutputThread( string.format( "%s took %0.0fms", thread_id, tz ) )
-		return
-	end
+	ArkInventory.ThreadStart( thread_id, thread_func )
 	
 end
 
@@ -1214,7 +1206,7 @@ function ArkInventory.Tradeskill.ScanHeaders( )
 	
 	
 	local loc_id = ArkInventory.Const.Location.Tradeskill
-	local codex = ArkInventory.GetPlayerCodex( )
+	local codex = ArkInventory.Codex.GetPlayer( )
 	
 	local p = ArkInventory.CrossClient.GetProfessions( )
 	ArkInventory.OutputDebug( "TRADESKILL: skills active = [", p, "]" )
@@ -1329,7 +1321,7 @@ function ArkInventory:EVENT_ARKINV_TRADESKILL_UPDATE_BUCKET( events )
 	
 	if events["UPDATE"] then
 		--ArkInventory.Output( "UPDATE LOCATION ", loc_id )
-		--ArkInventory.ScanLocation( loc_id )
+		--ArkInventory.ScanLocationWindow( loc_id )
 	end
 	
 	if events["QUEUE_START"] then

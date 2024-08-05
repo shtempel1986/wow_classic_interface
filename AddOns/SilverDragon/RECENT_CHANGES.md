@@ -1,4 +1,4 @@
-## Changed in v2024.1.1
+## Changed in v2024.10.1
 
-* Missed some of the separated-addon TOCs
+* Option to show relative times in the history window, on by default
 

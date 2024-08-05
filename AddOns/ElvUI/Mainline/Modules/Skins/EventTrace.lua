@@ -62,9 +62,7 @@ function S:Blizzard_EventTrace()
 	S:HandleButton(EventTrace.SubtitleBar.ViewFilter)
 
 	-- Options Dropdown
-	local OptionsDropDown = EventTrace.SubtitleBar.OptionsDropDown
-	OptionsDropDown:SetWidth(135)
-	S:HandleButton(OptionsDropDown)
+	S:HandleButton(EventTrace.SubtitleBar.OptionsDropdown)
 
 	-- Log Bar
 	local LogBar = EventTrace.Log.Bar
@@ -87,7 +85,8 @@ function S:Blizzard_EventTrace()
 	S:HandleButton(FilterBar.CheckAllButton)
 
 	-- Resize Button
-	EventTrace.ResizeButton:SetAlpha(0)
+	EventTrace.ResizeButton:ClearAllPoints()
+	EventTrace.ResizeButton:Point('BOTTOMRIGHT', 1, -1)
 
 	ReskinEventTraceFrame(EventTrace.Log.Events)
 	ReskinEventTraceFrame(EventTrace.Log.Search)

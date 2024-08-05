@@ -1,49 +1,29 @@
-# [5.12.9](https://github.com/WeakAuras/WeakAuras2/tree/5.12.9) (2024-04-29)
+# [5.15.4](https://github.com/WeakAuras/WeakAuras2/tree/5.15.4) (2024-07-27)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.12.8...5.12.9)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.15.3...5.15.4)
 
 ## Highlights
 
- - Added "Parent Frame" as option to "Glow Frame Type"
-- Cataclysm bug fixes 
+ - Class and Specialzation triggers now support class/spec conditions 
 
 ## Commits
 
 Boneshock (1):
 
-- add Location trigger (#4917)
+- fix error when creating new reputation trigger
 
-InfusOnWoW (8):
+InfusOnWoW (6):
 
-- Update Atlas File List from wago.tools
-- Fix tracking specific charges being affeced by paused evoker spells
-- Weapon Enchant Trigger: Fix trigger stack check and missing condition
-- Add missing order increment
-- Fix AddFakeInformation for TSU auras to not overwrite progressType
-- Shape shift Trigger: Add note for incompatibility with SoD's Gladiator rune
-- Remove dead code
-- Update Atlas File List from wago.tools
+- Class and Specialization Trigger: Add condition for class/spec
+- Triggers: Don't set state.icon if the icon is unknown
+- Model Sub Element: Fix model frame level
+- Model+Model Sub Element: Remove model_path
+- Model Sub Element: Fix Model option
+- Fix custom text function returning a table leading to a lua error
 
-Lynn (1):
+mrbuds (3):
 
-- Added "Parent Frame" as option to "Glow Frame Type" (#5025)
-
-Stanzilla (4):
-
-- Update WeakAurasModelPaths from wago.tools
-- Update WeakAurasModelPaths from wago.tools
-- Update WeakAurasModelPaths from wago.tools
-- Mark model paths script as executeable
-
-emptyrivers (1):
-
-- only use whisper comms if target is on the actually same server (#5019)
-
-mrbuds (5):
-
-- Cataclysm: add class & spec load option
-- FontString:SetJustifyV error with "CENTER" on cataclysm beta
-- Types (#5013)
-- Cataclysm: remove "Resilience" from "Character Stats" trigger
-- Classic: fix talent not checked on changing talent group
+- Fix transmission of auras
+- submodel: change default on classic for an existing model
+- Model: change default on classic for an existing model
 

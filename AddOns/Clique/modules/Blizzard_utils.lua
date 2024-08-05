@@ -9,7 +9,8 @@
 --   * ADDON_LOADED - To watch for loading of the ArenaUI
 -------------------------------------------------------------------------]]--
 
-local addonName, addon = ...
+---@class addon
+local addon = select(2, ...)
 local L = addon.L
 
 -- Register a Blizzard frame for click-casting, with some additional protection
@@ -22,13 +23,13 @@ function addon:RegisterBlizzardFrame(frame)
         frameName = frame
         frame = _G[frameName]
         if not frame then
-            addon:Printf("Error registering frame: %s", tostring(frameName))
+            addon:Printf(L["Error registering frame: %s"], tostring(frameName))
             return
         end
     end
 
     if not frame then
-        addon:Printf("Unable to register empty frame: %s", tostring(frameName))
+        addon:Printf(L["Unable to register empty frame: %s]"], tostring(frameName))
         return
     end
 

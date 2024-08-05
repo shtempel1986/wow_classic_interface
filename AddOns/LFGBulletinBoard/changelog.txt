@@ -1,6 +1,74 @@
---[[
+Group Bulletin Board
 
-Group Bulletin Board 	
+3.36
+ - Added world bosses for SoD
+
+3.35
+ - Fixed a breaking lua error related to the `DFC` dungeon on non Season of Discovery clients.
+ - Fixed issue where users were able to filter for both "Normal" and "Heroic" dungeons at the same time.
+ - Moved to modern scrollbars in the settings panel.
+ - Fixed issues with settings not saving properly.
+   - Issue fixed for checkboxes, editable text boxes, dropdowns, and color pickers.
+   - These types of settings should now save immediately after changing them unless otherwise noted.
+   - The minimap button's dropwdown menu settings are now synced with the main settings.
+   - Bulletin board's dropwdown menu settings are now synced with the main settings.
+
+3.34
+ - Fixed hc and era having issues
+
+3.33
+ - Added demon fall canyon and brm dailies
+ - Added Russian tags for dungeons BWD, BOT2, and TOFW (thanks @Froke)
+  - "ткт", "сб",and "тчв" respectively
+
+3.32
+ - New! Support added for user created filters. See "Additional Filters" category in the addons settings.
+   - The filters for "Random Dungeon", "Incursions", and "Bloodmoon" have been moved here as editable presets.
+ - Fixed:
+   - Existing dungeon *checkbox* filters will now save any time the settings are hidden. Used to only save after pressing the "close" button.
+   - Breaking issue related to seasonal events.
+   - lua error related to Friends/Guild members login notification feature.
+ - "Throne of the Four Winds" tags updates.
+   - english: `to4w`, `t4w`, `tot4w`.
+   - french: `t4v`, `t4w`.
+   - german: `td4w`, `t4w`.
+   
+3.31
+ - Fixed issue of joining the wrong "LookingForGroup" channel in Cataclysm `frFR` and `esES` clients.
+ - Fixed issue where *new characters* would join "LookingForGroup" as their `/1`. 
+ - Any *already existing* characters who join "LookingForGroup" will prompted with the option to reorder their chat channels on logins.
+ - Fixed an issue where hovering Profession links in the request list would cause the profession frame to open.
+ - Using the results filter (top search bar) will now hide headers for filters/categories with no results.
+ - Previously disabled tabs are not completely hidden (Cataclysm client).
+ 
+3.3
+ - Language support for `ptBR` and `esES`/`esMX` added. (Contributions for presets welcomed)
+ - Updates to settings translations for non-english clients.
+ - Fixes to pattern matching for messages with accented characters.
+ - Added hover highlights on entries and categories.
+ - "Tool Request" tab temporarily disabled until fixed
+ - English presets for Cataclysm dungeons Added.
+ - Filter settings for Cataclysm dungeons Added.
+ - Fixes to duplicate request with realm names enabled
+
+3.24  
+ - All credit goes to juemrami for all the fixes.
+ - Taint fix 
+ - fixing combine sub-dungeon option that was broken before
+ - fixing lua errors if pvp dungeons that were removed were toggled before the removal
+3.23
+ - Should fix the lua errors that are happening due to removal of pvp dungeons for classic. 
+
+3.22
+- Renamed "fold" & "unfold" to "collapse" & "expand" respectively in English labels
+- Added option for categories to start collapsed
+- Shift+Left-clicking on a category header will toggle collapse on all categories
+- Added bloodmoon and incursions as categories
+- Added travel filter to minimap for quick access
+
+3.21
+- Addition of a search bar that lets you search/filter. Should make finding specific things in a broad category much easier. Huge shoutout to juemrami for adding this feature and in a clean non janky manner
+- French lfg channel localization fixed (juemrami)
 
 3.20
 - Fixed the addon breaking for some people
@@ -254,5 +322,3 @@ Group Bulletin Board
 - option "Show a fixed number of requests"
 - option "Chat Style"
 - About-Panel
-		
-]]--

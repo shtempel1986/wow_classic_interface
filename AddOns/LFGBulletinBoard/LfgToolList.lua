@@ -1,11 +1,11 @@
+
 local 	TOCNAME,GBB=...
 
 local MAXGROUP=500
 local LastUpdateTime = time()
+local requestNil={dungeon="NIL",start=0,last=0,name=""}
 
 local function requestSort_TOP_TOTAL (a,b)
-	--a=a or requestNil
-	--b=b or requestNil
 	if GBB.dungeonSort[a.dungeon] < GBB.dungeonSort[b.dungeon] then
 		return true
 	elseif GBB.dungeonSort[a.dungeon] == GBB.dungeonSort[b.dungeon]then
@@ -18,8 +18,6 @@ local function requestSort_TOP_TOTAL (a,b)
 	return false
 end
 local function requestSort_TOP_nTOTAL (a,b)
-	--a=a or requestNil
-	--b=b or requestNil
 	if GBB.dungeonSort[a.dungeon] < GBB.dungeonSort[b.dungeon] then
 		return true
 	elseif GBB.dungeonSort[a.dungeon] == GBB.dungeonSort[b.dungeon] and (a.start ~= nil and b.start ~= nil and a.name ~= nil and b.name ~= nil) then
@@ -32,8 +30,6 @@ local function requestSort_TOP_nTOTAL (a,b)
 	return false
 end
 local function requestSort_nTOP_TOTAL (a,b)
-	--a=a or requestNil
-	--b=b or requestNil
 	if GBB.dungeonSort[a.dungeon] < GBB.dungeonSort[b.dungeon] then
 		return true
 	elseif GBB.dungeonSort[a.dungeon] == GBB.dungeonSort[b.dungeon] then
@@ -46,8 +42,6 @@ local function requestSort_nTOP_TOTAL (a,b)
 	return false
 end
 local function requestSort_nTOP_nTOTAL (a,b)
-	--a=a or requestNil
-	--b=b or requestNil
 	if GBB.dungeonSort[a.dungeon] < GBB.dungeonSort[b.dungeon] then
 		return true
 	elseif GBB.dungeonSort[a.dungeon] == GBB.dungeonSort[b.dungeon] then
@@ -85,7 +79,7 @@ local function InviteRequestWithRole(gbbName,gbbDungeon,gbbHeroic,gbbRaid)
 	end
 
 	-- Not sure if necessary, but Heroic Miscellaneous sounds like a dangerous place.
-	if gbbDungeon == "MISC" or gbbDungeon == "TRADE" or gbbDungeon == "TRAVEL" then
+	if gbbDungeon == "MISC" or gbbDungeon == "TRADE" or gbbDungeon == "TRAVEL" or gbbDungeon == "INCUR" then
 		gbbDungeonPrefix = ""
 	end
 
@@ -130,11 +124,7 @@ local function createMenu(DungeonID,req)
 	GBB.PopupDynamic:AddItem(GBB.L["CboxNotifyChat"],false,GBB.DB,"NotifyChat")
 	GBB.PopupDynamic:AddItem(GBB.L["CboxRemoveRealm"],false,GBB.DB,"RemoveRealm")
 	GBB.PopupDynamic:AddItem("",true)
-	GBB.PopupDynamic:AddItem(GBB.L["HeaderSettings"],false, GBB.Options.Open, 1)
-
-	GBB.PopupDynamic:AddItem(GBB.L["PanelFilter"], false, GBB.Options.Open, 2)
-
-	GBB.PopupDynamic:AddItem(GBB.L["PanelAbout"], false, GBB.Options.Open, 3)
+	GBB.PopupDynamic:AddItem(SETTINGS, false, GBB.OptionsBuilder.OpenCategoryPanel, 1)
 	GBB.PopupDynamic:AddItem(GBB.L["BtnCancel"],false)
 	GBB.PopupDynamic:Show()
 end
@@ -215,34 +205,34 @@ function GBB.GetLfgList()
 end
 
 function GBB.UpdateLfgTool()
-    if LFGBrowseFrame and LFGBrowseFrame.CategoryDropDown.selectedValue == 120 then return end
-    if  LFGBrowseFrame and LFGBrowseFrame.CategoryDropDown.selectedValue == nil then  
-        LFGBrowseFrame.CategoryDropDown.selectedValue = 2
+    if LFGListFrame and LFGListFrame.CategorySelection.selectedCategory == 120 then return end
+    if  LFGListFrame and LFGListFrame.CategorySelection.selectedCategory == nil then  
+        LFGListFrame.CategorySelection.selectedCategory = 2
     end
 
     LastUpdateTime = time()
     GBB.LfgRequestList = {}
     
     local category = 2
-    if LFGBrowseFrame and LFGBrowseFrame.CategoryDropDown.selectedValue ~= nil then 
-        category = LFGBrowseFrame.CategoryDropDown.selectedValue
+    if LFGListFrame and LFGListFrame.CategorySelection.selectedCategory ~= nil then 
+        category = LFGListFrame.CategorySelection.selectedCategory
     end
 
 	local activities = C_LFGList.GetAvailableActivities(category)
 	--C_LFGList.Search(category, activities)
-    if LFGBrowseFrame and LFGBrowseFrame.searching then return end
+    if LFGListFrame and LFGListFrame.searching then return end
 
 	GBB.GetLfgList()
     GBB.LfgUpdateList()
 end
 
 function GBB.UpdateLfgToolNoSearch()
-    if LFGBrowseFrame.CategoryDropDown.selectedValue == 120 then return end
-    if  LFGBrowseFrame.CategoryDropDown.selectedValue == nil then  
-        LFGBrowseFrame.CategoryDropDown.selectedValue = 2
+    if LFGListFrame.CategorySelection.selectedCategory == 120 then return end
+    if  LFGListFrame.CategorySelection.selectedCategory == nil then  
+        LFGListFrame.CategorySelection.selectedCategory = 2
     end
 
-if LFGBrowseFrame.searching then return end
+if LFGListFrame and LFGListFrame.searching then return end
 
     GBB.LfgRequestList = {}
     GBB.GetLfgList()
@@ -362,17 +352,18 @@ local function CreateItem(yy,i,doCompact,req,forceHight)
 
 	if req and req.name ~= nil then
 		local prefix
-		if GBB.DB.ColorByClass and req.class and RAID_CLASS_COLORS[req.class].colorStr then
-			prefix="|c"..RAID_CLASS_COLORS[req.class].colorStr
+		if GBB.DB.ColorByClass and req.class and GBB.Tool.ClassColor[req.class].colorStr then
+			prefix="|c"..GBB.Tool.ClassColor[req.class].colorStr
 		else
 			prefix="|r"
 		end
 		local ClassIcon=""
-		if GBB.DB.ShowClassIcon and req.class and GBB.Tool.IconClass[req.class] then
+		if GBB.DB.ShowClassIcon and req.class then
 			if doCompact<1  or GBB.DB.ChatStyle then
-				ClassIcon=GBB.Tool.IconClass[req.class]
+				ClassIcon = GBB.Tool.GetClassIcon(req.class) or ""
+
 			else
-				ClassIcon=GBB.Tool.IconClassBig[req.class]
+				ClassIcon = GBB.Tool.GetClassIcon(req.class, 18) or ""
 			end
 		end
 
@@ -712,7 +703,7 @@ function GBB.LfgRequestShowTooltip(self)
 		if GBB.DB.EnableGroup and GBB.GroupTrans and GBB.GroupTrans[req.name] then
 			local entry=GBB.GroupTrans[req.name]
 
-			GameTooltip:AddLine(GBB.Tool.IconClass[entry.class]..
+			GameTooltip:AddLine((GBB.Tool.GetClassIcon(entry.class) or "")..
 				"|c"..GBB.Tool.ClassColor[entry.class].colorStr ..
 				entry.name)
 			if entry.dungeon then

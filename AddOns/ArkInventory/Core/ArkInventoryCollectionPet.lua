@@ -148,7 +148,7 @@ local ImportCrossRefTable = {
 {26050,{35349,-46425}}, -- Snarly / Snarly's Bucket
 {26056,{35350,-46426}}, -- Chuck / Chuck's Bucket
 {26119,{35504,-46599}}, -- Phoenix Hatchling
-{27217,{37297,-48406}}, -- Spirit of Competition / Gold Medallion
+{27217,{37297,207962,-48406}}, -- Spirit of Competition / Gold Medallion
 {27346,{37298,-48408}}, -- Essence of Competition / Competitor's Souvenir
 {27914,{38050,-49964}}, -- Ethereal Soul-Trader / Soul-Trader Beacon
 {28470,{38628,-51716}}, -- Nether Ray Fry
@@ -949,6 +949,7 @@ local ImportCrossRefTable = {
 {163897,{175114,-318876}}, -- Renny
 {169514,{180034,-329900}}, -- Glimr / Glimr's Cracked Egg
 {170421,{180208,-330997}}, -- PHA7-YNX
+{171025,{190601,-333570}}, -- Sunny
 {171117,{180584,-333794}}, -- Blushing Spiderling
 {171118,{180585,-333795}}, -- Wrathling / Bottled Up Rage
 {171119,{180586,-333796}}, -- Bound Lightspawn / Lightbinders
@@ -1011,10 +1012,10 @@ local ImportCrossRefTable = {
 {172284,{181315,-336311}}, -- Bloodfeaster Spiderling
 {172570,{181555,-337031}}, -- Sinheart
 {172854,{182683,-337694}}, -- Dredger Butler / Butler Contract / Dredger Butler's Contract
-{173502,{180601,-339590}}, -- Stoneskin Dredwing Pup / Stonewing Dredwing Pup
+{173502,{180601,-339590}}, -- Stoneskin Dredwing Pup
 {173508,{182613,-339593}}, -- Lost Quill / Refilling Inkwell
 {173531,{182612,-339668}}, -- The Count / The Count's Pendant
-{173533,{183853,-339670}}, -- Sinfall Screecher
+{173533,{186544,-339670}}, -- Sinfall Screecher
 {173535,{183854,-339671}}, -- Battie / Battie's Pendant
 {173536,{183855,-339674}}, -- Stony / Stony's Infused Ruby
 {173534,{182606,-339677}}, -- Bloodlouse Larva
@@ -1060,7 +1061,7 @@ local ImportCrossRefTable = {
 {175787,{184512,-346260}}, -- Winterleaf Spriggan
 {176662,{184867,-348561}}, -- Squibbles
 {178216,{185919,-351636}}, -- Flawless Amethyst Baubleworm
-{179008,{186188,-353206}}, -- Lil'Abom
+{179008,{186188,-353206}}, -- Lil' Abom
 {179025,{186191,-353230}}, -- Infused Etherwyrm
 {179125,{186556,-353442}}, -- Timeless Mechanical Dragonling
 {179083,{186539,-353450}}, -- Sly
@@ -1120,12 +1121,23 @@ local ImportCrossRefTable = {
 {184196,{189378,-364255}}, -- Shelly / Summon Shelly
 {184197,{189379,-364256}}, -- Viperid Menace / Summon Viperid Menace
 {184186,{189371,-364259}}, -- Archetype of Renewal / Summon Archetype of Renewal
+{184285,{-364451}}, -- Gnomelia Gearheart
 {184923,{189585,-366069}}, -- E'rnee / Summon E'rnee
+{185322,{190173,-366833}}, -- Lil' Maka'jin
+{183686,{190175,-366841}}, -- Pippin
+{185324,{190176,-366842}}, -- Drazka'zet the Wrathful
 {185477,{191039,-367376}}, -- Pocopoc / Pocopoc Traveler
+{183638,{190583,-367696}}, -- Ichabod
 {185586,{190586,-367702}}, -- Lil' Ursoc
+{183708,{190603,-367732}}, -- Egbob
+{185604,{190604,-367748}}, -- Buzzworth
+{185606,{190607,-367768}}, -- Garrlok
+{185611,{190608,-367778}}, -- Crushhoof
+{185621,{190609,-367800}}, -- Watcher of the Huntress
+{185756,{190925,-368314}}, -- Buttercup
 {186844,{193889,191126,-369723}}, -- Jeweled Onyx Whelpling
-{188709,{191915,-371534}}, -- Time-Lost Feral Rabbit
-{188821,{191930,-371594}}, -- Blue Phoenix Hatchling
+{188709,{191915,-371534}}, -- Shaggy
+{188821,{191930,-371594}}, -- Wakyn
 {188849,{191932,-371621}}, -- Violet Violence / Summon Violet Violence
 {188861,{191936,-371636}}, -- Secretive Frogduck / Summon Secretive Frogduck
 {188885,{191941,-371655}}, -- Crystalline Mini-Monster / Summon Crystalline Mini-Monster
@@ -1144,16 +1156,17 @@ local ImportCrossRefTable = {
 {198273,{201262,-374883}}, -- Gale Spirit
 {198480,{201463,-374887}}, -- Cubbly
 {189105,{193225,-374889}}, -- Whiskuk
-{189106,{193235,-374895}}, -- Scarlet Ottuk Pup
+{189106,{193235,-374895}}, -- Luvvy
 {189108,{200519,-374998}}, -- Mister Toots
 {189111,{200173,-375035}}, -- Ghostflame
 {198511,{201707,-375036}}, -- Troubled Tome
 {198543,{201703,-375043}}, -- Pinkie
-{189113,{193363,-375045}}, -- Auburntusk Calf
-{189115,{193364,-375047}}, -- Time-Lost Baby Mammoth
-{189117,{193373,-375084}}, -- Smoldering Phoenix Hatchling
-{189118,{193374,-375085}}, -- Crimson Phoenix Hatchling
-{189119,{193377,-375089}}, -- Time-Lost Phoenix Hatchling
+{189113,{193363,-375045}}, -- Bunbo
+{189115,{193364,-375047}}, -- Scruffles
+{189117,{193373,-375084}}, -- Phoenix Wishwing
+{189118,{193374,-375085}}, -- Ashenwing
+{189119,{193377,-375089}}, -- Gerald
+{207064,{205232,-375090}}, -- Iggy
 {198077,{200927,-375223}}, -- Petal
 {189123,{193429,-375235}}, -- Time-Lost Salamanther
 {189128,{193380,-375242}}, -- Pink Salamanther
@@ -1168,25 +1181,21 @@ local ImportCrossRefTable = {
 {189156,{193834,-375413}}, -- Blackfeather Nester
 {189158,{193835,-375448}}, -- Brightfeather
 {189655,{193837,-375473}}, -- Backswimmer Timbertooth
-{189661,{193850,-375499}}, -- Time-Lost Timbertooth
-{189694,{193853,-375511}}, -- Emerald Frillfish
-{189696,{193851,-375536}}, -- Purple Frillfish
-{191287,{193854,-375553}}, -- Blue Vorquin Foal
+{189661,{193850,-375499}}, -- Buckie
+{189694,{193853,-375511}}, -- Emmah
+{189696,{193851,-375536}}, -- Patos
+{191287,{193854,-375553}}, -- Berylmane
 {191298,{193855,-375567}}, -- Time-Lost Vorquin Foal
-{191435,{193908,-375642}}, -- Sapphire Crystalspine
-{191377,{-375699}}, -- Black Dragon Whelp
-{191379,{-375705}}, -- Blue Dragon Whelp
-{191380,{-375706}}, -- Red Dragon Whelp
+{191435,{193908,-375642}}, -- Kobaldt
 {191381,{198622,-375707}}, -- Spyragos
-{191382,{-375708}}, -- Bronze Dragon Whelp
 {191383,{193886,-375709}}, -- Jeweled Sapphire Whelpling
 {191384,{193885,-375710}}, -- Jeweled Amber Whelpling
 {191385,{193887,-375711}}, -- Jeweled Ruby Whelpling
 {191386,{193888,-375712}}, -- Jeweled Emerald Whelpling
 {191387,{199109,-375713}}, -- Primal Stormling
 {191627,{194098,-376302}}, -- Lord Basilton / Summon Lord Basilton
-{192343,{-377361}}, -- Snowclaw Cub
-{192350,{-377392}}, -- Bugbiter Tortoise
+{192343,{201838,-377361}}, -- Snowclaw Cub
+{192350,{202085,-377392}}, -- Bugbiter Tortoise
 {192363,{-377401}}, -- Diamond Crab
 {192365,{-377407}}, -- Sapphire Crab
 {192366,{-377410}}, -- Truesilver Crab
@@ -1198,7 +1207,7 @@ local ImportCrossRefTable = {
 {189152,{199175,-386575}}, -- Lubbins
 {195896,{199326,-386985}}, -- Chip
 {189101,{199688,-387685}}, -- Bronze Racing Enthusiast
-{196304,{199757,-388085}}, -- Magic Nibbler / Magic Nipper
+{196304,{199757,-388085}}, -- Magic Nibbler
 {196305,{199758,-388086}}, -- Crimson Proto-Whelp
 {196409,{198726,-388268}}, -- Black Skitterbug
 {196666,{200114,-388913}}, -- Stormie
@@ -1208,10 +1217,136 @@ local ImportCrossRefTable = {
 {189132,{200263,-389384}}, -- Echo of the Heights
 {189134,{200276,-389429}}, -- Ohuna Companion
 {189159,{200290,-389503}}, -- Bakar Companion
-{197089,{200479,-389801}}, -- Titan-Touched Elemental
+{197089,{200479,-389801}}, -- Sophic Amalgamation
 {197963,{200872,-392351}}, -- Living Mud Mask
 {197969,{200874,-392380}}, -- Lady Feathersworth
 {198316,{200930,-393330}}, -- Obsidian Proto-Whelp
+{200259,{202255,-398170}}, -- Driftling
+{200769,{202413,-398870}}, -- Vortex / Air Storm Essence
+{200772,{202407,-398871}}, -- Flow / Water Storm Essence
+{200771,{202412,-398872}}, -- Wildfire / Fire Storm Essence
+{200770,{202411,-398873}}, -- Tremblor / Earth Storm Essence
+{202484,{204079,-403072}}, -- Gilded Mechafrog
+{202548,{204183,-403243}}, -- Volatile Self-Driving Toolbox
+{203463,{211271,-406225}}, -- Arfus
+{204036,{204894,-407492}}, -- Roland
+{204217,{205002,-407918}}, -- Blaise
+{204221,{205003,-407921}}, -- Ambre
+{204222,{205004,-407926}}, -- Azure Swoglet
+{204224,{205008,-407930}}, -- Emerald Swoglet
+{204225,{205009,-407932}}, -- Annuna
+{204226,{205010,-407933}}, -- Crimson Swoglet
+{204227,{205011,-407935}}, -- Bronze Swoglet
+{204237,{205013,-407946}}, -- Lettuce
+{204240,{205017,-407955}}, -- Byrn
+{204261,{205018,-408023}}, -- Jade Skitterbug
+{204263,{205021,-408027}}, -- Lord Stantley
+{204266,{205023,-408032}}, -- Savage Lobstrok
+{204268,{205024,-408036}}, -- Cheddar
+{204269,{205026,-408039}}, -- Devourer Lobstrok
+{204271,{205032,-408048}}, -- Bestial Lurker
+{204275,{205035,-408062}}, -- Snapjaw Lurker
+{204276,{205037,-408063}}, -- Void Lurker
+{204286,{205050,-408081}}, -- Paulie
+{204288,{205051,-408088}}, -- Rango
+{204293,{205052,-408100}}, -- Miloh
+{204295,{205053,-408106}}, -- Rusty
+{204296,{205054,-408108}}, -- Amador
+{204303,{205114,-408110}}, -- Brul
+{204305,{205116,-408130}}, -- Jerrie
+{204320,{205118,-408150}}, -- Diamondshell
+{204321,{205119,-408153}}, -- Bashful
+{204323,{205120,-408158}}, -- Thimblerig
+{204324,{205121,-408161}}, -- Tricky
+{204325,{205122,-408163}}, -- Roseshell
+{204326,{205123,-408165}}, -- Brulee
+{204339,{205147,-408251}}, -- Ridged Shalewing
+{204340,{205148,-408252}}, -- Dread Shalewing
+{204341,{205149,-408253}}, -- Ravenous Shalewing
+{204342,{205150,-408254}}, -- Shalewing Devourer
+{204343,{205151,-408257}}, -- Salverun
+{204345,{205152,-408264}}, -- Skaarn
+{204354,{205153,-408265}}, -- Mikah
+{204359,{205154,-408308}}, -- Aquapo
+{204360,{205156,-408311}}, -- Heartseeker Moth
+{204361,{205157,-408314}}, -- Undermoth
+{204363,{205159,-408317}}, -- Teardrop Moth
+{201008,{205160,-408323}}, -- Rithro
+{204367,{205162,-408325}}, -- Nelthara
+{204368,{205164,-408328}}, -- Senega
+{204369,{205165,-408330}}, -- Axel
+{204370,{205166,-408332}}, -- Kromos
+{204621,{205231,-408949}}, -- Roggy
+{205359,{205937,-411110}}, -- Newsy
+{205467,{-411448}}, -- Ysergle
+{205637,{206018,-411791}}, -- Baa'lial / Baa'lial Soulstone
+{205649,{206040,-411800}}, -- Mote of Nasz'uro
+{205795,{206174,-412389}}, -- Blub
+{207176,{206682,-414377}}, -- Rusziona
+{207220,{206758,-414428}}, -- Belastrasza
+{207310,{206763,-414533}}, -- Kabluey
+{207535,{207019,-414934}}, -- Princess Vorquistrasza
+{207552,{206971,-414962}}, -- Zhusadormu
+{207556,{206974,-414973}}, -- Zalethgos
+{207558,{206973,-414979}}, -- Pallibrius
+{207568,{206979,-414991}}, -- Posidriss
+{207571,{206978,-414994}}, -- Somnius
+{208436,{208045,-417464}}, -- Slyvy
+{208624,{208012,-418029}}, -- Briarhorn Hatchling
+{208630,{208009,-418036}}, -- Gill'dan
+{208631,{208010,-418038}}, -- Jeepers
+{208634,{208008,-418039}}, -- Doomrubble
+{208636,{208013,-418041}}, -- Killbot 9000
+{208637,{208011,-418045}}, -- Obsidian Warwhelp
+{208639,{208138,-418050}}, -- N'Ruby
+{208643,{208151,-418079}}, -- Tobias / Tobias' Leash
+{209163,{208446,-419467}}, -- Fyrn
+{209259,{208543,-419773}}, -- Lil' Frostwing
+{209681,{208751,-420759}}, -- Squally
+{210058,{208850,-421516}}, -- Lil' Maggz
+{211939,{210347,-425454}}, -- Sergeant Quackers
+{211942,{210409,-425472}}, -- Aura
+{212192,{210505,-426037}}, -- Reverie
+{212206,{210522,-426060}}, -- Blueloo
+{212267,{210553,-426137}}, -- Dreamborne Scarab
+{212273,{210555,-426148}}, -- Dreamhoof
+{212275,{210556,-426156}}, -- Ivy
+{212315,{210567,-426168}}, -- Memorie
+{212328,{210570,-426187}}, -- Napps
+{212329,{210571,-426193}}, -- Snoozles
+{212399,{210633,-426319}}, -- Kal'andu
+{212408,{210648,-426343}}, -- Seedle
+{212413,{210651,-426355}}, -- Dustite
+{212417,{210652,-426357}}, -- Somnolet
+{212562,{210689,-426539}}, -- Snoots
+{212567,{210690,-426540}}, -- Elmer
+{212569,{210691,-426544}}, -- Spruce
+{212570,{210692,-426545}}, -- Juniper
+{212877,{210777,-427044}}, -- Drowsey
+{212954,{210785,-427104}}, -- Snorr
+{213111,{210870,-427289}}, -- Mitzy
+{213407,{210964,-427682}}, -- Lil' Wrathion
+{214286,{211432,-429423}}, -- Teele
+{216179,{212606,-432486}}, -- Sarge
+{216345,{212700,-432844}}, -- Nelle
+{216379,{212722,-432888}}, -- Buggsy
+{215565,{212786,-433085}}, -- Lovely Duckling
+{216455,{212791,-433098}}, -- Beetriz
+{216930,{213133,-433791}}, -- Reese
+{216933,{213134,-433802}}, -- Hap'he
+{217530,{213556,-434792}}, -- Hoplet
+{218646,{-437600}}, -- Bubbles
+{218647,{-437601}}, -- Glamrok
+{218977,{-438543}}, -- Happy
+{219134,{217043,-438775}}, -- Pokee
+{218060,{-439994}}, -- Fathom / Summon Fathom
+{223316,{223145,-448355}}, -- Marrlok
+{223600,{223339,-449046}}, -- Trishi
+{223645,{223474,-449173}}, -- Worgli the Apprehensive
+{223695,{223499,-449286}}, -- Lil' Manny
+{223785,{221817,-449550}}, -- Muskpaw Calf
+{223810,{221818,-449626}}, -- Astral Emperor's Serpentling
+{225354,{224576,-453266}}, -- Lil' Flameo
 -- end of live
 
 }
@@ -1222,7 +1357,7 @@ function ArkInventory.Collection.Pet.ImportCrossRefTable( )
 	if not ArkInventory.Collection.Pet.IsReady( ) then return end
 	
 	ImportCrossRefTableAttempt = ImportCrossRefTableAttempt + 1
-	--ArkInventory.Output( "attempt ", ImportCrossRefTableAttempt )
+	--ArkInventory.Output( "Pet.ImportCrossRefTable - attempt ", ImportCrossRefTableAttempt )
 	
 	if ImportCrossRefTableAttempt > 8 or ( ArkInventory.Table.Elements( ImportCrossRefTable ) == 0 ) then
 		
@@ -1333,12 +1468,12 @@ local function FilterSetFamily( t )
 			
 		end
 	else
-		assert( false, "parameter is " .. type( t ) .. ", not a table or boolean" )
+		ArkInventory.Util.Error( "t is [", type( t ), "], should be [table] or [boolean]" )
 	end
 end
 
 local function FilterGetFamily( t )
-	assert( type( t ) == "table", "parameter is not a table" )
+	ArkInventory.Util.Assert( type( t ) == "table", "t is [", type( t ), "], should be [table]" )
 	for i = 1, FilterGetFamilyTypes( ) do
 		t[i] = C_PetJournal.IsPetTypeChecked( i )
 	end
@@ -1349,7 +1484,7 @@ local function FilterGetSourceTypes( )
 end
 
 local function FilterGetSource( t )
-	assert( type( t ) == "table", "parameter is not a table" )
+	ArkInventory.Util.Assert( type( t ) == "table", "t is [", type( t ), "], should be [table]" )
 	for i = 1, FilterGetSourceTypes( ) do
 		t[i] = C_PetJournal.IsPetSourceChecked( i )
 	end
@@ -1365,7 +1500,7 @@ local function FilterSetSource( t )
 			C_PetJournal.SetPetSourceChecked( i, t )
 		end
 	else
-		assert( false, "parameter is not a table or boolean" )
+		ArkInventory.Util.Error( "t is [", type( t ), "], should be [table] or [boolean]" )
 	end
 end
 
@@ -1573,7 +1708,7 @@ end
 function ArkInventory.Collection.Pet.IsUsable( arg1 )
 	local obj = ArkInventory.Collection.Pet.GetByID( arg1 )
 	if obj then
-		return ( IsUsableSpell( obj.spell ) )
+		return ( ArkInventory.CrossClient.IsUsableSpell( obj.spell ) )
 	end
 end
 
@@ -1602,6 +1737,10 @@ end
 
 function ArkInventory.Collection.Pet.PetTypeName( arg1 )
 	return _G[string.format( "BATTLE_PET_NAME_%s", arg1 )] or ArkInventory.Localise["UNKNOWN"]
+end
+
+function ArkInventory.Collection.Pet.isOwnedBySpecies( speciesID )
+	return speciesID and collection.species[speciesID] and collection.species[speciesID].isOwned
 end
 
 
@@ -1636,7 +1775,7 @@ local PET_WEAK = { 8, 4, 2, 8, 1, 10, 5, 3, 6, 7 }
 local function ScanAbility( abilityID )
 	
 	if ( not abilityID ) or ( type( abilityID ) ~= "number" ) or ( abilityID <= 0 ) then
-		error( "invalid abilityID" )
+		ArkInventory.Util.Error( "invalid abilityID" )
 		return
 	end
 	
@@ -1661,13 +1800,13 @@ end
 
 local function LinkTrainerSpecies( speciesID )
 	
-	assert( speciesID, "speciesID is nil" )
-	assert( type( speciesID ) == "number", "speciesID not a number" )
-	assert( speciesID > 0, "species ID <= 0 " )
+	ArkInventory.Util.Assert( speciesID, "speciesID is nil" )
+	ArkInventory.Util.Assert( type( speciesID ) == "number", "speciesID is [", type( speciesID ), "], should be [number]" )
+	ArkInventory.Util.Assert( speciesID > 0, "speciesID <= 0 " )
 	
 	
 	local species = collection.species
-	assert( species[speciesID], "speciesID is invalid" )
+	ArkInventory.Util.Assert( species[speciesID], "speciesID [", speciesID, "] is invalid" )
 	
 	species[speciesID].isTrainer = true
 	species[speciesID].td = { }
@@ -1679,7 +1818,7 @@ local function LinkTrainerSpecies( speciesID )
 	
 	
 	if not collection.isTrainerDataLoaded then
-		--ArkInventory.Output2( "linking saved trainer species data into cache" )
+		--ArkInventory.OutputDebug( "linking saved trainer species data into cache" )
 		collection.trainer = ArkInventory.db.cache.trainerspecies
 		local c = 0
 		for k, v in pairs( collection.trainer ) do
@@ -1688,7 +1827,7 @@ local function LinkTrainerSpecies( speciesID )
 				species[k] = v
 			end
 		end
-		--ArkInventory.Output2( c, " trainer species entries were linked" )
+		--ArkInventory.OutputDebug( c, " trainer species entries were linked" )
 		collection.isTrainerDataLoaded = true
 	end
 	
@@ -1700,7 +1839,7 @@ local function LinkTrainerSpecies( speciesID )
 	-- add the trainer data back
 	trainer[speciesID].td = td or { }
 	
-	--ArkInventory.Output2( "linked species ", speciesID, " to trainer species" )
+	--ArkInventory.OutputDebug( "linked species ", speciesID, " to trainer species" )
 	
 end
 
@@ -1709,9 +1848,9 @@ local function ScanSpecies( speciesID, foundAfter )
 	if speciesID and type( speciesID ) == "number" and speciesID > 0 then
 		-- good to go
 	else
-		--assert( speciesID, "speciesID is nil" )
-		--assert( type( speciesID ) == "number", "speciesID not a number" )
-		--assert( speciesID > 0, "species ID <= 0 " )
+		--ArkInventory.Util.Assert( speciesID, "speciesID is nil" )
+		--ArkInventory.Util.Assert( type( speciesID ) == "number", "speciesID not a number" )
+		--ArkInventory.Util.Assert( speciesID > 0, "species ID <= 0 " )
 		return
 	end
 	
@@ -1721,6 +1860,10 @@ local function ScanSpecies( speciesID, foundAfter )
 		
 		local name, icon, petType, creatureID, sourceText, description, isWild, canBattle, isTradable, unique, obtainable, displayID = C_PetJournal.GetPetInfoBySpeciesID( speciesID )
 		
+--		if name == "Turquoise Baubleworm" then
+--			ArkInventory.Output( "species [", speciesID, "] = [", name, "] unique [", unique, "]" )
+--		end
+				
 --		if name and ( name ~= "" ) then
 			
 			species[speciesID] = {
@@ -1803,10 +1946,25 @@ local function Scan_Threaded( thread_id )
 	for index = 1, C_PetJournal.GetNumPets( ) do
 		
 		if PetJournal:IsVisible( ) then
-			--ArkInventory.Output( "ABORTED (PET JOURNAL WAS OPENED)" )
+			ArkInventory.OutputDebug( "PET: ABORTED (PET JOURNAL WAS OPENED)" )
 			FilterActionRestore( )
 			return
 		end
+		
+		if ArkInventory.Global.Mode.Combat then
+			ArkInventory.OutputDebug( "PET: ABORTED (ENTERED COMBAT)" )
+			ArkInventory.Global.ScanAfterCombat[loc_id] = true
+			FilterActionRestore( )
+			return
+		end
+		
+		if ArkInventory.Global.Mode.DragonRace then
+			ArkInventory.OutputDebug( "PET: ABORTED (DRAGON RACE)" )
+			ArkInventory.Global.ScanAfterDragonRace[loc_id] = true
+			FilterActionRestore( )
+			return
+		end
+		
 		
 		numTotal = numTotal + 1
 		YieldCount = YieldCount + 1
@@ -1841,9 +1999,11 @@ local function Scan_Threaded( thread_id )
 			--local link = ArkInventory.BattlepetBaseHyperlink( speciesID, level, quality, health, power, speed, customName, petID )
 			local link = C_PetJournal.GetBattlePetLink( petID )
 			
+			collection.species[speciesID].isOwned = true
+			--sd.isOwned = true
 			
 			if not canBattle then
-				--ArkInventory.Output2( petName, " / ", health, " / ", maxHealth )
+				--ArkInventory.OutputDebug( petName, " / ", health, " / ", maxHealth )
 			end
 			
 			numOwned = numOwned + 1
@@ -1953,15 +2113,12 @@ local function Scan_Threaded( thread_id )
 	
 	--ArkInventory.Output( "Pets: End Scan @ ", time( ), " [", collection.numOwned, "] [", collection.numTotal, "]  [", update, "]" )
 	
-	if not collection.isReady then
-		collection.isReady = true
-		--ArkInventory.Output2( "pet data is now ready" )
-	end
+	collection.isReady = true
 	
 	ArkInventory.Collection.Pet.ImportCrossRefTable( )
 	
 	if update then
-		ArkInventory.ScanLocation( loc_id )
+		ArkInventory.ScanLocationWindow( loc_id )
 --		ArkInventory:SendMessage( "EVENT_ARKINV_LDB_PET_UPDATE_BUCKET" )
 	end
 	
@@ -1971,20 +2128,11 @@ local function Scan( )
 	
 	local thread_id = string.format( ArkInventory.Global.Thread.Format.Collection, "pet" )
 	
-	if not ArkInventory.Global.Thread.Use then
-		local tz = debugprofilestop( )
-		ArkInventory.OutputThread( thread_id, " start" )
-		Scan_Threaded( )
-		tz = debugprofilestop( ) - tz
-		ArkInventory.OutputThread( string.format( "%s took %0.0fms", thread_id, tz ) )
-		return
-	end
-	
-	local tf = function ( )
+	local thread_func = function( )
 		Scan_Threaded( thread_id )
 	end
 	
-	ArkInventory.ThreadStart( thread_id, tf )
+	ArkInventory.ThreadStart( thread_id, thread_func )
 	
 end
 
@@ -1995,12 +2143,6 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET( events )
 	
 	if not ArkInventory:IsEnabled( ) then return end
 	
-	if ArkInventory.Global.Mode.Combat then
-		-- set to scan when leaving combat
-		ArkInventory.Global.ScanAfterCombat[loc_id] = true
-		return
-	end
-	
 	if not ArkInventory.isLocationMonitored( loc_id ) then
 		--ArkInventory.Output( "IGNORED (PETS NOT MONITORED)" )
 		return
@@ -2010,6 +2152,17 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_PET_UPDATE_BUCKET( events )
 		--ArkInventory.Output( "IGNORED (PET JOURNAL IS OPEN)" )
 		return
 	end
+	
+	if ArkInventory.Global.Mode.Combat then
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
+		return
+	end
+	
+	if ArkInventory.Global.Mode.DragonRace then
+		ArkInventory.Global.ScanAfterDragonRace[loc_id] = true
+		return
+	end
+	
 	
 	if not collection.isScanning then
 		collection.isScanning = true
@@ -2123,7 +2276,7 @@ function ArkInventory:EVENT_ARKINV_BATTLEPET_OPENING_DONE( event, ... )
 			
 			if C_PetBattles.IsWildBattle( ) then
 				
-				--ArkInventory.Output2( "wild battle" )
+				--ArkInventory.OutputDebug( "wild battle" )
 				
 				if sd.isTrainer then
 					-- elite/legendary, dont add anything
@@ -2199,7 +2352,7 @@ function ArkInventory:EVENT_ARKINV_BATTLEPET_OPENING_DONE( event, ... )
 			--ArkInventory.Output( YELLOW_FONT_COLOR_CODE, ArkInventory.Localise["BATTLEPET"], " #", i, ": ", h, " ", YELLOW_FONT_COLOR_CODE, info )
 			
 		end
-		--ArkInventory.Output2( { speciesID, level, quality, maxHealth, power, speed, "", name } )
+		--ArkInventory.OutputDebug( { speciesID, level, quality, maxHealth, power, speed, "", name } )
 		
 		if ArkInventory.db.option.message.battlepet.opponent then
 			local h = string.format( "%s|Hbattlepet:%s:%s:%s:%s:%s:%s:%s|h[%s]|h|r", select( 5, ArkInventory.GetItemQualityColor( quality ) ), speciesID, level, quality, maxHealth, power, speed, "", name )

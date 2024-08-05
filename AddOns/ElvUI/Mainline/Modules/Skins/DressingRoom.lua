@@ -41,9 +41,27 @@ local function DressUpConfigureSize(frame, isMinimized)
 	frame.OutfitDetailsPanel:ClearAllPoints()
 	frame.OutfitDetailsPanel:Point('TOPLEFT', frame, 'TOPRIGHT', 4, 0)
 
-	frame.OutfitDropDown:ClearAllPoints()
-	frame.OutfitDropDown:Point('TOP', -(isMinimized and 42 or 28), -32)
-	frame.OutfitDropDown:Width(isMinimized and 140 or 190)
+	frame.OutfitDropdown:ClearAllPoints()
+	frame.OutfitDropdown:Point('TOP', -(isMinimized and 42 or 28), -32)
+	frame.OutfitDropdown:Width(isMinimized and 140 or 190)
+end
+
+local function HandleSetButtons(button)
+	if button.IsSkinned then return end
+
+	S:HandleIcon(button.Icon, true)
+	S:HandleIconBorder(button.IconBorder, button.Icon.backdrop)
+	button.BackgroundTexture:SetAlpha(0)
+	button.SelectedTexture:SetColorTexture(1, .8, 0, .25)
+	button.HighlightTexture:SetColorTexture(1, 1, 1, .25)
+
+	button.IsSkinned = true
+end
+
+local function SetSelection_Update(box)
+	if box then
+		box:ForEachFrame(HandleSetButtons)
+	end
 end
 
 function S:DressUpFrame()
@@ -59,6 +77,15 @@ function S:DressUpFrame()
 	S:HandleButton(DressUpFrame.ToggleOutfitDetailsButton)
 	SetToggleIcon(DressUpFrame.ToggleOutfitDetailsButton, 1392954)
 
+	local SetSelection = DressUpFrame.SetSelectionPanel
+	if SetSelection then
+		SetSelection:StripTextures()
+		SetSelection:SetTemplate('Transparent')
+		S:HandleTrimScrollBar(SetSelection.ScrollBar)
+
+		hooksecurefunc(SetSelection.ScrollBox, 'Update', SetSelection_Update)
+	end
+
 	DressUpFrame.ModelBackground:SetDrawLayer('BACKGROUND', 1)
 	DressUpFrame.LinkButton:Size(110, 22)
 	DressUpFrame.LinkButton:ClearAllPoints()
@@ -67,27 +94,18 @@ function S:DressUpFrame()
 	_G.DressUpFrameCancelButton:Point('BOTTOMRIGHT', -4, 4)
 	_G.DressUpFrameResetButton:Point('RIGHT', _G.DressUpFrameCancelButton, 'LEFT', -3, 0)
 
-	local OutfitDropDown = DressUpFrame.OutfitDropDown
+	local OutfitDropDown = DressUpFrame.OutfitDropdown
 	S:HandleDropDownBox(OutfitDropDown)
 	S:HandleButton(OutfitDropDown.SaveButton)
-	OutfitDropDown.SaveButton:Size(80, 22)
-	OutfitDropDown.SaveButton:Point('LEFT', OutfitDropDown, 'RIGHT', -7, 3)
-	OutfitDropDown.Text:ClearAllPoints()
-	OutfitDropDown.Text:Point('LEFT', OutfitDropDown.backdrop, 4, 0)
-	OutfitDropDown.Text:Point('RIGHT', OutfitDropDown.backdrop, -4, 0)
-	OutfitDropDown.backdrop:Point('TOPLEFT', 3, 3)
 
-	-- 9.1.5 Outfit DetailPanel | Dont use StripTextures on the DetailsPanel, plx
+	-- Dont use StripTextures on the DetailsPanel, plx
 	DressUpFrame.OutfitDetailsPanel:DisableDrawLayer('BACKGROUND')
 	DressUpFrame.OutfitDetailsPanel:DisableDrawLayer('OVERLAY') -- to keep Artwork on the frame
 	DressUpFrame.OutfitDetailsPanel:CreateBackdrop('Transparent')
-	--DressUpFrame.OutfitDetailsPanel.ClassBackground:SetAllPoints()
+	DressUpFrame.OutfitDetailsPanel.ClassBackground:SetAllPoints()
+
 	hooksecurefunc(DressUpFrame.OutfitDetailsPanel, 'Refresh', DetailsPanelRefresh)
 	hooksecurefunc(DressUpFrame, 'ConfigureSize', DressUpConfigureSize)
-
-	local WardrobeOutfitFrame = _G.WardrobeOutfitFrame
-	WardrobeOutfitFrame:StripTextures(true)
-	WardrobeOutfitFrame:SetTemplate('Transparent')
 
 	local WardrobeOutfitEditFrame = _G.WardrobeOutfitEditFrame
 	WardrobeOutfitEditFrame:StripTextures(true)

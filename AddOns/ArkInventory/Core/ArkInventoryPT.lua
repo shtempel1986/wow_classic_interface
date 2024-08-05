@@ -1,4 +1,4 @@
-
+﻿
 ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	
 	-- class (its in CAPS as thats what the blizzard function returns)
@@ -31,37 +31,48 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Item Enhancement.New"] = "",
 	["ArkInventory.System.Item Enhancement.PTBase"] = "",
 	
-	["ArkInventory.System.Equipment.Cosmetic.Dragonflight"] = "198776,208831",
-	["ArkInventory.System.Equipment.Cosmetic.Other"] = "6833,6835,13544,34086,34087,44731,45067,186515",
+	["ArkInventory.System.Equipment.Cosmetic.Remix.Pandaria"] = "217829,217843",
+	["ArkInventory.System.Equipment.Cosmetic.Shadowlands"] = "187082,187083",
+	["ArkInventory.System.Equipment.Cosmetic.Event.Noblegarden"] = "6833,6835,45067",
+	["ArkInventory.System.Equipment.Cosmetic.Event.Winter Veil"] = "34086,34087",
+	["ArkInventory.System.Equipment.Cosmetic.Event.Love is in the Air"] = "44731",
+	["ArkInventory.System.Equipment.Cosmetic.Other"] = "",
 	
-	["ArkInventory.System.Pet.Parts.Salverun"] = "206009,206010,206011,206012,206013,206014,206015,206016,206017,206021",
-	["ArkInventory.System.Pet.Parts.Bugbiter Tortoise"] = "202082,202084",
-	["ArkInventory.System.Pet.Parts.Chip"] = "198082,198357,199219",
-	["ArkInventory.System.Pet.Parts.Lil Abom"] = "186183,186184,186185,186186,186187",
-	["ArkInventory.System.Pet.Parts.Ruby Baubleworm"] = "36812,62072,67410",
-	["ArkInventory.System.Pet.Parts.Topaz Baubleworm"] = "11406,11944,25402",
-	["ArkInventory.System.Pet.Parts.Turquoise Baubleworm"] = "3300,3670,6150",
+	-- <itemID>:<speciesID> - only set for unique pets
+	["ArkInventory.System.Pet.Parts.Salverun"] = "206009:3545,206010:3545,206011:3545,206012:3545,206013:3545,206014:3545,206015:3545,206016:3545,206017:3545,206021:3545",
+	["ArkInventory.System.Pet.Parts.Bugbiter Tortoise"] = "202082,202084", -- 3360
+	["ArkInventory.System.Pet.Parts.Chip"] = "198082:386985,198357:386985,199219:386985", -- 3376
+	["ArkInventory.System.Pet.Parts.Lil Abom"] = "186183,186184,186185,186186,186187", -- 3098
+	["ArkInventory.System.Pet.Parts.Ruby Baubleworm"] = "36812,62072,67410", -- 3104
+	["ArkInventory.System.Pet.Parts.Topaz Baubleworm"] = "11406,11944,25402", -- 3106
+	["ArkInventory.System.Pet.Parts.Turquoise Baubleworm"] = "3300,3670,6150", -- 3105
+	
 	["ArkInventory.System.Pet.New"] = "127751,175141,180368,187431,187508",
 	["ArkInventory.System.Pet.PTBase"] = "m,Misc.Minipet,ArkInventory.Consumable.Pet",
 	
-	["ArkInventory.System.Mount.Parts.Mimiron's Jumpjets"] = "208984,209781,209055",
-	["ArkInventory.System.Mount.Parts.Gooey Snailemental"] = "204352",
-	["ArkInventory.System.Mount.Parts.Ochre Dreamtalon"] = "210457,209416,208644,208646,208647",
-	["ArkInventory.System.Mount.Parts.Mossy Mammoth"] = "204360,204363,204364,204366,204367,204369,204371,204372,204374,204375",
-	["ArkInventory.System.Mount.Parts.Renewed Magmammoth"] = "209419",
-	["ArkInventory.System.Mount.Parts.Ivory Traders Ottuk"] = "193633,193696,193708",
-	["ArkInventory.System.Mount.Parts.Otto"] = "202061,202066,202068,202069,202072,202073,202074",
-	["ArkInventory.System.Mount.Parts.Lizi"] = "192615,192636,192658",
-	["ArkInventory.System.Mount.Parts.Divine Kiss of Ohnahra"] = "191506,201323,201929",
-	["ArkInventory.System.Mount.Parts.Magmammoth Harness"] = "201839,201840",
-	["ArkInventory.System.Mount.Parts.Nilganihmaht.Stoned"] = "186603,186600,186601,186602,186604",
-	["ArkInventory.System.Mount.Parts.Nilganihmaht.Runed"] = "186605",
-	["ArkInventory.System.Mount.Parts.Nilganihmaht.Signet"] = "186606,182329,182326,182327,182328",
-	["ArkInventory.System.Mount.Parts.Nilganihmaht.Silver"] = "186607,186727",
-	["ArkInventory.System.Mount.Parts.Nilganihmaht.Gold"] = "186608",
-	["ArkInventory.System.Mount.Parts.BoundShadehound.Stygia"] = "185617,185618",
+	-- <itemID>:<spellID>
+	["ArkInventory.System.Mount.Parts.Mimiron's Jumpjets"] = "208984:424082,209781:424082,209055:424082",
+	["ArkInventory.System.Mount.Parts.Gooey Snailemental"] = "204352:374157",
+	["ArkInventory.System.Mount.Parts.Ochre Dreamtalon"] = "210457:427041,209416:427041,208644:427041,208646:427041,208647:427041",
+	["ArkInventory.System.Mount.Parts.Mossy Mammoth"] = "204360:374194,204363:374194,204364:374194,204366:374194,204367:374194,204369:374194,204371:374194,204372:374194,204374:374194,204375:374194",
+	["ArkInventory.System.Mount.Parts.Renewed Magmammoth"] = "209419:374278",
+	["ArkInventory.System.Mount.Parts.Ivory Traders Ottuk"] = "193633:376879,193696:376879,193708:376879",
+	["ArkInventory.System.Mount.Parts.Otto"] = "202061:376873,202066:376873,202068:376873,202069:376873,202072:376873,202073:376873,202074:376873",
+	["ArkInventory.System.Mount.Parts.Lizi"] = "192615:374247,192636:374247,192658:374247",
+	["ArkInventory.System.Mount.Parts.Divine Kiss of Ohnahra"] = "191506:359408,201323:359408,201929:359408",
+	["ArkInventory.System.Mount.Parts.Loyal Harness"] = "201839:373859,201840:373859",
+	["ArkInventory.System.Mount.Parts.Hand of Nilganihmaht.Stoned"] = "186603,186600,186601,186602,186604",
+	["ArkInventory.System.Mount.Parts.Hand of Nilganihmaht.Runed"] = "186605",
+	["ArkInventory.System.Mount.Parts.Hand of Nilganihmaht.Signet"] = "186606,182329,182326,182327,182328",
+	["ArkInventory.System.Mount.Parts.Hand of Nilganihmaht.Silver"] = "186607,186727",
+	["ArkInventory.System.Mount.Parts.Hand of Nilganihmaht.Gold"] = "186608",
+	["ArkInventory.System.Mount.Parts.Bound Shadehound"] = "184168:344577,184870:344577,185056:344577,185350:344577,185351:344577,185352:344577,185353:344577,185471:344577,185473:344577,185474:344577,185475:344577,185617:344577,185618:344577,185632:344577",
+	
 	["ArkInventory.System.Mount.Parts.Zandalari Ground Mount"] = "157779,157780,157781",
 	["ArkInventory.System.Mount.Parts.Impressionable Gorger Spawn"] = "173939",
+	["ArkInventory.System.Mount.Parts.Primal Raptor"] = "94295,94296", -- red / black / green
+	
+	["ArkInventory.System.Mount.Temporary.Pandaria"] = "89770",
 	["ArkInventory.System.Mount.New"] = "86547,174927,187153",
 	["ArkInventory.System.Mount.Other"] = "21213,187054,203708",
 	["ArkInventory.System.Mount.PTBase"] = "m,Misc.Mount",
@@ -97,14 +108,14 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Quest.Start.PTBase"] = "m,Misc.Usable.StartsQuest",
 	["ArkInventory.System.Quest.PTBase"] = "m,Misc.QuestMats",
 	
-	["ArkInventory.System.Toy.Dragonflight"] = "204405",
+	["ArkInventory.System.Toy.Dragonflight"] = "200201,200944,204405",
 	["ArkInventory.System.Toy.Shadowlands"] = "179295,179977,179982,180062,184719,190738",
 	["ArkInventory.System.Toy.BFA"] = "141652,153023,153189,163743,167077,168222,174875",
 	["ArkInventory.System.Toy.Legion"] = "113575,131744,138111,140493,153071,153127,153226",
 	["ArkInventory.System.Toy.Draenor"] = "116114,127770,128502,128503",
-	["ArkInventory.System.Toy.Pandaria"] = "89124,89770",
-	["ArkInventory.System.Toy.Classic"] = "20402,21175",
-	["ArkInventory.System.Toy.Other"] = "21745,27944,37863,64402,86577,89373,104328,113545,117398,119151,127865,127867,127869,127870,128320,132172,138115,139632,162000,167893,170170",
+	["ArkInventory.System.Toy.Pandaria"] = "89124,104304,104328",
+	["ArkInventory.System.Toy.Classic"] = "13544,20402,21175",
+	["ArkInventory.System.Toy.Other"] = "21745,27944,37863,64402,86577,89373,113545,117398,119151,127865,127867,127869,127870,128320,132172,138115,139632,162000,167893,170170",
 	
 	["ArkInventory.System.Junk.Quest.Dragonflight"] = "200295,200587,200593,200594,200595,200596,204873,208619,208649,210049,210255,210346,210737",
 	["ArkInventory.System.Junk.Quest.Shadowlands"] = "185636,185918",
@@ -121,17 +132,34 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	
 	
 	-- used for both item to currency mappings (itemid:currencyid), and just knowing what items are currencies
-	["ArkInventory.System.Currency.Dragonflight.Mysterious Fragments"] = "205223:2657,212687:2657,212762:2657,212769:2657,212773:2657,212976:2657,212977:2657,212978:2657,213020:2657,213023:2657,213024:2657,213025:2657,213192:2657,213204:2657,213208:2657,213215:2657,213357:2657,213382:2657,213389:2657,213536:2657", 
-	["ArkInventory.System.Currency.Dragonflight.Paracausal Flakes"] = "208945:2594",
-	["ArkInventory.System.Currency.Dragonflight.Flightstones"] = "210180:2245",
-	["ArkInventory.System.Currency.Dragonflight.Whelplings Dreaming Crests"] = "210917:2706",
+	["ArkInventory.System.Currency.Timerunning.Pandaria.Bronze"] = "224461",
+	
+	["ArkInventory.System.Currency.Dragonflight.Bullion"] = "213089",
+	["ArkInventory.System.Currency.Dragonflight.Void-Touched Curio"] = "206046",
+	["ArkInventory.System.Currency.Dragonflight.Plunderstorm"] = "217397", 
+	["ArkInventory.System.Currency.Dragonflight.Mysterious Fragments"] = "205223:2657,212687:2657,212762:2657,212769:2657,212773:2657,212976:2657,212977:2657,212978:2657,213020:2657,213022:2657,213023:2657,213024:2657,213025:2657,213192:2657,213204:2657,213208:2657,213215:2657,213357:2657,213365:2657,213382:2657,213389:2657,213536:2657",
+	["ArkInventory.System.Currency.Dragonflight.Time Rifts.Paracausal Flakes"] = "208945:2594,208951:2594",
+	["ArkInventory.System.Currency.Dragonflight.Time Rifts.Dilated"] = "207030,209856,224298",
+	["ArkInventory.System.Currency.Dragonflight.Flightstones"] = "210180:2245,212458:2245,217411:2245",
+	["ArkInventory.System.Currency.Dragonflight.Crest.Awakened.Whelpling"] = "211951:2806,217420:2806", --:2805 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Awakened.Drake"] = "210756:2807,211952:2807,212384:2807", --:2808 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Awakened.Wyrm"] = "211950:2809,212367:2809", --:2810 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Awakened.Aspect"] = "212383:2812", --:2811 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Dreaming.Whelpling"] = "210917:2706,213541:2706,220204:2706", --:2715 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Dreaming.Drake"] = "210756:2707,210770:2707,217419:2707,220205:2707,220206:2707", --:2716 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Dreaming.Wyrm"] = "210762:2708,210923:2708,220203:2708,220207:2708", --:2717 
+	["ArkInventory.System.Currency.Dragonflight.Crest.Dreaming.Aspect"] = "210768:2709,220208:2709", --:2718 
 	["ArkInventory.System.Currency.Dragonflight.Loamm Niffen"] = "204727,204985,205188,205982",
 	["ArkInventory.System.Currency.Dragonflight.Zaralek Cavern"] = "204715",
 	["ArkInventory.System.Currency.Dragonflight.Zskera Vault"] = "203701",
 	["ArkInventory.System.Currency.Dragonflight.Supplies"] = "200222:2003,200553:2003,200692:2003,200695:2003",
 	["ArkInventory.System.Currency.Dragonflight.Maruuk Centaur"] = "194562",
 	["ArkInventory.System.Currency.Dragonflight.Swog"] = "199338,199339,199340",
-	["ArkInventory.System.Currency.Dragonflight.Other"] = "202039,204276,207026,207030,208951,209837,209856,210254,210770,211376",
+	["ArkInventory.System.Currency.Dragonflight.Primal Storm"] = "202039,204276",
+	["ArkInventory.System.Currency.Dragonflight.Dreamsurge"] = "207026,210254,224297",
+	["ArkInventory.System.Currency.Dragonflight.Tier.Season 3"] = "210947,207235",
+	["ArkInventory.System.Currency.Dragonflight.Other"] = "209837,210770,211376,217242,217243",
+	
 	["ArkInventory.System.Currency.Shadowlands.Anima"] = "181368:1813,181377:1813,181477:1813,181478:1813,181479:1813,181540:1813,181541:1813,181544:1813,181545:1813,181546:1813,181547:1813,181548:1813,181549:1813,181550:1813,181551:1813,181552:1813,181642:1813,181643:1813,181644:1813,181645:1813,181646:1813,181647:1813,181648:1813,181649:1813,181650:1813,183723:1813,183727:1813,181743:1813,181744:1813,181745:1813,183964:1813,184146:1813,184147:1813,184148:1813,184149:1813,184150:1813,184151:1813,184152:1813,184286:1813,184293:1813,184294:1813,184305:1813,184306:1813,184307:1813,184315:1813,184360:1813,184362:1813,184363:1813,184371:1813,184373:1813,184374:1813,184378:1813,184379:1813,184380:1813,184381:1813,184382:1813,184383:1813,184384:1813,184385:1813,184386:1813,184387:1813,184388:1813,184389:1813,184519:1813,184763:1813,184764:1813,184765:1813,184766:1813,184767:1813,184768:1813,184769:1813,184770:1813,184771:1813,184772:1813,184773:1813,184774:1813,184775:1813,184776:1813,184777:1813,186200:1813,186201:1813,186202:1813,186204:1813,186205:1813,186206:1813,187175:1813,187347:1813,187349:1813,188198:1813",
 	["ArkInventory.System.Currency.Shadowlands.Stygia"] = "178040:1767,187351:1767",
 	["ArkInventory.System.Currency.Shadowlands.Other"] = "184304,190189",
@@ -154,6 +182,10 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.Currency.Event.Lunar Festival"] = "21100",
 	["ArkInventory.System.Currency.Event.Darkmoon Faire"] = "71083",
 	["ArkInventory.System.Currency.Other"] = "22523:InsigniaOfTheDawn,122618:MisprintedDraenicCoin",
+	
+	-- openable items
+	["ArkInventory.System.Openable.Timerunning.Pandaria"] = "m,ArkInventory.Timerunning.Pandaria.Asynchronized Gems,ArkInventory.Timerunning.Pandaria.Infinite Treasure,ArkInventory.Timerunning.Pandaria.Bronze Cache,ArkInventory.Timerunning.Pandaria.Threads",
+	
 	
 	-- uncut gems
 	["ArkInventory.Mat.ByType.Gems.Shadowlands"] = "173109,173110,173108",
@@ -285,7 +317,8 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Explosives"] = "m,Misc.Explosives.Engineering,Misc.Explosives.Other",
 	["ArkInventory.Consumable.Explosives and Devices"] = "m,ArkInventory.Consumable.Explosives,ArkInventory.Consumable.Devices",
 	
-	["ArkInventory.Consumable.Treasure.Dragonflight"] = "191294,191304,194540,198843,198852,198854,199061,199062,199065,199066,199067,199068,200738",
+	["ArkInventory.Consumable.Treasure.Dragonflight.Other"] = "191294,191304,194540,198843,198852,198854,199061,199062,199065,199066,199067,199068,200738",
+	["ArkInventory.Consumable.Treasure.Dragonflight.Forbidden Reach.Scrolls"] = "202667,202668,202669,202670",
 	
 	["ArkInventory.Consumable.Pet.Stone.Quality.All"] = "92742,98715,137627",
 	["ArkInventory.Consumable.Pet.Stone.Quality.Aquatic"] = "92679,137391",
@@ -315,25 +348,24 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Pet.Size"] = "71153:200,89906:50",
 	["ArkInventory.Consumable.Pet.XP"] = "98112:25,98114:50",
 	["ArkInventory.Consumable.Pet.Costume.Pocopoc"] = "187833,189451,189707,189709,189710,189712,189713,189714,189715,189716,189717,189718,189708,189711,190058,190059,190060,190061,190062,190096,190098,190182",
-	["ArkInventory.Consumable.Pet.Costume.Pepe"] = "127865,127867,127869,127870,161443,161451,170151,186473,186524,186580,186593",
+	["ArkInventory.Consumable.Pet.Costume.Pepe"] = "127865,127867,127869,127870,161443,161451,170151,186473,186524,186580,186593,213181,213207",
 	["ArkInventory.Consumable.Pet.Costume.Perky Pug"] = "103786,103789,103795,103797,116172,116810,116811,116812,128650,184505",
 	["ArkInventory.Consumable.Pet.Currency"] = "116415,163036",
 	["ArkInventory.Consumable.Pet.Toy"] = "37431,43352,43626,118054",
 	
-	["ArkInventory.Consumable.Reputation.Dragonflight.Dream Wardens"] = "210421:1883,210730:1883,210757:1883,210847:1883,210921:1883,210950:1883,210951:1883,210952:1883,210954:1883,210957:1883,210958:1883,210959:1883,210997:1883,211353:1883,211366:1883,211369:1883,211370:1883,211371:1883,211372:1883,211374:1883,211377:1883,211379:1883,211380:1883,211416:1883,211417:1883",
+	["ArkInventory.Consumable.Reputation.Dragonflight.Dream Wardens"] = "210421:1883,210730:1883,210757:1883,210847:1883,210920:1883,210921:1883,210950:1883,210951:1883,210952:1883,210954:1883,210957:1883,210958:1883,210959:1883,210997:1883,211353:1883,211366:1883,211369:1883,211370:1883,211371:1883,211372:1883,211374:1883,211377:1883,211379:1883,211380:1883,211416:1883,211417:1883",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Soridormi"] = "208952:2553",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Loamm Niffen"] = "205249:2564,205250:2564,205251:2564,205253:2564,205342:2564,205365:2564,205985:2564,205989:2564,205991:2564",
-	["ArkInventory.Consumable.Reputation.Dragonflight.Dragonscale Expedition"] = "192055:2507,200285:2507,200443:2507,201782:2507,201921:2507,202871:2507,205254:2507",
+	["ArkInventory.Consumable.Reputation.Dragonflight.Dragonscale Expedition"] = "192055:2507,200285:2507,200443:2507,200452:2507,201411:2507,201782:2507,201921:2507,202871:2507,205254:2507",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Iskaara Tuskaar"] = "200071:2511,200287:2511,200449:2511,200453:2511,201783:2511,201922:2511,202854:2511",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Maruuk Centaur"] = "200093:2503,200288:2503,200447:2503,200454:2503,201923:2503,202872:2503",
 --	["ArkInventory.Consumable.Reputation.Dragonflight.Winterpelt Furbolg"] = ":2526",
-	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Valdrakken Accord"] = "199906:2510,200289:2510,200450:2510,201781:2510,201924:2510,202870:2510",
+	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Valdrakken Accord"] = "199906:2510,200289:2510,200450:2510,200455:2510,201781:2510,201924:2510,202870:2510",
 --	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Artisans Consortium"] = ":2544",
 --	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Cobalt Assembly"] = ":2550",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Black Dragonflight"] = "191251,191264,193201,201991",
 	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Sabellian"] = "200224:2518",
 --	["ArkInventory.Consumable.Reputation.Dragonflight.Valdrakken Accord.Wrathion"] = ":2517",
-	
 	["ArkInventory.Consumable.Reputation.Shadowlands.The Enlightened"] = "190339:2478,190941:2478",
 	["ArkInventory.Consumable.Reputation.Shadowlands.The Archivists Codex"] = "186685:2472,187311:2472,187322:2472,187323:2472,187324:2472,187325:2472,187326:2472,187327:2472,187328:2472,187329:2472,187330:2472,187331:2472,187332:2472,187333:2472,187334:2472,187335:2472,187336:2472,187350:2472,187457:2472,187458:2472,187459:2472,187460:8,187462:2472,187463:2472,187465:2472,187466:2472,187467:2472,187478:2472",
 	["ArkInventory.Consumable.Reputation.Shadowlands.The Wild Hunt"] = "184122:2465",
@@ -342,6 +374,8 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Reputation.Shadowlands.The Undying Army"] = "184124:2410",
 	["ArkInventory.Consumable.Reputation.Shadowlands.The Avowed"] = "172996:2439,172997:2439,172998:2439,172999:2439,173000:2349,173001:2439,173005:2349,173006:2439,173007:2439,180451:2439",
 	["ArkInventory.Consumable.Reputation.Shadowlands.Other"] = "184120",
+	["ArkInventory.Consumable.Reputation.BFA.Rajani"] = "173374:2415,173375:2415",
+	["ArkInventory.Consumable.Reputation.BFA.Rustbolt Resistance"] = "168497:2391,208134:2391",
 	["ArkInventory.Consumable.Reputation.BFA.Other"] = "",
 	["ArkInventory.Consumable.Reputation.Legion.Argussian Reach"] = "152959:2170,152960:2170,152961:2170,152954:2170",
 	["ArkInventory.Consumable.Reputation.Legion.Armies of Legionfall"] = "146949:2045,146950:2045,147727:2045,152464:2045",
@@ -366,7 +400,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Reputation.Pandaria.Golden Lotus"] = "90815:1269,90816:1269,94227:1269",
 	["ArkInventory.Consumable.Reputation.Pandaria.Order of the Cloud Serpent"] = "104286:1271",
 	["ArkInventory.Consumable.Reputation.Pandaria.Shadow-Pan"] = "94223:1270",
-	["ArkInventory.Consumable.Reputation.Pandaria.Shadow-Pan Assualt"] = "",
+	["ArkInventory.Consumable.Reputation.Pandaria.Shadow-Pan Assualt"] = "95496:1435",
 	["ArkInventory.Consumable.Reputation.Pandaria.Sunreaver Onslaught"] = "",
 	["ArkInventory.Consumable.Reputation.Pandaria.The August Celestials"] = "94225:1341",
 	["ArkInventory.Consumable.Reputation.Pandaria.The Black Prince"] = "",
@@ -385,26 +419,28 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Consumable.Reputation.Pandaria.The Tillers.Tina Mudclaw"] = "79264:1280",
 	["ArkInventory.Consumable.Reputation.Pandaria.Other"] = "86592",
 	["ArkInventory.Consumable.Reputation.Cataclysm.Other"] = "",
-	["ArkInventory.Consumable.Reputation.Northrend.Sons of Hodir"] = "42780:1119",
-	["ArkInventory.Consumable.Reputation.Northrend.Other"] = "44987:ArgentTournament",
-	["ArkInventory.Consumable.Reputation.Outland.Ashtongue Deathswarn"] = "", -- 1012
-	["ArkInventory.Consumable.Reputation.Outland.Cenarion Expedition"] = "", -- 942
-	["ArkInventory.Consumable.Reputation.Outland.Keepers of Time"] = "", -- 989
-	["ArkInventory.Consumable.Reputation.Outland.Netherwing"] = "", -- 1015
-	["ArkInventory.Consumable.Reputation.Outland.Ogrila"] = "", -- 1038
-	["ArkInventory.Consumable.Reputation.Outland.Sporeggar"] = "24245:970",
-	["ArkInventory.Consumable.Reputation.Outland.The Consortium"] = "29460:933",
-	["ArkInventory.Consumable.Reputation.Outland.The Maghar"] = "", -- 941
-	["ArkInventory.Consumable.Reputation.Outland.The Scale of the Sands"] = "", -- 990
-	["ArkInventory.Consumable.Reputation.Outland.The Violet Eye"] = "", -- 967
-	["ArkInventory.Consumable.Reputation.Outland.Thrallmar"] = "", -- 947
-	["ArkInventory.Consumable.Reputation.Outland.Tranquillen"] = "", -- 922
-	["ArkInventory.Consumable.Reputation.Outland.Lower City"] = "25719:1011",
-	["ArkInventory.Consumable.Reputation.Outland.Shatari Skyguard"] = "", -- 1031
-	["ArkInventory.Consumable.Reputation.Outland.Shattered Sun Offensive"] = "", -- 1077
-	["ArkInventory.Consumable.Reputation.Outland.The Aldor"] = "29425:932,29740:932,30809:932,32897:932",
-	["ArkInventory.Consumable.Reputation.Outland.The Scryers"] = "29426:934,30810:934,32897:934",
-	["ArkInventory.Consumable.Reputation.Outland.The Shatar"] = "", -- 935
+	["ArkInventory.Consumable.Reputation.Wrath.Sons of Hodir"] = "42780:1119",
+	["ArkInventory.Consumable.Reputation.Wrath.Knights of the Ebon Blade"] = "44713:1098,129941:1098,208617:1098",
+	["ArkInventory.Consumable.Reputation.Wrath.Other"] = "44987:ArgentTournament",
+	["ArkInventory.Consumable.Reputation.TBC.Ashtongue Deathswarn"] = "", -- 1012
+	["ArkInventory.Consumable.Reputation.TBC.Cenarion Expedition"] = "", -- 942
+	["ArkInventory.Consumable.Reputation.TBC.Keepers of Time"] = "", -- 989
+	["ArkInventory.Consumable.Reputation.TBC.Netherwing"] = "", -- 1015
+	["ArkInventory.Consumable.Reputation.TBC.Ogrila"] = "", -- 1038
+	["ArkInventory.Consumable.Reputation.TBC.Sporeggar"] = "24245:970",
+	["ArkInventory.Consumable.Reputation.TBC.The Consortium"] = "29460:933",
+	["ArkInventory.Consumable.Reputation.TBC.The Maghar"] = "", -- 941
+	["ArkInventory.Consumable.Reputation.TBC.The Scale of the Sands"] = "", -- 990
+	["ArkInventory.Consumable.Reputation.TBC.The Violet Eye"] = "", -- 967
+	["ArkInventory.Consumable.Reputation.TBC.Thrallmar"] = "", -- 947
+	["ArkInventory.Consumable.Reputation.TBC.Tranquillen"] = "", -- 922
+	["ArkInventory.Consumable.Reputation.TBC.Lower City"] = "25719:1011",
+	["ArkInventory.Consumable.Reputation.TBC.Shatari Skyguard"] = "", -- 1031
+	["ArkInventory.Consumable.Reputation.TBC.Shattered Sun Offensive"] = "", -- 1077
+	["ArkInventory.Consumable.Reputation.TBC.The Aldor"] = "29425:932,29740:932,30809:932,32897:932",
+	["ArkInventory.Consumable.Reputation.TBC.The Scryers"] = "29426:934,30810:934,32897:934",
+	["ArkInventory.Consumable.Reputation.TBC.The Shatar"] = "", -- 935
+	["ArkInventory.Consumable.Reputation.Classic.Orgrimmar"] = "208133:76",
 	["ArkInventory.Consumable.Reputation.Classic.Other"] = "",
 	["ArkInventory.Consumable.Reputation.Other"] = "",
 	["ArkInventory.Consumable.Reputation.PTBase"] = "m,Reputation.Turnin",
@@ -480,7 +516,7 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Skill.Fishing.Bait.Draenor"] = "110274,110289,110290,110291,110292,110293,110294,128229",
 	["ArkInventory.Skill.Fishing.Bait.Legion"] = "133704,133706,133713,133715,133795,139175",
 	["ArkInventory.Skill.Fishing.PTBase"] = "m,Tradeskill.Tool.Fishing,Tradeskill.Mat.ByType.Fish",
-	["ArkInventory.Skill.Herbalism.Dragonflight.Knowledge"] = "194041,194054,194055,194061,194080,194081,194704,198522,199115,200677,200678,200980,201276,201287,201705,201717,202014",
+	["ArkInventory.Skill.Herbalism.Dragonflight.Knowledge"] = "194041,194054,194055,194061,194080,194081,194704,198522,199115,200677,200678,200980,201276,201287,201705,201717,202014,204228",
 	["ArkInventory.Skill.Herbalism.Dragonflight.Seeds"] = "200506,200507,200508,200509",
 	["ArkInventory.Skill.Herbalism.PTBase"] = "m,ArkInventory.Tradegoods.Herbalism",
 	["ArkInventory.Skill.Inscription.Dragonflight.Knowledge"] = "193904,193905,194699,198523,198607,198659,198669,198686,198693,198703,198704,198971,198972,200973,201015,201269,201280,201711",
@@ -600,6 +636,36 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.Armor Token.PTBase"] = "m,Misc.Currency.Tier Sets",
 	
 	
+	-- timerunning items
+	["ArkInventory.Timerunning.Pandaria.Asynchronized Gems"] = "223904,223905,223906,223907",
+	["ArkInventory.Timerunning.Pandaria.Infinite Treasure"] = "211279,211932",
+	["ArkInventory.Timerunning.Pandaria.Bronze Cache"] = "223908,223909,223910,223911",
+	["ArkInventory.Timerunning.Pandaria.Threads.Eternal"] = "219273,226142,226143,226144,226145",
+	["ArkInventory.Timerunning.Pandaria.Threads.Experience"] = "217722,219264,219273,219282",
+	["ArkInventory.Timerunning.Pandaria.Threads.Critical Strike"] = "210984,219258,219267,219276",
+	["ArkInventory.Timerunning.Pandaria.Threads.Haste"] = "210985,219259,219268,219277",
+	["ArkInventory.Timerunning.Pandaria.Threads.Leech"] = "210987,,219261,219270,219279",
+	["ArkInventory.Timerunning.Pandaria.Threads.Mastery"] = "210989,219262,219271,219280",
+	["ArkInventory.Timerunning.Pandaria.Threads.Power"] = "210982,219256,219265,219274",
+	["ArkInventory.Timerunning.Pandaria.Threads.Speed"] = "210986,219260,219269,219278",
+	["ArkInventory.Timerunning.Pandaria.Threads.Stamina"] = "210983,219257,219266,219275",
+	["ArkInventory.Timerunning.Pandaria.Threads.Versatility"] = "210990,219263,219272,219281",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Armor"] = "220367,220368,220370,220369",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Critical Strike"] = "210714,216644,211123,211102",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Haste"] = "210681,216643,211107,211110",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Health Regen"] = "211109,216642,211125,211105",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Leech"] = "210717,216641,210718,211103",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Mastery"] = "210715,216640,211106,211108",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Speed"] = "210716,216639,211124,211101",
+	["ArkInventory.Timerunning.Pandaria.Gem.Prismatic.Versatility"] = "220371,220372,220374,220373",
+	["ArkInventory.Timerunning.Pandaria.Gem.Tinker"] = "212361,212362,212365,212366,212694,212749,212758,212759,212760,212916,216624,216625,216626,216627,216628,216647,216648,216649,216650,216651,217903,217907,217927,217957,217961,217964,219389,219452,219516,219523,219527,219777,219801,219817,219818,219944",
+	["ArkInventory.Timerunning.Pandaria.Gem.Cogwheel"] = "216629,216630,216631,216632,217983,217989,218003,218004,218005,218043,218044,218045,218046,218082,218108,218109,218110",
+	["ArkInventory.Timerunning.Pandaria.Gem.Meta"] = "216663,216671,216695,216711,219386,219878,220117,220120,220211,221977,221982",
+	["ArkInventory.Timerunning.Pandaria.Scroll.Voucher"] = "217930",
+	["ArkInventory.Timerunning.Pandaria.Scroll.Helper"] = "217901,217928,217929,217956",
+	["ArkInventory.Timerunning.Pandaria.Scroll.Buff"] = "217607,217608,217605,217606,217730,217731",
+	
+	
 	-- miscellaneous items
 	["ArkInventory.Misc.Dragonflight.Cobalt Assembly"] = "198563,198603,198604",
 	
@@ -671,14 +737,30 @@ ArkInventory.Lib.PeriodicTable:AddData( "ArkInventory", "1", {
 	["ArkInventory.System.XREF.Tradeskill.Skinning"] = "",
 	["ArkInventory.System.XREF.Tradeskill.Tailoring"] = "m,Tradeskill.RecipeLinks.Tailoring",
 	
-	-- internal sets
-	["ArkInventory.Internal.ItemsWithStockValues.Reputation.Pandaria.Other"] = "86592",
-	["ArkInventory.Internal.ItemsWithStockValues.Base"] = "m,ArkInventory.Consumable.Reputation.Shadowlands.The Archivists Codex,ArkInventory.System.Currency.Shadowlands.Stygia,ArkInventory.System.Currency.Legion.Ancient Mana,ArkInventory.System.Currency.Draenor.Garrison Resources,ArkInventory.System.Currency.Draenor.Oil",
+	["ArkInventory.System.XREF.Transmog.Pandaria.World"] = "215183:3371,215184:3372,215185:3373,215186:3374,215187:3375,215188:3376,215216:3377,215217:3378,215218:3379,215225:3386,215226:3387,215227:3388,215228:3389,215229:3390,215230:3391,215231:3392,215232:3393,215239:3395,215240:3396,215269:3397,215270:3398,215271:3399,215278:3406,215279:3407,215280:3408,215281:3409,215282:3410,215283:3411,215284:3412,215285:3413,215286:3415,215306:3416,215307:3417,215308:3418,215309:3419,215313:3423,215314:3424,215316:3426,215317:3427,215318:3428,215319:3429,215348:3430,215349:3431,215350:3432,215351:3433",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Dungeon"] = "",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Raid.Finder"] = "215189:531,215193:528,215196:525,215199:337,215201:335,215204:333,215208:462,215210:459,215214:457,215241:565,215245:562,215247:559,215252:515,215255:512,215256:508,215261:479,215264:476,215267:473,215289:546,215293:543,215295:541,215298:428,215302:426,215304:423,215320:579,215324:576,215327:479,215330:495,215334:492,215335:489,215339:446,215343:442,215346:440",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Raid.Normal"] = "215191:529,215194:526,215197:523,215198:336,215202:310,215206:331,215209:461,215212:458,215215:455,215243:563,215246:560,215249:557,215251:513,215253:510,215258:506,215260:478,215263:474,215266:471,215288:545,215292:542,215294:539,215297:427,215300:424,215303:421,215321:578,215325:575,215326:572,215329:493,215332:490,215337:487,215338:444,215344:441,215347:438",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Raid.Heroic"] = "215190:530,215192:527,215200:429,215203:334,215207:463,215211:460,215242:564,215244:561,215250:514,215254:511,215262:477,215265:475,215290:547,215291:544,215299:338,215301:425,215322:580,215323:577,215331:494,215333:491,215340:445,215342:443",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Raid.Mythic"] = "215213:456,215345:439,215336:488,215328:573,215305:422,215296:540,215268:472,215259:507,215248:558,215205:332,215195:524",
 	
+	["ArkInventory.System.XREF.Transmog.Pandaria.Timerunning.World"] = "215219:3380,215220:3381,215238:3394,215275:3403,215276:3404,215277:3405,215287:3414,215315:3425,215352:3434,215353:3435,215354:3436,215355:3437,215356:3439,215357:3438,215358:3368",
+	["ArkInventory.System.XREF.Transmog.Pandaria.Timerunning.Raid.Normal"] = "215341:3440",
+	
+	
+	
+	-- internal sets
+	
+	-- items with stock values
+	["ArkInventory.Internal.ItemsWithStockValues.Reputation.Pandaria.Other"] = "86592",
+	["ArkInventory.Internal.ItemsWithStockValues.Base"] = "m,ArkInventory.Consumable.Reputation,ArkInventory.System.Currency.Shadowlands.Stygia,ArkInventory.System.Currency.Legion.Ancient Mana,ArkInventory.System.Currency.Draenor.Garrison Resources,ArkInventory.System.Currency.Draenor.Oil",
+	
+	-- items with charges
+	["ArkInventory.Internal.ItemsWithCharges.Dragonflight.Shovels"] = "191294,191304",
 	
 	-- dragonflight knowledge
-	["ArkInventory.Consumable.Power.Dragonflight.Other"] = "191784",
-	["ArkInventory.Consumable.Power.Dragonflight.Knowledge"] = "m,ArkInventory.Skill.Alchemy.Dragonflight.Knowledge,ArkInventory.Skill.Blacksmithing.Dragonflight.Knowledge,ArkInventory.Skill.Enchanting.Dragonflight.Knowledge,ArkInventory.Skill.Enchanting.Dragonflight.Disenchant,ArkInventory.Skill.Engineering.Dragonflight.Knowledge,ArkInventory.Skill.Herbalism.Dragonflight.Knowledge,ArkInventory.Skill.Herbalism.Dragonflight.Other,ArkInventory.Skill.Inscription.Dragonflight.Knowledge,ArkInventory.Skill.Jewelcrafting.Dragonflight.Knowledge,ArkInventory.Skill.Leatherworking.Dragonflight.Knowledge,ArkInventory.Skill.Mining.Dragonflight.Knowledge,ArkInventory.Skill.Skinning.Dragonflight.Knowledge,ArkInventory.Skill.Tailoring.Dragonflight.Knowledge",
+	["ArkInventory.Consumable.Power.Dragonflight.Knowledge.Generic"] = "191784",
+	["ArkInventory.Consumable.Power.Dragonflight.Knowledge.Base"] = "m,ArkInventory.Skill.Alchemy.Dragonflight.Knowledge,ArkInventory.Skill.Blacksmithing.Dragonflight.Knowledge,ArkInventory.Skill.Enchanting.Dragonflight.Knowledge,ArkInventory.Skill.Enchanting.Dragonflight.Disenchant,ArkInventory.Skill.Engineering.Dragonflight.Knowledge,ArkInventory.Skill.Herbalism.Dragonflight.Knowledge,ArkInventory.Skill.Herbalism.Dragonflight.Other,ArkInventory.Skill.Inscription.Dragonflight.Knowledge,ArkInventory.Skill.Jewelcrafting.Dragonflight.Knowledge,ArkInventory.Skill.Leatherworking.Dragonflight.Knowledge,ArkInventory.Skill.Mining.Dragonflight.Knowledge,ArkInventory.Skill.Skinning.Dragonflight.Knowledge,ArkInventory.Skill.Tailoring.Dragonflight.Knowledge",
 	
 	-- shadowlands covenant other items
 	["ArkInventory.Consumable.Power.Shadowlands.Kyrian.Ascended Crafting"] = "180479,180579,181140,181145,181846,181157,181159,181239,181240",
@@ -715,7 +797,7 @@ function ArkInventory.PT_ItemSearch( h )
 	for k, v in pairs( ArkInventory.Lib.PeriodicTable.sets ) do
 		local _, set = ArkInventory.Lib.PeriodicTable:ItemInSet( item, k )
 		if set then
-			sets[set] = true
+			sets[set] = v or true
 			ok = true
 		end
 	end
@@ -740,6 +822,21 @@ function ArkInventory.PT_ItemInSets( item, sets )
 	return false
 	
 end
+
+-- ArkInventory.PT_GetSetItemValue( 192658, "ArkInventory.System.Mount.Parts" )
+function ArkInventory.PT_GetSetItemValue( item, set )
+	-- return nil if not in set | true if no value set | value
+	
+	if not item or not set or set == "" then return false end
+	
+	for k, v in ArkInventory.Lib.PeriodicTable:IterateSet( set ) do
+		if k == item then
+			return v
+		end
+	end
+	
+end
+
 
 function ArkInventory.PT_BonusIDInSets( bonusid, sets )
 	

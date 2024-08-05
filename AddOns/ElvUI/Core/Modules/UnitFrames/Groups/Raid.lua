@@ -40,6 +40,9 @@ function UF:Construct_RaidFrames()
 
 	if E.Retail then
 		self.PvPClassificationIndicator = UF:Construct_PvPClassificationIndicator(self) -- Cart / Flag / Orb / Assassin Bounty
+	end
+
+	if not E.Classic then
 		self.AlternativePower = UF:Construct_AltPowerBar(self)
 		self.ClassBar = 'AlternativePower'
 	end
@@ -108,6 +111,8 @@ function UF:Update_RaidFrames(frame, db)
 	end
 
 	frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
+	frame:SetFrameStrata(db.strataAndLevel and db.strataAndLevel.useCustomStrata and db.strataAndLevel.frameStrata or 'LOW')
+	frame:SetFrameLevel(db.strataAndLevel and db.strataAndLevel.useCustomLevel and db.strataAndLevel.frameLevel or 1)
 
 	UF:EnableDisable_Auras(frame)
 	UF:Configure_AllAuras(frame)
@@ -135,8 +140,11 @@ function UF:Update_RaidFrames(frame, db)
 	UF:Configure_ClassBar(frame)
 	UF:UpdateNameSettings(frame)
 
-	if E.Retail then
+	if not E.Classic then
 		UF:Configure_AltPowerBar(frame)
+	end
+
+	if E.Retail then
 		UF:Configure_PvPClassificationIndicator(frame)
 	end
 

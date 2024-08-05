@@ -64,10 +64,15 @@
   <Binding name="ARKINV_TOGGLE_DEBUG" category="ArkInventory ">
     ArkInventory.Debug.Frame_Toggle( )
   </Binding>
-  <Binding name="ARKINV_LDB_PETS_SUMMON" category="ArkInventory ">
-    ArkInventory.LDB.Pets.OnClick( )
+  <Binding name="ARKINV_LDB_PET_SUMMON" category="ArkInventory ">
+    ArkInventory.LDB.Pets:OnClick( )
   </Binding>
   <Binding name="CLICK ARKINV_MountToggle:LeftButton" category="ArkInventory " />
+<!-- NON SECURE MOUNT SUMMONS FOR WHEN CLICK BINDINGS BREAK DURING BETAS
+  <Binding name="ARKINV_LDB_MOUNT_SUMMON" category="ArkInventory ">
+    ArkInventory.LDB.Mounts:GetNext( )
+  </Binding>
+-->
   <Binding name="ARKINV_ACTION_MANUAL_RUN" category="ArkInventory ">
     ArkInventory.Action.ManualRun( )
   </Binding>

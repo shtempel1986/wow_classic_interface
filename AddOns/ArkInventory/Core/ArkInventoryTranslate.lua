@@ -88,7 +88,7 @@ local itemTable = { -- key, project, 0=name | 1=itemtype | 2=itemsubtype, item i
 
 local function GetWowItemData( t, id )
 	if type( id ) ~= "table" then
-		--local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", id ) )
+		--local tooltipInfo = ArkInventory.TooltipSetFromStorageItem( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", id ) )
 		local info = ArkInventory.GetObjectInfo( id )
 		if t == 1 then
 			return info.name
@@ -100,7 +100,7 @@ local function GetWowItemData( t, id )
 	else
 		local x
 		for k, v in ipairs( id ) do
-			--local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", v ) )
+			--local tooltipInfo = ArkInventory.TooltipSetFromStorageItem( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", v ) )
 			local info = ArkInventory.GetObjectInfo( v )
 			if t == 1 then
 				x = info.name
@@ -119,7 +119,7 @@ local function GetItemBasedTranslations( )
 	-- cant be completely done at game load as it depends on items being in your cache, thus its "scheduled"
 	
 	local L = LibStub("AceLocale-3.0"):GetLocale( "ArkInventory", true )
-	assert( L, "locale failed to load" )
+	ArkInventory.Util.Assert( L, "locale failed to load" )
 	
 	local ok = true
 	
@@ -186,14 +186,14 @@ local spellTable = { -- key, project, table of spell ids
 }
 
 local function GetWowSpellNameHelper( id )
-	local name = GetSpellInfo( id )
+	local name = ArkInventory.CrossClient.GetSpellInfo( id ).name
 	if name then
 		--ArkInventory.Output( "spell [", id, "] = [", name, "]" )
 		return name
 	else
 		-- no cached data, ask server and well hopefully get it next time
 		--ArkInventory.Output( "spell [", id, "] failed" )
-		--local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "spell:%s", id ) )
+		--local tooltipInfo = ArkInventory.TooltipSetFromStorageItem( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "spell:%s", id ) )
 	end
 end
 
@@ -213,7 +213,7 @@ local function GetSpellBasedTranslations( )
 	-- cant be completely done at game load as it depends on items being in your cache, thus its "scheduled"
 	
 	local L = LibStub("AceLocale-3.0"):GetLocale( "ArkInventory", true )
-	assert( L, "locale failed to load" )
+	ArkInventory.Util.Assert( L, "locale failed to load" )
 	
 	local ok = true
 	
@@ -272,9 +272,9 @@ local tooltipTable = {
 
 local function GetWowTooltipTextHelper( id )
 	
-	local tooltipInfo = ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", id ) )
+	local tooltipInfo = ArkInventory.TooltipSetFromStorageItem( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, string.format( "item:%s", id ) )
 	
-	local skill, level = ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_REQUIRES_SKILL"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
+	local skill, level = ArkInventory.TooltipMatch( ArkInventory.Global.Tooltip.Scan, nil, ArkInventory.Localise["WOW_TOOLTIP_ITEM_REQUIRES_SKILL"], false, true, true, 0, ArkInventory.Const.Tooltip.Search.Short )
 	
 	if skill and level then
 		--ArkInventory.Output( "tooltip: got ", id, ", skill = ", skill, ", level = ", level )
@@ -301,7 +301,7 @@ local function GetTooltipBasedTranslations( )
 	-- cant be completely done at game load as it depends on items being in your cache, thus its "scheduled"
 	
 	local L = LibStub("AceLocale-3.0"):GetLocale( "ArkInventory", true )
-	assert( L, "locale failed to load" )
+	ArkInventory.Util.Assert( L, "locale failed to load" )
 	
 	local ok = true
 	
@@ -424,7 +424,7 @@ frame:SetScript( "OnUpdate",
 				--ArkInventory.OutputWarning( "translations - .Recalculate" )
 				
 				--ArkInventory.ItemCacheClear( )
-				--ArkInventory.ScanLocation( )
+				--ArkInventory.ScanLocationWindow( )
 				
 				ArkInventory.PlayerInfoSet( )
 				--ArkInventory.Tradeskill.ScanHeaders( )

@@ -11,7 +11,7 @@ local pairs, ipairs, type = pairs, ipairs, type
 local next, tinsert, tremove = next, tinsert, tremove
 
 local CreateFrame = CreateFrame
-local GetMouseFocus = GetMouseFocus
+local GetMouseFocus = GetMouseFoci or GetMouseFocus
 local GetInstanceInfo = GetInstanceInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitCastingInfo = UnitCastingInfo
@@ -23,7 +23,8 @@ local UnitHealthMax = UnitHealthMax
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
 local UnitPowerType = UnitPowerType
-local C_PlayerInfo_GetGlidingInfo = C_PlayerInfo and C_PlayerInfo.GetGlidingInfo
+
+local GetGlidingInfo = C_PlayerInfo.GetGlidingInfo
 
 -- These variables will be left-over when disabled if they were used (for reuse later if they become re-enabled):
 ---- Fader.HoverHooked, Fader.TargetHooked
@@ -63,9 +64,9 @@ local function updateInstanceDifficulty(element)
 end
 
 local function CanGlide()
-	if not C_PlayerInfo_GetGlidingInfo then return end
+	if not GetGlidingInfo then return end
 
-	local _, canGlide = C_PlayerInfo_GetGlidingInfo()
+	local _, canGlide = GetGlidingInfo()
 	return canGlide
 end
 

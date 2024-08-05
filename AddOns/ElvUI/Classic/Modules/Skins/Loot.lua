@@ -13,7 +13,7 @@ local UnitIsDead = UnitIsDead
 local UnitIsFriend = UnitIsFriend
 local UnitName = UnitName
 
-local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemQualityByID = C_Item.GetItemQualityByID
 
 local C_LootHistory_GetNumItems = C_LootHistory.GetNumItems
 local C_LootHistory_GetItem = C_LootHistory.GetItem
@@ -24,7 +24,7 @@ local function UpdateLoots()
 	local numItems = C_LootHistory_GetNumItems()
 	for i = 1, numItems do
 		local frame = _G.LootHistoryFrame.itemFrames[i]
-		if frame and not frame.isSkinned then
+		if frame and not frame.IsSkinned then
 			local Icon = frame.Icon:GetTexture()
 			frame:StripTextures()
 			frame.Icon:SetTexture(Icon)
@@ -37,8 +37,7 @@ local function UpdateLoots()
 
 			local _, itemLink = C_LootHistory_GetItem(frame.itemIdx)
 			if itemLink then
-				local _, _, itemRarity = GetItemInfo(itemLink)
-
+				local itemRarity = GetItemQualityByID(itemLink)
 				if itemRarity then
 					local color = ITEM_QUALITY_COLORS[itemRarity]
 
@@ -48,7 +47,7 @@ local function UpdateLoots()
 				end
 			end
 
-			frame.isSkinned = true
+			frame.IsSkinned = true
 		end
 	end
 end
@@ -111,14 +110,14 @@ function S:LootFrame()
 
 	hooksecurefunc('MasterLooterFrame_UpdatePlayers', function()
 		for _, child in next, { MasterLooterFrame:GetChildren() } do
-			if not child.isSkinned and not child:GetName() and child:IsObjectType('Button') then
+			if not child.IsSkinned and not child:GetName() and child:IsObjectType('Button') then
 				if child:GetPushedTexture() then
 					S:HandleCloseButton(child)
 				else
 					child:SetTemplate()
 					child:StyleButton()
 				end
-				child.isSkinned = true
+				child.IsSkinned = true
 			end
 		end
 	end)

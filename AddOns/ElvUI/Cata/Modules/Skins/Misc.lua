@@ -51,7 +51,7 @@ function S:BlizzardMiscFrames()
 
 	S:HandleButton(_G.StaticPopup1ExtraButton)
 
-	if not E:IsAddOnEnabled('ConsolePortUI_Menu') then
+	if not E:IsAddOnEnabled('ConsolePort_Menu') then
 		-- Reskin all esc/menu buttons
 		for _, button in next, { _G.GameMenuFrame:GetChildren() } do
 			if button.IsObjectType and button:IsObjectType('Button') then
@@ -172,6 +172,28 @@ function S:BlizzardMiscFrames()
 		end
 
 		S:HandleIconBorder(_G['StaticPopup'..i..'ItemFrame'].IconBorder)
+	end
+
+	-- skin return to graveyard button
+	do
+		_G.GhostFrameMiddle:SetAlpha(0)
+		_G.GhostFrameRight:SetAlpha(0)
+		_G.GhostFrameLeft:SetAlpha(0)
+		_G.GhostFrame:StripTextures()
+		_G.GhostFrame:ClearAllPoints()
+		_G.GhostFrame:Point('TOP', E.UIParent, 'TOP', 0, -200)
+		_G.GhostFrameContentsFrame:SetTemplate('Transparent')
+		_G.GhostFrameContentsFrameText:Point('TOPLEFT', 53, 0)
+		_G.GhostFrameContentsFrameIcon:SetTexCoord(unpack(E.TexCoords))
+		_G.GhostFrameContentsFrameIcon:Point('RIGHT', _G.GhostFrameContentsFrameText, 'LEFT', -12, 0)
+
+		local x = E.PixelMode and 1 or 2
+		local button = CreateFrame('Frame', nil, _G.GhostFrameContentsFrameIcon:GetParent())
+		button:Point('TOPLEFT', _G.GhostFrameContentsFrameIcon, -x, x)
+		button:Point('BOTTOMRIGHT', _G.GhostFrameContentsFrameIcon, x, -x)
+		_G.GhostFrameContentsFrameIcon:Size(37, 38)
+		_G.GhostFrameContentsFrameIcon:SetParent(button)
+		button:SetTemplate()
 	end
 
 	_G.OpacityFrame:StripTextures()

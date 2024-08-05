@@ -62,9 +62,22 @@ local function Scan_Threaded( thread_id )
 	for _, index in pairs( data_source ) do
 		
 		if HeirloomsJournal:IsVisible( ) then
-			--ArkInventory.Output( "ABORTED (HEIRLOOMS FRAME WAS OPENED)" )
+			ArkInventory.OutputDebug( "HEIRLOOM: ABORTED (HEIRLOOM FRAME WAS OPENED)" )
 			return
 		end
+		
+		if ArkInventory.Global.Mode.Combat then
+			ArkInventory.OutputDebug( "HEIRLOOM: ABORTED (ENTERED COMBAT)" )
+			ArkInventory.Global.ScanAfterCombat[loc_id] = true
+			return
+		end
+		
+		if ArkInventory.Global.Mode.DragonRace then
+			ArkInventory.OutputDebug( "HEIRLOOM: ABORTED (DRAGON RACE)" )
+			ArkInventory.Global.ScanAfterDragonRace[loc_id] = true
+			return
+		end
+		
 		
 		numTotal = numTotal + 1
 		
@@ -114,9 +127,9 @@ local function Scan_Threaded( thread_id )
 			numOwned = numOwned + 1
 		end
 		
-		if c[i].owned ~= isOwned then
+		if c[i].isOwned ~= isOwned then
 			update = true
-			c[i].owned = isOwned
+			c[i].isOwned = isOwned
 		end
 		
 	end
@@ -131,7 +144,7 @@ local function Scan_Threaded( thread_id )
 	collection.isReady = true
 	
 	if update then
-		ArkInventory.ScanLocation( loc_id )
+		ArkInventory.ScanLocationWindow( loc_id )
 	end
 	
 end
@@ -140,20 +153,11 @@ local function Scan( )
 	
 	local thread_id = string.format( ArkInventory.Global.Thread.Format.Collection, "heirloom" )
 	
-	if not ArkInventory.Global.Thread.Use then
-		local tz = debugprofilestop( )
-		ArkInventory.OutputThread( thread_id, " start" )
-		Scan_Threaded( )
-		tz = debugprofilestop( ) - tz
-		ArkInventory.OutputThread( string.format( "%s took %0.0fms", thread_id, tz ) )
-		return
-	end
-	
-	local tf = function ( )
+	local thread_func = function( )
 		Scan_Threaded( thread_id )
 	end
 	
-	ArkInventory.ThreadStart( thread_id, tf )
+	ArkInventory.ThreadStart( thread_id, thread_func )
 	
 end
 
@@ -164,12 +168,6 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE_BUCKET( events )
 	
 	if not ArkInventory:IsEnabled( ) then return end
 	
-	if ArkInventory.Global.Mode.Combat then
-		-- set to scan when leaving combat
-		ArkInventory.Global.ScanAfterCombat[loc_id] = true
-		return
-	end
-	
 	if not ArkInventory.isLocationMonitored( loc_id ) then
 		--ArkInventory.Output( "IGNORED (HEIRLOOMS NOT MONITORED)" )
 		return
@@ -179,6 +177,17 @@ function ArkInventory:EVENT_ARKINV_COLLECTION_HEIRLOOM_UPDATE_BUCKET( events )
 		--ArkInventory.Output( "ABORTED (HEIRLOOMS FRAME IS OPEN)" )
 		return
 	end
+	
+	if ArkInventory.Global.Mode.Combat then
+		ArkInventory.Global.ScanAfterCombat[loc_id] = true
+		return
+	end
+	
+	if ArkInventory.Global.Mode.DragonRace then
+		ArkInventory.Global.ScanAfterDragonRace[loc_id] = true
+		return
+	end
+	
 	
 	if not collection.isScanning then
 		collection.isScanning = true

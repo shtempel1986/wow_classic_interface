@@ -1,11 +1,11 @@
-## Interface: 100206
+## Interface: 110002
 
 ## Title: ArkInventory [Search]
 ## Notes: Search for ArkInventory
 ## Author: Arkayenro - Khaz'goroth
 ## Email: arkayenro at gmail dot com
-## Version: 31027
-## X-ReleaseType: 
+## Version: 31033.33
+## X-ReleaseType: Alpha
 ## IconTexture: Interface\Icons\INV_Misc_Bag_07_Green
 
 ## DefaultState: Enabled

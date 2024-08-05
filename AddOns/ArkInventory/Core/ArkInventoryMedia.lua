@@ -17,31 +17,42 @@ function ArkInventory.MediaRegister( )
 		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.FONT, "SF Laundromatic", [[Interface\AddOns\ArkInventory\Fonts\SF Laundromatic.ttf]] )
 		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.FONT, "Zekton", [[Interface\AddOns\ArkInventory\Fonts\zekton__.ttf]] )
 		
+		-- backgrounds
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BACKGROUND, "Blizzard Guild Bank", [[Interface\GuildBankFrame\GuildVaultBG.blp]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BACKGROUND, "Blizzard Bank 1", [[Interface\BankFrame\BankFrameBackground.blp]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BACKGROUND, "Blizzard Bank 2", [[Interface\BankFrame\Bank-Background.blp]] )
 		
 		-- borders
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 1", [[Interface\AddOns\ArkInventory\Images\BorderSquare1.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 2", [[Interface\AddOns\ArkInventory\Images\BorderSquare2.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 3", [[Interface\AddOns\ArkInventory\Images\BorderSquare3.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 1", [[Interface\AddOns\ArkInventory\Images\BorderTooltip1.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 2", [[Interface\AddOns\ArkInventory\Images\BorderTooltip2.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 3", [[Interface\AddOns\ArkInventory\Images\BorderTooltip3.tga]] )
-		
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 1", [[Interface\AddOns\ArkInventory\Images\Border-Square-1.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 2", [[Interface\AddOns\ArkInventory\Images\Border-Square-2.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Square 3", [[Interface\AddOns\ArkInventory\Images\Border-Square-3.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 1", [[Interface\AddOns\ArkInventory\Images\Border-Tooltip-1.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 2", [[Interface\AddOns\ArkInventory\Images\Border-Tooltip-2.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Lib.SharedMedia.MediaType.BORDER, "ArkInventory Tooltip 3", [[Interface\AddOns\ArkInventory\Images\Border-Tooltip-3.tga]] )
 		
 		-- transmog icons
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Smiley Face", [[Interface\AddOns\ArkInventory\Images\Transmog-SmileyFace.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Square - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Solid.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Square - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Plus.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Square - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Hollow.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Circle - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Solid.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Circle - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Plus.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Circle - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Hollow.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Diamond - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Solid.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Diamond - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Plus.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Diamond - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Hollow.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Tick", [[Interface\AddOns\ArkInventory\Images\Transmog-Tick.tga]] )
-		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "Cross", [[Interface\AddOns\ArkInventory\Images\Transmog-Cross.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Smiley Face", [[Interface\AddOns\ArkInventory\Images\Transmog-SmileyFace.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Square - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Solid.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Square - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Plus.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Square - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Hollow.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Circle - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Solid.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Circle - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Plus.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Circle - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Circle-Hollow.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Diamond - Solid", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Solid.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Diamond - Plus", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Plus.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Diamond - Hollow", [[Interface\AddOns\ArkInventory\Images\Transmog-Diamond-Hollow.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Tick", [[Interface\AddOns\ArkInventory\Images\Transmog-Tick.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.Transmog, "Cross", [[Interface\AddOns\ArkInventory\Images\Transmog-Cross.tga]] )
 		
-		--ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.Transmog.SharedMediaType, "OverlayNZoth",  )
+		-- empty slot icons
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, ArkInventory.Const.SharedMedia.Name.None, "" )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, ArkInventory.Const.SharedMedia.Name.Solid, [[Interface\AddOns\ArkInventory\Images\Transmog-Square-Solid.tga]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, "Icon 1", [[Interface\PaperDoll\UI-Backpack-EmptySlot]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, "Icon 2", [[Interface\PaperDoll\UI-PaperDoll-Slot-Generic.blp]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, "Icon 3", [[Interface\PaperDoll\UI-PaperDoll-Slot-Bag]] )
+		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, "Icon 4", [[Interface\AddOns\ArkInventory\Images\Slot-VoidStorage.tga]] )
+--		local atlas = C_Texture.GetAtlasInfo( "warband-bank-slot" )
+--		ArkInventory.Lib.SharedMedia:Register( ArkInventory.Const.SharedMedia.Type.EmptySlot, "Icon 5", atlas.file )
 		
 		
 		--refresh media if more are added after mod is loaded
@@ -65,7 +76,7 @@ local function helper_fontpath( face )
 		ArkInventory.OutputWarning( "unknown font: ", face )
 		path = ArkInventory.Lib.SharedMedia:Fetch( ArkInventory.Lib.SharedMedia.MediaType.FONT, ArkInventory.Const.Font.Face )
 		if not path then
-			ArkInventory.OutputError( "code error: default font is unknown" )
+			ArkInventory.OutputError( "default font is unknown" )
 			return
 		end
 	end
@@ -198,7 +209,7 @@ end
 function ArkInventory.MediaAllFontSet( face, size )
 	
 	for loc_id, loc_data in pairs( ArkInventory.Global.Location ) do
-		if loc_data.canView then
+		if loc_data.isMapped and loc_data.canView then
 			local frame = ArkInventory.Frame_Main_Get( loc_id )
 			ArkInventory.MediaFrameFontSet( frame, face, size )
 		end

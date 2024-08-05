@@ -5,38 +5,60 @@ ArkInventory.Const.MoneyTypeInfo["PLAYER"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "PLAYER_MONEY", "PLAYER_TRADE_MONEY", "SEND_MAIL_MONEY_CHANGED", "SEND_MAIL_COD_CHANGED" }
 		for _, v in pairs( moneyFrame.events ) do
 			moneyFrame:RegisterEvent( v )
 		end
-
+		
 	end,
 	
 	UpdateFunc = function( )
 		return GetMoney( ) - GetCursorMoney( ) - GetPlayerTradeMoney( )
 	end,
-
+	
 	PickupFunc = function( amount )
 		PickupPlayerMoney( amount )
 	end,
-
+	
 	DropFunc = function( )
 		DropCursorMoney( )
 	end,
-
+	
 	collapse = 1,
 	canPickup = 1,
 	showSmallerCoins = "Backpack"
 
 }
 
+ArkInventory.Const.MoneyTypeInfo["ACCOUNT"] = {
+	
+	OnloadFunc = function( moneyFrame )
+		
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
+		
+		moneyFrame.events = { "ACCOUNT_MONEY" }
+		for _, v in pairs( moneyFrame.events ) do
+			moneyFrame:RegisterEvent( v )
+		end
+		
+	end,
+
+	UpdateFunc = function( moneyFrame )
+		return C_Bank.FetchDepositedMoney( Enum.BankType.Account )
+	end,
+	
+	
+	collapse = 1,
+	showSmallerCoins = "Backpack",
+}
+
 ArkInventory.Const.MoneyTypeInfo["STATIC"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 
 		moneyFrame.events = { }
 		
@@ -54,7 +76,7 @@ ArkInventory.Const.MoneyTypeInfo["AUCTION"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { }
 		for _, v in pairs( moneyFrame.events ) do
@@ -65,7 +87,7 @@ ArkInventory.Const.MoneyTypeInfo["AUCTION"] = {
 
 	UpdateFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 
 		return moneyFrame.staticMoney
 		
@@ -82,7 +104,7 @@ ArkInventory.Const.MoneyTypeInfo["PLAYER_TRADE"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "PLAYER_TRADE_MONEY" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -112,7 +134,7 @@ ArkInventory.Const.MoneyTypeInfo["TARGET_TRADE"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "TRADE_MONEY_CHANGED" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -133,7 +155,7 @@ ArkInventory.Const.MoneyTypeInfo["SEND_MAIL"] = {
 
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "SEND_MAIL_MONEY_CHANGED" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -164,7 +186,7 @@ ArkInventory.Const.MoneyTypeInfo["SEND_MAIL_COD"] = {
 	
 	OnloadFunc = function( moneyFrame )
 	
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "SEND_MAIL_COD_CHANGED" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -196,7 +218,7 @@ ArkInventory.Const.MoneyTypeInfo["GUILDBANK"] = {
 		
 		if not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.WRATH ) then return end -- FIX ME
 		
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "GUILDBANK_UPDATE_MONEY" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -227,7 +249,7 @@ ArkInventory.Const.MoneyTypeInfo["GUILDBANK_WITHDRAW"] = {
 		
 		if not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.WRATH ) then return end -- FIX ME
 		
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { "GUILDBANK_UPDATE_WITHDRAWMONEY" }
 		for _, v in pairs( moneyFrame.events ) do
@@ -262,7 +284,7 @@ ArkInventory.Const.MoneyTypeInfo["GUILDBANK_REPAIR"] = {
 		
 		if not ArkInventory.ClientCheck( ArkInventory.ENUM.EXPANSION.WRATH ) then return end -- FIX ME
 		
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		moneyFrame.events = { }
 		for _, v in pairs( moneyFrame.events ) do
@@ -273,7 +295,7 @@ ArkInventory.Const.MoneyTypeInfo["GUILDBANK_REPAIR"] = {
 	
 	UpdateFunc = function( moneyFrame )
 		
-		assert( moneyFrame, "code error: moneyFrame argument is missing" )
+		ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 		
 		return moneyFrame.staticMoney
 		
@@ -286,7 +308,7 @@ ArkInventory.Const.MoneyTypeInfo["GUILDBANK_REPAIR"] = {
 
 function ArkInventory.MoneyFrame_OnEvent( moneyFrame, event, ... )
 
-	assert( moneyFrame, "code error: moneyFrame argument is missing" )
+	ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 
 	if not moneyFrame.info or not moneyFrame:IsVisible( ) then
 		return
@@ -298,7 +320,7 @@ end
 
 function ArkInventory.MoneyFrame_OnEnter( moneyFrame )
 	
-	assert( moneyFrame, "code error: moneyFrame argument is missing" )
+	ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 	
 	if not moneyFrame:IsVisible( ) then
 		return
@@ -336,7 +358,7 @@ end
 
 function ArkInventory.SmallMoneyFrame_OnLoad( moneyFrame, moneyType )
 
-	assert( moneyFrame, "code error: moneyFrame argument is missing" )
+	ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 	
 	local moneyType = moneyType or "PLAYER"
 	moneyFrame.small = 1
@@ -347,11 +369,11 @@ end
 
 function ArkInventory.MoneyFrame_SetType( moneyFrame, moneyType )
 	
-	assert( moneyFrame, "code error: moneyFrame argument is missing" )
+	ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 	
 	local info = ArkInventory.Const.MoneyTypeInfo[moneyType]
 	if not info then
-		ArkInventory.OutputError( "code error: invalid moneyType [", moneyType, "] assigned to frame [", moneyFrame:GetName( ), "], defaulting to PLAYER" )
+		ArkInventory.OutputError( "uncoded moneyType [", moneyType, "] assigned to frame [", moneyFrame:GetName( ), "], defaulting to PLAYER" )
 		info = ArkInventory.Const.MoneyTypeInfo["PLAYER"]
 	end
 	
@@ -386,7 +408,7 @@ end
 
 function ArkInventory.MoneyFrame_UpdateMoney( moneyFrame )
 
-	assert( moneyFrame, "code error: moneyFrame argument is missing" )
+	ArkInventory.Util.Assert( moneyFrame, "moneyFrame is nil" )
 	
 	if not moneyFrame:IsVisible( ) then
 		return
@@ -417,8 +439,8 @@ function ArkInventory.MoneyText( money, condense )
 	
 	local money = money or 0
 	
-	local numGold = floor( money / COPPER_PER_GOLD )
-	local numSilver = floor( ( money - ( numGold * COPPER_PER_GOLD ) ) / COPPER_PER_SILVER )
+	local numGold = math.floor( money / COPPER_PER_GOLD )
+	local numSilver = math.floor( ( money - ( numGold * COPPER_PER_GOLD ) ) / COPPER_PER_SILVER )
 	local numCopper = money % COPPER_PER_SILVER
 	
 	local txtGold = ""
@@ -501,12 +523,12 @@ function ArkInventory.MoneyFrame_Tooltip( tooltip, loc_id )
 	
 	local tc = ArkInventory.db.option.tooltip.money.colour
 	
-	local codex = ArkInventory.GetPlayerCodex( loc_id )
+	local codex = ArkInventory.Codex.GetPlayer( loc_id )
 	if loc_id then
-		local codex = ArkInventory.GetLocationCodex( loc_id )
+		local codex = ArkInventory.Codex.GetLocation( loc_id )
 	end
 	
-	tooltip:AddDoubleLine( ArkInventory.Localise["CHARACTER"], ArkInventory.Localise["TOOLTIP_GOLD_AMOUNT"] )
+	tooltip:AddDoubleLine( ArkInventory.Localise["CHARACTER"], ArkInventory.Localise["TOOLTIP_AMOUNT"] )
 	
 	local just_me = ArkInventory.db.option.tooltip.money.justme
 	local ignore_vaults = not ArkInventory.db.option.tooltip.money.vault
@@ -523,13 +545,17 @@ function ArkInventory.MoneyFrame_Tooltip( tooltip, loc_id )
 	local c2 = ArkInventory.db.option.tooltip.money.colour.count
 	--local c2 = ArkInventory.ColourRGBtoCode( c2c.r, c2c.g, c2c.b )
 	
+	local includeAccount = ArkInventory.Global.Location[ArkInventory.Const.Location.AccountBank].isMapped
+	
 	for pn, pd in ArkInventory.spairs( ArkInventory.db.player.data ) do
 		
-		if ( not ( pd.info.class == ArkInventory.Const.Class.Guild or pd.info.class == ArkInventory.Const.Class.Account ) ) and ( pd.info.name ) then
-			if ( not my_realm ) or ( ( my_realm and codex.player.data.info.realm == pd.info.realm ) or ( my_realm and include_crossrealm and ArkInventory.IsConnectedRealm( codex.player.data.info.realm, pd.info.realm ) ) ) then
+		if ( pd.info.name ) and ( not ( pd.info.class == ArkInventory.Const.Class.Guild or ( pd.info.class == ArkInventory.Const.Class.Account and not includeAccount ) ) ) then
+			if ( not my_realm ) or ( pd.info.class == ArkInventory.Const.Class.Account ) or ( ( my_realm and codex.player.data.info.realm == pd.info.realm ) or ( my_realm and include_crossrealm and ArkInventory.IsConnectedRealm( codex.player.data.info.realm, pd.info.realm ) ) ) then
 				if ( not ignore_other_account ) or ( ignore_other_account and codex.player.data.info.account_id == pd.info.account_id ) then
-					if ( not ignore_other_faction ) or ( ignore_other_faction and codex.player.data.info.faction == pd.info.faction ) then
-						if ( not just_me ) or ( just_me and codex.player.data.info.player_id == pd.info.player_id ) then
+					if ( not ignore_other_faction ) or ( pd.info.class == ArkInventory.Const.Class.Account ) or ( ignore_other_faction and codex.player.data.info.faction == pd.info.faction ) then
+						if ( not just_me ) or ( pd.info.class == ArkInventory.Const.Class.Account ) or ( just_me and codex.player.data.info.player_id == pd.info.player_id ) then
+							
+							--ArkInventory.Output( pd.info.name, " = ", pd.info.money, " - ", pd.info.class, " - ", includeAccount )
 							
 							total = total + ( pd.info.money or 0 )
 							
@@ -576,7 +602,7 @@ function ArkInventory.MoneyFrame_Tooltip( tooltip, loc_id )
 			tooltip:AddDoubleLine( " ", " " )
 			tooltip:AddDoubleLine( " ", " " )
 			
-			tooltip:AddDoubleLine( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].Name, ArkInventory.Localise["TOOLTIP_GOLD_AMOUNT"] )
+			tooltip:AddDoubleLine( ArkInventory.Global.Location[ArkInventory.Const.Location.Vault].Name, ArkInventory.Localise["TOOLTIP_AMOUNT"] )
 			
 			for pn, pd in ArkInventory.spairs( ArkInventory.db.player.data ) do
 				
@@ -631,9 +657,9 @@ function ArkInventory.MoneyFrame_Update(frameName, money, forceShow)
 	end
 
 	-- Breakdown the money into denominations
-	local gold = floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD));
+	local gold = math.floor(money / (COPPER_PER_SILVER * SILVER_PER_GOLD));
 	local goldDisplay = BreakUpLargeNumbers(gold);
-	local silver = floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER);
+	local silver = math.floor((money - (gold * COPPER_PER_SILVER * SILVER_PER_GOLD)) / COPPER_PER_SILVER);
 	local copper = mod(money, COPPER_PER_SILVER);
 
 	local copperButton = _G[frameName.."CopperButton"];
@@ -843,3 +869,62 @@ function ArkInventory.MoneyFrame_Update(frameName, money, forceShow)
 	end
 end
 
+function ArkInventory.MoneyGuildBankDeposit( )
+	
+	PlaySound( SOUNDKIT.IG_MAINMENU_OPTION )
+	
+	StaticPopup_Hide( "GUILDBANK_WITHDRAW" )
+	
+	local alreadyShown = StaticPopup_Visible( "GUILDBANK_DEPOSIT" )
+	if alreadyShown then
+	  StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
+	else
+	  StaticPopup_Show( "GUILDBANK_DEPOSIT" )
+	end
+	
+end
+
+function ArkInventory.MoneyGuildBankWithdraw( )
+	
+	PlaySound( SOUNDKIT.IG_MAINMENU_OPTION )
+	
+	StaticPopup_Hide( "GUILDBANK_DEPOSIT" )
+	
+	local alreadyShown = StaticPopup_Visible( "GUILDBANK_WITHDRAW" )
+	if alreadyShown then
+	  StaticPopup_Hide( "GUILDBANK_WITHDRAW" )
+	else
+	  StaticPopup_Show( "GUILDBANK_WITHDRAW" )
+	end
+	
+end
+
+function ArkInventory.MoneyAccountBankDeposit( )
+	
+	PlaySound( SOUNDKIT.IG_MAINMENU_OPTION )
+	
+	StaticPopup_Hide( "BANK_MONEY_WITHDRAW" )
+	
+	local alreadyShown = StaticPopup_Visible( "BANK_MONEY_DEPOSIT" )
+	if alreadyShown then
+	  StaticPopup_Hide( "BANK_MONEY_DEPOSIT" )
+	else
+	  StaticPopup_Show( "BANK_MONEY_DEPOSIT", nil, nil, { bankType = Enum.BankType.Account } )
+	end
+	
+end
+
+function ArkInventory.MoneyAccountBankWithdraw( )
+	
+	PlaySound( SOUNDKIT.IG_MAINMENU_OPTION )
+	
+	StaticPopup_Hide( "BANK_MONEY_DEPOSIT" )
+	
+	local alreadyShown = StaticPopup_Visible( "BANK_MONEY_WITHDRAW" )
+	if alreadyShown then
+	  StaticPopup_Hide( "BANK_MONEY_WITHDRAW" )
+	else
+	  StaticPopup_Show( "BANK_MONEY_WITHDRAW", nil, nil, { bankType = Enum.BankType.Account } )
+	end
+	
+end

@@ -87,7 +87,7 @@ function ArkInventory.Search.GetContent( h )
 		if info.class == "item" or info.class == "keystone" then
 			
 			local s
-			ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, search_id )
+			ArkInventory.TooltipSetFromHyperlink( ArkInventory.Global.Tooltip.Scan, search_id )
 			
 			local leftText, rightText, leftTextClean, rightTextClean, leftColor, rightColor = ArkInventory.TooltipGetLine( ArkInventory.Global.Tooltip.Scan, 1 )
 			-- check for no response??
@@ -126,7 +126,7 @@ function ArkInventory.Search.GetContent( h )
 			
 		elseif info.class == "currency" then
 			
-			--ArkInventory.TooltipSet( ArkInventory.Global.Tooltip.Scan, nil, nil, nil, search_id )
+			--ArkInventory.TooltipSetFromHyperlink( ArkInventory.Global.Tooltip.Scan, search_id )
 			
 			--txt1 = ArkInventory.TooltipGetLine( tooltip, 2 )
 			--txt = string.format( "#%s#", info.description or "" )

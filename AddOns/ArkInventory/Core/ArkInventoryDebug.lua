@@ -1,9 +1,34 @@
-
+﻿
 ArkInventory.Debug = { }
+
+function ArkInventory.Debug.Frame_OnLoad( frame )
+	
+	-- thiws is the first frame created in xml so the onload gets triggered from here
+	ArkInventory.OnLoad( )
+	
+	
+	table.insert( UISpecialFrames, frame:GetName( ) )
+	
+	ArkInventory.Frame_AddBorder( frame )
+	frame:RegisterForDrag( "LeftButton" )
+	
+end
+
+function ArkInventory.Debug.Frame_OnShow( frame )
+	ArkInventory.MediaFrameDefaultFontSet( frame )
+end
+
+function ArkInventory.Debug.Frame_OnDragStart( frame )
+	frame:StartMoving( )
+end
+
+function ArkInventory.Debug.OnDragStop( frame )
+	frame:StopMovingOrSizing( )
+end
 
 function ArkInventory.Debug.Frame_Hide( )
 	
-	local frame = ArkInventory.Debug.frame
+	local frame = _G[ArkInventory.Const.Frame.Debug.Name]
 	
 	if frame then
 		frame:Hide( )
@@ -13,7 +38,7 @@ end
 	
 function ArkInventory.Debug.Frame_Show( )
 	
-	local frame = ArkInventory.Debug.frame
+	local frame = _G[ArkInventory.Const.Frame.Debug.Name]
 	
 	if frame then
 		ArkInventory.Debug.Frame_Paint( )
@@ -25,7 +50,7 @@ end
 
 function ArkInventory.Debug.Frame_Toggle( )
 	
-	local frame = ArkInventory.Debug.frame
+	local frame = _G[ArkInventory.Const.Frame.Debug.Name]
 	
 	if frame then
 		if frame:IsVisible( ) then
@@ -94,7 +119,7 @@ end
 
 function ArkInventory.Debug.Frame_Paint( )
 	
-	local frame = ArkInventory.Debug.frame
+	local frame = _G[ArkInventory.Const.Frame.Debug.Name]
 	if not frame then return end
 	
 	-- frameStrata

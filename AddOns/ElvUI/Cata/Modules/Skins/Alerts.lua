@@ -6,7 +6,7 @@ local unpack = unpack
 local hooksecurefunc = hooksecurefunc
 
 local CreateFrame = CreateFrame
-local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemQualityByID = C_Item.GetItemQualityByID
 
 local ITEM_QUALITY_COLORS = ITEM_QUALITY_COLORS
 
@@ -36,7 +36,6 @@ local function SkinAchievementAlert(frame)
 	frame.shine:Kill()
 	frame.GuildBanner:Kill()
 	frame.GuildBorder:Kill()
-	frame.OldAchievement:Kill()
 
 	-- Text
 	frame.Unlocked:FontTemplate(nil, 12)
@@ -160,7 +159,7 @@ local function SkinHonorAwardedAlert(frame)
 end
 
 local function SkinLegendaryItemAlert(frame, itemLink)
-	if not frame.isSkinned then
+	if not frame.IsSkinned then
 		frame.Background:Kill()
 		frame.Background2:Kill()
 		frame.Background3:Kill()
@@ -185,10 +184,10 @@ local function SkinLegendaryItemAlert(frame, itemLink)
 		frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 20, -20)
 		frame.backdrop:Point('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -20, 20)
 
-		frame.isSkinned = true
+		frame.IsSkinned = true
 	end
 
-	local _, _, itemRarity = GetItemInfo(itemLink)
+	local itemRarity = GetItemQualityByID(itemLink)
 	local color = itemRarity and ITEM_QUALITY_COLORS[itemRarity]
 	if color then
 		frame.Icon.b:SetBackdropBorderColor(color.r, color.g, color.b)

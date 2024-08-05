@@ -1,8 +1,82 @@
-local TOCNAME,GBB=...
+local TOCNAME,
+	---@class Addon_Localization
+	GBB=...;
 
+local isClassicEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+
+---Supports utf8 strings for non-english clients
+local initialChar = function(str)
+	---@cast str string
+	local initialByte = str:byte(1)
+	if initialByte <= 127 then
+		return string.char(str:byte(1))
+	elseif initialByte >= 192 and initialByte <= 223 then
+		return string.char(str:byte(1, 2))
+	elseif initialByte >= 224 and initialByte <= 239 then
+		return string.char(str:byte(1, 3))
+	end
+	return string.char(str:byte(1, 4))
+end
+
+-- Limited fallback localizations for missing locales, these are generated with FrameXML global strings
+-- or info from game API's that return already localized strings for the user client's locale
+local preLocalizedFallbacks = {
+	-- must be the default chat-name!
+	["lfg_channel"]= (function()
+		-- related issues: #207
+		-- client specific Id's here: https://wago.tools/db2/ChatChannels?build=4.4.0.54986
+		local lfgChannelID = isClassicEra and 24 or 26
+		local localizedName = C_ChatInfo.GetChannelShortcutForChannelID(lfgChannelID)
+		return localizedName
+	end)(),
+	["world_channel"] = CHANNEL_CATEGORY_WORLD,
+	["GuildChannel"] = GUILD_CHAT,
+	["msgLevelRange"] = LFD_LEVEL_FORMAT_RANGE:gsub("%(", ("(%s "):format(LEVEL)),
+	["msgLevelRangeShort"]= LFD_LEVEL_FORMAT_RANGE:gsub("%s", ""),
+	["msgAddNote"] = SET_FRIENDNOTE_LABEL,
+	["msgLocalRestart"] = REQUIRES_RELOAD,
+	["heroicAbr"] = initialChar(PLAYER_DIFFICULTY2),
+	["normalAbr"] = initialChar(PLAYER_DIFFICULTY1),
+	["raidAbr"] = initialChar(LFG_TYPE_RAID),
+	["msgFontSize"] = ("%s (%s)"):format(FONT_SIZE, REQUIRES_RELOAD),
+
+	-- option panel
+	["HeaderSettings"] = SETTINGS,
+	-- ["HeaderTags"]="Search patterns",
+	["HeaderTagsCustom"] = CHANNEL_CATEGORY_CUSTOM,
+	-- ["PanelTags"]="Search patterns",
+	["PanelLocales"] = BUG_CATEGORY15, -- "Language Translations"
+	["HeaderChannel"] = CHANNELS,
+	["PanelAbout"] = COMBAT_MISC_INFO, -- "Misc Info"
+	["HeaderSlashCommand"] = CHAT_HELP_TEXT_LINE1, -- "Chat Commands: "
+	-- ["HeaderCredits"] = CREDITS, -- DNE
+	["HeaderInfo"] = INFO,
+	["CboxTagsCustom"] = CUSTOM,
+	["CboxColorByClass"]= SHOW_CLASS_COLOR,
+
+	["EditCustom_Bad"] = IGNORED,
+	["EditCustom_Heroic"] = PLAYER_DIFFICULTY2,
+
+	["BtnUnselectAll"] = CLEAR_ALL,
+	["BtnSelectAll"] = CHECK_ALL,
+	["BtnWhisper"] = WHISPER.." %s",
+	["BtnInvite"] = INVITE.." %s",
+	["BtnWho"] = WHO.." %s",
+	["BtnIgnore"]= IGNORE_PLAYER.." %s",
+	["BtnCancel"]  = CANCEL,
+
+	["TabRequest"]= LFGUILD_TAB_REQUESTS_NONE, --"Requests"
+	["TabGroup"] = MEMBERS,
+
+	-- Language checkboxes 
+	["CboxTagsPortuguese"] = LFG_LIST_LANGUAGE_PTBR,
+	["CboxTagsSpanish"] = LFG_LIST_LANGUAGE_ESES,
+}
+
+---Localized addon strings, keyed by locale
 GBB.locales = {
 	enGB = {
-		["lfg_channel"]="LookingForGroup", -- must be the default chat-name!
+		["lfg_channel"] = preLocalizedFallbacks["lfg_channel"], -- may as well use the client generated string
 		["world_channel"]="World", -- must be the default chat-name!
 		["GuildChannel"]="Guild Channel",
 
@@ -52,6 +126,7 @@ GBB.locales = {
 		["CboxOnDebug"]="Show debug information",
 		["CboxNotifyChat"]="On new request make a chat notification",
 		["CboxNotifySound"]="On new request make a sound notification",
+		["CboxFilterTravel"]="Filter travel requests",
 		["CboxRemoveRealm"]="Always remove Realm",
 		["CboxCharFilterLevel"]="Filter on recommended level ranges",
 		["CboxColorOnLevel"]="Highlight dungeons on recommended level ranges",
@@ -64,6 +139,7 @@ GBB.locales = {
 		["CboxTagsCustom"]="Custom",
 		["CboxRemoveRaidSymbols"]="Remove raid symbols like {rt1}",
 		["CboxOrderNewTop"]="Sort new requests above",
+		["CboxHeadersStartFolded"]="Dungeon categories start collapsed",
 		["CboxColorByClass"]="Colorize name by class",
 		["CboxShowClassIcon"]="and show icon",
 		["CboxUseAllInLFG"]="Show all messages from lfg-channel",
@@ -97,14 +173,13 @@ GBB.locales = {
 
 		["BtnUnselectAll"]="Unselect all",
 		["BtnSelectAll"]="Select all",
-
 		["BtnWhisper"]="Whisper %s",
 		["BtnInvite"]="Invite %s",
 		["BtnWho"]="Who %s",
 		["BtnIgnore"]="Ignore %s",
-		["BtnFold"]="Fold",
-		["BtnFoldAll"]="Fold all",
-		["BtnUnFoldAll"]="Unfold all",
+		["BtnFold"]="Collapse",
+		["BtnFoldAll"]="Collapse all",
+		["BtnUnFoldAll"]="Expand all",
 		["BtnCancel"]="Cancel",
 		["BtnEntryColor"]="Color of the message",
 		["BtnHeroicDungeonColor"]="Color of heroic dungeon tooltip",
@@ -125,17 +200,13 @@ GBB.locales = {
 		["TabGroup"]="Members",
 		["TabLfg"]="Tool Requests",
 
-		["AboutUsage"]="GBB searches the chat messages for dungeon requests in the background. To whisper a person, simply click on the entry with the left mouse button. For a '/who' a shift + left click is enough. The dungeon list can be filtered in the settings. You can also fold this by left-clicking on the dungeon name.|nOld entries are filtered out after 150 seconds.",
-
+		["AboutUsage"]="GBB searches the chat messages for dungeon requests in the background. To whisper a person, simply click on the entry with the left mouse button. For a '/who' a shift + left click is enough. The dungeon list can be filtered in the settings. You can also collapse this by left-clicking on the dungeon name.|nOld entries are filtered out after 150 seconds.",
 		["AboutSlashCommand"]="<value> can be true, 1, enable, false, 0, disable. If <value> is omitted, the current status switches.",
-
-
 		["AboutInfo"]="GBB provides an overview of the endless requests in the chat channels. It detects all requests to the classic dungeons, sorts them and presents them clearly way. Numerous filtering options reduce the gigantic number to exactly the dungeons that interest you. And if that's not enough, GBB will let you know about any new request via a sound or chat notification. And finally, GBB can post your request repeatedly.",
 		["AboutCredits"]="Original by GPI / Erytheia-Razorfen",
-
+		["SAVE_ON_ENTER"] = ("Press \"%s\" to save changes."):format(KEY_ENTER),
 	},
-
-	deDE =   {
+	deDE = {
 	["AboutInfo"] = "GBB verschafft euch den Überblick über die endlosen Anfragen in den Chat-Channels. Es erkennt alle Anfragen zu den klassischen Instanzen, sortiert sie und stellt sie übersichtlich da. Filtermöglichkeiten reduziert die gigantische Anzahl auf genau die Instanzen, die dich interessieren. Und falls das nicht reicht, informiert GBB dich über jede neue Anfrage mittels eines Sounds oder Chat-Benachrichtigung. Und abschließend kann GBB deine persönliche Anfrage wiederholt veröffentlichen.",
 	["AboutSlashCommand"] = "<value> kann true,1,enable,false,0,disable sein. Wird <value> weggelassen, schaltet der aktuelle Status um.",
 	["AboutUsage"] = "GBB durchsucht im Hintergrund die Chat-Nachrichten nach Instanz-Anfragen. Um eine Person anzuflüstern, einfach den Eintrag mit links anklicken. Für ein '/who' genügt ein Shift + links klick. Die Instanz-Liste lässt sich in den Einstellungen filtern. Zudem kann man mit einen Linksklick auf den Instanz-Namen diesen falten.|nAlte Einträge werden nach 150 Sekunden rausgefiltert.",
@@ -183,10 +254,12 @@ GBB.locales = {
 	["CboxNotfiyInraid"] = "Aktiv in Schlachtzuginstanzen",
 	["CboxNotifyChat"] = "Bei neuer Anfrage eine Nachricht senden",
 	["CboxNotifySound"] = "Bei neuer Anfrage ein Geräusch abspielen",
+	["CboxFilterTravel"]="Filter travel requests",
 	["CboxRemoveRealm"]="Realm immer entfernen",
 	["CboxOnDebug"] = "Debug-Informationen anzeigen",
 	["CboxOneLineNotification"] = "Kurze einzeilige Chatnachricht",
 	["CboxOrderNewTop"] = "Sortiere neue Anfragen nach oben",
+	["CboxHeadersStartFolded"]="Die kopfzeilen beginnen gefaltet",
 	["CboxRemoveRaidSymbols"] = "Entferne Raid-Zeichen wie {rt1}",
 	["CboxShowClassIcon"] = "und zeige Icon",
 	["Cboxshowminimapbutton"] = "Minimap-Icon anzeigen",
@@ -213,7 +286,7 @@ GBB.locales = {
 	["HeaderTags"] = "Wörterlisten",
 	["HeaderTagsCustom"] = "Eigene Wörterlisten",
 	["HeaderUsage"] = "Benutzung",
-	["lfg_channel"] = "SucheNachGruppe",
+	-- ["lfg_channel"] = "SucheNachGruppe", -- uses pre-localized fallback
 	["world_channel"] = "Welt",
 	["msgAddNote"] = "Notiz von %s",
 	["msgCustomList"] = "Hier die eigenen eindeutigen Suchbegriffe eingeben. Wenn nichts vorhanden ist, werden die englischen als ausgegraues Beispiel angezeigt.",
@@ -243,14 +316,16 @@ GBB.locales = {
 	["SlashDefault"] = "Hauptfenster öffnen",
 	["SlashReset"] = "Hauptfenster zurücksetzen",
 	["TabGroup"] = "Mitglieder",
-	["TabRequest"] = "Anfragen"
-},
+	["TabRequest"] = "Anfragen",
+	["SAVE_ON_ENTER"] = ("Drücken Sie \"%s\", um die Änderungen zu speichern."):format(KEY_ENTER),
+	},
 	esMX = {
-		["lfg_channel"]="BuscarGrupo",
+		-- ["lfg_channel"]="BuscarGrupo", -- uses fallback
 		["world_channel"] = "Mundo",
+		["SAVE_ON_ENTER"] = ("Pulse \"%strings\" para guardar los cambios."):format(KEY_ENTER),
 	},
 	frFR = {
-	["lfg_channel"]="RechercheDeGroupe",
+	-- ["lfg_channel"]="RechercheGroupe", -- uses fallback
 	["world_channel"] = "Général",
 	["GuildChannel"]="Guilde",
 	["msgNbRequest"]="%d Requête(s) - cliquez pour envoyer un message - shift+click pour regarder les informations - ctrl+click pour inviter - alt+clic pour envoyer un message de role",
@@ -295,6 +370,7 @@ GBB.locales = {
 	["CboxOnDebug"]="Afficher les informations de débogage",
 	["CboxNotifyChat"]="Sur nouvelle demande, faire une notification de chat",
 	["CboxNotifySound"]="Sur nouvelle demande, faire une notification sonore",
+	["CboxFilterTravel"]="Filter travel requests",
 	["CboxRemoveRealm"]="Toujours supprimer Realm",
 	["CboxCharFilterLevel"]="Filtre sur les plages de niveaux recommandés",
 	["CboxColorOnLevel"]="Faire ressortir les donjons sur les plages de niveaux recommandés",
@@ -307,6 +383,7 @@ GBB.locales = {
 	["CboxTagsCustom"]="Personnalisé",
 	["CboxRemoveRaidSymbols"]="Enlever les symboles de raid comme {rt1}",
 	["CboxOrderNewTop"]="Trier les nouvelles demandes au-dessus",
+	["CboxHeadersStartFolded"]="Les en-têtes commencent déjà effondrés",
 	["CboxColorByClass"]=" Colorer le nom par classe",
 	["CboxShowClassIcon"]="et montrer l'icône",
 	["CboxUseAllInLFG"]="Afficher tous les messages du canal lfg",
@@ -364,6 +441,7 @@ GBB.locales = {
 	["AboutSlashCommand"]="<value> peut être true, 1, enable, false, 0, disable. Si <value> est omise, l'état actuel commute.",
 	["AboutInfo"]="GBB fournit un aperçu des demandes sans fin dans les canaux de discussion. Il détecte toutes les demandes concernant les donjons classiques, les trie et les présente de manière claire. De nombreuses options de filtrage réduisent le nombre gigantesque à exactement les donjons qui vous intéressent. Et si cela ne suffit pas, GBB vous informe de toute nouvelle demande par une notification sonore ou par chat. Et enfin, GBB peut poster votre demande à plusieurs reprises",
 	["AboutCredits"]="Original par GPI / Erytheia-Razorfen",
+	["SAVE_ON_ENTER"] =("Appuyez sur « %s » pour enregistrer les modifications."),
 	},
 	ruRU = {
 		["AboutInfo"]="GBB обеспечивает группировку нескончаемых запросов в каналах чата. Он обнаруживает все сообщения про поиск группы в классические подземелья, сортирует и удобно представляет их. Многочисленные опции фильтрации уменьшают гигантское число сообщений и оставляют только те подземелья, которые вас интересуют. А если этого недостаточно, GBB сообщит вам о любом новом запросе через звуковое или чат-уведомление. И, наконец, GBB может публиковать ваш запрос повторно.",
@@ -410,10 +488,12 @@ GBB.locales = {
 		["CboxNotfiyInraid"]="Включить в рейдовом подземелье",
 		["CboxNotifyChat"]="Уведомлять о новых запросах в чате",
 		["CboxNotifySound"]="Звуовое уведомление о новых событиях",
+		["CboxFilterTravel"]="Filter travel requests",
 		["CboxRemoveRealm"]="Всегда удаляйте Realm",
 		["CboxOnDebug"]="Показать отладочную информацию",
 		["CboxOneLineNotification"]="Маленькое однострочное уведомление в чате",
 		["CboxOrderNewTop"]="Показывать сначала новые запросы",
+		["CboxHeadersStartFolded"]="начало заголовков свернуто",
 		["CboxRemoveRaidSymbols"]="Удалить символы рейда, такие как {rt1}",
 		["CboxEnableGroup"]="Запоминать участников группы",
 		["CboxEnableGuild"]="Добавить название гильдии в подсказку",
@@ -444,7 +524,7 @@ GBB.locales = {
 		["HeaderTags"]="Шаблоны поиска",
 		["HeaderTagsCustom"]="Пользовательские шаблоны поиска",
 		["HeaderUsage"]="Использование",
-		["lfg_channel"]="ПоискСпутников",
+		-- ["lfg_channel"]="ПоискСпутников", -- uses fallback
 		["world_channel"]="Мир",
 		["msgCustomList"]="Введите здесь свои уникальные шаблоны для поиска. Если занчение не заполнено, английские шаблоны отображаются в виде примера серым цветом.",
 		["msgDoAnnounce"]="Запрос объявлен.",
@@ -471,9 +551,10 @@ GBB.locales = {
 		["SlashConfig"]="Открыть конфигурацию",
 		["SlashDefault"]="открыть главное окно",
 		["SlashReset"]="Сбросить положение главного окна",
+		["SAVE_ON_ENTER"] = ("Нажмите \"%s\", чтобы сохранить изменения."):format(KEY_ENTER),
 	},
 	zhTW = {
-		["lfg_channel"]="尋求組隊", -- must be the default chat-name!
+		-- ["lfg_channel"]="尋求組隊", -- uses fallback
 		["world_channel"]="綜合", -- must be the default chat-name!
 		["GuildChannel"]="公會",
 
@@ -520,6 +601,7 @@ GBB.locales = {
 		["CboxOnDebug"]="顯示除錯資訊",
 		["CboxNotifyChat"]="有新尋求組隊時顯示聊天通知",
 		["CboxNotifySound"]="有新尋求組隊時顯示聲音通知",
+		["CboxFilterTravel"]="Filter travel requests",
 		["CboxRemoveRealm"]="始終刪除領域",
 		["CboxCharFilterLevel"]="過濾建議的等級區間",
 		["CboxColorOnLevel"]="強調地下城建議等級區間",
@@ -532,6 +614,7 @@ GBB.locales = {
 		["CboxTagsCustom"]="自訂",
 		["CboxRemoveRaidSymbols"]="移除團隊圖示 如 {rt1}",
 		["CboxOrderNewTop"]="排序越新的顯示越上面",
+		["CboxHeadersStartFolded"]="標題開始折疊",
 		["CboxColorByClass"]="名字依職業著色",
 		["CboxShowClassIcon"]="並顯示圖示",
 		["CboxUseAllInLFG"]="顯示來自組隊頻道的所有訊息",
@@ -598,9 +681,10 @@ GBB.locales = {
 
 		["AboutInfo"]="GBB provides an overview of the endless requests in the chat channels. It detects all requests to the classic dungeons, sorts them and presents them clearly way. Numerous filtering options reduce the gigantic number to exactly the dungeons that interest you. And if that's not enough, GBB will let you know about any new request via a sound or chat notification. And finally, GBB can post your request repeatedly.",
 		["AboutCredits"]="Original by GPI / Erytheia-Razorfen",
+		["SAVE_ON_ENTER"] = ("按下「%s」以儲存變更。"):format(KEY_ENTER),
 	},
 	zhCN = {
-		["lfg_channel"]="寻求组队", -- must be the default chat-name!
+		-- ["lfg_channel"]="寻求组队", -- uses fallback
 		["world_channel"]="综合", -- must be the default chat-name!
 		["GuildChannel"]="公会",
 
@@ -647,6 +731,7 @@ GBB.locales = {
 		["CboxOnDebug"]="显示除錯咨询",
 		["CboxNotifyChat"]="有新寻求组队时显示聊天通知",
 		["CboxNotifySound"]="有新寻求组队时进行声音提示",
+		["CboxFilterTravel"]="Filter travel requests",
 		["CboxRemoveRealm"]="始终删除境界",
 		["CboxCharFilterLevel"]="过滤建议的等级区间",
 		["CboxColorOnLevel"]="强调地下城建议等级区间",
@@ -659,6 +744,7 @@ GBB.locales = {
 		["CboxTagsCustom"]="自订",
 		["CboxRemoveRaidSymbols"]="移除团队图标 如 {rt1}",
 		["CboxOrderNewTop"]="排序越新的显示越上面",
+		["CboxHeadersStartFolded"]="标题开始折叠",
 		["CboxColorByClass"]="名字依职业著色",
 		["CboxShowClassIcon"]="並显示图标",
 		["CboxUseAllInLFG"]="显示來自组队频道的所有讯息",
@@ -725,37 +811,45 @@ GBB.locales = {
 
 		["AboutInfo"]="GBB provides an overview of the endless requests in the chat channels. It detects all requests to the classic dungeons, sorts them and presents them clearly way. Numerous filtering options reduce the gigantic number to exactly the dungeons that interest you. And if that's not enough, GBB will let you know about any new request via a sound or chat notification. And finally, GBB can post your request repeatedly.",
 		["AboutCredits"]="Original by GPI / Erytheia-Razorfen",
+		["SAVE_ON_ENTER"] = ("按下\"%s\"以保存更改。"):format(KEY_ENTER),
 	},
-
+	ptBR = {
+		SAVE_ON_ENTER = ("Pressione \"%s\" para salvar as alterações."):format(KEY_ENTER)
+	}
 }
-
 GBB.locales.esES=GBB.locales.esMX
 GBB.locales.enUS=GBB.locales.enGB
 
+---Returns localized addon display strings
+---@return table<string, string> L 
 function GBB.LocalizationInit()
 	local locale = GetLocale()
-	local l = GBB.locales[locale] or {}
-
-	if GroupBulletinBoardDB and GroupBulletinBoardDB.CustomLocales and type(GroupBulletinBoardDB.CustomLocales) == "table" then
-		for key,value in pairs(GroupBulletinBoardDB.CustomLocales) do
-			if value~=nil and value ~="" then
-				l[key.."_org"]=l[key] or GBB.locales.enGB[key]
-				l[key]=value
+	local localizedStrings = GBB.locales[locale] or {};
+	
+	if GroupBulletinBoardDB
+	and type(GroupBulletinBoardDB.CustomLocales) == "table"
+	then
+		-- insert any user set custom translations
+		for key, custom in pairs(GroupBulletinBoardDB.CustomLocales) do
+			if custom~=nil and custom ~="" then
+				-- save the original (set by us) 
+				localizedStrings[key.."_org"]=localizedStrings[key] or GBB.locales.enGB[key]
+				localizedStrings[key]=custom
 			end
 		end
 	end
 
-	-- Needed to not cause overflow when using english
+	-- Set fallback localizations for missing non-english locales
+	-- Check needed to not cause overflow when using english
 	if (locale ~= "enGB" and locale ~= "enUS") then
-		setmetatable(l, {__index = function (t, k)
-			if GBB.l and GBB.l[k] then
-				return GBB.l[k]
-			elseif GBB.locales.enGB and GBB.locales.enGB[k] then
-				return GBB.locales.enGB[k]
-			else
-				return "["..k.."]"
-			end
+		setmetatable(localizedStrings, {__index = function (self, key)
+			local englishStr = GBB.locales.enGB[key]
+			local clientStr = preLocalizedFallbacks[key]
+			return clientStr or englishStr or "["..key.."]"
 		end})
+	else -- insert new any *new* game translations to enUS/enGB
+		-- could also just manually insert them to the `GBB.locales.enGB` table
+		setmetatable(GBB.locales.enUS, {__index = preLocalizedFallbacks})
 	end
-	return l
+	return localizedStrings
 end

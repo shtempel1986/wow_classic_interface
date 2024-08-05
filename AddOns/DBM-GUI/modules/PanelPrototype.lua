@@ -14,6 +14,8 @@ local CreateFrame, GetCursorPosition, UIParent, GameTooltip, NORMAL_FONT_COLOR, 
 local DBM = DBM
 local CreateTextureMarkup = CreateTextureMarkup
 
+local GetSpellDescription = C_Spell.GetSpellDescription or GetSpellDescription
+
 --TODO, not 100% sure which ones use html and which don't so some might need true added or removed for 2nd arg
 local function parseDescription(name, usesHTML)
 	if not name then
@@ -26,10 +28,12 @@ local function parseDescription(name, usesHTML)
 	if name:find("%$spell:") then
 		name = name:gsub("%$spell:(%-?%d+)", function(id)
 			local spellId = tonumber(id)
-			if spellId < 0 then
-			    return "$journal:" .. -spellId
+			if spellId then
+				if spellId < 0 then
+				    return "$journal:" .. -spellId
+				end
+				spellName = DBM:GetSpellName(spellId)
 			end
-			spellName = DBM:GetSpellName(spellId)
 			if not spellName then
 				spellName = CL.UNKNOWN
 				DBM:Debug("Spell ID does not exist: " .. spellId)
@@ -101,7 +105,7 @@ function PanelPrototype:CreateSpellDesc(text)
 		textblock:SetText("Loading...")
 		spell:ContinueOnSpellLoad(function()
 			text = GetSpellDescription(spell:GetSpellID())
-			if text == "" then
+			if not text or text == "" then
 				text = L.NoDescription
 			else
 				test.hasDesc = true
@@ -150,7 +154,7 @@ function PanelPrototype:CreateText(text, width, autoplaced, style, justify, myhe
 	return textblock
 end
 
-function PanelPrototype:CreateButton(title, width, height, onclick, font)
+function PanelPrototype:CreateButton(title, width, height, onclick, font, highlightFont)
 	---@class DBMPanelButton: Button
 	---@field myheight number
 	---@field addon table
@@ -162,9 +166,9 @@ function PanelPrototype:CreateButton(title, width, height, onclick, font)
 	if onclick then
 		button:SetScript("OnClick", onclick)
 	end
-	if font then
-		button:SetNormalFontObject(font)
-		button:SetHighlightFontObject(font)
+	if font or highlightFont then
+		button:SetNormalFontObject(font or highlightFont)
+		button:SetHighlightFontObject(highlightFont or font)
 	end
 	if _G[button:GetName() .. "Text"]:GetStringWidth() > button:GetWidth() then
 		button:SetWidth(_G[button:GetName() .. "Text"]:GetStringWidth() + 25)
@@ -217,6 +221,7 @@ function PanelPrototype:CreateSlider(text, low, high, step, width)
 	slider:SetScript("OnValueChanged", function(_, value)
 		sliderText:SetFormattedText(text, value)
 	end)
+	slider.textFrame = sliderText
 	self:SetLastObj(slider)
 	return slider
 end

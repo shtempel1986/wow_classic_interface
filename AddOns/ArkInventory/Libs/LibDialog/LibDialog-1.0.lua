@@ -24,7 +24,7 @@ local MAJOR = "LibDialog-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 9 -- Should be manually increased
+local MINOR = 10 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -830,9 +830,8 @@ function lib:Spawn(reference, data)
     if #active_dialogs > 0 then
         dialog:SetPoint("TOP", active_dialogs[#active_dialogs], "BOTTOM", 0, 0)
     else
-        local default_dialog = _G.StaticPopup_DisplayedFrames[#_G.StaticPopup_DisplayedFrames]
-
-        if default_dialog then
+        if _G.StaticPopup_DisplayedFrames and #_G.StaticPopup_DisplayedFrames > 0 then
+            local default_dialog = _G.StaticPopup_DisplayedFrames[#_G.StaticPopup_DisplayedFrames]
             dialog:SetPoint("TOP", default_dialog, "BOTTOM", 0, 0)
         else
             dialog:SetPoint("TOP", _G.UIParent, "TOP", 0, -135)

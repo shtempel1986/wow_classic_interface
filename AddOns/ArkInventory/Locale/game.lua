@@ -13,26 +13,40 @@ local function FormatForPattern( text )
 	return text
 end
 
-local function FormatForCapture( text )
+local function FormatForCapture( var )
 	
-	if not text then
-		--print( RED_FONT_COLOR_CODE .. "ArkInventory: code failure - FormatForCapture was passed a nil value, blizzard have changed something." )
-		--assert( false, "code failure" )
+	if type( var ) ~= "string" then
+		print( RED_FONT_COLOR_CODE .. "ArkInventory: code failure - FormatForCapture - a non string value was used." )
+		--ArkInventory.Util.Error( "FormatForCapture - a non string value was used" )
 		return
 	end
 	
-	if string.find( text, "|" ) then
-		print( RED_FONT_COLOR_CODE .. "ArkInventory: code error - FormatForCapture( " .. text .. ") contains || character.  check blizzard vlaues." )
+	local text = _G[var]
+	
+	if type( text ) ~= "string" or string.trim( text or "" ) == "" then
+--		print( RED_FONT_COLOR_CODE .. "ArkInventory: code failure - FormatForCapture - " .. var .. " does not generate a string value." )
 		return
 	end
 	
-	local text = FormatForPattern( text )
-	text = string.gsub( text, "%d%$", "" ) -- remove 1$ / 2$
+	local otext = string.gsub( text, "\124", "\124\124" )
+	
+	text = FormatForPattern( text )
+	
+	text = string.gsub( text, "|%d+.-;", ".+" ) -- replace conditional formatting |4single:plural; replace with .+
+	text = string.gsub( text, "%d%$", "" ) -- remove positional markers 1$ / 2$
+	
 	text = string.gsub( text, "%%s", "(.+)" ) -- replace %s with (.+)
 	text = string.gsub( text, "%%d", "%(%%d+%)" ) -- replace %d with (%d+)
-	--text = string.gsub( text, "|4(.-):(.-);", "%(%1%)?%(%2%)?" )
 	
-	return string.format( "^%s$", text )
+	text = string.format( "^%s$", text )
+	
+	if string.match( otext, "%d%$" ) then -- has positional markers
+		ArkInventory.OutputDebug( "variable with possible out of order placements [", var, "]" )
+		ArkInventory.OutputDebug( "  [", otext, "]" )
+		ArkInventory.OutputDebug( "  [", text, "]" )
+	end
+	
+	return text
 	
 end
 
@@ -65,11 +79,10 @@ L["WOW_SKILL_ARCHAEOLOGY"] = PROFESSIONS_ARCHAEOLOGY or true
 L["WOW_SKILL_COOKING"] = PROFESSIONS_COOKING or true
 L["WOW_SKILL_FIRSTAID"] = PROFESSIONS_FIRST_AID or true
 L["WOW_SKILL_FISHING"] = PROFESSIONS_FISHING or true
-L["WOW_SKILL_HERBALISM"] = string.match( UNIT_SKINNABLE_HERB, FormatForCapture( ITEM_REQ_SKILL ) ) or true
+L["WOW_SKILL_HERBALISM"] = string.match( UNIT_SKINNABLE_HERB, FormatForCapture( "ITEM_REQ_SKILL" ) ) or true
 L["WOW_SKILL_INSCRIPTION"] = INSCRIPTION or true
-L["WOW_SKILL_MINING"] = string.match( UNIT_SKINNABLE_ROCK, FormatForCapture( ITEM_REQ_SKILL ) ) or true
---L["WOW_SKILL_ENGINEERING"] = string.match( UNIT_SKINNABLE_BOLTS, FormatForCapture( ITEM_REQ_SKILL ) ) or true
-
+L["WOW_SKILL_MINING"] = string.match( UNIT_SKINNABLE_ROCK, FormatForCapture( "ITEM_REQ_SKILL" ) ) or true
+--L["WOW_SKILL_ENGINEERING"] = string.match( UNIT_SKINNABLE_BOLTS, FormatForCapture( "ITEM_REQ_SKILL" ) ) or true
 
 -- category descriptions
 L["CATEGORY_SYSTEM"] = CHAT_MSG_SYSTEM or true
@@ -87,7 +100,9 @@ L["CATEGORY_CONSUMABLE_DRINK"] = TUTORIAL_TITLE12 or true
 
 
 -- ldb
-L["LDB_MOUNTS_TYPE_A"] = BATTLE_PET_NAME_3 or true
+L["LDB_MOUNTS_TYPE_L"] = MOUNT_JOURNAL_FILTER_GROUND or true
+L["LDB_MOUNTS_TYPE_U"] = MOUNT_JOURNAL_FILTER_AQUATIC or true
+L["LDB_MOUNTS_TYPE_A"] = MOUNT_JOURNAL_FILTER_FLYING or true
 L["LDB_MOUNTS_FLYING_DISMOUNT"] = AUTO_DISMOUNT_FLYING_TEXT or true
 L["LDB_MOUNTS_FAIL_NOT_ALLOWED"] = SPELL_FAILED_NO_MOUNTS_ALLOWED or true
 L["LDB_MOUNTS_FAIL_PACIFIED"] = SPELL_FAILED_PACIFIED or true
@@ -105,6 +120,7 @@ L["WOW_ITEM_TOOLTIP_10P12T"] = FOURTH_NUMBER
 
 -- generic words & passthru
 L["ACCEPT"] = ACCEPT or true
+L["ACCOUNTBANK"] = ACCOUNT_BANK_PANEL_TITLE or true
 L["ACTIVATE"] = ACTIVATE or true
 L["ACTIVE"] = ACTIVE_PETS or true
 L["ADD"] = ADD or true
@@ -174,6 +190,7 @@ L["ENGRAVE"] = ENGRAVE or true
 L["EQUIP"] = EQUIPSET_EQUIP or true
 L["EQUIP_COLON"] = ITEM_SPELL_TRIGGER_ONEQUIP or true
 L["EQUIPMENT"] = BAG_FILTER_EQUIPMENT or WORLD_QUEST_REWARD_FILTERS_EQUIPMENT or true
+L["ERROR"] = ERROR_CAPS or true
 L["EXPANSION"] = EXPANSION_FILTER_TEXT or true
 L["FACTION_INACTIVE"] = FACTION_INACTIVE or true
 L["FILTER"] = FILTER or true
@@ -195,11 +212,12 @@ L["INTERFACE"] = UIOPTIONS_MENU or true
 L["ITEM"] = HELPFRAME_ITEM_TITLE or true
 L["ITEM_APPEARANCE_KNOWN"] = TRANSMOGRIFY_TOOLTIP_APPEARANCE_KNOWN or true
 L["ITEM_APPEARANCE_UNKNOWN"] = TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN or true
-L["ITEM_BIND0"] = NEVER or true
-L["ITEM_BIND1"] = ITEM_BIND_ON_USE or true
-L["ITEM_BIND2"] = ITEM_BIND_ON_EQUIP or true
-L["ITEM_BIND3"] = ITEM_SOULBOUND or true
-L["ITEM_BIND4"] = ITEM_ACCOUNTBOUND or true
+L["ITEM_BINDING0"] = NEVER or true
+L["ITEM_BINDING1"] = ITEM_BIND_ON_USE or true
+L["ITEM_BINDING2"] = ITEM_BIND_ON_EQUIP or true
+L["ITEM_BINDING3"] = ITEM_SOULBOUND or true
+L["ITEM_BINDING4"] = ITEM_ACCOUNTBOUND or true
+L["ITEM_BINDING5"] = ITEM_ACCOUNTBOUND_UNTIL_EQUIP or true
 L["ITEM_CANNOT_DISENCHANT"] = ITEM_DISENCHANT_NOT_DISENCHANTABLE or true
 L["ITEM_CANNOT_OBLITERATE"] = ITEM_OBLITERATEABLE_NOT or true
 L["ITEM_CANNOT_SCRAP"] = ITEM_SCRAPABLE_NOT or true
@@ -207,7 +225,7 @@ L["ITEM_LEVEL"] = STAT_AVERAGE_ITEM_LEVEL or true
 L["ITEM_NOT_READY"] = SPELL_FAILED_ITEM_NOT_READY or true
 L["ITEM_SOCKETABLE"] = ITEM_SOCKETABLE or true
 L["ITEM_WRONG_ZONE"] = SPELL_FAILED_INCORRECT_AREA or true
-L["ITEMS"] = ITEMS or true
+L["ITEMS"] = ITEMS or WARDROBE_ITEMS or true
 L["JUNK"] = BAG_FILTER_JUNK or true
 L["KEYRING"] = KEYRING or true
 L["LEARN"] = LEARN or true
@@ -242,7 +260,6 @@ L["OBLITERUM_FORGE"] = OBLITERUM_FORGE_TITLE
 L["OFFLINE"] = PLAYER_OFFLINE or true
 L["OKAY"] = OKAY or true
 L["ONLINE"] = FRIENDS_LIST_ONLINE or true
-L["OPEN"] = OPEN or true
 L["OPTION_TOOLTIP_REVERSE_NEW_LOOT"] = OPTION_TOOLTIP_REVERSE_NEW_LOOT or true
 L["OPTIONS"] = GAMEOPTIONS_MENU or true
 L["OTHER"] = OTHER or true
@@ -250,6 +267,7 @@ L["PET"] = PET or true
 L["PETS"] = PETS or true
 L["POWER"] = POWER_TYPE_POWER or true
 L["PREVIOUS_RANK_UNKNOWN"] = TOOLTIP_SUPERCEDING_SPELL_NOT_KNOWN or true
+L["PROFESSIONS"] = TRADE_SKILLS or true
 L["PROFESSION_TOOL"] = INVTYPE_PROFESSION_TOOL or true
 L["QUALITY"] = QUALITY or true
 L["QUEST"] = BATTLE_PET_SOURCE_2 or true
@@ -268,6 +286,7 @@ L["REVERSE_NEW_LOOT_TEXT"] = REVERSE_NEW_LOOT_TEXT or true
 L["RULES"] = BRAWL_TOOLTIP_RULES or true
 L["SAVE"] = SAVE or true
 L["SANCTUM_SPECIAL_AREA_NIGHTFAE"] = GARDENWEALD_STATUS_HEADER or true
+L["SCRAP"] = SCRAP_BUTTON or true
 L["SEARCH"] = SEARCH or true
 L["SEARCH_LOADING"] = SEARCH_LOADING_TEXT or true
 L["SECONDARY_SKILLS"] = SECONDARY_SKILLS or true
@@ -297,6 +316,7 @@ L["TRADE"] = TRADE or true
 L["TRADESKILL"] = BATTLE_PET_SOURCE_4 or true
 L["TRADESKILLS"] = TRADE_SKILLS or true
 L["TRANSMOGRIFY"] = TRANSMOGRIFY or true
+L["TRANSMOGRIFICATION"] = TRANSMOGRIFICATION or true
 L["TRANSMOGRIFIER"] = MINIMAP_TRACKING_TRANSMOGRIFIER or true
 L["TYPE"] = TYPE or true
 L["UNAVAILABLE"] = UNAVAILABLE or true
@@ -304,6 +324,7 @@ L["UNKNOWN"] = UNKNOWN or true
 L["UNLEARNED"] = TRADE_SKILLS_UNLEARNED_TAB or true
 L["UNTRACK"] = UNTRACK_QUEST_ABBREV or true
 L["UNUSED"] = UNUSED or true
+L["USE"] = USE or true
 L["UPGRADE"] = UPGRADE or true
 L["VAULT"] = GUILD_BANK or true
 L["VENDOR"] = BATTLE_PET_SOURCE_3 or true
@@ -314,38 +335,39 @@ L["YES"] = YES or true
 
 -- calculated
 
-L["WOW_TOOLTIP_ITEM_BIND_ON_USE"] = FormatForCapture( ITEM_BIND_ON_USE ) or true
-L["WOW_TOOLTIP_ITEM_BIND_ON_EQUIP"] = FormatForCapture( ITEM_BIND_ON_EQUIP ) or true
-L["WOW_TOOLTIP_ITEM_SOULBOUND"] = FormatForCapture( ITEM_SOULBOUND ) or true
-L["WOW_TOOLTIP_ITEM_BIND_ON_PICKUP"] = FormatForCapture( ITEM_BIND_ON_PICKUP ) or true
-L["WOW_TOOLTIP_ITEM_ACCOUNTBOUND"] = FormatForCapture( ITEM_ACCOUNTBOUND ) or true
-L["WOW_TOOLTIP_ITEM_BIND_TO_ACCOUNT"] = FormatForCapture( ITEM_BIND_TO_ACCOUNT ) or true
-L["WOW_TOOLTIP_ITEM_BIND_TO_BNETACCOUNT"] = FormatForCapture( ITEM_BIND_TO_BNETACCOUNT ) or true
-L["WOW_TOOLTIP_ITEM_BNETACCOUNTBOUND"] = FormatForCapture( ITEM_BNETACCOUNTBOUND ) or true
-L["WOW_TOOLTIP_ITEM_TOY_ONUSE"] = FormatForCapture( ITEM_TOY_ONUSE ) or true
-L["WOW_TOOLTIP_ITEM_COSMETIC"] = FormatForCapture( ITEM_COSMETIC ) or true
-
-L["WOW_TOOLTIP_REQUIRES_SKILL"] = FormatForCapture( ITEM_MIN_SKILL ) or true
-L["WOW_TOOLTIP_REQUIRES_LEVEL"] = FormatForCapture( ITEM_MIN_LEVEL ) or true
-L["WOW_TOOLTIP_REQUIRES_CLASS"] = FormatForCapture( ITEM_CLASSES_ALLOWED ) or true
-L["WOW_TOOLTIP_REQUIRES"] = FormatForCapture( ITEM_REQ_SKILL ) or true
-L["WOW_TOOLTIP_ITEMUPGRADELEVEL"] = FormatForCapture( ITEM_UPGRADE_TOOLTIP_FORMAT ) or true
-L["WOW_TOOLTIP_ITEM_LEVEL"] = FormatForCapture( ITEM_LEVEL ) or true
+L["WOW_TOOLTIP_ITEM_BIND_ON_USE"] = FormatForCapture( "ITEM_BIND_ON_USE" ) or true
+L["WOW_TOOLTIP_ITEM_BIND_ON_EQUIP"] = FormatForCapture( "ITEM_BIND_ON_EQUIP" ) or true
+L["WOW_TOOLTIP_ITEM_SOULBOUND"] = FormatForCapture( "ITEM_SOULBOUND" ) or true
+L["WOW_TOOLTIP_ITEM_BIND_ON_PICKUP"] = FormatForCapture( "ITEM_BIND_ON_PICKUP" ) or true
+L["WOW_TOOLTIP_ITEM_ACCOUNTBOUND"] = FormatForCapture( "ITEM_ACCOUNTBOUND" ) or true
+L["WOW_TOOLTIP_ITEM_ACCOUNTBOUND_UNTIL_EQUIP"] = FormatForCapture( "ITEM_ACCOUNTBOUND_UNTIL_EQUIP" ) or true
+L["WOW_TOOLTIP_ITEM_BIND_TO_ACCOUNT"] = FormatForCapture( "ITEM_BIND_TO_ACCOUNT" ) or true
+L["WOW_TOOLTIP_ITEM_BIND_TO_BNETACCOUNT"] = FormatForCapture( "ITEM_BIND_TO_BNETACCOUNT" ) or true
+L["WOW_TOOLTIP_ITEM_BNETACCOUNTBOUND"] = FormatForCapture( "ITEM_BNETACCOUNTBOUND" ) or true
+L["WOW_TOOLTIP_ITEM_TOY_ONUSE"] = FormatForCapture( "ITEM_TOY_ONUSE" ) or true
+L["WOW_TOOLTIP_ITEM_COSMETIC"] = FormatForCapture( "ITEM_COSMETIC" ) or true
+L["WOW_TOOLTIP_ITEM_CHARGES"] = FormatForCapture( "ITEM_SPELL_CHARGES" ) or true
+L["WOW_TOOLTIP_ITEM_CONTAINER_SLOTS"] = FormatForCapture( "CONTAINER_SLOTS" ) or true
+L["WOW_TOOLTIP_ITEM_REQUIRES_SKILL"] = FormatForCapture( "ITEM_MIN_SKILL" ) or true
+L["WOW_TOOLTIP_ITEM_REQUIRES_LEVEL"] = FormatForCapture( "ITEM_MIN_LEVEL" ) or true
+L["WOW_TOOLTIP_ITEM_REQUIRES_CLASS"] = FormatForCapture( "ITEM_CLASSES_ALLOWED" ) or true
+L["WOW_TOOLTIP_ITEM_REQUIRES"] = FormatForCapture( "ITEM_REQ_SKILL" ) or true
+L["WOW_TOOLTIP_ITEM_UPGRADE_LEVEL"] = FormatForCapture( "ITEM_UPGRADE_TOOLTIP_FORMAT" ) or true
+L["WOW_TOOLTIP_ITEM_LEVEL"] = FormatForCapture( "ITEM_LEVEL" ) or true
 L["WOW_TOOLTIP_ANCIENT_MANA"] = helper_GetCurrencyName( 1155 ) or true
-L["WOW_TOOLTIP_ARTIFACT_POWER"] = FormatForCapture( ARTIFACT_POWER ) or true
+L["WOW_TOOLTIP_ARTIFACT_POWER"] = FormatForCapture( "ARTIFACT_POWER" ) or true
 L["WOW_TOOLTIP_ARTIFACT_POWER_AMOUNT"] = "^.-([%d,.]+)%s(.+)"
-if POWER_TYPE_ANIMA then
-	L["WOW_TOOLTIP_ANIMA"] = FormatForCapture( POWER_TYPE_ANIMA ) or true
-end
+L["WOW_TOOLTIP_ANIMA"] = FormatForCapture( "POWER_TYPE_ANIMA" ) or true
+
 L["WOW_TOOLTIP_CONDUIT_POTENCY"] = CONDUIT_TYPE_POTENCY or true
 L["WOW_TOOLTIP_CONDUIT_FINESSE"] = CONDUIT_TYPE_FINESSE or true
 L["WOW_TOOLTIP_CONDUIT_ENDURANCE"] = CONDUIT_TYPE_ENDURANCE or true
 L["WOW_TOOLTIP_RETRIEVING_ITEM_INFO"] = RETRIEVING_ITEM_INFO or true
-L["WOW_TOOLTIP_RELIC_LEVEL"] = FormatForCapture( RELIC_TOOLTIP_ILVL_INCREASE ) or true
-L["WOW_TOOLTIP_DURABLITY"] = FormatForCapture( DURABILITY_TEMPLATE ) or true
+L["WOW_TOOLTIP_RELIC_LEVEL"] = FormatForCapture( "RELIC_TOOLTIP_ILVL_INCREASE" ) or true
+L["WOW_TOOLTIP_DURABLITY"] = FormatForCapture( "DURABILITY_TEMPLATE" ) or true
 
-L["WOW_TOOLTIP_BIND_PARTYLOOT"] = FormatForCapture( BIND_TRADE_TIME_REMAINING ) or true
-L["WOW_TOOLTIP_BIND_REFUNDABLE"] = FormatForCapture( REFUND_TIME_REMAINING ) or true
+L["WOW_TOOLTIP_BIND_PARTYLOOT"] = FormatForCapture( "BIND_TRADE_TIME_REMAINING" ) or true
+L["WOW_TOOLTIP_BIND_REFUNDABLE"] = FormatForCapture( "REFUND_TIME_REMAINING" ) or true
 
 L["WOW_TOOLTIP_DAMAGE"] = string.format( " %s$", DAMAGE )
 
@@ -356,7 +378,7 @@ L["PET_CANNOT_BATTLE"] = string.gsub( BATTLE_PET_CANNOT_BATTLE, "\n", " " )
 L["MINUTES"] = string.match( D_MINUTES, ":(.-);$" ) or true
 L["SECONDS"] = string.match( D_SECONDS, ":(.-);$" ) or true
 
-L["SPELL_DRUID_TRAVEL_FORM"] = ( GetSpellInfo( 783 ) ) or true
+L["SPELL_DRUID_TRAVEL_FORM"] = ( ArkInventory.CrossClient.GetSpellInfo( 783 ).name ) or true
 
 L["UNKNOWN_OBJECT"] = "Unknown Object [%s]"
 
@@ -393,6 +415,7 @@ local itemClassTable = {
 	{ "WOW_ITEM_CLASS_CONTAINER_INSCRIPTION", ArkInventory.ENUM.EXPANSION.WRATH, nil, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.INSCRIPTION },
 	{ "WOW_ITEM_CLASS_CONTAINER_FISHING", ArkInventory.ENUM.EXPANSION.CATACLYSM, nil, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.FISHING },
 	{ "WOW_ITEM_CLASS_CONTAINER_COOKING", ArkInventory.ENUM.EXPANSION.PANDARIA, nil, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.COOKING },
+	{ "WOW_ITEM_CLASS_CONTAINER_REAGENT", ArkInventory.ENUM.EXPANSION.PANDARIA, nil, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.PARENT, ArkInventory.ENUM.ITEM.TYPE.CONTAINER.REAGENT },
 	
 	{ "WOW_ITEM_CLASS_WEAPON", nil, nil, ArkInventory.ENUM.ITEM.TYPE.WEAPON.PARENT },
 	-- 01 = one-handed axes
@@ -558,9 +581,9 @@ for _, v in ipairs( itemClassTable ) do
 			local text = nil
 			
 			if i1 and i2 then
-				text = GetItemSubClassInfo( i1, i2 )
+				text = ArkInventory.CrossClient.GetItemSubClassInfo( i1, i2 )
 			elseif i1 then
-				text = GetItemClassInfo( i1 )
+				text = ArkInventory.CrossClient.GetItemClassInfo( i1 )
 			end
 			
 			if text then
@@ -613,6 +636,7 @@ L["WOW_ITEM_CLASS_CONTAINER_HERBALISM"] = true
 L["WOW_ITEM_CLASS_CONTAINER_INSCRIPTION"] = true
 L["WOW_ITEM_CLASS_CONTAINER_LEATHERWORKING"] = true
 L["WOW_ITEM_CLASS_CONTAINER_MINING"] = true
+L["WOW_ITEM_CLASS_CONTAINER_REAGENT"] = true
 L["WOW_ITEM_CLASS_CONTAINER_SOULSHARD"] = true
 
 L["WOW_ITEM_CLASS_QUIVER"] = true
@@ -685,3 +709,6 @@ L["WOW_SKILL_TAILORING"] = true
 L["WOW_ITEM_SOULSHARD"] = true
 L["WOW_ITEM_PROJECTILE_ARROW"] = true
 L["WOW_ITEM_PROJECTILE_BULLET"] = true
+
+L["DEBUG_SCAN_ABORT_NOT_MONITORED"] = "scan aborted - blizzard bag [%1$s] is not monitored"
+L["DEBUG_SCAN_ABORT_NOT_MAPPED"] = "scan aborted - blizzard bag [%1$s] is not mapped"

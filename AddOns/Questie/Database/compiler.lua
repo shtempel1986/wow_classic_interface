@@ -11,9 +11,8 @@ local QuestieLib = QuestieLoader:ImportModule("QuestieLib")
 local l10n = QuestieLoader:ImportModule("l10n")
 
 
-local type = type
+local pcall, type = pcall, type
 local abs, min, floor = math.abs, math.min, math.floor
-local lshift = bit.lshift
 
 
 -- how fast to run operations (lower = slower but less lag)
@@ -322,7 +321,7 @@ readers["objectives"] = function(stream)
             for j=1, creditCount do
                 creditList[j] = stream:ReadInt24()
             end
-            killobjectives[i] = {creditList, stream:ReadInt24(), stream:ReadTinyStringNil()}
+            killobjectives[i] = {creditList, stream:ReadInt24(), stream:ReadTinyStringNil(), stream:ReadByte()}
         end
         ret[5] = killobjectives
     end
@@ -625,14 +624,15 @@ QuestieDBCompiler.writers = {
                 for i=1, #killobjectives do -- iterate over all killobjectives
                     local killobjective = killobjectives[i]
                     local npcIds = killobjective[1]
-                    assert(type(npcIds) == "table", "killObjective's npcids is not a table.")
-                    assert(#npcIds > 0, "killObjective has 0 npcIDs.")
+                    assert(type(npcIds) == "table", "killobjective's npcids is not a table.")
+                    assert(#npcIds > 0, "killobjective has 0 npcIDs.")
                     stream:WriteByte(#npcIds) -- write count of creatureIDs
                     for j=1, #npcIds do
                         stream:WriteInt24(npcIds[j]) -- write creatureID
                     end
                     stream:WriteInt24(killobjective[2]) -- write baseCreatureID
                     stream:WriteTinyString(killobjective[3] or "") -- write baseCreatureText
+                    stream:WriteByte(killobjective[4] or 0) -- write icon override index
                 end
             else
                 stream:WriteByte(0)
@@ -782,6 +782,7 @@ skippers["objectives"] = function(stream)
         for _=1, count do
             stream._pointer = stream:ReadByte() * 3 + 3 + stream._pointer
             stream._pointer = stream:ReadByte() + stream._pointer
+            stream._pointer = stream._pointer + 1
         end
     end
     spellObjectiveSkipper(stream)
@@ -946,7 +947,6 @@ function QuestieDBCompiler:CompileTableCoroutine(tbl, types, order, lookup, data
     local stream = Questie.db.profile.debugEnabled and QuestieStream:GetStream("raw_assert") or QuestieStream:GetStream("raw")
 
     -- Localize functions
-    local pcall, type = pcall, type
     local writers = QuestieDBCompiler.writers
     local supportedTypes = QuestieDBCompiler.supportedTypes
 
@@ -977,17 +977,16 @@ function QuestieDBCompiler:CompileTableCoroutine(tbl, types, order, lookup, data
                 local t = types[key]
 
                 if v and not supportedTypes[type(v)][t] then
-                    Questie:Error("|cFFFF0000Invalid datatype!|r   " .. kind .. "s[" .. tostring(id) .. "]."..key..": \"" .. type(v) .. "\" is not compatible with type \"" .. t .."\"")
+                    error("|cFFFF0000Invalid datatype!|r   " .. kind .. "s[" .. tostring(id) .. "]."..key..": \"" .. type(v) .. "\" is not compatible with type \"" .. t .."\"")
                     return
                 end
                 if not writers[t] then
-                    Questie:Error("Invalid datatype: " .. key .. " " .. tostring(t))
+                    error("Invalid datatype: " .. key .. " " .. tostring(t))
                 end
                 --print(key .. "s[" .. tostring(id) .. "]."..key..": \"" .. type(v) .. "\"")
                 local result, errorMessage = pcall(writers[t], stream, v)
                 if not result then
-                    Questie:Error("There was an error when compiling data for "..kind.." " .. tostring(id) .. " \""..tostring(key).."\":")
-                    Questie:Error(errorMessage)
+                    error("There was an error when compiling data for "..kind.." " .. tostring(id) .. " \""..tostring(key).."\":")
                     error(errorMessage)
                 end
             end
@@ -1159,7 +1158,7 @@ function QuestieDBCompiler:ValidateObjects()
 
     validator.stream:finished()
     Questie:Debug(Questie.DEBUG_INFO, "Finished objects validation without issues!")
-    end
+end
 
 
 function QuestieDBCompiler:ValidateItems()

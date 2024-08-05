@@ -334,6 +334,7 @@ function QuestieOptions.tabs.general:Initialize()
                         get = function () return Questie.db.profile.lowLevelStyle end,
                         set = function (_, value)
                             Questie.db.profile.lowLevelStyle = value
+                            AvailableQuests.ResetLevelRequirementCache()
                             AvailableQuests.CalculateAndDrawAll()
                             Questie:Debug(Questie.DEBUG_DEVELOP, "Lowlevel Quests set to:", value)
                         end,
@@ -353,7 +354,10 @@ function QuestieOptions.tabs.general:Initialize()
                         get = function() return Questie.db.profile.manualLevelOffset end,
                         set = function(info, value)
                             Questie.db.profile.manualLevelOffset = value;
-                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "manualLevelOffset set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, function()
+                                AvailableQuests.ResetLevelRequirementCache()
+                                AvailableQuests.CalculateAndDrawAll()
+                            end, "manualLevelOffset set to " .. value)
                         end,
                     },
                     minLevelFilter = {
@@ -372,7 +376,10 @@ function QuestieOptions.tabs.general:Initialize()
                                 value = Questie.db.profile.maxLevelFilter
                             end
                             Questie.db.profile.minLevelFilter = value;
-                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "minLevelFilter set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, function()
+                                AvailableQuests.ResetLevelRequirementCache()
+                                AvailableQuests.CalculateAndDrawAll()
+                            end, "minLevelFilter set to " .. value)
                         end,
                     },
                     maxLevelFilter = {
@@ -395,7 +402,10 @@ function QuestieOptions.tabs.general:Initialize()
                                 value = Questie.db.profile.minLevelFilter
                             end
                             Questie.db.profile.maxLevelFilter = value;
-                            QuestieOptionsUtils:Delay(0.3, AvailableQuests.CalculateAndDrawAll, "maxLevelFilter set to " .. value)
+                            QuestieOptionsUtils:Delay(0.3, function()
+                                AvailableQuests.ResetLevelRequirementCache()
+                                AvailableQuests.CalculateAndDrawAll()
+                            end, "maxLevelFilter set to " .. value)
                         end,
                     },
                 },
@@ -629,18 +639,25 @@ _GetQuestSoundChoices = function()
         ["Undead Female"]    = "Undead Female",
         ["Orc Male"]         = "Orc Male",
         ["Orc Female"]       = "Orc Female",
-        ["Night Elf Female"] = "Night Elf Female",
         ["Night Elf Male"]   = "Night Elf Male",
-        ["Human Female"]     = "Human Female",
+        ["Night Elf Female"] = "Night Elf Female",
         ["Human Male"]       = "Human Male",
+        ["Human Female"]     = "Human Female",
         ["Gnome Male"]       = "Gnome Male",
         ["Gnome Female"]     = "Gnome Female",
         ["Dwarf Male"]       = "Dwarf Male",
         ["Dwarf Female"]     = "Dwarf Female",
         ["Draenei Male"]     = "Draenei Male",
         ["Draenei Female"]   = "Draenei Female",
-        ["Blood Elf Female"] = "Blood Elf Female",
         ["Blood Elf Male"]   = "Blood Elf Male",
+        ["Blood Elf Female"] = "Blood Elf Female",
+        ["Goblin Male"]      = "Goblin Male",
+        ["Goblin Female"]    = "Goblin Female",
+        ["Worgen Male"]      = "Worgen Male",
+        ["Worgen Female"]    = "Worgen Female",
+        ["Gilnean Male"]     = "Gilnean Male",
+        ["Gilnean Female"]   = "Gilnean Female",
+        ["Zug Zug"]          = "Zug Zug",
     }
 end
 
@@ -656,18 +673,25 @@ _GetQuestSoundChoicesSort = function()
         "Undead Female",
         "Orc Male",
         "Orc Female",
-        "Night Elf Female",
         "Night Elf Male",
-        "Human Female",
+        "Night Elf Female",
         "Human Male",
+        "Human Female",
         "Gnome Male",
         "Gnome Female",
         "Dwarf Male",
         "Dwarf Female",
         "Draenei Male",
         "Draenei Female",
-        "Blood Elf Female",
         "Blood Elf Male",
+        "Blood Elf Female",
+        "Goblin Male",
+        "Goblin Female",
+        "Worgen Male",
+        "Worgen Female",
+        "Gilnean Male",
+        "Gilnean Female",
+        "Zug Zug",
     }
 end
 

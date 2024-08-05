@@ -2,8 +2,8 @@
 ..\FrameXML\UI.xsd">
 	
 	<Script file="game.lua" />
-	<Script file="enUS.lua" />
 	
+	<Script file="enUS.lua" />
 	<Script file="deDE.lua" />
 	<Script file="esES.lua" />
 	<Script file="esMX.lua" />

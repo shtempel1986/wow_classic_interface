@@ -53,6 +53,8 @@ local AutoCompleteFrame = QuestieLoader:ImportModule("AutoCompleteFrame")
 local questAcceptedMessage = string.gsub(ERR_QUEST_ACCEPTED_S, "(%%s)", "(.+)")
 local questCompletedMessage = string.gsub(ERR_QUEST_COMPLETE_S, "(%%s)", "(.+)")
 
+local trackerMinimizedByDungeon = false
+
 --* Calculated in _EventHandler:PlayerLogin()
 ---en/br/es/fr/gb/it/mx: "You are now %s with %s." (e.g. "You are now Honored with Stormwind."), all other languages are very alike
 local FACTION_STANDING_CHANGED_PATTERN
@@ -92,7 +94,11 @@ function QuestieEventHandler:RegisterLateEvents()
     Questie:RegisterEvent("QUEST_FINISHED", function()
         QuestieAuto.QUEST_FINISHED()
         if Questie.IsCata then
-            AutoCompleteFrame.CheckAutoCompleteQuests()
+            -- There might be other quest events which need to finish first, so we wait a bit before checking.
+            -- This is easier, than actually figuring out which events are fired in which order for this logic.
+            C_Timer.After(0.5, function()
+                AutoCompleteFrame.CheckAutoCompleteQuests()
+            end)
         end
     end)
     Questie:RegisterEvent("QUEST_ACCEPTED", QuestieAuto.QUEST_ACCEPTED)
@@ -116,8 +122,42 @@ function QuestieEventHandler:RegisterLateEvents()
         if Questie.IsSoD then QuestieDebugOffer.QuestDialog(...) end;
     end)
 
+    Questie:RegisterEvent("ZONE_CHANGED_NEW_AREA", function()
+        Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] ZONE_CHANGED_NEW_AREA")
+        -- By my tests it takes a full 6-7 seconds for the world to load. There are a lot of
+        -- backend Questie updates that occur when a player zones in/out of an instance. This
+        -- is necessary to get everything back into it's "normal" state after all the updates.
+        local isInInstance, instanceType = IsInInstance()
+
+        if isInInstance then
+            C_Timer.After(8, function()
+                Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] ZONE_CHANGED_NEW_AREA: Entering Instance")
+                if Questie.db.profile.hideTrackerInDungeons then
+                    trackerMinimizedByDungeon = true
+
+                    QuestieCombatQueue:Queue(function()
+                        QuestieTracker:Collapse()
+                    end)
+                end
+            end)
+
+            -- We only want this to fire outside of an instance if the player isn't dead and we need to reset the Tracker
+        elseif (not Questie.db.char.isTrackerExpanded and not UnitIsGhost("player")) and trackerMinimizedByDungeon == true then
+            C_Timer.After(8, function()
+                Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] ZONE_CHANGED_NEW_AREA: Exiting Instance")
+                if Questie.db.profile.hideTrackerInDungeons then
+                    trackerMinimizedByDungeon = false
+
+                    QuestieCombatQueue:Queue(function()
+                        QuestieTracker:Expand()
+                    end)
+                end
+            end)
+        end
+    end)
+
     -- UI Achievement Events
-    if Questie.IsWotlk or Questie.IsCata then
+    if Questie.IsWotlk or Questie.IsCata and Questie.db.profile.trackerEnabled then
         -- Earned Achievement update
         Questie:RegisterEvent("ACHIEVEMENT_EARNED", function(index, achieveId, alreadyEarned)
             Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] ACHIEVEMENT_EARNED")
@@ -150,14 +190,17 @@ function QuestieEventHandler:RegisterLateEvents()
             end)
         end)
 
-        --[[ TODO: This fires FAR too often. Until Blizzard figures out a way to allow us to trigger achievement updates this needs to remain disabled for now.
-        Questie:RegisterEvent("CRITERIA_UPDATE", function()
+        -- This fires pretty often, multiple times for a single Achievement change and also for things most likely not related to Achievements at all.
+        -- We use a bucket to hinder this from spamming
+        Questie:RegisterBucketEvent("CRITERIA_UPDATE", 2, function()
             Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] CRITERIA_UPDATE")
-            QuestieCombatQueue:Queue(function()
-                QuestieTracker:Update()
-            end)
+
+            if Questie.db.char.trackedAchievementIds and next(Questie.db.char.trackedAchievementIds) then
+                QuestieCombatQueue:Queue(function()
+                    QuestieTracker:Update()
+                end)
+            end
         end)
-        --]]
         -- Money based Achievement updates
         Questie:RegisterEvent("CHAT_MSG_MONEY", function()
             Questie:Debug(Questie.DEBUG_DEVELOP, "[EVENT] CHAT_MSG_MONEY")
@@ -188,9 +231,11 @@ function QuestieEventHandler:RegisterLateEvents()
         Questie:RegisterEvent("LOOT_OPENED", QuestieDebugOffer.LootWindow)
     end
 
-    if Questie.IsCata then
+    if Questie.IsCata and Questie.db.profile.trackerEnabled then
        -- This is fired pretty often when an auto complete quest frame is showing. We want the default one to be hidden though.
-        Questie:RegisterEvent("UPDATE_ALL_UI_WIDGETS", WatchFrameHook.Hide)
+        Questie:RegisterEvent("UPDATE_ALL_UI_WIDGETS", function()
+            QuestieCombatQueue:Queue(WatchFrameHook.Hide)
+        end)
     end
 
     -- Questie Comms Events
@@ -212,20 +257,6 @@ function QuestieEventHandler:RegisterLateEvents()
     Questie:RegisterEvent("CHAT_MSG_LOOT", function(_, text, notPlayerName, _, _, playerName)
         QuestieTracker.QuestItemLooted(_, text)
         QuestieAnnounce.ItemLooted(_, text, notPlayerName, _, _, playerName)
-    end)
-
-    -- since icon updates are disabled in instances, we need to reset on P_E_W
-    Questie:RegisterEvent("PLAYER_ENTERING_WORLD", function()
-        if Questie.started then
-            QuestieMap:InitializeQueue()
-            local isInInstance, instanceType = IsInInstance()
-            local skipInstance = isInInstance and (instanceType == "raid" or instanceType == "pvp" or instanceType == "arena")
-
-            -- Only run map updates when not in a raid or battleground
-            if not skipInstance then
-                QuestieQuest:SmoothReset()
-            end
-        end
     end)
 end
 
@@ -345,6 +376,7 @@ function _EventHandler:PlayerLevelUp(level)
     C_Timer.After(3, function()
         QuestiePlayer:SetPlayerLevel(level)
 
+        AvailableQuests.ResetLevelRequirementCache()
         AvailableQuests.CalculateAndDrawAll()
     end)
 

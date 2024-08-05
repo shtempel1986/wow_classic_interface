@@ -741,14 +741,6 @@ function QuestieNPCFixes:Load()
             [npcKeys.zoneID] = zoneIDs.WAILING_CAVERNS,
             [npcKeys.spawns] = {[zoneIDs.WAILING_CAVERNS] = {{-1,-1}}},
         },
-        [5767] = {
-            [npcKeys.spawns] = {[zoneIDs.THE_BARRENS]={{45.99,35.66}}},
-            [npcKeys.zoneID] = zoneIDs.THE_BARRENS,
-        },
-        [5768] = {
-            [npcKeys.spawns] = {[zoneIDs.THE_BARRENS]={{46.01,35.74}}},
-            [npcKeys.zoneID] = zoneIDs.THE_BARRENS,
-        },
         [5797] = {
             [npcKeys.spawns] = {[zoneIDs.THE_BARRENS]={{46,70}}},
         },
@@ -1028,6 +1020,10 @@ function QuestieNPCFixes:Load()
         },
         [8580] = {
             [npcKeys.spawns] = {[zoneIDs.THE_TEMPLE_OF_ATAL_HAKKAR] = {{-1,-1}}},
+        },
+        [8888] = {
+            [npcKeys.spawns] = {[zoneIDs.BURNING_STEPPES] = {{28.96,28.93}}},
+            [npcKeys.zoneID] = zoneIDs.BURNING_STEPPES,
         },
         [8925] = {
             [npcKeys.zoneID] = zoneIDs.BLACKROCK_DEPTHS,
@@ -1892,6 +1888,13 @@ function QuestieNPCFixes:Load()
         },
         [14373] = {
             [npcKeys.spawns] = {[zoneIDs.FERALAS]={{74.4,44}}},
+        },
+        [14387] = { -- Lothos Riftwaker
+            [npcKeys.spawns] = {
+                [zoneIDs.BURNING_STEPPES] = {{26.4,24.45},},
+                [zoneIDs.SEARING_GORGE] = {{32.13,94.7},},
+            },
+            [npcKeys.zoneID] = zoneIDs.BURNING_STEPPES,
         },
         [14444] = {
             [npcKeys.zoneID] = zoneIDs.ORGRIMMAR, -- default zone where you start the chain

@@ -184,7 +184,7 @@ function ArkInventory.ConfigBlizzard( )
 					return
 				end
 				
-				local me = ArkInventory.GetPlayerCodex( )
+				local me = ArkInventory.Codex.GetPlayer( )
 				
 				if ArkInventory.db.option.tracking.items[a.id] then
 					--remove
@@ -233,7 +233,7 @@ function ArkInventory.ConfigBlizzard( )
 			args = {
 				mount = {
 					order = 100,
-					name = ArkInventory.Localise["LDB_MOUNTS_SUMMON"],
+					name = ArkInventory.Localise["LDB_MOUNT_SUMMON"],
 					type = "execute",
 					func = function( )
 						ArkInventory.LDB.Mounts:OnClick( )
@@ -316,7 +316,7 @@ function ArkInventory.ConfigInternalGenericCopyFrom( data, src_id, dst_id )
 		
 		if system then
 			
-			ArkInventory.OutputError( "code failure: attempted to copy over a system object" )
+			ArkInventory.OutputError( "code failure: attempted to copy a system object" )
 			return
 			
 		else
@@ -378,7 +378,7 @@ function ArkInventory.ConfigInternalDesignGet( id, default )
 	local defaulted = nil
 	
 	if not default then
-		assert( id, "code error: id is nil" )
+		ArkInventory.Util.Assert( id, "id is nil" )
 		return ArkInventory.db.option.design.data[id]
 	end
 	
@@ -446,10 +446,10 @@ end
 
 
 function ArkInventory.ConfigInternalCategoryGet( cat_type, cat_num )
-	assert( cat_type, "code error: cat_type is nil" )
-	assert( type( cat_type ) == "number", "code error: cat_type is a " .. type( cat_type ) .. ", not a number" )
-	assert( cat_num, "code error: cat_num is nil" )
-	assert( type( cat_num ) == "number", "code error: cat_num is a " .. type( cat_num ) .. ", not a number" )
+	ArkInventory.Util.Assert( cat_type, "cat_type is nil" )
+	ArkInventory.Util.Assert( type( cat_type ) == "number", "cat_type is [", type( cat_type ), ", should be [number]" )
+	ArkInventory.Util.Assert( cat_num, "cat_num is nil" )
+	ArkInventory.Util.Assert( type( cat_num ) == "number", "cat_num is [", type( cat_num ), "], should be [number]" )
 	return ArkInventory.db.option.category[cat_type].data[cat_num]
 end
 
@@ -684,7 +684,7 @@ function ArkInventory.ConfigInternalCategoryRuleValidate( id )
 		
 	else
 		
-		ArkInventoryRules.SetObject( { test_rule=true, class="item", loc_id=ArkInventory.Const.Location.Bag, bag_id=1, slot_id=1, count=1, q=1, sb=ArkInventory.ENUM.BIND.PICKUP, h=string.format("item:%s:::::::", HEARTHSTONE_ITEM_ID ) } )
+		ArkInventoryRules.SetObject( { test_rule=true, class="item", loc_id=ArkInventory.Const.Location.Bag, bag_id=1, slot_id=1, count=1, q=1, sb=ArkInventory.ENUM.ITEM.BINDING.PICKUP, h=string.format("item:%s:::::::", HEARTHSTONE_ITEM_ID ) } )
 		
 		local p, pem = loadstring( string.format( "return( %s )", data.formula ) )
 		
@@ -956,7 +956,7 @@ function ArkInventory.ConfigInternalSortMethodGet( id, default )
 	local id = id
 	
 	if not default then
-		assert( id, "code error: id is nil" )
+		ArkInventory.Util.Assert( id, "id is nil" )
 		return ArkInventory.db.option.sort.method.data[id]
 	end
 	
@@ -1059,7 +1059,7 @@ function ArkInventory.ConfigInternalCategorysetGet( id, default )
 	local defaulted = nil
 	
 	if not default then
-		assert( id, "code error: id is nil" )
+		ArkInventory.Util.Assert( id, "id is nil" )
 		return ArkInventory.db.option.catset.data[id]
 	end
 	
@@ -1148,7 +1148,7 @@ function ArkInventory.ConfigInternalAccountGet( id, default )
 	local id = id
 	
 	if not default then
-		assert( id, "code error: id is nil" )
+		ArkInventory.Util.Assert( id, "id is nil" )
 		return ArkInventory.db.account.data[id]
 	end
 	
@@ -1237,7 +1237,7 @@ function ArkInventory.ConfigInternalProfileGet( id, default )
 	local id = id
 	
 	if not default then
-		assert( id, "code error: id is nil" )
+		ArkInventory.Util.Assert( id, "id is nil" )
 		return ArkInventory.db.option.profile.data[id]
 	end
 	
@@ -1595,17 +1595,19 @@ function ArkInventory.ConfigInternalProfileImport( src )
 			local tmp = ArkInventory.Table.Copy( data.ia )
 			ArkInventory.Table.Clean( data.ia )
 			for item_id, v1 in pairs( tmp ) do
-				local cat_id = v1.assign
-				local cat_type, cat_num = ArkInventory.CategoryIdSplit( cat_id )
-				local cat_new = cat_used[cat_id]
-				if cat_new then
-					data.ia[item_id].assign = cat_new
-					--ArkInventory.Output( "assign - mapped category: ", item_id, " = ", cat_id, " > ", cat_new )
-				elseif cat_type == ArkInventory.Const.Category.Type.System then
-					data.ia[item_id].assign = cat_id
-					--ArkInventory.Output( "assign - unmapped system category: ", item_id, " = ", cat_id )
-				else
-					--ArkInventory.Output( "assign - ignored: ", item_id, " = ", cat_id )
+				if v1.assign then
+					local cat_id = v1.assign
+					local cat_type, cat_num = ArkInventory.CategoryIdSplit( cat_id )
+					local cat_new = cat_used[cat_id]
+					if cat_new then
+						data.ia[item_id].assign = cat_new
+						--ArkInventory.Output( "assign - mapped category: ", item_id, " = ", cat_id, " > ", cat_new )
+					elseif cat_type == ArkInventory.Const.Category.Type.System then
+						data.ia[item_id].assign = cat_id
+						--ArkInventory.Output( "assign - unmapped system category: ", item_id, " = ", cat_id )
+					else
+						--ArkInventory.Output( "assign - ignored: ", item_id, " = ", cat_id )
+					end
 				end
 			end
 			

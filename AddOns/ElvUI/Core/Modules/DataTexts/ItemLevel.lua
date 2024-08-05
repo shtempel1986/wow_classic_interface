@@ -5,7 +5,7 @@ local ipairs = ipairs
 local format = format
 
 local GetItemLevelColor = GetItemLevelColor
-local GetAverageItemLevel= GetAverageItemLevel
+local GetAverageItemLevel = GetAverageItemLevel
 local GetInventoryItemLink = GetInventoryItemLink
 local GetInventoryItemTexture = GetInventoryItemTexture
 
@@ -23,9 +23,14 @@ local r, g, b, avg, avgEquipped, avgPvp = 1, 1, 1, 0, 0, 0
 local db
 
 local function OnEvent(self)
-	if E.Retail then
+	if E.Retail or E.Cata then
 		avg, avgEquipped, avgPvp = GetAverageItemLevel()
-		r, g, b = GetItemLevelColor()
+
+		if E.Retail then
+			r, g, b = GetItemLevelColor()
+		else
+			r, g, b = E:ColorizeItemLevel(avg)
+		end
 
 		local hex = db.rarityColor and E:RGBToHex(r, g, b) or '|cFFFFFFFF'
 
@@ -36,7 +41,7 @@ local function OnEvent(self)
 end
 
 local function OnEnter()
-	if not E.Retail then return end
+	if not (E.Retail or E.Cata) then return end
 
 	DT.tooltip:ClearLines()
 

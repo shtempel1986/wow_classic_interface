@@ -4,7 +4,28 @@ local S = E:GetModule('Skins')
 local _G = _G
 local next = next
 local unpack = unpack
+local hooksecurefunc = hooksecurefunc
 local CreateFrame = CreateFrame
+
+local pvpRewards = { 'PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoWinReward', 'PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoLossReward', 'PVPConquestFrameWinReward' }
+
+local honorTexture = [[Interface\Icons\PVPCurrency-Honor-]]..E.myfaction
+local conquestTexture = [[Interface\Icons\PVPCurrency-Conquest-]]..E.myfaction
+local function PVPFrameTabClicked()
+	_G.PVPFrameCurrencyIcon:SetTexture(honorTexture)
+
+	for _, name in next, pvpRewards do
+		local honor = (_G[name] ~= _G.PVPConquestFrameWinReward) and _G[name..'HonorSymbol']
+		if honor then
+			honor:SetTexture(honorTexture)
+		end
+
+		local conquest = _G[name..'ArenaSymbol']
+		if conquest then
+			conquest:SetTexture(conquestTexture)
+		end
+	end
+end
 
 function S:SkinPVPFrame()
 	-- Honor, Conquest, War Games Frame
@@ -46,17 +67,20 @@ function S:SkinPVPFrame()
 
 	-- Tons of leftover texture crap
 	local killTextures = {
-		'PVPHonorFrameBGTex',
-		'PVPHonorFrameInfoScrollFrameScrollBar',
+		'PVPBannerFramePortrait',
 		'PVPConquestFrameInfoButtonInfoBG',
 		'PVPConquestFrameInfoButtonInfoBGOff',
-		'PVPBannerFramePortrait',
-		'PVPFrameConquestBarLeft',
-		'PVPFrameConquestBarRight',
-		'PVPFrameConquestBarMiddle',
 		'PVPFrameConquestBarBG',
+		'PVPFrameConquestBarLeft',
+		'PVPFrameConquestBarMiddle',
+		'PVPFrameConquestBarRight',
 		'PVPFrameConquestBarShadow',
-		'WarGamesFrameInfoScrollFrameScrollBar'
+		'PVPFrameRightButton_LeftSeparator',
+		'PVPHonorFrameBGTex',
+		'PVPHonorFrameInfoScrollFrameScrollBar',
+		'PVPTeamManagementFrameBackground',
+		'WarGamesFrameInfoScrollFrameScrollBar',
+		'WarGameStartButton_RightSeparator'
 	}
 
 	for _, name in next, killTextures do
@@ -76,6 +100,7 @@ function S:SkinPVPFrame()
 		_G.PVPFrame.HealerIcon.checkButton,
 		_G.PVPFrame.DPSIcon.checkButton
 	}
+
 	for _, checkButton in next, checkButtons do
 		S:HandleCheckBox(checkButton)
 		checkButton:Size(22)
@@ -121,8 +146,6 @@ function S:SkinPVPFrame()
 	PVPFrameLowLevelFrame.backdrop:Point('TOPLEFT', -2, -40)
 	PVPFrameLowLevelFrame.backdrop:Point('BOTTOMRIGHT', 5, 80)
 
-	local honorTexture = [[Interface\Icons\PVPCurrency-Honor-]]..E.myfaction
-	local conquestTexture = [[Interface\Icons\PVPCurrency-Conquest-]]..E.myfaction
 
 	-- PvP Icon
 	if _G.PVPFrameCurrency then
@@ -133,7 +156,6 @@ function S:SkinPVPFrame()
 
 		local PVPFrameCurrencyIcon = _G.PVPFrameCurrencyIcon
 		PVPFrameCurrencyIcon:SetTexture(honorTexture)
-		PVPFrameCurrencyIcon.SetTexture = E.noop
 		PVPFrameCurrencyIcon:SetTexCoord(unpack(E.TexCoords))
 		PVPFrameCurrencyIcon:SetInside(PVPFrameCurrency.backdrop)
 
@@ -142,44 +164,54 @@ function S:SkinPVPFrame()
 	end
 
 	-- Rewards
-	for _, name in next, { 'PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoWinReward', 'PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoLossReward', 'PVPConquestFrameWinReward' } do
+	for _, name in next, pvpRewards do
 		local frame = _G[name]
 
 		local background = frame:GetRegions()
 		background:SetTexture(E.Media.Textures.Highlight)
-		if frame == _G.PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoWinReward or frame == _G.PVPConquestFrameWinReward then
+
+		if (frame == _G.PVPHonorFrameInfoScrollFrameChildFrameRewardsInfoWinReward) or (frame == _G.PVPConquestFrameWinReward) then
 			background:SetVertexColor(0, 0.439, 0, 0.5)
 		else
 			background:SetVertexColor(0.5608, 0, 0, 0.5)
 		end
 
-		if frame ~= _G.PVPConquestFrameWinReward then
-			local honor = _G[name..'HonorSymbol']
-			if honor then
-				honor:SetTexture(honorTexture)
-				honor.SetTexture = E.noop
-				honor:SetTexCoord(unpack(E.TexCoords))
-				honor:Size(30)
-			end
+		local honor = (frame ~= _G.PVPConquestFrameWinReward) and _G[name..'HonorSymbol']
+		if honor then
+			honor:SetTexture(honorTexture)
+			honor:SetTexCoord(unpack(E.TexCoords))
+			honor:Size(30)
 		end
 
 		local conquest = _G[name..'ArenaSymbol']
 		if conquest then
 			conquest:SetTexture(conquestTexture)
-			conquest.SetTexture = E.noop
 			conquest:SetTexCoord(unpack(E.TexCoords))
 			conquest:Size(30)
 		end
 	end
 
+	hooksecurefunc('PVPFrame_TabClicked', PVPFrameTabClicked)
+
+	-- Team Management
+	for i = 1, 3 do
+		local top = _G['PVPTeam'..i..'Top']
+		local bottom = _G['PVPTeam'..i..'Bottom']
+		local left = _G['PVPTeam'..i..'Left']
+		local right = _G['PVPTeam'..i..'Right']
+
+		top:StripTextures()
+		bottom:StripTextures()
+		left:StripTextures()
+		right:StripTextures()
+	end
+
+	_G.PVPTeamManagementFrameWeeklyDisplay:StripTextures()
+	_G.PVPTeamManagementFrameWeeklyDisplay:SetTemplate('Transparent')
+
 	-- War Games
 	_G.WarGamesFrame:StripTextures()
 	_G.WarGamesFrameDescription:SetTextColor(1, 1, 1)
-
-	local WarGameStartButton = _G.WarGameStartButton
-	S:HandleButton(WarGameStartButton, true)
-	WarGameStartButton:ClearAllPoints()
-	WarGameStartButton:Point('LEFT', _G.PVPFrameLeftButton, 'RIGHT', 2, 0)
 
 	-- Create Arena Team
 	local PVPBannerFrame = _G.PVPBannerFrame
@@ -222,7 +254,7 @@ function S:SkinPVPFrame()
 	local PVPBannerFrameCancelButton = _G.PVPBannerFrameCancelButton
 	S:HandleButton(PVPBannerFrameCancelButton)
 	PVPBannerFrameCancelButton.backdrop = CreateFrame('Frame', nil, PVPBannerFrameCancelButton)
-	PVPBannerFrameCancelButton.backdrop:SetTemplate('Default', true)
+	PVPBannerFrameCancelButton.backdrop:SetTemplate(nil, true)
 	PVPBannerFrameCancelButton.backdrop:SetFrameLevel(PVPBannerFrameCancelButton:GetFrameLevel() - 2)
 	PVPBannerFrameCancelButton.backdrop:Point('TOPLEFT', _G.PVPBannerFrameAcceptButton, 248, 0)
 	PVPBannerFrameCancelButton.backdrop:Point('BOTTOMRIGHT', _G.PVPBannerFrameAcceptButton, 248, 0)
@@ -231,12 +263,14 @@ function S:SkinPVPFrame()
 	S:HandleTab(_G.PVPFrameTab1)
 	S:HandleTab(_G.PVPFrameTab2)
 	S:HandleTab(_G.PVPFrameTab3)
+	S:HandleTab(_G.PVPFrameTab4)
 
 	-- Reposition Tabs
 	_G.PVPFrameTab1:ClearAllPoints()
 	_G.PVPFrameTab1:Point('TOPLEFT', PVPFrame, 'BOTTOMLEFT', -10, 0)
 	_G.PVPFrameTab2:Point('TOPLEFT', _G.PVPFrameTab1, 'TOPRIGHT', -19, 0)
 	_G.PVPFrameTab3:Point('TOPLEFT', _G.PVPFrameTab2, 'TOPRIGHT', -19, 0)
+	_G.PVPFrameTab4:Point('TOPLEFT', _G.PVPFrameTab3, 'TOPRIGHT', -19, 0)
 end
 
 function S:SkinPVPReadyDialog()

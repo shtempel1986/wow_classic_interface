@@ -1,4 +1,4 @@
-
+﻿
 --[[
 
 CPU profiling is disabled by default since it has some overhead. CPU profiling is controlled by the scriptProfile cvar, which persists across sessions, and takes effect after a UI reload.

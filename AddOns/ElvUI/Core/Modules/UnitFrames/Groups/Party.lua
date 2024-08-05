@@ -69,6 +69,9 @@ function UF:Construct_PartyFrames()
 
 		if E.Retail then
 			self.PvPClassificationIndicator = UF:Construct_PvPClassificationIndicator(self) -- Cart / Flag / Orb / Assassin Bounty
+		end
+
+		if not E.Classic then
 			self.AlternativePower = UF:Construct_AltPowerBar(self)
 			self.ClassBar = 'AlternativePower'
 		end
@@ -143,13 +146,7 @@ function UF:Update_PartyFrames(frame, db)
 
 		frame.BOTTOM_OFFSET = 0
 
-		frame.db = frame.childType == 'target' and db.targetsGroup or db.petsGroup
-
-		-- these are just coming in from the main group and will not export
-		frame.db.disableMouseoverGlow = db.disableMouseoverGlow
-		frame.db.disableTargetGlow = db.disableMouseoverGlow
-		frame.db.disableFocusGlow = db.disableMouseoverGlow
-
+		frame.db = (frame.childType == 'target' and db.targetsGroup) or db.petsGroup
 		db = frame.db
 
 		frame:Size(db.width, db.height)
@@ -194,13 +191,19 @@ function UF:Update_PartyFrames(frame, db)
 		UF:Configure_CustomTexts(frame)
 		UF:Configure_CombatIndicator(frame)
 
-		if E.Retail then
+		if not E.Classic then
 			UF:Configure_AltPowerBar(frame)
+		end
+
+		if E.Retail then
 			UF:Configure_ResurrectionIcon(frame)
 			UF:Configure_SummonIcon(frame)
 			UF:Configure_PvPClassificationIndicator(frame)
 		end
 	end
+
+	frame:SetFrameStrata(db.strataAndLevel and db.strataAndLevel.useCustomStrata and db.strataAndLevel.frameStrata or 'LOW')
+	frame:SetFrameLevel(db.strataAndLevel and db.strataAndLevel.useCustomLevel and db.strataAndLevel.frameLevel or 1)
 
 	UF:UpdateNameSettings(frame)
 	UF:Configure_RaidIcon(frame)
